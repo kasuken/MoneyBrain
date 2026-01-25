@@ -1,0 +1,183 @@
+@page "/"
+@layout Layout.MarketingLayout
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>MoneyBrain - Your Personal Finance System, Under Your Control</PageTitle>
+<HeadContent>
+    <meta name="description" content="MoneyBrain is a lightweight, self-hosted personal finance system. Track spending, manage budgets, and maintain correct financial records with full data ownership." />
+    <meta name="keywords" content="personal finance, budgeting, self-hosted, money management, expense tracking, financial planning" />
+    <meta property="og:title" content="MoneyBrain - Personal Finance Under Your Control" />
+    <meta property="og:description" content="Track spending, manage budgets, and maintain correct financial records with full data ownership." />
+    <meta property="og:type" content="website" />
+</HeadContent>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="display-4 fw-bold mb-4">
+                    Your Personal Finance System, Under Your Control
+                </h1>
+                <p class="lead mb-4">
+                    MoneyBrain is a lightweight, self-hosted personal finance system that helps you track spending, 
+                    manage budgets, and maintain correct financial records—with full data ownership.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/Account/Register" class="btn btn-light btn-lg px-4">
+                        Get Started Free
+                    </a>
+                    <a href="/features" class="btn btn-outline-light btn-lg px-4">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="bg-white bg-opacity-10 rounded-4 p-5">
+                    <div class="display-1 mb-3">💰</div>
+                    <p class="h4 mb-0">Simple. Private. Powerful.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Principles -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">Built on Core Principles</h2>
+            <p class="lead text-muted">What makes MoneyBrain different from other finance tools</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card h-100 p-4 text-center">
+                    <div class="feature-icon">🏠</div>
+                    <h4 class="fw-bold">Self-Hosted</h4>
+                    <p class="text-muted mb-0">
+                        Your data stays on your server. No cloud dependency, no third-party access.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 p-4 text-center">
+                    <div class="feature-icon">🔒</div>
+                    <h4 class="fw-bold">Privacy First</h4>
+                    <p class="text-muted mb-0">
+                        No telemetry, no tracking, no external data transmission. Ever.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100 p-4 text-center">
+                    <div class="feature-icon">✅</div>
+                    <h4 class="fw-bold">Correctness</h4>
+                    <p class="text-muted mb-0">
+                        Predictable, deterministic behavior. Your finances, calculated right.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Overview -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">Everything You Need</h2>
+            <p class="lead text-muted">Powerful features without the complexity</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <span class="fs-2">🏦</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Account Management</h5>
+                        <p class="text-muted small">Track bank accounts, credit cards, savings, and loans with accurate balance tracking.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <span class="fs-2">💳</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Transaction Tracking</h5>
+                        <p class="text-muted small">Manual entry and CSV import with search, filtering, and bulk editing.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <span class="fs-2">🔄</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Smart Transfers</h5>
+                        <p class="text-muted small">First-class transfer support that correctly excludes from budgets and reports.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <span class="fs-2">📊</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Monthly Budgets</h5>
+                        <p class="text-muted small">Envelope-style budgeting with rollover support and clear remaining calculations.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <span class="fs-2">⚙️</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Rules Engine</h5>
+                        <p class="text-muted small">Automate categorization with deterministic rules and preview before applying.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <span class="fs-2">✔️</span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Reconciliation</h5>
+                        <p class="text-muted small">Statement-based reconciliation with transaction locking and audit trail.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <a href="/features" class="btn btn-primary btn-lg px-4">Explore All Features</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section text-center">
+    <div class="container">
+        <h2 class="display-5 fw-bold mb-4">Ready to Take Control?</h2>
+        <p class="lead mb-4">Start managing your finances with clarity and confidence.</p>
+        <a href="/Account/Register" class="btn btn-light btn-lg px-5">Create Your Free Account</a>
+    </div>
+</section>
+
+@code {
+    protected override void OnInitialized()
+    {
+        var ctx = HttpContextAccessor?.HttpContext;
+        if (ctx?.User?.Identity?.IsAuthenticated == true)
+        {
+            ctx.Response.Redirect("/dashboard");
+        }
+    }
+}

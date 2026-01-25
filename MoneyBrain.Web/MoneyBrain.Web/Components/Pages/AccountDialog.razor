@@ -1,0 +1,203 @@
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+
+@inject IAccountService AccountService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudTextField @bind-Value="_model.Name"
+                          Label="Account Name"
+                          Required="true"
+                          RequiredError="Account name is required"
+                          MaxLength="100"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudSelect @bind-Value="_model.Type"
+                       Label="Account Type"
+                       Required="true"
+                       Variant="Variant.Outlined"
+                       Class="mb-3">
+                <MudSelectItem Value="@AccountType.Asset">Asset</MudSelectItem>
+                <MudSelectItem Value="@AccountType.Liability">Liability</MudSelectItem>
+            </MudSelect>
+
+            <MudSelect @bind-Value="_model.SubType"
+                       Label="Account Sub-Type"
+                       Required="true"
+                       Variant="Variant.Outlined"
+                       Class="mb-3">
+                @if (_model.Type == AccountType.Asset)
+                {
+                    <MudSelectItem Value="@AccountSubType.Cash">Cash</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Checking">Checking</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Savings">Savings</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Investment">Investment</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.OtherAsset">Other Asset</MudSelectItem>
+                }
+                else
+                {
+                    <MudSelectItem Value="@AccountSubType.CreditCard">Credit Card</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Loan">Loan</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Mortgage">Mortgage</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.OtherLiability">Other Liability</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudTextField @bind-Value="_model.Group"
+                          Label="Group (optional)"
+                          MaxLength="50"
+                          Variant="Variant.Outlined"
+                          Class="mb-3"
+                          HelperText="Organize accounts into groups (e.g., 'Personal', 'Business')" />
+
+            <MudNumericField @bind-Value="_model.OpeningBalance"
+                             Label="Opening Balance"
+                             Variant="Variant.Outlined"
+                             Class="mb-3"
+                             Format="C2"
+                             Culture="@System.Globalization.CultureInfo.CurrentCulture"
+                             HelperText="Initial balance when creating this account" />
+
+            <MudTextField @bind-Value="_model.Notes"
+                          Label="Notes (optional)"
+                          Lines="3"
+                          MaxLength="500"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudCheckBox T="bool" @bind-Checked="_model.IsActive"
+                         Label="Active"
+                         Color="Color.Primary" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Save" 
+                   Disabled="@(!_isValid || _isSaving)">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+            }
+            else
+            {
+                <text>Save</text>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudBlazor.IDialogService DialogService { get; set; } = default!;
+
+    [Parameter]
+    public string? UserId { get; set; }
+
+    [Parameter]
+    public Account? Account { get; set; }
+
+    [Parameter]
+    public bool IsNew { get; set; }
+
+    [CascadingParameter] 
+    IMudDialogInstance DialogInstance { get; set; } = default!;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _isSaving;
+    private AccountModel _model = new();
+
+    protected override void OnInitialized()
+    {
+        if (Account != null)
+        {
+            _model = new AccountModel
+           {
+                Name = Account.Name,
+                Type = Account.Type,
+                SubType = Account.SubType,
+                Group = Account.Group,
+                OpeningBalance = Account.OpeningBalance,
+                Notes = Account.Notes,
+                IsActive = Account.IsActive
+            };
+        }
+        else
+        {
+            // Defaults for new account
+            _model = new AccountModel
+            {
+                Type = AccountType.Asset,
+                SubType = AccountSubType.Checking,
+                IsActive = true
+            };
+        }
+    }
+
+    private void Cancel()
+    {
+        DialogInstance.Cancel();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_isValid)
+            return;
+
+        _isSaving = true;
+        try
+        {
+            if (IsNew)
+            {
+                var newAccount = new Account
+                {
+                    UserId = UserId!,
+                    Name = _model.Name!,
+                    Type = _model.Type,
+                    SubType = _model.SubType,
+                    Group = _model.Group,
+                    OpeningBalance = _model.OpeningBalance,
+                    Notes = _model.Notes,
+                    IsActive = _model.IsActive
+                };
+
+                await AccountService.CreateAccountAsync(newAccount);
+            }
+            else if (Account != null)
+            {
+                Account.Name = _model.Name!;
+                Account.Type = _model.Type;
+                Account.SubType = _model.SubType;
+                Account.Group = _model.Group;
+                Account.OpeningBalance = _model.OpeningBalance;
+                Account.Notes = _model.Notes;
+                Account.IsActive = _model.IsActive;
+
+                await AccountService.UpdateAccountAsync(Account);
+            }
+
+            DialogInstance.Close(DialogResult.Ok(true));
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private class AccountModel
+    {
+        public string? Name { get; set; }
+        public AccountType Type { get; set; }
+        public AccountSubType SubType { get; set; }
+        public string? Group { get; set; }
+        public decimal OpeningBalance { get; set; }
+        public string? Notes { get; set; }
+        public bool IsActive { get; set; }
+    }
+}

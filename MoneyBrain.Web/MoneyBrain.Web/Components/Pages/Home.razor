@@ -1,7 +1,59 @@
-﻿@page "/"
+﻿@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard - MoneyBrain</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Welcome to MoneyBrain</MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Class="pa-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Class="mb-2">💰 Accounts</MudText>
+                    <MudText Typo="Typo.body2" Class="text-muted">
+                        Manage your bank accounts, credit cards, and other financial accounts.
+                    </MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/accounts">
+                        View Accounts
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Class="pa-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Class="mb-2">📊 Transactions</MudText>
+                    <MudText Typo="Typo.body2" Class="text-muted">
+                        Track income and expenses across all your accounts.
+                    </MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Disabled="true">
+                        Coming Soon
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Class="pa-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Class="mb-2">📈 Budget</MudText>
+                    <MudText Typo="Typo.body2" Class="text-muted">
+                        Plan your monthly spending with envelope-style budgeting.
+                    </MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Disabled="true">
+                        Coming Soon
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

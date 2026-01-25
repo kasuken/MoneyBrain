@@ -17,11 +17,11 @@
     
     <ImportMap/>
     <link rel="icon" type="image/png" href="favicon.png"/>
-    <HeadOutlet/>
+    <HeadOutlet @rendermode="PageRenderMode"/>
 </head>
 
 <body>
-<Routes/>
+<Routes @rendermode="PageRenderMode"/>
 <ReconnectModal/>
 <script src="@Assets["_framework/blazor.web.js"]"></script>
 <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
@@ -32,3 +32,15 @@
 </body>
 
 </html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    /// <summary>
+    /// Determines render mode based on whether the component accepts interactive routing.
+    /// Marketing pages marked with [ExcludeFromInteractiveRouting] will render statically for SEO.
+    /// </summary>
+    private IComponentRenderMode? PageRenderMode
+        => HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+}

@@ -1,0 +1,215 @@
+@page "/accounts"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject IAccountService AccountService
+@inject IDialogService DialogService
+@inject ISnackbar SnackbarService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Accounts - MoneyBrain</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Accounts</MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6">
+                Your Accounts (@_accounts.Count)
+            </MudText>
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@OpenCreateAccountDialog">
+                New Account
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
+    }
+    else if (_accounts.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">
+            No accounts found. Create your first account to start tracking your finances.
+        </MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h6" Class="mb-3">Assets</MudText>
+                @foreach (var account in _accounts.Where(a => a.Type == AccountType.Asset))
+                {
+                    <MudCard Class="mb-3">
+                        <MudCardContent>
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                                <div>
+                                    <MudText Typo="Typo.h6">@account.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @account.SubType.ToString()
+                                    </MudText>
+                                    @if (!string.IsNullOrWhiteSpace(account.Group))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@account.Group</MudChip>
+                                    }
+                                </div>
+                                <MudText Typo="Typo.h6" Color="Color.Success">
+                                    @account.OpeningBalance.ToString("C")
+                                </MudText>
+                            </MudStack>
+                            @if (!string.IsNullOrWhiteSpace(account.Notes))
+                            {
+                                <MudText Typo="Typo.body2" Class="mt-2">@account.Notes</MudText>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                           Size="Size.Small"
+                                           OnClick="@(() => OpenEditAccountDialog(account))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="@(() => DeleteAccount(account))" />
+                        </MudCardActions>
+                    </MudCard>
+                }
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h6" Class="mb-3">Liabilities</MudText>
+                @foreach (var account in _accounts.Where(a => a.Type == AccountType.Liability))
+                {
+                    <MudCard Class="mb-3">
+                        <MudCardContent>
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                                <div>
+                                    <MudText Typo="Typo.h6">@account.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @account.SubType.ToString()
+                                    </MudText>
+                                    @if (!string.IsNullOrWhiteSpace(account.Group))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@account.Group</MudChip>
+                                    }
+                                </div>
+                                <MudText Typo="Typo.h6" Color="Color.Error">
+                                    @account.OpeningBalance.ToString("C")
+                                </MudText>
+                            </MudStack>
+                            @if (!string.IsNullOrWhiteSpace(account.Notes))
+                            {
+                                <MudText Typo="Typo.body2" Class="mt-2">@account.Notes</MudText>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                           Size="Size.Small"
+                                           OnClick="@(() => OpenEditAccountDialog(account))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="@(() => DeleteAccount(account))" />
+                        </MudCardActions>
+                    </MudCard>
+                }
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    private List<Account> _accounts = new();
+    private bool _isLoading = true;
+    private string? _userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrWhiteSpace(_userId))
+        {
+            await LoadAccounts();
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task LoadAccounts()
+    {
+        if (string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        _accounts = (await AccountService.GetUserAccountsAsync(_userId)).ToList();
+    }
+
+    private async Task OpenCreateAccountDialog()
+    {
+        var parameters = new DialogParameters<AccountDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.IsNew, true }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AccountDialog>("Create Account", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadAccounts();
+            SnackbarService.Add("Account created successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditAccountDialog(Account account)
+    {
+        var parameters = new DialogParameters<AccountDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.Account, account },
+            { x => x.IsNew, false }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AccountDialog>("Edit Account", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadAccounts();
+            SnackbarService.Add("Account updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task DeleteAccount(Account account)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Delete Account",
+            $"Are you sure you want to delete '{account.Name}'? This action cannot be undone.",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (result == true && _userId != null)
+        {
+            var deleted = await AccountService.DeleteAccountAsync(account.Id, _userId);
+            if (deleted)
+            {
+                await LoadAccounts();
+                SnackbarService.Add("Account deleted successfully", Severity.Success);
+            }
+            else
+            {
+                SnackbarService.Add("Failed to delete account", Severity.Error);
+            }
+        }
+    }
+}

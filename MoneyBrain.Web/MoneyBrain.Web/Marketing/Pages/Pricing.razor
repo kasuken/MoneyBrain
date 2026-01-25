@@ -1,0 +1,157 @@
+@page "/pricing"
+@layout Layout.MarketingLayout
+
+<PageTitle>Pricing - MoneyBrain</PageTitle>
+<HeadContent>
+    <meta name="description" content="MoneyBrain is free and open source. Self-host it yourself or use our managed hosting. No hidden fees, no data selling." />
+    <meta name="keywords" content="free personal finance software, open source budgeting, self-hosted finance app pricing" />
+    <meta property="og:title" content="Pricing - MoneyBrain" />
+    <meta property="og:description" content="MoneyBrain is free and open source. Self-host or use managed hosting." />
+</HeadContent>
+
+<!-- Hero -->
+<section class="hero-section py-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">Simple, Transparent Pricing</h1>
+        <p class="lead">Free forever for self-hosting. Optional managed hosting for convenience.</p>
+    </div>
+</section>
+
+<!-- Pricing Cards -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center g-4">
+            <!-- Self-Hosted -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card pricing-card h-100 shadow-sm">
+                    <div class="card-header bg-white text-center py-4">
+                        <h4 class="fw-bold mb-2">Self-Hosted</h4>
+                        <div class="display-4 fw-bold text-primary">Free</div>
+                        <p class="text-muted mb-0">Forever</p>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-3">✅ All features included</li>
+                            <li class="mb-3">✅ Unlimited accounts</li>
+                            <li class="mb-3">✅ Unlimited transactions</li>
+                            <li class="mb-3">✅ Full data ownership</li>
+                            <li class="mb-3">✅ Docker deployment</li>
+                            <li class="mb-3">✅ SQLite database</li>
+                            <li class="mb-3">✅ Community support</li>
+                            <li class="mb-3">✅ Open source</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-white border-0 pb-4">
+                        <a href="#" class="btn btn-outline-primary w-100 btn-lg">
+                            Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Managed Hosting -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card pricing-card featured h-100 shadow">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <span class="badge bg-warning text-dark mb-2">Coming Soon</span>
+                        <h4 class="fw-bold mb-2">Managed Hosting</h4>
+                        <div class="display-4 fw-bold">$5</div>
+                        <p class="mb-0 opacity-75">per month</p>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-3">✅ Everything in Self-Hosted</li>
+                            <li class="mb-3">✅ We host it for you</li>
+                            <li class="mb-3">✅ Automatic updates</li>
+                            <li class="mb-3">✅ Daily backups</li>
+                            <li class="mb-3">✅ SSL included</li>
+                            <li class="mb-3">✅ Priority support</li>
+                            <li class="mb-3">✅ Data export anytime</li>
+                            <li class="mb-3">✅ Cancel anytime</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-white border-0 pb-4">
+                        <button class="btn btn-primary w-100 btn-lg" disabled>
+                            Join Waitlist
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Frequently Asked Questions</h2>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="pricingFAQ">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Is it really free?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                Yes! MoneyBrain is open source and free to self-host. We don't have a freemium model with hidden limitations. 
+                                All features are available in the self-hosted version.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                What do I need to self-host?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                You need a server that can run Docker containers. This could be a home server, a NAS, a VPS, or any cloud provider. 
+                                MoneyBrain uses SQLite by default, so no separate database server is required.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Can I migrate from self-hosted to managed?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                Yes! MoneyBrain supports full data export and import. You can migrate your data in either direction at any time.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Do you sell my financial data?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body">
+                                <strong>Absolutely not.</strong> If you self-host, your data never leaves your server. 
+                                Even with managed hosting, we never sell, share, or analyze your financial data. Privacy is a core principle.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section text-center">
+    <div class="container">
+        <h2 class="display-5 fw-bold mb-4">Start Managing Your Finances Today</h2>
+        <p class="lead mb-4">No credit card required. No hidden fees.</p>
+        <a href="/Account/Register" class="btn btn-light btn-lg px-5">Get Started Free</a>
+    </div>
+</section>

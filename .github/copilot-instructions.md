@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+
 # Copilot instructions — MoneyBrain
 
 ## Product context (PRD summary)
