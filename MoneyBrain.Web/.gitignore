@@ -1,0 +1,87 @@
+﻿# .gitignore for .NET projects (Visual Studio, JetBrains Rider, VS Code)
+# Generated to exclude build output, IDE files, and developer secrets/local DBs
+
+# Build Folders
+[Bb]in/
+[Oo]bj/
+out/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+# The packages folder can be ignored for older projects that used it
+packages/
+
+# dotnet CLI
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Publish output
+/publish/
+
+# Logs
+*.log
+logs/
+
+# Local DB, sqlite, and other DB files
+*.db
+*.mdf
+*.ldf
+appsettings.Development.json
+secrets.json
+*.sqlite
+
+# IIS Express
+/.vs/*/config/applicationhost.config
+IISExpress/*
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userprefs
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# JetBrains Rider cache
+.idea/
+*.sln.iml
+
+# Coverage and test results
+coverage*/
+TestResults/
+*.trx
+
+# Temporary files
+*.tmp
+*.temp
+
+# Others
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keep this file tracked
+!/.gitignore
