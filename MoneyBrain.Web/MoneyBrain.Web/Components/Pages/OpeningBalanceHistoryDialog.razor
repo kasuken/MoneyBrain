@@ -102,25 +102,25 @@
         MudDialog.Close();
     }
 
-    private Color GetTimelineColor(decimal amount) => amount switch
+    private MudBlazor.Color GetTimelineColor(decimal amount) => amount switch
     {
-        > 0 => Color.Success,
-        < 0 => Color.Error,
-        _ => Color.Default
+        > 0 => MudBlazor.Color.Success,
+        < 0 => MudBlazor.Color.Error,
+        _ => MudBlazor.Color.Default
     };
 
-    private Color GetAdjustmentColor(decimal amount) => amount switch
+    private MudBlazor.Color GetAdjustmentColor(decimal amount) => amount switch
     {
-        > 0 => Color.Success,
-        < 0 => Color.Error,
-        _ => Color.Default
+        > 0 => MudBlazor.Color.Success,
+        < 0 => MudBlazor.Color.Error,
+        _ => MudBlazor.Color.Default
     };
 
-    private Color GetChipColor(decimal amount) => amount switch
+    private MudBlazor.Color GetChipColor(decimal amount) => amount switch
     {
-        > 0 => Color.Success,
-        < 0 => Color.Error,
-        _ => Color.Default
+        > 0 => MudBlazor.Color.Success,
+        < 0 => MudBlazor.Color.Error,
+        _ => MudBlazor.Color.Default
     };
 
     private string GetAdjustmentText(decimal amount) => amount switch

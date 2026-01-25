@@ -1,0 +1,264 @@
+@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Settings
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+
+@attribute [Authorize]
+@inject IAccountService AccountService
+@inject IUserSettingsService SettingsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Dashboard | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="MudBlazor.Color.Primary" />
+    }
+    else
+    {
+        <!-- Accounts Section -->
+        <div class="mb-section-header">
+            <h2 class="mb-section-title">Accounts</h2>
+        </div>
+        
+        <div class="mb-grid-accounts mb-4">
+            @foreach (var account in _accounts.Take(4))
+            {
+                <div class="mb-account-card" @onclick="() => NavigateToAccount(account.Id)">
+                    <div class="mb-account-icon @GetAccountIconClass(account.SubType)">
+                        <MudIcon Icon="@GetAccountIcon(account.SubType)" />
+                    </div>
+                    <div class="flex-grow-1">
+                        <div style="font-weight: 600; color: var(--mb-text-primary);">@account.Name</div>
+                        <div style="font-size: 0.875rem; color: var(--mb-text-muted);">@account.SubType</div>
+                    </div>
+                    <div class="mb-amount @GetBalanceClass(account.CurrentBalance)">
+                        @FormatCurrency(account.CurrentBalance)
+                    </div>
+                </div>
+            }
+            
+            <div class="mb-quick-action" @onclick="AddNewAccount">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="mb-quick-action-icon" />
+                <span>Add New Account</span>
+            </div>
+        </div>
+        
+        <!-- Overview Section -->
+        <div class="mb-section-header mt-6">
+            <h2 class="mb-section-title">Overview</h2>
+            <div class="d-flex align-center gap-2">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="MudBlazor.Size.Small" OnClick="PreviousMonth" />
+                <div class="mb-date-range">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="MudBlazor.Size.Small" />
+                    @_periodStart.ToString("MMM dd, yyyy") – @_periodEnd.ToString("MMM dd, yyyy")
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="MudBlazor.Size.Small" OnClick="NextMonth" Disabled="@(_periodEnd >= DateTime.Today)" />
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="mb-grid-stats mb-4">
+            <div class="mb-card-stat">
+                <div class="mb-label">Total Balance</div>
+                <div class="mb-amount @GetBalanceClass(_totalBalance)">@FormatCurrency(_totalBalance)</div>
+            </div>
+            <div class="mb-card-stat info">
+                <div class="mb-label">Period Change</div>
+                <div class="mb-amount @GetBalanceClass(_periodChange)">@FormatCurrency(_periodChange)</div>
+            </div>
+            <div class="mb-card-stat expense">
+                <div class="mb-label">Total Expenses</div>
+                <div class="mb-amount negative">@FormatCurrency(_totalExpenses)</div>
+            </div>
+            <div class="mb-card-stat income">
+                <div class="mb-label">Total Income</div>
+                <div class="mb-amount positive">@FormatCurrency(_totalIncome)</div>
+            </div>
+        </div>
+        
+        <!-- Charts Section (Placeholder) -->
+        <div class="mb-grid-charts">
+            <div class="mb-chart-container">
+                <div class="mb-chart-header">
+                    <div>
+                        <div class="mb-chart-title">Account Balance</div>
+                        <div class="mb-chart-subtitle">@_periodStart.ToString("MMM dd") - @_periodEnd.ToString("dd")</div>
+                    </div>
+                    <div class="mb-toggle-group">
+                        <button class="mb-toggle-btn active">Days</button>
+                        <button class="mb-toggle-btn">Weeks</button>
+                        <button class="mb-toggle-btn">Months</button>
+                    </div>
+                </div>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Outlined.ShowChart" Style="font-size: 3rem; opacity: 0.5;" />
+                        <MudText Typo="Typo.body2">Charts coming with transactions feature</MudText>
+                    </MudStack>
+                </div>
+            </div>
+            
+            <div class="mb-chart-container">
+                <div class="mb-chart-header">
+                    <div>
+                        <div class="mb-chart-title">Income vs Expenses</div>
+                        <div class="mb-chart-subtitle">@_periodStart.ToString("MMM dd") - @_periodEnd.ToString("dd")</div>
+                    </div>
+                    <div class="mb-toggle-group">
+                        <button class="mb-toggle-btn active">Days</button>
+                        <button class="mb-toggle-btn">Weeks</button>
+                        <button class="mb-toggle-btn">Months</button>
+                    </div>
+                </div>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Outlined.BarChart" Style="font-size: 3rem; opacity: 0.5;" />
+                        <MudText Typo="Typo.body2">Charts coming with transactions feature</MudText>
+                    </MudStack>
+                </div>
+            </div>
+        </div>
+        
+        @if (!_accounts.Any())
+        {
+            <div class="mb-empty-state mt-6">
+                <MudIcon Icon="@Icons.Material.Outlined.AccountBalanceWallet" Class="mb-empty-state-icon" />
+                <MudText Typo="Typo.h6">No accounts yet</MudText>
+                <MudText Typo="Typo.body2" Class="mb-4">Create your first account to start tracking your finances</MudText>
+                <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="AddNewAccount">
+                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
+                    Add Your First Account
+                </MudButton>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private string? _userId;
+    private string _currencyCode = "USD";
+    private List<AccountWithBalance> _accounts = [];
+    
+    private DateTime _periodStart;
+    private DateTime _periodEnd;
+    
+    private decimal _totalBalance;
+    private decimal _periodChange;
+    private decimal _totalExpenses;
+    private decimal _totalIncome;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set period to current month
+        var today = DateTime.Today;
+        _periodStart = new DateTime(today.Year, today.Month, 1);
+        _periodEnd = _periodStart.AddMonths(1).AddDays(-1);
+        
+        await LoadDataAsync();
+        _loading = false;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(_userId)) return;
+        
+        // Load user settings
+        var settings = await SettingsService.GetSettingsAsync(_userId);
+        if (settings != null)
+        {
+            _currencyCode = settings.CurrencyCode;
+        }
+        
+        // Load accounts with balances
+        var accounts = await AccountService.GetUserAccountsAsync(_userId, includeInactive: false);
+        _accounts = [];
+        
+        foreach (var account in accounts)
+        {
+            var balance = await AccountService.CalculateCurrentBalanceAsync(account.Id, _userId);
+            _accounts.Add(new AccountWithBalance(account, balance));
+        }
+        
+        // Calculate totals
+        _totalBalance = _accounts.Sum(a => a.CurrentBalance);
+        
+        // Mock data for demo - in production, these would come from transactions
+        _totalIncome = 0m;
+        _totalExpenses = 0m;
+        _periodChange = _totalIncome - _totalExpenses;
+    }
+
+    private void PreviousMonth()
+    {
+        _periodStart = _periodStart.AddMonths(-1);
+        _periodEnd = _periodStart.AddMonths(1).AddDays(-1);
+    }
+
+    private void NextMonth()
+    {
+        if (_periodEnd >= DateTime.Today) return;
+        _periodStart = _periodStart.AddMonths(1);
+        _periodEnd = _periodStart.AddMonths(1).AddDays(-1);
+        if (_periodEnd > DateTime.Today) _periodEnd = DateTime.Today;
+    }
+
+    private void NavigateToAccount(int accountId)
+    {
+        NavigationManager.NavigateTo($"/balance-history?accountId={accountId}");
+    }
+
+    private void AddNewAccount()
+    {
+        NavigationManager.NavigateTo("/accounts");
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        var sign = amount >= 0 ? "+" : "";
+        return $"{sign}{amount:N2} {_currencyCode}";
+    }
+
+    private string GetBalanceClass(decimal amount) => amount switch
+    {
+        > 0 => "positive",
+        < 0 => "negative",
+        _ => "neutral"
+    };
+
+    private string GetAccountIconClass(AccountSubType subType) => subType switch
+    {
+        AccountSubType.Checking or AccountSubType.Savings => "bank",
+        AccountSubType.Cash => "cash",
+        AccountSubType.CreditCard or AccountSubType.Loan or AccountSubType.Mortgage => "credit",
+        AccountSubType.Investment => "investment",
+        _ => "bank"
+    };
+
+    private string GetAccountIcon(AccountSubType subType) => subType switch
+    {
+        AccountSubType.Checking or AccountSubType.Savings => Icons.Material.Filled.AccountBalance,
+        AccountSubType.Cash => Icons.Material.Filled.Money,
+        AccountSubType.CreditCard => Icons.Material.Filled.CreditCard,
+        AccountSubType.Investment => Icons.Material.Filled.TrendingUp,
+        AccountSubType.Loan => Icons.Material.Filled.Receipt,
+        AccountSubType.Mortgage => Icons.Material.Filled.Home,
+        _ => Icons.Material.Filled.Wallet
+    };
+
+    private record AccountWithBalance(Account Account, decimal CurrentBalance)
+    {
+        public int Id => Account.Id;
+        public string Name => Account.Name;
+        public AccountSubType SubType => Account.SubType;
+    }
+}

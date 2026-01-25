@@ -1,86 +1,101 @@
 @inherits LayoutComponentBase
 
-<!--- Marketing Layout: Static, SEO-friendly, no interactive components -->
-<div class="marketing-page">
+<MudThemeProvider Theme="_theme" IsDarkMode="false" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="marketing-layout">
+    <!-- Header -->
     <header class="marketing-header">
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand fw-bold text-primary" href="/">
-                    <span class="fs-4">💰 MoneyBrain</span>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#marketingNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="marketingNav">
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/features">Features</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/pricing">Pricing</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/about">About</a>
-                        </li>
-                        <li class="nav-item ms-lg-3">
-                            <a class="btn btn-outline-primary" href="/Account/Login">Sign In</a>
-                        </li>
-                        <li class="nav-item ms-lg-2">
-                            <a class="btn btn-primary" href="/Account/Register">Get Started</a>
-                        </li>
-                    </ul>
-                </div>
+        <div class="marketing-container">
+            <a href="/" class="marketing-logo">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Size="MudBlazor.Size.Large" />
+                <span>MoneyBrain</span>
+            </a>
+            <nav class="marketing-nav">
+                <NavLink href="/features" Match="NavLinkMatch.All">Features</NavLink>
+                <NavLink href="/pricing" Match="NavLinkMatch.All">Pricing</NavLink>
+                <NavLink href="/about" Match="NavLinkMatch.All">About</NavLink>
+            </nav>
+            <div class="marketing-auth-buttons">
+                <AuthorizeView>
+                    <Authorized>
+                        <MudButton Variant="Variant.Filled" Class="mb-btn-primary" Href="/dashboard">
+                            Go to Dashboard
+                        </MudButton>
+                    </Authorized>
+                    <NotAuthorized>
+                        <MudButton Variant="Variant.Text" Href="/Account/Login">Sign In</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="mb-btn-primary" Href="/Account/Register">
+                            Get Started
+                        </MudButton>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
-        </nav>
+        </div>
     </header>
 
-    <main class="marketing-content">
+    <!-- Main Content -->
+    <main class="marketing-main">
         @Body
     </main>
 
-    <footer class="marketing-footer bg-dark text-light py-5 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5 class="fw-bold mb-3">💰 MoneyBrain</h5>
-                    <p class="text-muted">Your personal finance system, under your control.</p>
-                    <p class="text-muted small">Self-hosted. Privacy-first. Open source.</p>
+    <!-- Footer -->
+    <footer class="marketing-footer">
+        <div class="marketing-container">
+            <div class="marketing-footer-grid">
+                <div class="marketing-footer-brand">
+                    <div class="marketing-logo">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" />
+                        <span>MoneyBrain</span>
+                    </div>
+                    <p>Take control of your finances with a self-hosted, privacy-first personal finance system.</p>
                 </div>
-                <div class="col-md-2 mb-4 mb-md-0">
-                    <h6 class="fw-bold mb-3">Product</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="/features" class="text-muted text-decoration-none">Features</a></li>
-                        <li><a href="/pricing" class="text-muted text-decoration-none">Pricing</a></li>
-                        <li><a href="/about" class="text-muted text-decoration-none">About</a></li>
-                    </ul>
+                <div class="marketing-footer-links">
+                    <h4>Product</h4>
+                    <a href="/features">Features</a>
+                    <a href="/pricing">Pricing</a>
+                    <a href="https://github.com" target="_blank">Source Code</a>
                 </div>
-                <div class="col-md-2 mb-4 mb-md-0">
-                    <h6 class="fw-bold mb-3">Resources</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="text-muted text-decoration-none">Documentation</a></li>
-                        <li><a href="#" class="text-muted text-decoration-none">GitHub</a></li>
-                        <li><a href="#" class="text-muted text-decoration-none">Support</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h6 class="fw-bold mb-3">Get Started</h6>
-                    <p class="text-muted small">Take control of your finances today.</p>
-                    <a href="/Account/Register" class="btn btn-primary">Create Free Account</a>
+                <div class="marketing-footer-links">
+                    <h4>Resources</h4>
+                    <a href="/about">About</a>
+                    <a href="https://github.com" target="_blank">Documentation</a>
+                    <a href="https://github.com" target="_blank">Community</a>
                 </div>
             </div>
-            <hr class="my-4 border-secondary">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="text-muted small mb-0">© @DateTime.UtcNow.Year MoneyBrain. All rights reserved.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="#" class="text-muted small text-decoration-none me-3">Privacy Policy</a>
-                    <a href="#" class="text-muted small text-decoration-none">Terms of Service</a>
-                </div>
+            <div class="marketing-footer-bottom">
+                <p>&copy; @DateTime.Now.Year MoneyBrain. Self-hosted. Privacy-first.</p>
             </div>
         </div>
     </footer>
 </div>
+
+@code {
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#1DB954",
+            Secondary = "#6C63FF",
+            Background = "#FFFFFF",
+            Surface = "#FFFFFF",
+            AppbarBackground = "#FFFFFF",
+            AppbarText = "#1A1D21",
+            TextPrimary = "#1A1D21",
+            TextSecondary = "#718096"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Inter", "Segoe UI", "Roboto", "sans-serif"]
+            }
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "12px"
+        }
+    };
+}

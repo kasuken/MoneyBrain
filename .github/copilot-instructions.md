@@ -24,6 +24,7 @@ MoneyBrain is a lightweight, self-hosted personal finance system focused on corr
 - .NET 10
 - Blazor (.NET 10)
 - MudBlazor UI components
+- Use ONLY MudBlazor for charts/graphs
 - C# (best practices, idiomatic patterns, nullable reference types)
 - EF Core with SQLite by default (encrypted DB optional later)
 - ASP.NET Core Identity for single-user authentication

@@ -1,157 +1,117 @@
 @page "/pricing"
-@layout Layout.MarketingLayout
+@layout MarketingLayout
 
-<PageTitle>Pricing - MoneyBrain</PageTitle>
-<HeadContent>
-    <meta name="description" content="MoneyBrain is free and open source. Self-host it yourself or use our managed hosting. No hidden fees, no data selling." />
-    <meta name="keywords" content="free personal finance software, open source budgeting, self-hosted finance app pricing" />
-    <meta property="og:title" content="Pricing - MoneyBrain" />
-    <meta property="og:description" content="MoneyBrain is free and open source. Self-host or use managed hosting." />
-</HeadContent>
+<PageTitle>Pricing | MoneyBrain</PageTitle>
 
 <!-- Hero -->
-<section class="hero-section py-5">
-    <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-3">Simple, Transparent Pricing</h1>
-        <p class="lead">Free forever for self-hosting. Optional managed hosting for convenience.</p>
+<section class="marketing-hero">
+    <div class="marketing-hero-content">
+        <h1>Simple pricing, <span class="highlight">complete freedom</span></h1>
+        <p>MoneyBrain is free and open source. Self-host it on your own infrastructure and own your financial data forever.</p>
     </div>
 </section>
 
 <!-- Pricing Cards -->
-<section class="py-5">
-    <div class="container">
-        <div class="row justify-content-center g-4">
-            <!-- Self-Hosted -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card pricing-card h-100 shadow-sm">
-                    <div class="card-header bg-white text-center py-4">
-                        <h4 class="fw-bold mb-2">Self-Hosted</h4>
-                        <div class="display-4 fw-bold text-primary">Free</div>
-                        <p class="text-muted mb-0">Forever</p>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li class="mb-3">✅ All features included</li>
-                            <li class="mb-3">✅ Unlimited accounts</li>
-                            <li class="mb-3">✅ Unlimited transactions</li>
-                            <li class="mb-3">✅ Full data ownership</li>
-                            <li class="mb-3">✅ Docker deployment</li>
-                            <li class="mb-3">✅ SQLite database</li>
-                            <li class="mb-3">✅ Community support</li>
-                            <li class="mb-3">✅ Open source</li>
-                        </ul>
-                    </div>
-                    <div class="card-footer bg-white border-0 pb-4">
-                        <a href="#" class="btn btn-outline-primary w-100 btn-lg">
-                            Download
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Managed Hosting -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card pricing-card featured h-100 shadow">
-                    <div class="card-header bg-primary text-white text-center py-4">
-                        <span class="badge bg-warning text-dark mb-2">Coming Soon</span>
-                        <h4 class="fw-bold mb-2">Managed Hosting</h4>
-                        <div class="display-4 fw-bold">$5</div>
-                        <p class="mb-0 opacity-75">per month</p>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li class="mb-3">✅ Everything in Self-Hosted</li>
-                            <li class="mb-3">✅ We host it for you</li>
-                            <li class="mb-3">✅ Automatic updates</li>
-                            <li class="mb-3">✅ Daily backups</li>
-                            <li class="mb-3">✅ SSL included</li>
-                            <li class="mb-3">✅ Priority support</li>
-                            <li class="mb-3">✅ Data export anytime</li>
-                            <li class="mb-3">✅ Cancel anytime</li>
-                        </ul>
-                    </div>
-                    <div class="card-footer bg-white border-0 pb-4">
-                        <button class="btn btn-primary w-100 btn-lg" disabled>
-                            Join Waitlist
-                        </button>
-                    </div>
-                </div>
+<section class="marketing-pricing">
+    <div class="marketing-container">
+        <div class="marketing-pricing-cards">
+            <div class="marketing-pricing-card featured">
+                <h3>Self-Hosted</h3>
+                <div class="price">Free<span> / forever</span></div>
+                <p>Deploy on your own server with complete control</p>
+                <ul>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        Unlimited accounts
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        Unlimited transactions
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        All features included
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        Complete data ownership
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        No telemetry or tracking
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        Community support
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        Open source code
+                    </li>
+                </ul>
+                <MudButton Variant="Variant.Filled" Class="mb-btn-primary" FullWidth="true" Href="/Account/Register">
+                    Get Started
+                </MudButton>
             </div>
         </div>
     </div>
 </section>
 
 <!-- FAQ -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">Frequently Asked Questions</h2>
+<section class="marketing-features">
+    <div class="marketing-container">
+        <div class="marketing-section-header">
+            <h2>Frequently Asked Questions</h2>
         </div>
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="accordion" id="pricingFAQ">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                Is it really free?
-                            </button>
-                        </h2>
-                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#pricingFAQ">
-                            <div class="accordion-body">
-                                Yes! MoneyBrain is open source and free to self-host. We don't have a freemium model with hidden limitations. 
-                                All features are available in the self-hosted version.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                What do I need to self-host?
-                            </button>
-                        </h2>
-                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
-                            <div class="accordion-body">
-                                You need a server that can run Docker containers. This could be a home server, a NAS, a VPS, or any cloud provider. 
-                                MoneyBrain uses SQLite by default, so no separate database server is required.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                Can I migrate from self-hosted to managed?
-                            </button>
-                        </h2>
-                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
-                            <div class="accordion-body">
-                                Yes! MoneyBrain supports full data export and import. You can migrate your data in either direction at any time.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                                Do you sell my financial data?
-                            </button>
-                        </h2>
-                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
-                            <div class="accordion-body">
-                                <strong>Absolutely not.</strong> If you self-host, your data never leaves your server. 
-                                Even with managed hosting, we never sell, share, or analyze your financial data. Privacy is a core principle.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        
+        <div class="marketing-about-content" style="max-width: 800px; margin: 0 auto;">
+            <MudExpansionPanels Elevation="0" Style="border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg);">
+                <MudExpansionPanel Text="Is MoneyBrain really free?">
+                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
+                        Yes! MoneyBrain is 100% free and open source. You can self-host it on your own server, 
+                        a Raspberry Pi, or any cloud provider. There are no premium tiers, subscriptions, or hidden costs.
+                    </p>
+                </MudExpansionPanel>
+                
+                <MudExpansionPanel Text="What do I need to run MoneyBrain?">
+                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
+                        MoneyBrain runs on .NET 10 and uses SQLite by default. You can run it on Windows, macOS, 
+                        or Linux. A basic server with 1GB RAM is enough for personal use.
+                    </p>
+                </MudExpansionPanel>
+                
+                <MudExpansionPanel Text="Does MoneyBrain sync with my bank?">
+                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
+                        Not automatically. This is by design—we don't connect to external services to maintain 
+                        your privacy. You can import transactions via CSV from your bank's export feature.
+                    </p>
+                </MudExpansionPanel>
+                
+                <MudExpansionPanel Text="Is my data secure?">
+                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
+                        Your data never leaves your server. There's no cloud sync, no analytics, and no third-party 
+                        access. You can optionally enable database encryption for additional security.
+                    </p>
+                </MudExpansionPanel>
+                
+                <MudExpansionPanel Text="Can multiple people use it?">
+                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
+                        MoneyBrain is designed for single-user or small household use. Each user has their own 
+                        account with separate data. Multi-entity accounting is not currently supported.
+                    </p>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
         </div>
     </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section text-center">
-    <div class="container">
-        <h2 class="display-5 fw-bold mb-4">Start Managing Your Finances Today</h2>
-        <p class="lead mb-4">No credit card required. No hidden fees.</p>
-        <a href="/Account/Register" class="btn btn-light btn-lg px-5">Get Started Free</a>
+<section class="marketing-cta">
+    <div class="marketing-container">
+        <h2>Start your journey to financial clarity</h2>
+        <p>No credit card required. No strings attached. Just you and your finances.</p>
+        <MudButton Variant="Variant.Filled" Class="mb-btn-primary" Size="MudBlazor.Size.Large" Href="/Account/Register">
+            Create Your Account
+        </MudButton>
     </div>
 </section>

@@ -9,74 +9,93 @@
 
 <PageTitle>Settings | MoneyBrain</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="py-6">
-    <MudText Typo="Typo.h4" Class="mb-4">Settings</MudText>
+<div class="mb-page mb-animate-in">
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">Settings</h1>
+            <p class="mb-subtitle">Manage your preferences and display options</p>
+        </div>
+    </div>
 
-    <MudPaper Class="pa-6">
-        @if (_loading)
-        {
-            <MudProgressLinear Indeterminate />
-        }
-        else
-        {
-            <MudForm @ref="_form" @bind-IsValid="@_formValid">
-                <MudStack Spacing="4">
-                    <MudSelect T="string" 
-                               Label="Currency" 
-                               @bind-Value="_currencyCode"
-                               Required="true"
-                               RequiredError="Currency is required"
-                               Variant="Variant.Outlined"
-                               AnchorOrigin="Origin.BottomCenter">
-                        @foreach (var currency in _currencies)
-                        {
-                            <MudSelectItem T="string" Value="@currency.Code">
-                                @currency.Code - @currency.Name (@currency.Symbol)
-                            </MudSelectItem>
-                        }
-                    </MudSelect>
+    <div style="max-width: 600px;">
+        <div class="mb-card">
+            @if (_loading)
+            {
+                <MudProgressLinear Indeterminate Color="Color.Primary" />
+            }
+            else
+            {
+                <MudForm @ref="_form" @bind-IsValid="@_formValid">
+                    <MudStack Spacing="4">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: var(--mb-text-secondary); font-weight: 600;">
+                                DISPLAY PREFERENCES
+                            </MudText>
+                        </div>
+                        
+                        <MudSelect T="string" 
+                                   Label="Currency" 
+                                   @bind-Value="_currencyCode"
+                                   Required="true"
+                                   RequiredError="Currency is required"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter"
+                                   HelperText="Used for displaying monetary values">
+                            @foreach (var currency in _currencies)
+                            {
+                                <MudSelectItem T="string" Value="@currency.Code">
+                                    @currency.Code - @currency.Name (@currency.Symbol)
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
 
-                    <MudSelect T="string"
-                               Label="Timezone"
-                               @bind-Value="_timeZoneId"
-                               Required="true"
-                               RequiredError="Timezone is required"
-                               Variant="Variant.Outlined"
-                               AnchorOrigin="Origin.BottomCenter">
-                        @foreach (var tz in _timeZones)
-                        {
-                            <MudSelectItem T="string" Value="@tz.Id">
-                                @tz.DisplayName
-                            </MudSelectItem>
-                        }
-                    </MudSelect>
+                        <MudSelect T="string"
+                                   Label="Timezone"
+                                   @bind-Value="_timeZoneId"
+                                   Required="true"
+                                   RequiredError="Timezone is required"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter"
+                                   HelperText="Used for displaying dates and times">
+                            @foreach (var tz in _timeZones)
+                            {
+                                <MudSelectItem T="string" Value="@tz.Id">
+                                    @tz.DisplayName
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
 
-                    <MudSelect T="string"
-                               Label="Date Format"
-                               @bind-Value="_dateFormat"
-                               Variant="Variant.Outlined"
-                               AnchorOrigin="Origin.BottomCenter">
-                        <MudSelectItem T="string" Value="@("yyyy-MM-dd")">2025-01-25 (ISO)</MudSelectItem>
-                        <MudSelectItem T="string" Value="@("MM/dd/yyyy")">01/25/2025 (US)</MudSelectItem>
-                        <MudSelectItem T="string" Value="@("dd/MM/yyyy")">25/01/2025 (EU)</MudSelectItem>
-                        <MudSelectItem T="string" Value="@("dd.MM.yyyy")">25.01.2025</MudSelectItem>
-                    </MudSelect>
+                        <MudSelect T="string"
+                                   Label="Date Format"
+                                   @bind-Value="_dateFormat"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter"
+                                   HelperText="How dates are displayed throughout the app">
+                            <MudSelectItem T="string" Value="@("yyyy-MM-dd")">2026-01-25 (ISO)</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("MM/dd/yyyy")">01/25/2026 (US)</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("dd/MM/yyyy")">25/01/2026 (EU)</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("dd.MM.yyyy")">25.01.2026</MudSelectItem>
+                        </MudSelect>
 
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               OnClick="SaveAsync"
-                               Disabled="@(!_formValid || _saving)">
-                        @if (_saving)
-                        {
-                            <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
-                        }
-                        Save Settings
-                    </MudButton>
-                </MudStack>
-            </MudForm>
-        }
-    </MudPaper>
-</MudContainer>
+                        <MudDivider Class="my-2" />
+
+                        <MudButton Variant="Variant.Filled"
+                                   Class="mb-btn-primary"
+                                   OnClick="SaveAsync"
+                                   Disabled="@(!_formValid || _saving)"
+                                   FullWidth="false">
+                            @if (_saving)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                            }
+                            Save Changes
+                        </MudButton>
+                    </MudStack>
+                </MudForm>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     private bool _loading = true;

@@ -1,6 +1,7 @@
 @page "/accounts"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using System.Security.Claims
@@ -8,146 +9,160 @@
 @attribute [Authorize]
 
 @inject IAccountService AccountService
+@inject IUserSettingsService SettingsService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
-@inject NavigationManager NavigationManager
-@inject NavigationManager NavigationManager
 
-<PageTitle>Accounts - MoneyBrain</PageTitle>
+<PageTitle>Accounts | MoneyBrain</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">Accounts</MudText>
-
-    <MudPaper Class="pa-4 mb-4">
-        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h6">
-                Your Accounts (@_accounts.Count)
-            </MudText>
-            <MudButton Variant="Variant.Filled" 
-                       Color="Color.Primary" 
-                       StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="@OpenCreateAccountDialog">
-                New Account
-            </MudButton>
-        </MudStack>
-    </MudPaper>
+<div class="mb-page mb-animate-in">
+    <!-- Header -->
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">Accounts</h1>
+            <p class="mb-subtitle">Manage your bank accounts, credit cards, and more</p>
+        </div>
+        <MudButton Variant="Variant.Filled" 
+                   Class="mb-btn-primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="@OpenCreateAccountDialog">
+            Add Account
+        </MudButton>
+    </div>
 
     @if (_isLoading)
     {
-        <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
+        <MudProgressLinear Color="MudBlazor.Color.Primary" Indeterminate="true" Class="mb-4" />
     }
     else if (_accounts.Count == 0)
     {
-        <MudAlert Severity="Severity.Info">
-            No accounts found. Create your first account to start tracking your finances.
-        </MudAlert>
+        <div class="mb-empty-state">
+            <MudIcon Icon="@Icons.Material.Outlined.AccountBalanceWallet" Class="mb-empty-state-icon" />
+            <MudText Typo="Typo.h6" Class="mb-2">No accounts yet</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
+                Create your first account to start tracking your finances
+            </MudText>
+            <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateAccountDialog">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
+                Create Your First Account
+            </MudButton>
+        </div>
     }
     else
     {
-        <MudGrid>
-            <MudItem xs="12" md="6">
-                <MudText Typo="Typo.h6" Class="mb-3">Assets</MudText>
+        <!-- Summary Stats -->
+        <div class="mb-grid-stats mb-6">
+            <div class="mb-card-stat income">
+                <div class="mb-label">Total Assets</div>
+                <div class="mb-amount positive">@FormatCurrency(_totalAssets)</div>
+            </div>
+            <div class="mb-card-stat expense">
+                <div class="mb-label">Total Liabilities</div>
+                <div class="mb-amount negative">@FormatCurrency(_totalLiabilities)</div>
+            </div>
+            <div class="mb-card-stat info">
+                <div class="mb-label">Net Worth</div>
+                <div class="mb-amount @GetBalanceClass(_netWorth)">@FormatCurrency(_netWorth)</div>
+            </div>
+        </div>
+
+        <!-- Assets Section -->
+        @if (_accounts.Any(a => a.Type == AccountType.Asset))
+        {
+            <div class="mb-section-header mt-6">
+                <h2 class="mb-section-title">Assets</h2>
+            </div>
+            <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Asset))
                 {
-                    <MudCard Class="mb-3">
-                        <MudCardContent>
-                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
-                                <div>
-                                    <MudText Typo="Typo.h6">@account.Name</MudText>
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                        @account.SubType.ToString()
-                                    </MudText>
-                                    @if (!string.IsNullOrWhiteSpace(account.Group))
-                                    {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@account.Group</MudChip>
-                                    }
-                                </div>
-                                <div class="text-right">
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance</MudText>
-                                    <MudText Typo="Typo.h6" Color="Color.Success">
-                                        @account.OpeningBalance.ToString("C")
-                                    </MudText>
-                                </div>
-                            </MudStack>
-                            @if (!string.IsNullOrWhiteSpace(account.Notes))
-                            {
-                                <MudText Typo="Typo.body2" Class="mt-2">@account.Notes</MudText>
-                            }
-                        </MudCardContent>
-                        <MudCardActions>
+                    <div class="mb-account-card" @onclick="() => ViewBalanceHistory(account)">
+                        <div class="mb-account-icon @GetAccountIconClass(account.SubType)">
+                            <MudIcon Icon="@GetAccountIcon(account.SubType)" />
+                        </div>
+                        <div class="flex-grow-1">
+                            <div style="font-weight: 600; color: var(--mb-text-primary);">@account.Name</div>
+                            <div style="font-size: 0.875rem; color: var(--mb-text-muted);">
+                                @account.SubType
+                                @if (!string.IsNullOrWhiteSpace(account.Group))
+                                {
+                                    <span> · @account.Group</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="mb-amount @GetBalanceClass(account.CurrentBalance)" style="font-size: 1.25rem;">
+                                @FormatCurrency(account.CurrentBalance)
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column gap-1 ms-2" @onclick:stopPropagation="true">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                           Size="Size.Small"
-                                           OnClick="@(() => OpenEditAccountDialog(account))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.ShowChart" 
-                                           Size="Size.Small"
-                                           Color="Color.Info"
-                                           Title="Balance History"
-                                           OnClick="@(() => ViewBalanceHistory(account))" />
+                                           Size="MudBlazor.Size.Small"
+                                           OnClick="@(() => OpenEditAccountDialog(account.Account))" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                           Size="Size.Small"
-                                           Color="Color.Error"
-                                           OnClick="@(() => DeleteAccount(account))" />
-                        </MudCardActions>
-                    </MudCard>
+                                           Size="MudBlazor.Size.Small"
+                                           Color="MudBlazor.Color.Error"
+                                           OnClick="@(() => DeleteAccount(account.Account))" />
+                        </div>
+                    </div>
                 }
-            </MudItem>
+            </div>
+        }
 
-            <MudItem xs="12" md="6">
-                <MudText Typo="Typo.h6" Class="mb-3">Liabilities</MudText>
+        <!-- Liabilities Section -->
+        @if (_accounts.Any(a => a.Type == AccountType.Liability))
+        {
+            <div class="mb-section-header mt-6">
+                <h2 class="mb-section-title">Liabilities</h2>
+            </div>
+            <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Liability))
                 {
-                    <MudCard Class="mb-3">
-                        <MudCardContent>
-                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
-                                <div>
-                                    <MudText Typo="Typo.h6">@account.Name</MudText>
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                        @account.SubType.ToString()
-                                    </MudText>
-                                    @if (!string.IsNullOrWhiteSpace(account.Group))
-                                    {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@account.Group</MudChip>
-                                    }
-                                </div>
-                                <div class="text-right">
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance</MudText>
-                                    <MudText Typo="Typo.h6" Color="Color.Error">
-                                        @account.OpeningBalance.ToString("C")
-                                    </MudText>
-                                </div>
-                            </MudStack>
-                            @if (!string.IsNullOrWhiteSpace(account.Notes))
-                            {
-                                <MudText Typo="Typo.body2" Class="mt-2">@account.Notes</MudText>
-                            }
-                        </MudCardContent>
-                        <MudCardActions>
+                    <div class="mb-account-card" @onclick="() => ViewBalanceHistory(account)">
+                        <div class="mb-account-icon @GetAccountIconClass(account.SubType)">
+                            <MudIcon Icon="@GetAccountIcon(account.SubType)" />
+                        </div>
+                        <div class="flex-grow-1">
+                            <div style="font-weight: 600; color: var(--mb-text-primary);">@account.Name</div>
+                            <div style="font-size: 0.875rem; color: var(--mb-text-muted);">
+                                @account.SubType
+                                @if (!string.IsNullOrWhiteSpace(account.Group))
+                                {
+                                    <span> · @account.Group</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="mb-amount negative" style="font-size: 1.25rem;">
+                                @FormatCurrency(account.CurrentBalance)
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column gap-1 ms-2" @onclick:stopPropagation="true">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                           Size="Size.Small"
-                                           OnClick="@(() => OpenEditAccountDialog(account))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.ShowChart" 
-                                           Size="Size.Small"
-                                           Color="Color.Info"
-                                           Title="Balance History"
-                                           OnClick="@(() => ViewBalanceHistory(account))" />
+                                           Size="MudBlazor.Size.Small"
+                                           OnClick="@(() => OpenEditAccountDialog(account.Account))" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                           Size="Size.Small"
-                                           Color="Color.Error"
-                                           OnClick="@(() => DeleteAccount(account))" />
-                        </MudCardActions>
-                    </MudCard>
+                                           Size="MudBlazor.Size.Small"
+                                           Color="MudBlazor.Color.Error"
+                                           OnClick="@(() => DeleteAccount(account.Account))" />
+                        </div>
+                    </div>
                 }
-            </MudItem>
-        </MudGrid>
+            </div>
+        }
     }
-</MudContainer>
+</div>
 
 @code {
-    private List<Account> _accounts = new();
+    private List<AccountWithBalance> _accounts = [];
     private bool _isLoading = true;
     private string? _userId;
+    private string _currencyCode = "USD";
+    
+    private decimal _totalAssets;
+    private decimal _totalLiabilities;
+    private decimal _netWorth;
 
     protected override async Task OnInitializedAsync()
     {
@@ -156,6 +171,11 @@
 
         if (!string.IsNullOrWhiteSpace(_userId))
         {
+            var settings = await SettingsService.GetSettingsAsync(_userId);
+            if (settings != null)
+            {
+                _currencyCode = settings.CurrencyCode;
+            }
             await LoadAccounts();
         }
 
@@ -167,7 +187,18 @@
         if (string.IsNullOrWhiteSpace(_userId))
             return;
 
-        _accounts = (await AccountService.GetUserAccountsAsync(_userId)).ToList();
+        var accounts = await AccountService.GetUserAccountsAsync(_userId);
+        _accounts = [];
+        
+        foreach (var account in accounts)
+        {
+            var balance = await AccountService.CalculateCurrentBalanceAsync(account.Id, _userId!);
+            _accounts.Add(new AccountWithBalance(account, balance));
+        }
+        
+        _totalAssets = _accounts.Where(a => a.Type == AccountType.Asset).Sum(a => a.CurrentBalance);
+        _totalLiabilities = _accounts.Where(a => a.Type == AccountType.Liability).Sum(a => Math.Abs(a.CurrentBalance));
+        _netWorth = _totalAssets - _totalLiabilities;
     }
 
     private async Task OpenCreateAccountDialog()
@@ -232,8 +263,50 @@
         }
     }
 
-    private void ViewBalanceHistory(Account account)
+    private void ViewBalanceHistory(AccountWithBalance account)
     {
         NavigationManager.NavigateTo($"/balance-history?accountId={account.Id}");
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        var sign = amount >= 0 ? "+" : "";
+        return $"{sign}{amount:N2} {_currencyCode}";
+    }
+
+    private string GetBalanceClass(decimal amount) => amount switch
+    {
+        > 0 => "positive",
+        < 0 => "negative",
+        _ => "neutral"
+    };
+
+    private string GetAccountIconClass(AccountSubType subType) => subType switch
+    {
+        AccountSubType.Checking or AccountSubType.Savings => "bank",
+        AccountSubType.Cash => "cash",
+        AccountSubType.CreditCard or AccountSubType.Loan or AccountSubType.Mortgage or AccountSubType.OtherLiability => "credit",
+        AccountSubType.Investment => "investment",
+        _ => "bank"
+    };
+
+    private string GetAccountIcon(AccountSubType subType) => subType switch
+    {
+        AccountSubType.Checking or AccountSubType.Savings => Icons.Material.Filled.AccountBalance,
+        AccountSubType.Cash => Icons.Material.Filled.Money,
+        AccountSubType.CreditCard => Icons.Material.Filled.CreditCard,
+        AccountSubType.Investment => Icons.Material.Filled.TrendingUp,
+        AccountSubType.Loan => Icons.Material.Filled.Receipt,
+        AccountSubType.Mortgage => Icons.Material.Filled.Home,
+        _ => Icons.Material.Filled.Wallet
+    };
+
+    private record AccountWithBalance(Account Account, decimal CurrentBalance)
+    {
+        public int Id => Account.Id;
+        public string Name => Account.Name;
+        public AccountType Type => Account.Type;
+        public AccountSubType SubType => Account.SubType;
+        public string? Group => Account.Group;
     }
 }

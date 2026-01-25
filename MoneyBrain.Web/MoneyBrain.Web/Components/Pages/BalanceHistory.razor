@@ -257,12 +257,12 @@
         return null;
     }
 
-    private Color GetTypeColor(SnapshotType type) => type switch
+    private MudBlazor.Color GetTypeColor(SnapshotType type) => type switch
     {
-        SnapshotType.Manual => Color.Primary,
-        SnapshotType.Automatic => Color.Info,
-        SnapshotType.Reconciliation => Color.Success,
-        SnapshotType.OpeningBalanceAdjustment => Color.Warning,
-        _ => Color.Default
+        SnapshotType.Manual => MudBlazor.Color.Primary,
+        SnapshotType.Automatic => MudBlazor.Color.Info,
+        SnapshotType.Reconciliation => MudBlazor.Color.Success,
+        SnapshotType.OpeningBalanceAdjustment => MudBlazor.Color.Warning,
+        _ => MudBlazor.Color.Default
     };
 }

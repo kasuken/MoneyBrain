@@ -1,213 +1,134 @@
 @page "/about"
-@layout Layout.MarketingLayout
+@layout MarketingLayout
 
-<PageTitle>About - MoneyBrain</PageTitle>
-<HeadContent>
-    <meta name="description" content="Learn about MoneyBrain's mission: helping individuals take control of their finances with a lightweight, self-hosted, privacy-first personal finance system." />
-    <meta name="keywords" content="about MoneyBrain, personal finance philosophy, self-hosted finance, privacy-first budgeting" />
-    <meta property="og:title" content="About - MoneyBrain" />
-    <meta property="og:description" content="Learn about MoneyBrain's mission and philosophy." />
-</HeadContent>
+<PageTitle>About | MoneyBrain</PageTitle>
 
 <!-- Hero -->
-<section class="hero-section py-5">
-    <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-3">About MoneyBrain</h1>
-        <p class="lead">A tool built for people who care about their data.</p>
+<section class="marketing-hero">
+    <div class="marketing-hero-content">
+        <h1>Built for <span class="highlight">financial freedom</span></h1>
+        <p>MoneyBrain is an open-source personal finance system designed for people who value privacy, correctness, and data ownership.</p>
     </div>
 </section>
 
-<!-- Mission -->
-<section class="py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <h2 class="fw-bold mb-4">Our Mission</h2>
-                <p class="lead">
-                    Personal finance tools fall into two broken categories:
-                </p>
-                <div class="row g-4 my-4">
-                    <div class="col-md-6">
-                        <div class="card border-danger h-100">
-                            <div class="card-body">
-                                <h5 class="card-title text-danger">📊 Spreadsheets</h5>
-                                <p class="card-text text-muted">
-                                    Flexible but fragile, manual, and error-prone. One wrong formula and your entire budget is wrong.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card border-warning h-100">
-                            <div class="card-body">
-                                <h5 class="card-title text-warning">☁️ SaaS Finance Apps</h5>
-                                <p class="card-text text-muted">
-                                    Opaque, subscription-based, privacy-invasive, and often over-scoped with features you don't need.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="lead">
-                    MoneyBrain exists because we believe there should be a third option: a <strong>lightweight, self-hosted solution</strong> 
-                    that combines budgeting and proper bookkeeping without turning into enterprise accounting software.
-                </p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Core Values -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">Core Principles</h2>
-            <p class="text-muted">The values that guide every decision we make</p>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="display-4 mb-3">🏠</div>
-                        <h4 class="fw-bold">Self-Hosted by Default</h4>
-                        <p class="text-muted mb-0">
-                            Your financial data is yours. It should live where you decide, not on someone else's servers.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="display-4 mb-3">👤</div>
-                        <h4 class="fw-bold">Single User Focus</h4>
-                        <p class="text-muted mb-0">
-                            Designed for individuals and small households, not enterprises or accountants managing multiple clients.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="display-4 mb-3">✅</div>
-                        <h4 class="fw-bold">Correctness Over Cleverness</h4>
-                        <p class="text-muted mb-0">
-                            We prioritize getting the math right over fancy features. Your balance should always be correct.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="display-4 mb-3">🎯</div>
-                        <h4 class="fw-bold">Predictable Behavior</h4>
-                        <p class="text-muted mb-0">
-                            Rules run the same way every time. No surprises, no hidden logic, no AI guessing what you meant.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="display-4 mb-3">📊</div>
-                        <h4 class="fw-bold">Minimal UI, Data First</h4>
-                        <p class="text-muted mb-0">
-                            We focus on showing you your data clearly, not on flashy dashboards that hide the numbers.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <div class="display-4 mb-3">🔒</div>
-                        <h4 class="fw-bold">Privacy Without Compromise</h4>
-                        <p class="text-muted mb-0">
-                            No telemetry, no analytics, no external data transmission. Your finances are private.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- What We Don't Do -->
-<section class="py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <h2 class="fw-bold mb-4 text-center">What MoneyBrain Doesn't Do</h2>
-                <p class="text-muted text-center mb-4">
-                    These are explicit non-goals. We believe focus is a feature.
-                </p>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <span class="text-danger me-2">✗</span>
-                            <span>Bank syncing / PSD2 integrations</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <span class="text-danger me-2">✗</span>
-                            <span>Invoicing or accounts receivable</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <span class="text-danger me-2">✗</span>
-                            <span>Payroll management</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <span class="text-danger me-2">✗</span>
-                            <span>Tax filing or optimization</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <span class="text-danger me-2">✗</span>
-                            <span>AI-generated financial advice</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <span class="text-danger me-2">✗</span>
-                            <span>Multi-entity accounting</span>
-                        </div>
-                    </div>
-                </div>
-                <p class="text-muted mt-4 text-center">
-                    <em>MoneyBrain is a tool, not a financial advisor.</em>
-                </p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Open Source -->
-<section class="py-5 bg-light">
-    <div class="container text-center">
-        <h2 class="fw-bold mb-4">Open Source</h2>
-        <p class="lead text-muted mb-4">
-            MoneyBrain is open source. You can inspect the code, contribute improvements, or fork it for your own needs.
+<!-- Story -->
+<section class="marketing-about">
+    <div class="marketing-about-content">
+        <h2>Why we built MoneyBrain</h2>
+        <p>
+            We believe managing money shouldn't require giving up your privacy. Most personal finance apps 
+            sync your data to the cloud, track your behavior, and lock you into their ecosystem. 
+            We wanted something different.
         </p>
-        <a href="#" class="btn btn-dark btn-lg px-4">
-            <span class="me-2">⭐</span> View on GitHub
-        </a>
+        <p>
+            MoneyBrain is built on a simple principle: your financial data belongs to you. It runs on your 
+            server, stores data in a local database, and never phones home. There's no telemetry, no 
+            analytics, and no third-party integrations that compromise your privacy.
+        </p>
+        <p>
+            We focus on correctness over cleverness. Every feature is designed to be predictable and 
+            deterministic. Your account balances will always match your expectations because we enforce 
+            strict invariants: transactions can't be modified after reconciliation, transfers always 
+            affect exactly two accounts, and split transactions must always balance.
+        </p>
+        
+        <div class="marketing-values">
+            <div class="marketing-value">
+                <h4>Privacy First</h4>
+                <p>Your data stays on your server. No cloud sync, no tracking.</p>
+            </div>
+            <div class="marketing-value">
+                <h4>Correctness</h4>
+                <p>Strict invariants ensure your books always balance.</p>
+            </div>
+            <div class="marketing-value">
+                <h4>Simplicity</h4>
+                <p>Clean interface focused on what matters, not flashy features.</p>
+            </div>
+            <div class="marketing-value">
+                <h4>Open Source</h4>
+                <p>Inspect the code, contribute, or fork it for your needs.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Non-Goals -->
+<section class="marketing-features" style="background: var(--mb-bg-secondary);">
+    <div class="marketing-container">
+        <div class="marketing-section-header">
+            <h2>What MoneyBrain is not</h2>
+            <p>We focus on doing a few things well rather than being everything to everyone</p>
+        </div>
+        
+        <div class="marketing-features-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="marketing-feature-card">
+                <h3>No Bank Sync</h3>
+                <p>We don't connect to banks or financial institutions. Import your data via CSV to maintain full control.</p>
+            </div>
+            <div class="marketing-feature-card">
+                <h3>No Business Accounting</h3>
+                <p>MoneyBrain is for personal finance. No invoicing, payroll, or accounts receivable features.</p>
+            </div>
+            <div class="marketing-feature-card">
+                <h3>No Tax Filing</h3>
+                <p>We help you track spending, not file taxes. Consult a professional for tax advice.</p>
+            </div>
+            <div class="marketing-feature-card">
+                <h3>No AI Advice</h3>
+                <p>We show you the numbers clearly. We don't generate financial advice or recommendations.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tech Stack -->
+<section class="marketing-about">
+    <div class="marketing-about-content">
+        <h2>Built with modern technology</h2>
+        <p>
+            MoneyBrain is built with .NET 10, Blazor, and MudBlazor for a fast, responsive experience. 
+            SQLite provides a simple, file-based database that's easy to backup and portable.
+        </p>
+        <p>
+            The codebase prioritizes clarity over cleverness. We use nullable reference types, 
+            structured logging, and follow clean architecture principles. Contributions are welcome!
+        </p>
+        
+        <div class="marketing-values" style="margin-top: 2rem;">
+            <div class="marketing-value">
+                <h4>.NET 10</h4>
+                <p>Modern, cross-platform framework</p>
+            </div>
+            <div class="marketing-value">
+                <h4>Blazor</h4>
+                <p>Interactive UI with C#</p>
+            </div>
+            <div class="marketing-value">
+                <h4>SQLite</h4>
+                <p>Simple, portable database</p>
+            </div>
+            <div class="marketing-value">
+                <h4>MudBlazor</h4>
+                <p>Material Design components</p>
+            </div>
+        </div>
     </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section text-center">
-    <div class="container">
-        <h2 class="display-5 fw-bold mb-4">Ready to Take Control?</h2>
-        <p class="lead mb-4">Join thousands of people managing their finances the right way.</p>
-        <a href="/Account/Register" class="btn btn-light btn-lg px-5">Get Started Free</a>
+<section class="marketing-cta">
+    <div class="marketing-container">
+        <h2>Join the community</h2>
+        <p>MoneyBrain is open source. Star us on GitHub, report issues, or contribute code.</p>
+        <div class="marketing-hero-buttons">
+            <MudButton Variant="Variant.Filled" Class="mb-btn-primary" Size="MudBlazor.Size.Large" Href="/Account/Register">
+                Get Started
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Size="MudBlazor.Size.Large" Href="https://github.com" Target="_blank">
+                <MudIcon Icon="@Icons.Custom.Brands.GitHub" Class="me-2" />
+                View on GitHub
+            </MudButton>
+        </div>
     </div>
 </section>

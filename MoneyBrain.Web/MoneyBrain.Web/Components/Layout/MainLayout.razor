@@ -1,8 +1,9 @@
 ﻿@inherits LayoutComponentBase
 @using MoneyBrain.Web.Components.Shared
+@inject NavigationManager NavigationManager
 
 @* Required *@
-<MudThemeProvider />
+<MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -12,21 +13,67 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(() => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">MoneyBrain</MudText>
-        <MudSpacer />
+    <MudAppBar Elevation="0" Dense="false" Class="px-4">
+        <div class="mb-logo">
+            <div class="mb-logo-icon">M</div>
+            <span>MoneyBrain</span>
+        </div>
+        
         <AuthorizeView>
             <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Href="/settings" />
+                <div class="mb-header-nav ms-6">
+                    <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">Dashboard</a>
+                    <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">Accounts</a>
+                    <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">Budgets</a>
+                </div>
             </Authorized>
         </AuthorizeView>
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        
+        <MudSpacer />
+        
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                    <ActivatorContent>
+                        <div class="mb-user-menu">
+                            <div class="mb-user-avatar">
+                                @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                            </div>
+                            <MudText Typo="Typo.body2" Class="d-none d-sm-block" Style="font-weight: 500;">
+                                @context.User.Identity?.Name
+                            </MudText>
+                            <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small" />
+                        </div>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Href="/settings" Icon="@Icons.Material.Outlined.Settings">Settings</MudMenuItem>
+                        <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Outlined.Person">Profile</MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem>
+                            <form action="Account/Logout" method="post">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="ReturnUrl" value="/" />
+                                <button type="submit" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 0; width: 100%;">
+                                    <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
+                                    Sign Out
+                                </button>
+                            </form>
+                        </MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Href="/Account/Login" Variant="Variant.Text" Color="Color.Default" Class="me-2">
+                    Sign In
+                </MudButton>
+                <MudButton Href="/Account/Register" Variant="Variant.Filled" Class="mb-btn-primary">
+                    Get Started
+                </MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu />
-    </MudDrawer>
-    <MudMainContent>
+    
+    <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: calc(100vh - 64px);">
         <AuthorizeView>
             <Authorized>
                 <SettingsEnforcer>
@@ -39,11 +86,45 @@
         </AuthorizeView>
     </MudMainContent>
 </MudLayout>
-@code {
-    bool _drawerOpen = true;
 
-    void DrawerToggle()
+@code {
+    private MudTheme _theme = new()
     {
-        _drawerOpen = !_drawerOpen;
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#1DB954",
+            Secondary = "#667EEA",
+            AppbarBackground = "#FFFFFF",
+            AppbarText = "#1A202C",
+            Background = "#F7FAFC",
+            Surface = "#FFFFFF",
+            TextPrimary = "#1A202C",
+            TextSecondary = "#718096",
+            DrawerBackground = "#FFFFFF",
+            DrawerText = "#718096",
+            DrawerIcon = "#718096",
+            Success = "#1DB954",
+            Error = "#E53E3E",
+            Warning = "#F6AD55",
+            Info = "#4299E1"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"]
+            }
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "8px"
+        }
+    };
+    
+    private bool IsActive(string path)
+    {
+        var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return currentPath.StartsWith(path.TrimStart('/'), StringComparison.OrdinalIgnoreCase) ||
+               (path == "/dashboard" && string.IsNullOrEmpty(currentPath));
     }
 }

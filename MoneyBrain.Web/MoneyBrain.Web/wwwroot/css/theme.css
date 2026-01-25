@@ -1,0 +1,621 @@
+/* MoneyBrain Professional Theme */
+/* Inspired by modern financial apps with clean, professional aesthetics */
+
+:root {
+    /* Primary Colors */
+    --mb-primary: #1DB954;          /* Vibrant green for positive/income */
+    --mb-primary-dark: #169c46;
+    --mb-primary-light: #e8f9ed;
+    
+    /* Secondary Colors */
+    --mb-secondary: #2D3748;        /* Dark slate for headers/text */
+    --mb-secondary-light: #4A5568;
+    
+    /* Accent Colors */
+    --mb-accent: #667EEA;           /* Purple-blue for accents */
+    --mb-accent-light: #EBF4FF;
+    
+    /* Semantic Colors */
+    --mb-success: #1DB954;
+    --mb-danger: #E53E3E;           /* Red for expenses/negative */
+    --mb-warning: #F6AD55;
+    --mb-info: #4299E1;
+    
+    /* Background Colors */
+    --mb-bg-primary: #F7FAFC;       /* Light gray background */
+    --mb-bg-secondary: #FFFFFF;
+    --mb-bg-card: #FFFFFF;
+    
+    /* Text Colors */
+    --mb-text-primary: #1A202C;
+    --mb-text-secondary: #718096;
+    --mb-text-muted: #A0AEC0;
+    
+    /* Border Colors */
+    --mb-border: #E2E8F0;
+    --mb-border-light: #EDF2F7;
+    
+    /* Shadows */
+    --mb-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --mb-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --mb-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --mb-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    /* Spacing */
+    --mb-radius: 8px;
+    --mb-radius-lg: 12px;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Inter', -apple-system, BlazorMicrosoft, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--mb-bg-primary);
+    color: var(--mb-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override MudBlazor theme */
+.mud-theme-primary {
+    background-color: var(--mb-primary) !important;
+}
+
+/* App Bar Styling */
+.mud-appbar {
+    background-color: var(--mb-bg-secondary) !important;
+    color: var(--mb-text-primary) !important;
+    box-shadow: var(--mb-shadow) !important;
+    border-bottom: 1px solid var(--mb-border);
+}
+
+.mud-appbar .mud-icon-button {
+    color: var(--mb-text-secondary) !important;
+}
+
+/* Drawer Styling */
+.mud-drawer {
+    background-color: var(--mb-bg-secondary) !important;
+    border-right: 1px solid var(--mb-border) !important;
+}
+
+/* Card Styling */
+.mud-paper, .mud-card {
+    border-radius: var(--mb-radius-lg) !important;
+    box-shadow: var(--mb-shadow) !important;
+    border: 1px solid var(--mb-border-light);
+}
+
+.mud-card:hover {
+    box-shadow: var(--mb-shadow-md) !important;
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Custom Card Classes */
+.mb-card {
+    background: var(--mb-bg-card);
+    border-radius: var(--mb-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--mb-shadow);
+    border: 1px solid var(--mb-border-light);
+    transition: all 0.2s ease-in-out;
+}
+
+.mb-card:hover {
+    box-shadow: var(--mb-shadow-md);
+}
+
+.mb-card-stat {
+    background: var(--mb-bg-card);
+    border-radius: var(--mb-radius-lg);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--mb-shadow-sm);
+    border: 1px solid var(--mb-border-light);
+    border-left: 4px solid var(--mb-primary);
+}
+
+.mb-card-stat.expense {
+    border-left-color: var(--mb-danger);
+}
+
+.mb-card-stat.income {
+    border-left-color: var(--mb-success);
+}
+
+.mb-card-stat.info {
+    border-left-color: var(--mb-info);
+}
+
+.mb-card-stat.warning {
+    border-left-color: var(--mb-warning);
+}
+
+/* Account/Wallet Cards */
+.mb-account-card {
+    background: var(--mb-bg-card);
+    border-radius: var(--mb-radius-lg);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--mb-shadow-sm);
+    border: 1px solid var(--mb-border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.mb-account-card:hover {
+    box-shadow: var(--mb-shadow);
+    border-color: var(--mb-primary);
+}
+
+.mb-account-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--mb-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.mb-account-icon.bank {
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    color: white;
+}
+
+.mb-account-icon.cash {
+    background: linear-gradient(135deg, #1DB954 0%, #169c46 100%);
+    color: white;
+}
+
+.mb-account-icon.credit {
+    background: linear-gradient(135deg, #F6AD55 0%, #ED8936 100%);
+    color: white;
+}
+
+.mb-account-icon.investment {
+    background: linear-gradient(135deg, #4299E1 0%, #3182CE 100%);
+    color: white;
+}
+
+/* Typography */
+.mb-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--mb-text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.mb-subtitle {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--mb-text-secondary);
+}
+
+.mb-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--mb-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.mb-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.mb-amount.positive {
+    color: var(--mb-success);
+}
+
+.mb-amount.negative {
+    color: var(--mb-danger);
+}
+
+.mb-amount.neutral {
+    color: var(--mb-text-primary);
+}
+
+/* Button Styling */
+.mb-btn-primary {
+    background-color: var(--mb-primary) !important;
+    color: white !important;
+    border-radius: var(--mb-radius) !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+.mb-btn-primary:hover {
+    background-color: var(--mb-primary-dark) !important;
+}
+
+.mb-btn-outline {
+    background-color: transparent !important;
+    color: var(--mb-primary) !important;
+    border: 2px solid var(--mb-primary) !important;
+    border-radius: var(--mb-radius) !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+}
+
+.mb-btn-outline:hover {
+    background-color: var(--mb-primary-light) !important;
+}
+
+/* Navigation Styling */
+.nav-link {
+    color: var(--mb-text-secondary) !important;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    border-radius: var(--mb-radius);
+    margin: 0.25rem 0.5rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.nav-link:hover {
+    background-color: var(--mb-bg-primary);
+    color: var(--mb-text-primary) !important;
+}
+
+.nav-link.active {
+    background-color: var(--mb-primary-light) !important;
+    color: var(--mb-primary) !important;
+}
+
+/* MudNavLink Override */
+.mud-nav-link {
+    border-radius: var(--mb-radius) !important;
+    margin: 2px 8px !important;
+}
+
+.mud-nav-link:hover {
+    background-color: var(--mb-bg-primary) !important;
+}
+
+.mud-nav-link.active {
+    background-color: var(--mb-primary-light) !important;
+    color: var(--mb-primary) !important;
+}
+
+/* Table Styling */
+.mud-table {
+    border-radius: var(--mb-radius-lg) !important;
+    overflow: hidden;
+}
+
+.mud-table-head {
+    background-color: var(--mb-bg-primary) !important;
+}
+
+.mud-table-head th {
+    font-weight: 600 !important;
+    color: var(--mb-text-secondary) !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.mud-table-row:hover {
+    background-color: var(--mb-bg-primary) !important;
+}
+
+/* Form Elements */
+.mud-input-outlined .mud-input-outlined-border {
+    border-color: var(--mb-border) !important;
+    border-radius: var(--mb-radius) !important;
+}
+
+.mud-input-outlined:hover .mud-input-outlined-border {
+    border-color: var(--mb-primary) !important;
+}
+
+.mud-input-outlined.mud-input-focused .mud-input-outlined-border {
+    border-color: var(--mb-primary) !important;
+}
+
+/* Dialog Styling */
+.mud-dialog {
+    border-radius: var(--mb-radius-lg) !important;
+}
+
+.mud-dialog-title {
+    font-weight: 600 !important;
+}
+
+/* Chip Styling */
+.mud-chip {
+    border-radius: 9999px !important;
+    font-weight: 500 !important;
+}
+
+/* Date Range Picker Style */
+.mb-date-range {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--mb-bg-card);
+    border: 1px solid var(--mb-border);
+    border-radius: var(--mb-radius);
+    font-weight: 500;
+    color: var(--mb-text-primary);
+}
+
+/* Filter Section */
+.mb-filters {
+    background: var(--mb-bg-card);
+    border-radius: var(--mb-radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--mb-border-light);
+}
+
+.mb-filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* Chart Container */
+.mb-chart-container {
+    background: var(--mb-bg-card);
+    border-radius: var(--mb-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--mb-shadow-sm);
+    border: 1px solid var(--mb-border-light);
+}
+
+.mb-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.mb-chart-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--mb-text-primary);
+}
+
+.mb-chart-subtitle {
+    font-size: 0.875rem;
+    color: var(--mb-text-muted);
+}
+
+/* Toggle Button Group */
+.mb-toggle-group {
+    display: inline-flex;
+    border-radius: var(--mb-radius);
+    overflow: hidden;
+    border: 1px solid var(--mb-border);
+}
+
+.mb-toggle-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: var(--mb-bg-card);
+    color: var(--mb-text-secondary);
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.mb-toggle-btn:not(:last-child) {
+    border-right: 1px solid var(--mb-border);
+}
+
+.mb-toggle-btn:hover {
+    background: var(--mb-bg-primary);
+}
+
+.mb-toggle-btn.active {
+    background: var(--mb-primary);
+    color: white;
+}
+
+/* Empty State */
+.mb-empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--mb-text-muted);
+}
+
+.mb-empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Quick Action Buttons */
+.mb-quick-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: var(--mb-bg-card);
+    border: 2px dashed var(--mb-border);
+    border-radius: var(--mb-radius-lg);
+    color: var(--mb-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    min-height: 100px;
+}
+
+.mb-quick-action:hover {
+    border-color: var(--mb-primary);
+    background: var(--mb-primary-light);
+}
+
+.mb-quick-action-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Section Headers */
+.mb-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.mb-section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--mb-text-primary);
+}
+
+/* Grid Layouts */
+.mb-grid-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.mb-grid-accounts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.mb-grid-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .mb-grid-charts {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Page Container */
+.mb-page {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .mb-page {
+        padding: 1rem;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--mb-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--mb-border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--mb-text-muted);
+}
+
+/* Logo Style */
+.mb-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--mb-text-primary);
+}
+
+.mb-logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--mb-primary) 0%, #169c46 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Header Nav Links */
+.mb-header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mb-header-nav-link {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    color: var(--mb-text-secondary);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s ease-in-out;
+}
+
+.mb-header-nav-link:hover {
+    color: var(--mb-primary);
+}
+
+.mb-header-nav-link.active {
+    color: var(--mb-primary);
+    border-bottom-color: var(--mb-primary);
+}
+
+/* User Menu */
+.mb-user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--mb-radius);
+    transition: background 0.15s ease-in-out;
+}
+
+.mb-user-menu:hover {
+    background: var(--mb-bg-primary);
+}
+
+.mb-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--mb-accent) 0%, #764BA2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mb-animate-in {
+    animation: fadeIn 0.3s ease-out;
+}

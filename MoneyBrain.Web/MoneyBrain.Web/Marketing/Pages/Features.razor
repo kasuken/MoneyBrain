@@ -1,202 +1,107 @@
 @page "/features"
-@layout Layout.MarketingLayout
+@layout MarketingLayout
 
-<PageTitle>Features - MoneyBrain</PageTitle>
-<HeadContent>
-    <meta name="description" content="Explore MoneyBrain's powerful features: account management, transaction tracking, budgeting, reconciliation, and more. All self-hosted with full data ownership." />
-    <meta name="keywords" content="personal finance features, budgeting software, expense tracking, financial management, self-hosted finance" />
-    <meta property="og:title" content="Features - MoneyBrain" />
-    <meta property="og:description" content="Explore MoneyBrain's powerful features for personal finance management." />
-</HeadContent>
+<PageTitle>Features | MoneyBrain</PageTitle>
 
 <!-- Hero -->
-<section class="hero-section py-5">
-    <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-3">Powerful Features, Simple Design</h1>
-        <p class="lead">Everything you need to manage your personal finances, nothing you don't.</p>
+<section class="marketing-hero">
+    <div class="marketing-hero-content">
+        <h1>Everything you need to <span class="highlight">master your money</span></h1>
+        <p>MoneyBrain gives you complete control over your finances with powerful features designed for clarity, security, and simplicity.</p>
     </div>
 </section>
 
-<!-- Account Management -->
-<section class="py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <span class="badge bg-primary mb-3">Core Feature</span>
-                <h2 class="fw-bold mb-3">Account Management</h2>
-                <p class="lead text-muted">
-                    Track all your financial accounts in one place with accurate balance tracking.
-                </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2">✅ Asset accounts (bank, cash, savings, investments)</li>
-                    <li class="mb-2">✅ Liability accounts (credit cards, loans, mortgages)</li>
-                    <li class="mb-2">✅ Opening balance tracking</li>
-                    <li class="mb-2">✅ Logical account grouping</li>
-                    <li class="mb-2">✅ Explicit balance adjustments with audit trail</li>
-                </ul>
-            </div>
-            <div class="col-lg-6 text-center">
-                <div class="bg-light rounded-4 p-5">
-                    <span class="display-1">🏦</span>
-                </div>
-            </div>
+<!-- Core Features -->
+<section class="marketing-features">
+    <div class="marketing-container">
+        <div class="marketing-section-header">
+            <h2>Core Features</h2>
+            <p>Built for people who want control without complexity</p>
         </div>
-    </div>
-</section>
-
-<!-- Transaction Management -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
-                <span class="badge bg-primary mb-3">Core Feature</span>
-                <h2 class="fw-bold mb-3">Transaction Management</h2>
-                <p class="lead text-muted">
-                    Every financial movement, tracked and organized.
-                </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2">✅ Manual entry with all essential fields</li>
-                    <li class="mb-2">✅ CSV import with column mapping</li>
-                    <li class="mb-2">✅ Search and filter by date, payee, category, amount</li>
-                    <li class="mb-2">✅ Bulk edit capabilities</li>
-                    <li class="mb-2">✅ Pending vs posted status</li>
-                    <li class="mb-2">✅ Cleared and reconciled flags</li>
-                </ul>
-            </div>
-            <div class="col-lg-6 order-lg-1 text-center">
-                <div class="bg-white rounded-4 p-5 shadow-sm">
-                    <span class="display-1">💳</span>
+        
+        <div class="marketing-features-grid">
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="MudBlazor.Size.Large" />
                 </div>
+                <h3>Multi-Account Management</h3>
+                <p>Track bank accounts, credit cards, investments, loans, and more. Organize with custom groups and see your complete financial picture in one place.</p>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- Transfers & Splits -->
-<section class="py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <span class="badge bg-success mb-3">Smart Handling</span>
-                <h2 class="fw-bold mb-3">Transfers & Split Transactions</h2>
-                <p class="lead text-muted">
-                    First-class support for complex financial movements.
-                </p>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="card p-3 h-100">
-                            <h5 class="fw-bold">🔄 Transfers</h5>
-                            <p class="small text-muted mb-0">
-                                Move money between accounts without affecting income or expenses.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card p-3 h-100">
-                            <h5 class="fw-bold">📋 Split Transactions</h5>
-                            <p class="small text-muted mb-0">
-                                Divide single transactions across multiple categories.
-                            </p>
-                        </div>
-                    </div>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Category" Size="MudBlazor.Size.Large" />
                 </div>
+                <h3>Smart Categorization</h3>
+                <p>Organize transactions with flexible categories and groups. Create rules to automatically categorize recurring expenses and income.</p>
             </div>
-            <div class="col-lg-6 text-center">
-                <div class="bg-light rounded-4 p-5">
-                    <span class="display-1">↔️</span>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Savings" Size="MudBlazor.Size.Large" />
                 </div>
+                <h3>Envelope Budgeting</h3>
+                <p>Assign every dollar a job with monthly envelope budgets. Track planned vs actual spending and optionally roll over unused funds.</p>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- Budgeting -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
-                <span class="badge bg-warning text-dark mb-3">Financial Planning</span>
-                <h2 class="fw-bold mb-3">Monthly Envelope Budgeting</h2>
-                <p class="lead text-muted">
-                    Plan your spending with clear, transparent budget math.
-                </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2">✅ Monthly budgets per category</li>
-                    <li class="mb-2">✅ Remaining = Planned − Activity</li>
-                    <li class="mb-2">✅ Overspending indicators</li>
-                    <li class="mb-2">✅ Optional rollover of positive balances</li>
-                    <li class="mb-2">✅ Copy previous month's budget</li>
-                    <li class="mb-2">✅ Budget notes per category</li>
-                </ul>
-            </div>
-            <div class="col-lg-6 order-lg-1 text-center">
-                <div class="bg-white rounded-4 p-5 shadow-sm">
-                    <span class="display-1">📊</span>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.SwapHoriz" Size="MudBlazor.Size.Large" />
                 </div>
+                <h3>Transfer Tracking</h3>
+                <p>First-class support for transfers between accounts. Automatically links entries and excludes from income/expense calculations.</p>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- Rules Engine -->
-<section class="py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <span class="badge bg-info mb-3">Automation</span>
-                <h2 class="fw-bold mb-3">Rules Engine</h2>
-                <p class="lead text-muted">
-                    Automate transaction cleanup with deterministic rules.
-                </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2">✅ Match by payee, amount, or account</li>
-                    <li class="mb-2">✅ Assign categories, rename payees, add tags</li>
-                    <li class="mb-2">✅ Priority ordering</li>
-                    <li class="mb-2">✅ Preview before applying</li>
-                    <li class="mb-2">✅ Never modifies reconciled transactions</li>
-                </ul>
-            </div>
-            <div class="col-lg-6 text-center">
-                <div class="bg-light rounded-4 p-5">
-                    <span class="display-1">⚙️</span>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Rule" Size="MudBlazor.Size.Large" />
                 </div>
+                <h3>Automation Rules</h3>
+                <p>Create deterministic rules for transaction matching. Preview changes before applying and never worry about reconciled data.</p>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- Reconciliation -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
-                <span class="badge bg-secondary mb-3">Bookkeeping</span>
-                <h2 class="fw-bold mb-3">Reconciliation & Audit Trail</h2>
-                <p class="lead text-muted">
-                    Ensure ledger correctness against external statements.
-                </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2">✅ Statement-based reconciliation per account</li>
-                    <li class="mb-2">✅ Reconciliation periods</li>
-                    <li class="mb-2">✅ Lock reconciled transactions</li>
-                    <li class="mb-2">✅ Complete audit trail for edits</li>
-                    <li class="mb-2">✅ Balance discrepancy flagging</li>
-                </ul>
-            </div>
-            <div class="col-lg-6 order-lg-1 text-center">
-                <div class="bg-white rounded-4 p-5 shadow-sm">
-                    <span class="display-1">✔️</span>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="MudBlazor.Size.Large" />
                 </div>
+                <h3>Bank Reconciliation</h3>
+                <p>Match your records with bank statements. Lock reconciled transactions to maintain an accurate audit trail.</p>
+            </div>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Analytics" Size="MudBlazor.Size.Large" />
+                </div>
+                <h3>Powerful Reports</h3>
+                <p>Visualize cash flow, spending by category, budget performance, and net worth over time. Export to CSV anytime.</p>
+            </div>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Upload" Size="MudBlazor.Size.Large" />
+                </div>
+                <h3>CSV Import</h3>
+                <p>Import transactions from any bank with flexible column mapping. Preview transformations before committing.</p>
+            </div>
+            
+            <div class="marketing-feature-card">
+                <div class="marketing-feature-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Security" Size="MudBlazor.Size.Large" />
+                </div>
+                <h3>Privacy First</h3>
+                <p>Self-hosted by design. Your data stays on your server with no telemetry, no cloud sync, and no third-party access.</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section text-center">
-    <div class="container">
-        <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
-        <p class="lead mb-4">Take control of your finances today.</p>
-        <a href="/Account/Register" class="btn btn-light btn-lg px-5">Create Your Free Account</a>
+<section class="marketing-cta">
+    <div class="marketing-container">
+        <h2>Ready to take control?</h2>
+        <p>Start managing your finances with complete privacy and control.</p>
+        <MudButton Variant="Variant.Filled" Class="mb-btn-primary" Size="MudBlazor.Size.Large" Href="/Account/Register">
+            Get Started Free
+        </MudButton>
     </div>
 </section>
