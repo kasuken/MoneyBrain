@@ -27,6 +27,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<ManualBalanceAdjustment> ManualBalanceAdjustments => Set<ManualBalanceAdjustment>();
 
+    /// <summary>
+    /// User settings store personal preferences like currency and timezone.
+    /// </summary>
+    public DbSet<UserSettings> UserSettings => Set<UserSettings>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -115,6 +120,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             // Decimal precision for money values
             entity.Property(mba => mba.Amount).HasPrecision(18, 2);
+        });
+
+        // Configure UserSettings entity
+        modelBuilder.Entity<UserSettings>(entity =>
+        {
+            entity.HasKey(us => us.Id);
+
+            // Relationship: One user has one settings record
+            entity.HasOne(us => us.User)
+                .WithOne(u => u.Settings)
+                .HasForeignKey<UserSettings>(us => us.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique index on UserId (one settings per user)
+            entity.HasIndex(us => us.UserId).IsUnique();
         });
     }
 }

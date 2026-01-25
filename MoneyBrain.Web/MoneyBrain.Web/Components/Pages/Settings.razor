@@ -1,0 +1,148 @@
+@page "/settings"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Settings
+
+@attribute [Authorize]
+@inject IUserSettingsService SettingsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+
+<PageTitle>Settings | MoneyBrain</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="py-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Settings</MudText>
+
+    <MudPaper Class="pa-6">
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate />
+        }
+        else
+        {
+            <MudForm @ref="_form" @bind-IsValid="@_formValid">
+                <MudStack Spacing="4">
+                    <MudSelect T="string" 
+                               Label="Currency" 
+                               @bind-Value="_currencyCode"
+                               Required="true"
+                               RequiredError="Currency is required"
+                               Variant="Variant.Outlined"
+                               AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var currency in _currencies)
+                        {
+                            <MudSelectItem T="string" Value="@currency.Code">
+                                @currency.Code - @currency.Name (@currency.Symbol)
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudSelect T="string"
+                               Label="Timezone"
+                               @bind-Value="_timeZoneId"
+                               Required="true"
+                               RequiredError="Timezone is required"
+                               Variant="Variant.Outlined"
+                               AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var tz in _timeZones)
+                        {
+                            <MudSelectItem T="string" Value="@tz.Id">
+                                @tz.DisplayName
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudSelect T="string"
+                               Label="Date Format"
+                               @bind-Value="_dateFormat"
+                               Variant="Variant.Outlined"
+                               AnchorOrigin="Origin.BottomCenter">
+                        <MudSelectItem T="string" Value="@("yyyy-MM-dd")">2025-01-25 (ISO)</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("MM/dd/yyyy")">01/25/2025 (US)</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("dd/MM/yyyy")">25/01/2025 (EU)</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("dd.MM.yyyy")">25.01.2025</MudSelectItem>
+                    </MudSelect>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="SaveAsync"
+                               Disabled="@(!_formValid || _saving)">
+                        @if (_saving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                        }
+                        Save Settings
+                    </MudButton>
+                </MudStack>
+            </MudForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool _loading = true;
+    private bool _saving;
+    private bool _formValid;
+    private MudForm? _form;
+
+    private string _currencyCode = "USD";
+    private string _timeZoneId = TimeZoneInfo.Local.Id;
+    private string _dateFormat = "yyyy-MM-dd";
+
+    private IReadOnlyList<CurrencyInfo> _currencies = [];
+    private IReadOnlyList<TimeZoneInfo> _timeZones = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currencies = SettingsService.GetAvailableCurrencies();
+        _timeZones = SettingsService.GetAvailableTimeZones();
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var settings = await SettingsService.GetSettingsAsync(userId);
+            if (settings != null)
+            {
+                _currencyCode = settings.CurrencyCode;
+                _timeZoneId = settings.TimeZoneId;
+                _dateFormat = settings.DateFormat;
+            }
+        }
+
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_form is null) return;
+
+        await _form.Validate();
+        if (!_formValid) return;
+
+        _saving = true;
+
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                Snackbar.Add("Unable to identify user", Severity.Error);
+                return;
+            }
+
+            await SettingsService.SaveSettingsAsync(userId, _currencyCode, _timeZoneId, _dateFormat);
+            Snackbar.Add("Settings saved successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving settings: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

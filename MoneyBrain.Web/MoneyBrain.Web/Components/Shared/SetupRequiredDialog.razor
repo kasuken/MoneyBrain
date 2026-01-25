@@ -1,0 +1,117 @@
+@using MoneyBrain.Web.Application.Settings
+
+<MudDialog Options="@(new DialogOptions { CloseButton = false, BackdropClick = false })">
+    <TitleContent>
+        <MudText Typo="Typo.h5">
+            <MudIcon Icon="@Icons.Material.Filled.Settings" Class="me-2" />
+            Welcome to MoneyBrain
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Class="mb-4">
+            Before you get started, please configure your preferences. These settings help us display
+            monetary values and dates correctly for you.
+        </MudText>
+        
+        <MudForm @ref="_form" @bind-IsValid="@_formValid">
+            <MudStack Spacing="4">
+                <MudSelect T="string"
+                           Label="Currency"
+                           @bind-Value="_currencyCode"
+                           Required="true"
+                           RequiredError="Please select your currency"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var currency in Currencies)
+                    {
+                        <MudSelectItem T="string" Value="@currency.Code">
+                            @currency.Code - @currency.Name (@currency.Symbol)
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="string"
+                           Label="Timezone"
+                           @bind-Value="_timeZoneId"
+                           Required="true"
+                           RequiredError="Please select your timezone"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var tz in TimeZones)
+                    {
+                        <MudSelectItem T="string" Value="@tz.Id">
+                            @tz.DisplayName
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="string"
+                           Label="Date Format"
+                           @bind-Value="_dateFormat"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem T="string" Value="@("yyyy-MM-dd")">2025-01-25 (ISO)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("MM/dd/yyyy")">01/25/2025 (US)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("dd/MM/yyyy")">25/01/2025 (EU)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("dd.MM.yyyy")">25.01.2025</MudSelectItem>
+                </MudSelect>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="SaveAsync"
+                   Disabled="@(!_formValid || _saving)">
+            @if (_saving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+            }
+            Get Started
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    [Parameter]
+    public IReadOnlyList<CurrencyInfo> Currencies { get; set; } = [];
+
+    [Parameter]
+    public IReadOnlyList<TimeZoneInfo> TimeZones { get; set; } = [];
+
+    [Parameter]
+    public Func<string, string, string, string?, Task> OnSave { get; set; } = null!;
+
+    private bool _formValid;
+    private bool _saving;
+    private MudForm? _form;
+
+    private string _currencyCode = "USD";
+    private string _timeZoneId = TimeZoneInfo.Local.Id;
+    private string _dateFormat = "yyyy-MM-dd";
+
+    private async Task SaveAsync()
+    {
+        if (_form is null) return;
+
+        await _form.Validate();
+        if (!_formValid) return;
+
+        _saving = true;
+        try
+        {
+            await OnSave(UserId, _currencyCode, _timeZoneId, _dateFormat);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

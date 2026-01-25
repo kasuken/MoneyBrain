@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@using MoneyBrain.Web.Components.Shared
 
 @* Required *@
 <MudThemeProvider />
@@ -15,13 +16,27 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(() => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">MoneyBrain</MudText>
         <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Href="/settings" />
+            </Authorized>
+        </AuthorizeView>
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
-        @Body
+        <AuthorizeView>
+            <Authorized>
+                <SettingsEnforcer>
+                    @Body
+                </SettingsEnforcer>
+            </Authorized>
+            <NotAuthorized>
+                @Body
+            </NotAuthorized>
+        </AuthorizeView>
     </MudMainContent>
 </MudLayout>
 @code {
