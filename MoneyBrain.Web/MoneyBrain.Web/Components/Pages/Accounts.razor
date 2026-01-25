@@ -61,9 +61,12 @@
                                         <MudChip T="string" Size="Size.Small" Color="Color.Default">@account.Group</MudChip>
                                     }
                                 </div>
-                                <MudText Typo="Typo.h6" Color="Color.Success">
-                                    @account.OpeningBalance.ToString("C")
-                                </MudText>
+                                <div class="text-right">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Success">
+                                        @account.OpeningBalance.ToString("C")
+                                    </MudText>
+                                </div>
                             </MudStack>
                             @if (!string.IsNullOrWhiteSpace(account.Notes))
                             {
@@ -100,9 +103,12 @@
                                         <MudChip T="string" Size="Size.Small" Color="Color.Default">@account.Group</MudChip>
                                     }
                                 </div>
-                                <MudText Typo="Typo.h6" Color="Color.Error">
-                                    @account.OpeningBalance.ToString("C")
-                                </MudText>
+                                <div class="text-right">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Error">
+                                        @account.OpeningBalance.ToString("C")
+                                    </MudText>
+                                </div>
                             </MudStack>
                             @if (!string.IsNullOrWhiteSpace(account.Notes))
                             {

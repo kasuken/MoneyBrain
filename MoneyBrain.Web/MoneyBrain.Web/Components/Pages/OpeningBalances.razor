@@ -1,0 +1,196 @@
+@page "/opening-balances"
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@attribute [Authorize]
+@inject IAccountService AccountService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Opening Balances - MoneyBrain</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Opening Balances</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+        Manage account opening balances with full audit trail. All adjustments are tracked.
+    </MudText>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudGrid>
+            <!-- Asset Accounts -->
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-4">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mr-2" />
+                        Asset Accounts
+                    </MudText>
+
+                    @if (!_assetAccounts.Any())
+                    {
+                        <MudText Color="Color.Secondary" Class="my-4">No asset accounts yet.</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="3">
+                            @foreach (var account in _assetAccounts)
+                            {
+                                <MudCard Outlined="true">
+                                    <MudCardContent>
+                                        <div class="d-flex justify-space-between align-center mb-2">
+                                            <MudText Typo="Typo.h6">@account.Name</MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Info">@account.SubType</MudChip>
+                                        </div>
+                                        <div class="d-flex justify-space-between align-center">
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance:</MudText>
+                                            <MudText Typo="Typo.subtitle1" Color="@(account.OpeningBalance >= 0 ? Color.Success : Color.Error)">
+                                                @account.OpeningBalance.ToString("C2")
+                                            </MudText>
+                                        </div>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudButton Size="Size.Small" 
+                                                   Color="Color.Primary" 
+                                                   OnClick="@(() => AdjustOpeningBalance(account))">
+                                            Adjust
+                                        </MudButton>
+                                        <MudButton Size="Size.Small" 
+                                                   Color="Color.Secondary" 
+                                                   OnClick="@(() => ViewAdjustmentHistory(account))">
+                                            History
+                                        </MudButton>
+                                    </MudCardActions>
+                                </MudCard>
+                            }
+                        </MudStack>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <!-- Liability Accounts -->
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-4">
+                        <MudIcon Icon="@Icons.Material.Filled.CreditCard" Class="mr-2" />
+                        Liability Accounts
+                    </MudText>
+
+                    @if (!_liabilityAccounts.Any())
+                    {
+                        <MudText Color="Color.Secondary" Class="my-4">No liability accounts yet.</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="3">
+                            @foreach (var account in _liabilityAccounts)
+                            {
+                                <MudCard Outlined="true">
+                                    <MudCardContent>
+                                        <div class="d-flex justify-space-between align-center mb-2">
+                                            <MudText Typo="Typo.h6">@account.Name</MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">@account.SubType</MudChip>
+                                        </div>
+                                        <div class="d-flex justify-space-between align-center">
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance:</MudText>
+                                            <MudText Typo="Typo.subtitle1" Color="@(account.OpeningBalance >= 0 ? Color.Success : Color.Error)">
+                                                @account.OpeningBalance.ToString("C2")
+                                            </MudText>
+                                        </div>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudButton Size="Size.Small" 
+                                                   Color="Color.Primary" 
+                                                   OnClick="@(() => AdjustOpeningBalance(account))">
+                                            Adjust
+                                        </MudButton>
+                                        <MudButton Size="Size.Small" 
+                                                   Color="Color.Secondary" 
+                                                   OnClick="@(() => ViewAdjustmentHistory(account))">
+                                            History
+                                        </MudButton>
+                                    </MudCardActions>
+                                </MudCard>
+                            }
+                        </MudStack>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    private List<Account> _assetAccounts = new();
+    private List<Account> _liabilityAccounts = new();
+    private bool _isLoading = true;
+    private string _userId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState == null) return;
+
+        var authState = await AuthenticationState;
+        _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        await LoadAccounts();
+    }
+
+    private async Task LoadAccounts()
+    {
+        _isLoading = true;
+        try
+        {
+            var allAccounts = await AccountService.GetUserAccountsAsync(_userId, includeInactive: false);
+            _assetAccounts = allAccounts.Where(a => a.Type == AccountType.Asset).OrderBy(a => a.Name).ToList();
+            _liabilityAccounts = allAccounts.Where(a => a.Type == AccountType.Liability).OrderBy(a => a.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task AdjustOpeningBalance(Account account)
+    {
+        var parameters = new DialogParameters<OpeningBalanceAdjustmentDialog>
+        {
+            { x => x.Account, account },
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<OpeningBalanceAdjustmentDialog>("Adjust Opening Balance", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAccounts();
+            Snackbar.Add($"Opening balance adjusted for {account.Name}", Severity.Success);
+        }
+    }
+
+    private async Task ViewAdjustmentHistory(Account account)
+    {
+        var parameters = new DialogParameters<OpeningBalanceHistoryDialog>
+        {
+            { x => x.Account, account },
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        await DialogService.ShowAsync<OpeningBalanceHistoryDialog>($"Adjustment History: {account.Name}", parameters, options);
+    }
+}

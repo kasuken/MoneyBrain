@@ -84,4 +84,10 @@ public class Account
     /// </summary>
     [MaxLength(3)]
     public string? CurrencyCode { get; set; }
+
+    /// <summary>
+    /// Navigation property for all opening balance adjustments made to this account.
+    /// Provides audit trail of opening balance changes.
+    /// </summary>
+    public ICollection<OpeningBalanceAdjustment> OpeningBalanceAdjustments { get; set; } = new List<OpeningBalanceAdjustment>();
 }

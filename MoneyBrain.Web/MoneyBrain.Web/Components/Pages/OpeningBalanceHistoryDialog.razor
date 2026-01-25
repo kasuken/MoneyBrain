@@ -1,0 +1,132 @@
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center align-center pa-8">
+                <MudProgressCircular Indeterminate="true" />
+            </div>
+        }
+        else if (!_adjustments.Any())
+        {
+            <MudAlert Severity="Severity.Info">
+                No adjustment history found for this account. The current opening balance is the original value.
+            </MudAlert>
+        }
+        else
+        {
+            <MudTimeline TimelinePosition="TimelinePosition.Start" TimelineOrientation="TimelineOrientation.Vertical">
+                @foreach (var adjustment in _adjustments)
+                {
+                    <MudTimelineItem Color="@GetTimelineColor(adjustment.AdjustmentAmount)" Size="Size.Small">
+                        <ItemOpposite>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @adjustment.AdjustedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                            </MudText>
+                        </ItemOpposite>
+                        <ItemContent>
+                            <MudCard Outlined="true">
+                                <MudCardContent Class="py-2">
+                                    <div class="d-flex justify-space-between align-center mb-2">
+                                        <MudText Typo="Typo.body2" Color="@GetAdjustmentColor(adjustment.AdjustmentAmount)">
+                                            @GetAdjustmentText(adjustment.AdjustmentAmount)
+                                        </MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="@GetChipColor(adjustment.AdjustmentAmount)">
+                                            @adjustment.AdjustmentAmount.ToString("C2")
+                                        </MudChip>
+                                    </div>
+                                    <div class="d-flex gap-4 mb-1">
+                                        <MudText Typo="Typo.caption">
+                                            From: <strong>@adjustment.PreviousBalance.ToString("C2")</strong>
+                                        </MudText>
+                                        <MudText Typo="Typo.caption">
+                                            To: <strong>@adjustment.NewBalance.ToString("C2")</strong>
+                                        </MudText>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(adjustment.Reason))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            <em>@adjustment.Reason</em>
+                                        </MudText>
+                                    }
+                                </MudCardContent>
+                            </MudCard>
+                        </ItemContent>
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Primary">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public Account Account { get; set; } = default!;
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    private List<OpeningBalanceAdjustment> _adjustments = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var adjustments = await AccountService.GetOpeningBalanceAdjustmentsAsync(Account.Id, UserId);
+            _adjustments = adjustments.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading adjustment history: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Close()
+    {
+        MudDialog.Close();
+    }
+
+    private Color GetTimelineColor(decimal amount) => amount switch
+    {
+        > 0 => Color.Success,
+        < 0 => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetAdjustmentColor(decimal amount) => amount switch
+    {
+        > 0 => Color.Success,
+        < 0 => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetChipColor(decimal amount) => amount switch
+    {
+        > 0 => Color.Success,
+        < 0 => Color.Error,
+        _ => Color.Default
+    };
+
+    private string GetAdjustmentText(decimal amount) => amount switch
+    {
+        > 0 => $"Increased by {amount:C2}",
+        < 0 => $"Decreased by {Math.Abs(amount):C2}",
+        _ => "No change"
+    };
+}

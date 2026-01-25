@@ -12,6 +12,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<Account> Accounts => Set<Account>();
 
+    /// <summary>
+    /// Opening balance adjustments provide audit trail for account opening balance changes.
+    /// </summary>
+    public DbSet<OpeningBalanceAdjustment> OpeningBalanceAdjustments => Set<OpeningBalanceAdjustment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -35,6 +40,28 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             // Decimal precision for money values
             entity.Property(a => a.OpeningBalance)
                 .HasPrecision(18, 2);
+        });
+
+        // Configure OpeningBalanceAdjustment entity
+        modelBuilder.Entity<OpeningBalanceAdjustment>(entity =>
+        {
+            entity.HasKey(oba => oba.Id);
+
+            // Relationship: Adjustment belongs to one Account
+            entity.HasOne(oba => oba.Account)
+                .WithMany(a => a.OpeningBalanceAdjustments)
+                .HasForeignKey(oba => oba.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for common queries
+            entity.HasIndex(oba => oba.AccountId);
+            entity.HasIndex(oba => oba.AdjustedAt);
+            entity.HasIndex(oba => new { oba.AccountId, oba.AdjustedAt });
+
+            // Decimal precision for money values
+            entity.Property(oba => oba.PreviousBalance).HasPrecision(18, 2);
+            entity.Property(oba => oba.NewBalance).HasPrecision(18, 2);
+            entity.Property(oba => oba.AdjustmentAmount).HasPrecision(18, 2);
         });
     }
 }

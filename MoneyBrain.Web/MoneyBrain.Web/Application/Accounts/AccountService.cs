@@ -102,16 +102,14 @@ public class AccountService : IAccountService
         existing.CurrencyCode = account.CurrencyCode;
         existing.UpdatedAt = DateTime.UtcNow;
 
-        // OpeningBalance should be updated with care; ideally via an adjustment mechanism
-        // For v1, allow direct update but log it
+        // OpeningBalance should NOT be updated directly - must use AdjustOpeningBalanceAsync
+        // This enforces the audit trail requirement from the PRD
         if (existing.OpeningBalance != account.OpeningBalance)
         {
             _logger.LogWarning(
-                "Opening balance changed for account {AccountId} from {OldBalance} to {NewBalance}",
-                account.Id,
-                existing.OpeningBalance,
-                account.OpeningBalance);
-            existing.OpeningBalance = account.OpeningBalance;
+                "Attempted to change opening balance directly for account {AccountId}. Use AdjustOpeningBalanceAsync instead.",
+                account.Id);
+            throw new InvalidOperationException("Opening balance cannot be changed directly. Use AdjustOpeningBalanceAsync to maintain audit trail.");
         }
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -179,5 +177,87 @@ public class AccountService : IAccountService
             account.Name);
 
         return true;
+    }
+
+    public async Task<Account> AdjustOpeningBalanceAsync(
+        int accountId, 
+        decimal newBalance, 
+        string? reason, 
+        string userId, 
+        CancellationToken cancellationToken = default)
+    {
+        var account = await _context.Accounts
+            .FirstOrDefaultAsync(
+                a => a.Id == accountId && a.UserId == userId, 
+                cancellationToken);
+
+        if (account == null)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        var previousBalance = account.OpeningBalance;
+        var adjustmentAmount = newBalance - previousBalance;
+
+        // Only create adjustment record if the balance actually changed
+        if (adjustmentAmount != 0)
+        {
+            var adjustment = new OpeningBalanceAdjustment
+            {
+                AccountId = accountId,
+                PreviousBalance = previousBalance,
+                NewBalance = newBalance,
+                AdjustmentAmount = adjustmentAmount,
+                Reason = reason,
+                AdjustedAt = DateTime.UtcNow,
+                AdjustedByUserId = userId
+            };
+
+            account.OpeningBalance = newBalance;
+            account.UpdatedAt = DateTime.UtcNow;
+
+            _context.OpeningBalanceAdjustments.Add(adjustment);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Opening balance adjusted for account {AccountId} from {PreviousBalance} to {NewBalance} (Δ {Adjustment}). Reason: {Reason}",
+                accountId,
+                previousBalance,
+                newBalance,
+                adjustmentAmount,
+                reason ?? "(none provided)");
+        }
+        else
+        {
+            _logger.LogDebug(
+                "Opening balance adjustment requested for account {AccountId} but new balance equals current balance ({Balance}).",
+                accountId,
+                newBalance);
+        }
+
+        return account;
+    }
+
+    public async Task<IReadOnlyList<OpeningBalanceAdjustment>> GetOpeningBalanceAdjustmentsAsync(
+        int accountId, 
+        string userId, 
+        CancellationToken cancellationToken = default)
+    {
+        // Verify the user owns the account
+        var accountExists = await _context.Accounts
+            .AnyAsync(
+                a => a.Id == accountId && a.UserId == userId, 
+                cancellationToken);
+
+        if (!accountExists)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        return await _context.OpeningBalanceAdjustments
+            .Where(oba => oba.AccountId == accountId)
+            .OrderByDescending(oba => oba.AdjustedAt)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
     }
 }

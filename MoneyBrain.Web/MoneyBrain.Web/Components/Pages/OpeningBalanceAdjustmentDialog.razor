@@ -1,0 +1,126 @@
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudStack Spacing="3">
+                <MudAlert Severity="Severity.Info" Dense="true">
+                    Adjusting the opening balance will create an audit trail entry.
+                </MudAlert>
+
+                <MudTextField @bind-Value="Account.Name"
+                              Label="Account"
+                              ReadOnly="true"
+                              Variant="Variant.Filled" />
+
+                <MudNumericField @bind-Value="Account.OpeningBalance"
+                                 Label="Current Opening Balance"
+                                 ReadOnly="true"
+                                 Variant="Variant.Filled"
+                                 Format="C2" />
+
+                <MudNumericField @bind-Value="_newBalance"
+                                 Label="New Opening Balance"
+                                 Required="true"
+                                 RequiredError="New balance is required"
+                                 Variant="Variant.Outlined"
+                                 Format="C2" />
+
+                <MudTextField Value="@_adjustmentAmount.ToString("C2")"
+                              Label="Adjustment Amount"
+                              ReadOnly="true"
+                              Variant="Variant.Filled"
+                              HelperText="@_adjustmentHelperText"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@(_adjustmentAmount >= 0 ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)"
+                              AdornmentColor="@(_adjustmentAmount >= 0 ? Color.Success : Color.Error)" />
+
+                <MudTextField @bind-Value="_reason"
+                              Label="Reason (optional)"
+                              Lines="3"
+                              Variant="Variant.Outlined"
+                              HelperText="Optional explanation for this adjustment" />
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="@(!_isValid || _isSaving)">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ml-2">Saving...</MudText>
+            }
+            else
+            {
+                <MudText>Save Adjustment</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public Account Account { get; set; } = default!;
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    private MudForm _form = default!;
+    private bool _isValid;
+    private bool _isSaving;
+    private decimal _newBalance;
+    private string? _reason;
+
+    private decimal _adjustmentAmount => _newBalance - Account.OpeningBalance;
+    private string _adjustmentHelperText => _adjustmentAmount switch
+    {
+        > 0 => $"Increase of {_adjustmentAmount:C2}",
+        < 0 => $"Decrease of {Math.Abs(_adjustmentAmount):C2}",
+        _ => "No change"
+    };
+
+    protected override void OnInitialized()
+    {
+        _newBalance = Account.OpeningBalance;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (!_isValid) return;
+
+        _isSaving = true;
+        try
+        {
+            await AccountService.AdjustOpeningBalanceAsync(
+                Account.Id,
+                _newBalance,
+                _reason,
+                UserId);
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adjusting opening balance: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+}

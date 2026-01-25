@@ -36,4 +36,18 @@ public interface IAccountService
     /// Permanently delete an account. Only allowed if no transactions exist.
     /// </summary>
     Task<bool> DeleteAccountAsync(int accountId, string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adjust the opening balance of an account with audit trail.
+    /// </summary>
+    /// <param name="accountId">Account to adjust</param>
+    /// <param name="newBalance">New opening balance</param>
+    /// <param name="reason">Reason for adjustment</param>
+    /// <param name="userId">User making the adjustment</param>
+    Task<Account> AdjustOpeningBalanceAsync(int accountId, decimal newBalance, string? reason, string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get all opening balance adjustments for an account.
+    /// </summary>
+    Task<IReadOnlyList<OpeningBalanceAdjustment>> GetOpeningBalanceAdjustmentsAsync(int accountId, string userId, CancellationToken cancellationToken = default);
 }
