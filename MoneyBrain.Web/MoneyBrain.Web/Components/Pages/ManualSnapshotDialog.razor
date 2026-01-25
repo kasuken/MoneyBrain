@@ -1,0 +1,133 @@
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudStack Spacing="3">
+                <MudAlert Severity="Severity.Info" Dense="true">
+                    Create a manual snapshot to record the account balance at a specific point in time.
+                </MudAlert>
+
+                <MudTextField @bind-Value="Account.Name"
+                              Label="Account"
+                              ReadOnly="true"
+                              Variant="Variant.Filled" />
+
+                <MudNumericField @bind-Value="_currentBalance"
+                                 Label="Current Balance (Calculated)"
+                                 ReadOnly="true"
+                                 Variant="Variant.Filled"
+                                 Format="C2"
+                                 HelperText="Balance = Opening Balance + Transactions (in v1: just opening balance)" />
+
+                <MudDatePicker @bind-Date="_snapshotDate"
+                               Label="Snapshot Date"
+                               Required="true"
+                               RequiredError="Snapshot date is required"
+                               Variant="Variant.Outlined"
+                               DisableFuture="true"
+                               HelperText="Date and time for this snapshot" />
+
+                <MudTimePicker @bind-Time="_snapshotTime"
+                               Label="Snapshot Time"
+                               Required="true"
+                               RequiredError="Snapshot time is required"
+                               Variant="Variant.Outlined"
+                               HelperText="Time of day for this snapshot" />
+
+                <MudTextField @bind-Value="_notes"
+                              Label="Notes (optional)"
+                              Lines="3"
+                              Variant="Variant.Outlined"
+                              HelperText="Optional description for this snapshot" />
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="@(!_isValid || _isSaving)">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ml-2">Creating...</MudText>
+            }
+            else
+            {
+                <MudText>Create Snapshot</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public Account Account { get; set; } = default!;
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    private MudForm _form = default!;
+    private bool _isValid;
+    private bool _isSaving;
+    private decimal _currentBalance;
+    private DateTime? _snapshotDate = DateTime.Today;
+    private TimeSpan? _snapshotTime = DateTime.Now.TimeOfDay;
+    private string? _notes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _currentBalance = await AccountService.CalculateCurrentBalanceAsync(Account.Id, UserId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error calculating balance: {ex.Message}", Severity.Error);
+            _currentBalance = Account.OpeningBalance;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (!_isValid || !_snapshotDate.HasValue || !_snapshotTime.HasValue) return;
+
+        _isSaving = true;
+        try
+        {
+            var snapshotDateTime = _snapshotDate.Value.Date + _snapshotTime.Value;
+
+            await AccountService.CreateBalanceSnapshotAsync(
+                Account.Id,
+                _currentBalance,
+                snapshotDateTime,
+                SnapshotType.Manual,
+                _notes,
+                UserId);
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating snapshot: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+}

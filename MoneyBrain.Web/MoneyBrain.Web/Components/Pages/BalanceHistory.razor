@@ -1,0 +1,268 @@
+@page "/balance-history"
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@attribute [Authorize]
+@inject IAccountService AccountService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Balance History - MoneyBrain</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Balance History</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+        Track account balance changes over time with point-in-time snapshots.
+    </MudText>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudGrid>
+            <!-- Account Selector -->
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 mb-4">
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="Account" 
+                                       @bind-Value="_selectedAccount" 
+                                       Label="Select Account" 
+                                       Variant="Variant.Outlined"
+                                       AnchorOrigin="Origin.BottomCenter"
+                                       ToStringFunc="@(a => a?.Name ?? string.Empty)">
+                                @foreach (var account in _accounts)
+                                {
+                                    <MudSelectItem Value="@account">
+                                        @account.Name (@account.Type - @account.SubType)
+                                    </MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudDatePicker @bind-Date="_startDate" 
+                                          Label="Start Date" 
+                                          Variant="Variant.Outlined"
+                                          Clearable="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudDatePicker @bind-Date="_endDate" 
+                                          Label="End Date" 
+                                          Variant="Variant.Outlined"
+                                          Clearable="true" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudStack Row="true" Spacing="2">
+                                <MudButton Variant="Variant.Filled" 
+                                          Color="Color.Primary" 
+                                          OnClick="LoadBalanceHistory"
+                                          Disabled="@(_selectedAccount == null)">
+                                    Load History
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined" 
+                                          Color="Color.Secondary" 
+                                          OnClick="CreateManualSnapshot"
+                                          Disabled="@(_selectedAccount == null)">
+                                    Create Snapshot
+                                </MudButton>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+            @if (_selectedAccount != null && _snapshots.Any())
+            {
+                <!-- Chart Visualization -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Balance Trend</MudText>
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+                            Chart visualization will be added in a future update. For now, view the data table below.
+                        </MudAlert>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Data Table -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Snapshot History (@_snapshots.Count)</MudText>
+                        <MudTable Items="@_snapshots" 
+                                  Dense="true" 
+                                  Hover="true" 
+                                  Breakpoint="Breakpoint.Sm"
+                                  Loading="@_isLoadingSnapshots">
+                            <HeaderContent>
+                                <MudTh>Date</MudTh>
+                                <MudTh>Balance</MudTh>
+                                <MudTh>Change</MudTh>
+                                <MudTh>Type</MudTh>
+                                <MudTh>Notes</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Date">
+                                    @context.SnapshotDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                                </MudTd>
+                                <MudTd DataLabel="Balance">
+                                    <MudText Color="@(context.Balance >= 0 ? Color.Success : Color.Error)">
+                                        @context.Balance.ToString("C2")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Change">
+                                    @{
+                                        var change = GetBalanceChange(context);
+                                        if (change.HasValue)
+                                        {
+                                            <MudChip T="string" 
+                                                    Size="Size.Small" 
+                                                    Color="@(change.Value >= 0 ? Color.Success : Color.Error)">
+                                                @(change.Value >= 0 ? "+" : "")@change.Value.ToString("C2")
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                                        }
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Type">
+                                    <MudChip T="string" 
+                                            Size="Size.Small" 
+                                            Color="@GetTypeColor(context.Type)">
+                                        @context.Type
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Notes">
+                                    @(context.Notes ?? "-")
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+                </MudItem>
+            }
+            else if (_selectedAccount != null && !_snapshots.Any())
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info">
+                        No balance snapshots found for this account in the selected date range. Create a snapshot to start tracking balance history.
+                    </MudAlert>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    private List<Account> _accounts = new();
+    private List<AccountBalanceSnapshot> _snapshots = new();
+    private Account? _selectedAccount;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+    private bool _isLoading = true;
+    private bool _isLoadingSnapshots = false;
+    private string _userId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState == null) return;
+
+        var authState = await AuthenticationState;
+        _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        await LoadAccounts();
+    }
+
+    private async Task LoadAccounts()
+    {
+        _isLoading = true;
+        try
+        {
+            var allAccounts = await AccountService.GetUserAccountsAsync(_userId, includeInactive: false);
+            _accounts = allAccounts.OrderBy(a => a.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadBalanceHistory()
+    {
+        if (_selectedAccount == null) return;
+
+        _isLoadingSnapshots = true;
+        try
+        {
+            _snapshots = (await AccountService.GetBalanceHistoryAsync(
+                _selectedAccount.Id,
+                _userId,
+                _startDate,
+                _endDate)).ToList();
+
+            if (!_snapshots.Any())
+            {
+                Snackbar.Add("No snapshots found in the selected date range", Severity.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading balance history: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoadingSnapshots = false;
+        }
+    }
+
+    private async Task CreateManualSnapshot()
+    {
+        if (_selectedAccount == null) return;
+
+        var parameters = new DialogParameters<ManualSnapshotDialog>
+        {
+            { x => x.Account, _selectedAccount },
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<ManualSnapshotDialog>("Create Balance Snapshot", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadBalanceHistory();
+            Snackbar.Add($"Snapshot created for {_selectedAccount.Name}", Severity.Success);
+        }
+    }
+
+    private decimal? GetBalanceChange(AccountBalanceSnapshot snapshot)
+    {
+        var index = _snapshots.IndexOf(snapshot);
+        if (index > 0)
+        {
+            var previous = _snapshots[index - 1];
+            return snapshot.Balance - previous.Balance;
+        }
+        return null;
+    }
+
+    private Color GetTypeColor(SnapshotType type) => type switch
+    {
+        SnapshotType.Manual => Color.Primary,
+        SnapshotType.Automatic => Color.Info,
+        SnapshotType.Reconciliation => Color.Success,
+        SnapshotType.OpeningBalanceAdjustment => Color.Warning,
+        _ => Color.Default
+    };
+}

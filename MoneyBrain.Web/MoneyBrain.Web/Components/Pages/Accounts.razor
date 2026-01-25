@@ -11,6 +11,9 @@
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject NavigationManager NavigationManager
+@inject NavigationManager NavigationManager
 
 <PageTitle>Accounts - MoneyBrain</PageTitle>
 
@@ -77,6 +80,11 @@
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                            Size="Size.Small"
                                            OnClick="@(() => OpenEditAccountDialog(account))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.ShowChart" 
+                                           Size="Size.Small"
+                                           Color="Color.Info"
+                                           Title="Balance History"
+                                           OnClick="@(() => ViewBalanceHistory(account))" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Size="Size.Small"
                                            Color="Color.Error"
@@ -119,6 +127,11 @@
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                            Size="Size.Small"
                                            OnClick="@(() => OpenEditAccountDialog(account))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.ShowChart" 
+                                           Size="Size.Small"
+                                           Color="Color.Info"
+                                           Title="Balance History"
+                                           OnClick="@(() => ViewBalanceHistory(account))" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Size="Size.Small"
                                            Color="Color.Error"
@@ -217,5 +230,10 @@
                 SnackbarService.Add("Failed to delete account", Severity.Error);
             }
         }
+    }
+
+    private void ViewBalanceHistory(Account account)
+    {
+        NavigationManager.NavigateTo($"/balance-history?accountId={account.Id}");
     }
 }

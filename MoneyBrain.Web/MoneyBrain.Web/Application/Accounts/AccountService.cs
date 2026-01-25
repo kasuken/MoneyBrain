@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
+using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Application.Accounts;
 
@@ -217,6 +218,20 @@ public class AccountService : IAccountService
             account.UpdatedAt = DateTime.UtcNow;
 
             _context.OpeningBalanceAdjustments.Add(adjustment);
+            
+            // Automatically create a balance snapshot after opening balance adjustment
+            var snapshot = new AccountBalanceSnapshot
+            {
+                AccountId = accountId,
+                SnapshotDate = DateTime.UtcNow,
+                Balance = newBalance,
+                Type = SnapshotType.OpeningBalanceAdjustment,
+                Notes = $"After opening balance adjustment: {reason ?? "(no reason provided)"}",
+                CreatedByUserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.AccountBalanceSnapshots.Add(snapshot);
+            
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
@@ -259,5 +274,247 @@ public class AccountService : IAccountService
             .OrderByDescending(oba => oba.AdjustedAt)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<AccountBalanceSnapshot> CreateBalanceSnapshotAsync(
+        int accountId, 
+        decimal balance, 
+        DateTime snapshotDate, 
+        SnapshotType type, 
+        string? notes, 
+        string userId, 
+        CancellationToken cancellationToken = default)
+    {
+        // Verify the user owns the account
+        var accountExists = await _context.Accounts
+            .AnyAsync(
+                a => a.Id == accountId && a.UserId == userId, 
+                cancellationToken);
+
+        if (!accountExists)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        var snapshot = new AccountBalanceSnapshot
+        {
+            AccountId = accountId,
+            SnapshotDate = snapshotDate,
+            Balance = balance,
+            Type = type,
+            Notes = notes,
+            CreatedByUserId = userId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.AccountBalanceSnapshots.Add(snapshot);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Balance snapshot created for account {AccountId}: {Balance} at {SnapshotDate} (Type: {Type})",
+            accountId,
+            balance,
+            snapshotDate,
+            type);
+
+        return snapshot;
+    }
+
+    public async Task<IReadOnlyList<AccountBalanceSnapshot>> GetBalanceHistoryAsync(
+        int accountId, 
+        string userId, 
+        DateTime? startDate = null, 
+        DateTime? endDate = null, 
+        CancellationToken cancellationToken = default)
+    {
+        // Verify the user owns the account
+        var accountExists = await _context.Accounts
+            .AnyAsync(
+                a => a.Id == accountId && a.UserId == userId, 
+                cancellationToken);
+
+        if (!accountExists)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        var query = _context.AccountBalanceSnapshots
+            .Where(abs => abs.AccountId == accountId);
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(abs => abs.SnapshotDate >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(abs => abs.SnapshotDate <= endDate.Value);
+        }
+
+        return await query
+            .OrderBy(abs => abs.SnapshotDate)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<decimal> CalculateCurrentBalanceAsync(
+        int accountId, 
+        string userId, 
+        CancellationToken cancellationToken = default)
+    {
+        var account = await _context.Accounts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                a => a.Id == accountId && a.UserId == userId, 
+                cancellationToken);
+
+        if (account == null)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        // Calculate balance: OpeningBalance + sum(manual adjustments)
+        // TODO: When transaction support is added, include: + sum(posted transactions)
+        var manualAdjustments = await _context.ManualBalanceAdjustments
+            .Where(mba => mba.AccountId == accountId)
+            .SumAsync(mba => mba.Amount, cancellationToken);
+
+        var currentBalance = account.OpeningBalance + manualAdjustments;
+
+        _logger.LogDebug(
+            "Calculated current balance for account {AccountId}: Opening={Opening} + Adjustments={Adjustments} = {Total}",
+            accountId,
+            account.OpeningBalance,
+            manualAdjustments,
+            currentBalance);
+
+        return currentBalance;
+    }
+
+    public async Task<ManualBalanceAdjustment> CreateManualAdjustmentAsync(
+        int accountId, 
+        decimal amount, 
+        DateTime adjustmentDate, 
+        string description, 
+        string? category, 
+        string userId, 
+        CancellationToken cancellationToken = default)
+    {
+        // Verify the user owns the account
+        var accountExists = await _context.Accounts
+            .AnyAsync(
+                a => a.Id == accountId && a.UserId == userId, 
+                cancellationToken);
+
+        if (!accountExists)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("Description is required for manual balance adjustments.", nameof(description));
+        }
+
+        var adjustment = new ManualBalanceAdjustment
+        {
+            AccountId = accountId,
+            Amount = amount,
+            AdjustmentDate = adjustmentDate,
+            Description = description,
+            Category = category,
+            CreatedByUserId = userId,
+            CreatedAt = DateTime.UtcNow,
+            IsReconciled = false
+        };
+
+        _context.ManualBalanceAdjustments.Add(adjustment);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Manual adjustment created for account {AccountId}: {Amount} on {Date}. Description: {Description}",
+            accountId,
+            amount,
+            adjustmentDate,
+            description);
+
+        return adjustment;
+    }
+
+    public async Task<IReadOnlyList<ManualBalanceAdjustment>> GetManualAdjustmentsAsync(
+        int accountId, 
+        string userId, 
+        DateTime? startDate = null, 
+        DateTime? endDate = null, 
+        CancellationToken cancellationToken = default)
+    {
+        // Verify the user owns the account
+        var accountExists = await _context.Accounts
+            .AnyAsync(
+                a => a.Id == accountId && a.UserId == userId, 
+                cancellationToken);
+
+        if (!accountExists)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        var query = _context.ManualBalanceAdjustments
+            .Where(mba => mba.AccountId == accountId);
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(mba => mba.AdjustmentDate >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(mba => mba.AdjustmentDate <= endDate.Value);
+        }
+
+        return await query
+            .OrderByDescending(mba => mba.AdjustmentDate)
+            .ThenByDescending(mba => mba.CreatedAt)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> DeleteManualAdjustmentAsync(
+        int adjustmentId, 
+        string userId, 
+        CancellationToken cancellationToken = default)
+    {
+        var adjustment = await _context.ManualBalanceAdjustments
+            .Include(mba => mba.Account)
+            .FirstOrDefaultAsync(
+                mba => mba.Id == adjustmentId, 
+                cancellationToken);
+
+        if (adjustment == null)
+        {
+            return false;
+        }
+
+        // Verify user owns the account
+        if (adjustment.Account?.UserId != userId)
+        {
+            throw new UnauthorizedAccessException($"User {userId} does not own account {adjustment.AccountId}.");
+        }
+
+        // Enforce immutability: cannot delete reconciled adjustments
+        if (adjustment.IsReconciled)
+        {
+            throw new InvalidOperationException("Cannot delete a reconciled adjustment. Reconciled data is immutable.");
+        }
+
+        _context.ManualBalanceAdjustments.Remove(adjustment);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Manual adjustment deleted: {AdjustmentId} for account {AccountId}",
+            adjustmentId,
+            adjustment.AccountId);
+
+        return true;
     }
 }

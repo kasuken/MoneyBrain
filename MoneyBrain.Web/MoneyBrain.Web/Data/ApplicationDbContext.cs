@@ -17,6 +17,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<OpeningBalanceAdjustment> OpeningBalanceAdjustments => Set<OpeningBalanceAdjustment>();
 
+    /// <summary>
+    /// Account balance snapshots track point-in-time balance values for history and reporting.
+    /// </summary>
+    public DbSet<AccountBalanceSnapshot> AccountBalanceSnapshots => Set<AccountBalanceSnapshot>();
+
+    /// <summary>
+    /// Manual balance adjustments track explicit balance changes with full audit trail.
+    /// </summary>
+    public DbSet<ManualBalanceAdjustment> ManualBalanceAdjustments => Set<ManualBalanceAdjustment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -62,6 +72,49 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(oba => oba.PreviousBalance).HasPrecision(18, 2);
             entity.Property(oba => oba.NewBalance).HasPrecision(18, 2);
             entity.Property(oba => oba.AdjustmentAmount).HasPrecision(18, 2);
+        });
+
+        // Configure AccountBalanceSnapshot entity
+        modelBuilder.Entity<AccountBalanceSnapshot>(entity =>
+        {
+            entity.HasKey(abs => abs.Id);
+
+            // Relationship: Snapshot belongs to one Account
+            entity.HasOne(abs => abs.Account)
+                .WithMany(a => a.BalanceSnapshots)
+                .HasForeignKey(abs => abs.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for common queries
+            entity.HasIndex(abs => abs.AccountId);
+            entity.HasIndex(abs => abs.SnapshotDate);
+            entity.HasIndex(abs => new { abs.AccountId, abs.SnapshotDate });
+            entity.HasIndex(abs => new { abs.AccountId, abs.Type });
+
+            // Decimal precision for money values
+            entity.Property(abs => abs.Balance).HasPrecision(18, 2);
+        });
+
+        // Configure ManualBalanceAdjustment entity
+        modelBuilder.Entity<ManualBalanceAdjustment>(entity =>
+        {
+            entity.HasKey(mba => mba.Id);
+
+            // Relationship: Adjustment belongs to one Account
+            entity.HasOne(mba => mba.Account)
+                .WithMany(a => a.ManualBalanceAdjustments)
+                .HasForeignKey(mba => mba.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for common queries
+            entity.HasIndex(mba => mba.AccountId);
+            entity.HasIndex(mba => mba.AdjustmentDate);
+            entity.HasIndex(mba => new { mba.AccountId, mba.AdjustmentDate });
+            entity.HasIndex(mba => new { mba.AccountId, mba.IsReconciled });
+            entity.HasIndex(mba => mba.Category);
+
+            // Decimal precision for money values
+            entity.Property(mba => mba.Amount).HasPrecision(18, 2);
         });
     }
 }

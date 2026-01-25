@@ -90,4 +90,16 @@ public class Account
     /// Provides audit trail of opening balance changes.
     /// </summary>
     public ICollection<OpeningBalanceAdjustment> OpeningBalanceAdjustments { get; set; } = new List<OpeningBalanceAdjustment>();
+
+    /// <summary>
+    /// Navigation property for all balance snapshots taken for this account.
+    /// Used for tracking balance history over time.
+    /// </summary>
+    public ICollection<AccountBalanceSnapshot> BalanceSnapshots { get; set; } = new List<AccountBalanceSnapshot>();
+
+    /// <summary>
+    /// Navigation property for all manual balance adjustments made to this account.
+    /// These directly affect the calculated balance: Balance = OpeningBalance + Transactions + ManualAdjustments.
+    /// </summary>
+    public ICollection<ManualBalanceAdjustment> ManualBalanceAdjustments { get; set; } = new List<ManualBalanceAdjustment>();
 }

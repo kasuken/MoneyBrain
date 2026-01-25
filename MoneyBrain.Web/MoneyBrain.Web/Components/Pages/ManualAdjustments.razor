@@ -1,0 +1,307 @@
+@page "/manual-adjustments"
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@attribute [Authorize]
+@inject IAccountService AccountService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Manual Adjustments - MoneyBrain</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Manual Balance Adjustments</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+        Explicit, auditable adjustments to account balances (bank fees, interest, corrections).
+    </MudText>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudGrid>
+            <!-- Account Selector -->
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 mb-4">
+                    <MudGrid>
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="Account" 
+                                       @bind-Value="_selectedAccount" 
+                                       Label="Select Account" 
+                                       Variant="Variant.Outlined"
+                                       AnchorOrigin="Origin.BottomCenter"
+                                       ToStringFunc="@(a => a?.Name ?? string.Empty)">
+                                @foreach (var account in _accounts)
+                                {
+                                    <MudSelectItem Value="@account">
+                                        @account.Name (@account.Type - @account.SubType)
+                                    </MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudDatePicker @bind-Date="_startDate" 
+                                          Label="Start Date" 
+                                          Variant="Variant.Outlined"
+                                          Clearable="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudDatePicker @bind-Date="_endDate" 
+                                          Label="End Date" 
+                                          Variant="Variant.Outlined"
+                                          Clearable="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudStack Row="true" Spacing="2">
+                                <MudButton Variant="Variant.Filled" 
+                                          Color="Color.Primary" 
+                                          OnClick="LoadAdjustments"
+                                          Disabled="@(_selectedAccount == null)"
+                                          FullWidth="true">
+                                    Load
+                                </MudButton>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+            @if (_selectedAccount != null)
+            {
+                <!-- Current Balance Summary -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4">
+                        <MudGrid>
+                            <MudItem xs="12" md="3">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance</MudText>
+                                <MudText Typo="Typo.h6">@_selectedAccount.OpeningBalance.ToString("C2")</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Total Adjustments</MudText>
+                                <MudText Typo="Typo.h6" Color="@(_totalAdjustments >= 0 ? Color.Success : Color.Error)">
+                                    @_totalAdjustments.ToString("C2")
+                                </MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Current Balance</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Primary">@_currentBalance.ToString("C2")</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="3" Class="d-flex align-end justify-end">
+                                <MudButton Variant="Variant.Filled" 
+                                          Color="Color.Primary" 
+                                          StartIcon="@Icons.Material.Filled.Add"
+                                          OnClick="CreateAdjustment">
+                                    New Adjustment
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Adjustments Table -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Adjustment History (@_adjustments.Count)</MudText>
+                        
+                        @if (_isLoadingAdjustments)
+                        {
+                            <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+                        }
+                        else if (!_adjustments.Any())
+                        {
+                            <MudAlert Severity="Severity.Info">
+                                No manual adjustments found for this account. Create your first adjustment to track explicit balance changes.
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudTable Items="@_adjustments" 
+                                      Dense="true" 
+                                      Hover="true" 
+                                      Breakpoint="Breakpoint.Sm">
+                                <HeaderContent>
+                                    <MudTh>Date</MudTh>
+                                    <MudTh>Amount</MudTh>
+                                    <MudTh>Category</MudTh>
+                                    <MudTh>Description</MudTh>
+                                    <MudTh>Status</MudTh>
+                                    <MudTh>Actions</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Date">
+                                        @context.AdjustmentDate.ToLocalTime().ToString("MMM dd, yyyy")
+                                    </MudTd>
+                                    <MudTd DataLabel="Amount">
+                                        <MudChip T="string" 
+                                                Size="Size.Small" 
+                                                Color="@(context.Amount >= 0 ? Color.Success : Color.Error)">
+                                            @(context.Amount >= 0 ? "+" : "")@context.Amount.ToString("C2")
+                                        </MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Category">
+                                        @(context.Category ?? "-")
+                                    </MudTd>
+                                    <MudTd DataLabel="Description">
+                                        <MudText Typo="Typo.body2">@context.Description</MudText>
+                                    </MudTd>
+                                    <MudTd DataLabel="Status">
+                                        @if (context.IsReconciled)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.Lock">
+                                                Reconciled
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">
+                                                Unreconciled
+                                            </MudChip>
+                                        }
+                                    </MudTd>
+                                    <MudTd DataLabel="Actions">
+                                        @if (!context.IsReconciled)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                          Size="Size.Small"
+                                                          Color="Color.Error"
+                                                          OnClick="@(() => DeleteAdjustment(context))" />
+                                        }
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    private List<Account> _accounts = new();
+    private List<ManualBalanceAdjustment> _adjustments = new();
+    private Account? _selectedAccount;
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+    private decimal _currentBalance;
+    private decimal _totalAdjustments;
+    private bool _isLoading = true;
+    private bool _isLoadingAdjustments = false;
+    private string _userId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState == null) return;
+
+        var authState = await AuthenticationState;
+        _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        await LoadAccounts();
+    }
+
+    private async Task LoadAccounts()
+    {
+        _isLoading = true;
+        try
+        {
+            var allAccounts = await AccountService.GetUserAccountsAsync(_userId, includeInactive: false);
+            _accounts = allAccounts.OrderBy(a => a.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadAdjustments()
+    {
+        if (_selectedAccount == null) return;
+
+        _isLoadingAdjustments = true;
+        try
+        {
+            _adjustments = (await AccountService.GetManualAdjustmentsAsync(
+                _selectedAccount.Id,
+                _userId,
+                _startDate,
+                _endDate)).ToList();
+
+            _totalAdjustments = _adjustments.Sum(a => a.Amount);
+            _currentBalance = await AccountService.CalculateCurrentBalanceAsync(_selectedAccount.Id, _userId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading adjustments: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoadingAdjustments = false;
+        }
+    }
+
+    private async Task CreateAdjustment()
+    {
+        if (_selectedAccount == null) return;
+
+        var parameters = new DialogParameters<ManualAdjustmentDialog>
+        {
+            { x => x.Account, _selectedAccount },
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<ManualAdjustmentDialog>("Create Manual Adjustment", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAdjustments();
+            Snackbar.Add($"Adjustment created for {_selectedAccount.Name}", Severity.Success);
+        }
+    }
+
+    private async Task DeleteAdjustment(ManualBalanceAdjustment adjustment)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Delete Adjustment",
+            $"Are you sure you want to delete this {adjustment.Amount:C2} adjustment? This action cannot be undone.",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (result == true)
+        {
+            try
+            {
+                var deleted = await AccountService.DeleteManualAdjustmentAsync(adjustment.Id, _userId);
+                if (deleted)
+                {
+                    await LoadAdjustments();
+                    Snackbar.Add("Adjustment deleted successfully", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete adjustment", Severity.Error);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Warning);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting adjustment: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}
