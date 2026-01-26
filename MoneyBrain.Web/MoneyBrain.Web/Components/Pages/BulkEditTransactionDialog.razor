@@ -3,6 +3,7 @@
 @using MoneyBrain.Web.Application.Transactions.BulkEdit
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
 @using MudBlazor
 @inject ITransactionService TransactionService
 @inject ICategoryService CategoryService
@@ -81,6 +82,19 @@
                     </MudStack>
                 }
             </MudStack>
+
+            <!-- Status -->
+            <MudStack Spacing="2">
+                <MudCheckBox @bind-Value="_updateStatus" Label="Update Status" Color="MudBlazor.Color.Primary" />
+                @if (_updateStatus)
+                {
+                    <MudSelect T="TransactionStatus?" @bind-Value="_status" Label="Status" Variant="Variant.Outlined" 
+                               Disabled="!_updateStatus" FullWidth="true">
+                        <MudSelectItem T="TransactionStatus?" Value="TransactionStatus.Pending">Pending</MudSelectItem>
+                        <MudSelectItem T="TransactionStatus?" Value="TransactionStatus.Posted">Posted</MudSelectItem>
+                    </MudSelect>
+                }
+            </MudStack>
         </MudStack>
 
         @if (!string.IsNullOrWhiteSpace(_errorMessage))
@@ -117,11 +131,13 @@
     private bool _updateCategory;
     private bool _updatePayee;
     private bool _updateTags;
+    private bool _updateStatus;
 
     // Values
     private int? _categoryId;
     private int? _payeeId;
     private string _tagsInput = string.Empty;
+    private TransactionStatus? _status;
 
     // Clear flags
     private bool _clearCategory;
@@ -149,7 +165,7 @@
         _errorMessage = null;
 
         // Validate at least one update is selected
-        if (!_updateCategory && !_updatePayee && !_updateTags)
+        if (!_updateCategory && !_updatePayee && !_updateTags && !_updateStatus)
         {
             _errorMessage = "Please select at least one field to update";
             return;
@@ -193,6 +209,11 @@
             {
                 request.Tags = [];
             }
+        }
+
+        if (_updateStatus && _status.HasValue)
+        {
+            request.Status = _status.Value;
         }
 
         _isSubmitting = true;

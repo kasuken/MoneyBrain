@@ -27,6 +27,11 @@ public class BulkEditTransactionRequest
     public List<string>? Tags { get; set; }
 
     /// <summary>
+    /// New status (null = no change)
+    /// </summary>
+    public Domain.Enums.TransactionStatus? Status { get; set; }
+
+    /// <summary>
     /// Whether to clear the selected field instead of setting it
     /// </summary>
     public bool ClearCategory { get; set; }
@@ -37,5 +42,6 @@ public class BulkEditTransactionRequest
     /// Checks if any update is specified
     /// </summary>
     public bool HasUpdates => CategoryId.HasValue || PayeeId.HasValue || Tags != null || 
+                              Status.HasValue ||
                               ClearCategory || ClearPayee || ClearTags;
 }

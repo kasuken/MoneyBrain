@@ -3,6 +3,7 @@ using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Application.Transactions.Splits;
+using MoneyBrain.Web.Application.Transactions.StatusManagement;
 using MoneyBrain.Web.Application.Transactions.Transfers;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
@@ -550,6 +551,13 @@ public class TransactionService : ITransactionService
                 updated = true;
             }
 
+            // Update status
+            if (request.Status.HasValue)
+            {
+                transaction.Status = request.Status.Value;
+                updated = true;
+            }
+
             if (updated)
             {
                 transaction.UpdatedAt = DateTime.UtcNow;
@@ -929,6 +937,111 @@ public class TransactionService : ITransactionService
             Date = transaction.Date,
             Memo = transaction.Memo
         };
+    }
+
+    public async Task<StatusUpdateResult> BulkUpdateStatusAsync(
+        string userId,
+        StatusUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new StatusUpdateResult();
+
+        if (request.TransactionIds.Count == 0)
+            return result;
+
+        // Load transactions
+        var transactions = await _context.Transactions
+            .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var transaction in transactions)
+        {
+            // Skip reconciled transactions (preserve data integrity)
+            if (request.SkipReconciled && transaction.IsReconciled)
+            {
+                result.SkippedTransactionIds.Add(transaction.Id);
+                continue;
+            }
+
+            // Skip transfers if requested
+            if (request.SkipTransfers && transaction.TransferTransactionId.HasValue)
+            {
+                result.SkippedTransactionIds.Add(transaction.Id);
+                continue;
+            }
+
+            // Update status
+            transaction.Status = request.NewStatus;
+            transaction.UpdatedAt = DateTime.UtcNow;
+            result.UpdatedCount++;
+        }
+
+        // Set skip reason if any skipped
+        if (result.SkippedTransactionIds.Count > 0)
+        {
+            var reasons = new List<string>();
+            if (request.SkipReconciled)
+                reasons.Add("reconciled");
+            if (request.SkipTransfers)
+                reasons.Add("transfers");
+            result.SkipReason = string.Join(" or ", reasons);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return result;
+    }
+
+    public async Task<int> GetPendingTransactionCountAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Transactions
+            .Where(t => t.UserId == userId && t.Status == TransactionStatus.Pending)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<StatusUpdateResult> PostAllPendingTransactionsAsync(
+        string userId,
+        DateTime? throughDate = null,
+        int? accountId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new StatusUpdateResult();
+
+        var query = _context.Transactions
+            .Where(t => t.UserId == userId && t.Status == TransactionStatus.Pending);
+
+        // Filter by date if specified (post pending transactions up to a certain date)
+        if (throughDate.HasValue)
+            query = query.Where(t => t.Date <= throughDate.Value);
+
+        // Filter by account if specified
+        if (accountId.HasValue)
+            query = query.Where(t => t.AccountId == accountId.Value);
+
+        var transactions = await query.ToListAsync(cancellationToken);
+
+        foreach (var transaction in transactions)
+        {
+            // Skip reconciled transactions (should not happen for pending, but safety check)
+            if (transaction.IsReconciled)
+            {
+                result.SkippedTransactionIds.Add(transaction.Id);
+                continue;
+            }
+
+            transaction.Status = TransactionStatus.Posted;
+            transaction.UpdatedAt = DateTime.UtcNow;
+            result.UpdatedCount++;
+        }
+
+        if (result.SkippedTransactionIds.Count > 0)
+        {
+            result.SkipReason = "reconciled";
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return result;
     }
 }
 

@@ -47,6 +47,21 @@
             }
             else
             {
+                @if (_pendingTransactionCount > 0)
+                {
+                    <MudButton Variant="Variant.Outlined" 
+                               Color="Color.Warning"
+                               StartIcon="@Icons.Material.Filled.Schedule"
+                               OnClick="@ShowPendingTransactions">
+                        @_pendingTransactionCount Pending
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Success"
+                               StartIcon="@Icons.Material.Filled.CheckCircle"
+                               OnClick="@PostAllPendingTransactions">
+                        Post All Pending
+                    </MudButton>
+                }
                 <MudButton Variant="Variant.Outlined" 
                            Color="Color.Primary"
                            StartIcon="@(_showFilters ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.FilterAlt)"
@@ -262,6 +277,7 @@
     private TransactionFilter _filter = new();
     private bool _showFilters = false;
     private HashSet<Transaction> _selectedTransactions = [];
+    private int _pendingTransactionCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -278,6 +294,7 @@
 
             _accounts = (await AccountService.GetUserAccountsAsync(_userId)).ToList();
             await LoadTransactions();
+            await LoadPendingCount();
         }
 
         _isLoading = false;
@@ -297,6 +314,14 @@
             return;
 
         _transactions = await TransactionService.SearchTransactionsAsync(_userId, _filter);
+    }
+
+    private async Task LoadPendingCount()
+    {
+        if (string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        _pendingTransactionCount = await TransactionService.GetPendingTransactionCountAsync(_userId);
     }
 
     private async Task ApplyFilters()
@@ -566,6 +591,44 @@
             catch (InvalidOperationException ex)
             {
                 SnackbarService.Add(ex.Message, Severity.Error);
+            }
+        }
+    }
+
+    private async Task ShowPendingTransactions()
+    {
+        _filter.Clear();
+        _filter.Status = TransactionStatus.Pending;
+        await LoadTransactions();
+    }
+
+    private async Task PostAllPendingTransactions()
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Post All Pending Transactions",
+            $"Are you sure you want to mark all {_pendingTransactionCount} pending transactions as posted? This will include them in budget calculations.",
+            yesText: "Post All",
+            cancelText: "Cancel");
+
+        if (result == true && _userId != null)
+        {
+            try
+            {
+                var statusResult = await TransactionService.PostAllPendingTransactionsAsync(_userId);
+                if (statusResult.UpdatedCount > 0)
+                {
+                    await LoadTransactions();
+                    await LoadPendingCount();
+                    SnackbarService.Add($"Posted {statusResult.UpdatedCount} transaction{(statusResult.UpdatedCount != 1 ? "s" : "")}", Severity.Success);
+                }
+                else
+                {
+                    SnackbarService.Add("No transactions were posted", Severity.Info);
+                }
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.Add($"Error posting transactions: {ex.Message}", Severity.Error);
             }
         }
     }

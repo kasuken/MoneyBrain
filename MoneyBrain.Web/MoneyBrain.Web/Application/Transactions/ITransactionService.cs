@@ -1,6 +1,7 @@
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.Splits;
+using MoneyBrain.Web.Application.Transactions.StatusManagement;
 using MoneyBrain.Web.Application.Transactions.Transfers;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -182,5 +183,31 @@ public interface ITransactionService
     Task<TransferResult?> GetTransferAsync(
         string userId,
         int transactionId,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Bulk update transaction status (Pending → Posted or Posted → Pending)
+    /// Skips reconciled transactions to prevent data corruption
+    /// </summary>
+    Task<StatusUpdateResult> BulkUpdateStatusAsync(
+        string userId,
+        StatusUpdateRequest request,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Get count of pending transactions for user
+    /// </summary>
+    Task<int> GetPendingTransactionCountAsync(
+        string userId,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Post all pending transactions (change status to Posted)
+    /// Optionally filter by date range or account
+    /// </summary>
+    Task<StatusUpdateResult> PostAllPendingTransactionsAsync(
+        string userId,
+        DateTime? throughDate = null,
+        int? accountId = null,
         CancellationToken cancellationToken = default);
 }
