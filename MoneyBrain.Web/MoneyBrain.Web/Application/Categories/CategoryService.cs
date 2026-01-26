@@ -340,7 +340,7 @@ public class CategoryService : ICategoryService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<MonthlyBudget> SetDefaultBudgetAsync(int categoryId, string userId, decimal plannedAmount, bool allowRollover = false, CancellationToken cancellationToken = default)
+    public async Task<MonthlyBudget> SetDefaultBudgetAsync(int categoryId, string userId, decimal plannedAmount, bool allowRollover = false, string? notes = null, CancellationToken cancellationToken = default)
     {
         // Verify the category belongs to the user
         var category = await _context.Categories
@@ -358,6 +358,7 @@ public class CategoryService : ICategoryService
             // Update existing default budget
             existingBudget.PlannedAmount = plannedAmount;
             existingBudget.AllowRollover = allowRollover;
+            existingBudget.Notes = notes;
             existingBudget.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             return existingBudget;
@@ -373,7 +374,8 @@ public class CategoryService : ICategoryService
                 Year = null,
                 Month = null,
                 PlannedAmount = plannedAmount,
-                AllowRollover = allowRollover
+                AllowRollover = allowRollover,
+                Notes = notes
             };
 
             _context.MonthlyBudgets.Add(newBudget);
@@ -382,7 +384,7 @@ public class CategoryService : ICategoryService
         }
     }
 
-    public async Task<MonthlyBudget> SetMonthOverrideAsync(int categoryId, string userId, int year, int month, decimal plannedAmount, bool allowRollover = false, CancellationToken cancellationToken = default)
+    public async Task<MonthlyBudget> SetMonthOverrideAsync(int categoryId, string userId, int year, int month, decimal plannedAmount, bool allowRollover = false, string? notes = null, CancellationToken cancellationToken = default)
     {
         // Verify the category belongs to the user
         var category = await _context.Categories
@@ -401,6 +403,7 @@ public class CategoryService : ICategoryService
             // Update existing override
             existingBudget.PlannedAmount = plannedAmount;
             existingBudget.AllowRollover = allowRollover;
+            existingBudget.Notes = notes;
             existingBudget.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             return existingBudget;
@@ -416,7 +419,8 @@ public class CategoryService : ICategoryService
                 Year = year,
                 Month = month,
                 PlannedAmount = plannedAmount,
-                AllowRollover = allowRollover
+                AllowRollover = allowRollover,
+                Notes = notes
             };
 
             _context.MonthlyBudgets.Add(newBudget);

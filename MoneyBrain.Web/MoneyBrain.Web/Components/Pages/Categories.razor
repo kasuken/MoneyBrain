@@ -120,7 +120,8 @@
                                     <MudTh>Category</MudTh>
                                     <MudTh Style="text-align: right;">Budgeted</MudTh>
                                     <MudTh Style="text-align: right;">Actual</MudTh>
-                                    <MudTh Style="text-align: right;">Remaining</MudTh>
+       <MudTh Style="text-align: right;">Remaining</MudTh>
+                                    <MudTh>Notes</MudTh>
                                     <MudTh Style="text-align: right;">Actions</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
@@ -206,6 +207,15 @@
                                             {
                                                 <MudText Style="color: var(--mb-text-muted);">—</MudText>
                                             }
+                                        }
+                                    </MudTd>
+                                    <MudTd>
+                                        @{
+                                            var budget = _monthlyBudgets.FirstOrDefault(b => b.CategoryId == context.Id);
+                                            var notesText = budget != null && !string.IsNullOrWhiteSpace(budget.Notes) ? budget.Notes : "—";
+                                            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                                @notesText
+                                            </MudText>
                                         }
                                     </MudTd>
                                     <MudTd Style="text-align: right;">

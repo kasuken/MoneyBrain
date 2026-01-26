@@ -15,8 +15,8 @@ public interface IBudgetService
     Task<bool> DeleteBudgetAsync(int budgetId, string userId);
     
     // Budget category operations
-    Task<BudgetCategory> AddCategoryToBudgetAsync(int budgetId, string userId, int categoryId, decimal plannedAmount, bool allowRollover);
-    Task<BudgetCategory> UpdateBudgetCategoryAsync(int budgetCategoryId, string userId, decimal plannedAmount, bool allowRollover);
+    Task<BudgetCategory> AddCategoryToBudgetAsync(int budgetId, string userId, int categoryId, decimal plannedAmount, bool allowRollover, string? notes = null);
+    Task<BudgetCategory> UpdateBudgetCategoryAsync(int budgetCategoryId, string userId, decimal plannedAmount, bool allowRollover, string? notes = null);
     Task<bool> RemoveCategoryFromBudgetAsync(int budgetCategoryId, string userId);
     
     // Reporting

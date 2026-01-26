@@ -41,6 +41,11 @@ public class MonthlyBudget
     /// </summary>
     public bool AllowRollover { get; set; } = false;
     
+    /// <summary>
+    /// Optional notes for this budget entry
+    /// </summary>
+    public string? Notes { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

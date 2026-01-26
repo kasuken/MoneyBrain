@@ -136,7 +136,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
         return true;
     }
 
-    public async Task<BudgetCategory> AddCategoryToBudgetAsync(int budgetId, string userId, int categoryId, decimal plannedAmount, bool allowRollover)
+    public async Task<BudgetCategory> AddCategoryToBudgetAsync(int budgetId, string userId, int categoryId, decimal plannedAmount, bool allowRollover, string? notes = null)
     {
         // Verify budget belongs to user
         var budget = await context.Budgets
@@ -158,6 +158,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
             CategoryId = categoryId,
             PlannedAmount = plannedAmount,
             AllowRollover = allowRollover,
+            Notes = notes,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -176,7 +177,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
         return budgetCategory;
     }
 
-    public async Task<BudgetCategory> UpdateBudgetCategoryAsync(int budgetCategoryId, string userId, decimal plannedAmount, bool allowRollover)
+    public async Task<BudgetCategory> UpdateBudgetCategoryAsync(int budgetCategoryId, string userId, decimal plannedAmount, bool allowRollover, string? notes = null)
     {
         var budgetCategory = await context.BudgetCategories
             .Include(bc => bc.Budget)
@@ -187,6 +188,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
 
         budgetCategory.PlannedAmount = plannedAmount;
         budgetCategory.AllowRollover = allowRollover;
+        budgetCategory.Notes = notes;
         budgetCategory.UpdatedAt = DateTime.UtcNow;
         
         budgetCategory.Budget.UpdatedAt = DateTime.UtcNow;

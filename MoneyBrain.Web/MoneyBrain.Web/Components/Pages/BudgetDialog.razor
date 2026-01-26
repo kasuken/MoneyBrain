@@ -124,6 +124,7 @@
                         <MudTh>Category</MudTh>
                         <MudTh Style="text-align: right;">Amount</MudTh>
                         <MudTh Style="text-align: center;">Rollover</MudTh>
+                        <MudTh>Notes</MudTh>
                         <MudTh Style="text-align: right;">Actions</MudTh>
                     </HeaderContent>
                     <RowTemplate>
@@ -133,6 +134,14 @@
                             @if (context.AllowRollover)
                             {
                                 <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Color="Color.Success" />
+                            }
+                        </MudTd>
+                        <MudTd>
+                            @{
+                                var notesText = string.IsNullOrWhiteSpace(context.Notes) ? "No notes" : context.Notes;
+                                <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                    @notesText
+                                </MudText>
                             }
                         </MudTd>
                         <MudTd Style="text-align: right;">
@@ -256,7 +265,7 @@
                 // Add all categories
                 foreach (var bc in _budgetCategories)
                 {
-                    await BudgetService.AddCategoryToBudgetAsync(budget.Id, UserId, bc.CategoryId, bc.PlannedAmount, bc.AllowRollover);
+                    await BudgetService.AddCategoryToBudgetAsync(budget.Id, UserId, bc.CategoryId, bc.PlannedAmount, bc.AllowRollover, bc.Notes);
                 }
             }
             else
@@ -366,7 +375,8 @@
                         CategoryId = bc.CategoryId,
                         Category = category,
                         PlannedAmount = bc.PlannedAmount,
-                        AllowRollover = bc.AllowRollover
+                        AllowRollover = bc.AllowRollover,
+                        Notes = bc.Notes
                     });
                 }
             }

@@ -79,6 +79,13 @@
                     Carry over unused budget to next month
                 </MudText>
             </MudSwitch>
+            
+            <MudTextField @bind-Value="_notes" 
+                          Label="Notes (Optional)" 
+                          Variant="Variant.Outlined"
+                          Lines="2"
+                          MaxLength="500"
+                          HelperText="These notes will be added to all selected categories" />
 
             @if (_selectedCategoryIds.Count > 0)
             {
@@ -122,6 +129,7 @@
     private HashSet<int> _expandedGroupIds = new();
     private decimal _plannedAmount;
     private bool _allowRollover;
+    private string? _notes;
     private bool _isSubmitting;
     private string? _errorMessage;
 
@@ -232,6 +240,7 @@
                         CategoryId = categoryId,
                         PlannedAmount = _plannedAmount,
                         AllowRollover = _allowRollover,
+                        Notes = _notes,
                         Category = category
                     };
                 }
@@ -243,7 +252,8 @@
                         UserId, 
                         categoryId, 
                         _plannedAmount, 
-                        _allowRollover);
+                        _allowRollover,
+                        _notes);
                 }
                 
                 addedCategories.Add(budgetCategory);

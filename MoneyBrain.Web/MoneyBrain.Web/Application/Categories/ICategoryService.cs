@@ -106,12 +106,12 @@ public interface ICategoryService
     /// <summary>
     /// Set default budget for a category (applies to all months unless overridden)
     /// </summary>
-    Task<MonthlyBudget> SetDefaultBudgetAsync(int categoryId, string userId, decimal plannedAmount, bool allowRollover = false, CancellationToken cancellationToken = default);
+    Task<MonthlyBudget> SetDefaultBudgetAsync(int categoryId, string userId, decimal plannedAmount, bool allowRollover = false, string? notes = null, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Set month-specific budget override for a category
     /// </summary>
-    Task<MonthlyBudget> SetMonthOverrideAsync(int categoryId, string userId, int year, int month, decimal plannedAmount, bool allowRollover = false, CancellationToken cancellationToken = default);
+    Task<MonthlyBudget> SetMonthOverrideAsync(int categoryId, string userId, int year, int month, decimal plannedAmount, bool allowRollover = false, string? notes = null, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Delete default budget

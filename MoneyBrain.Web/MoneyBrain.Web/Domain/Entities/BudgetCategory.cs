@@ -10,6 +10,7 @@ public class BudgetCategory
     public int CategoryId { get; set; }
     public decimal PlannedAmount { get; set; }
     public bool AllowRollover { get; set; }
+    public string? Notes { get; set; }
     
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

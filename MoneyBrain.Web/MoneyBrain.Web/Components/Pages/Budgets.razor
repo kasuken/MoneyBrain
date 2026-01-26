@@ -124,6 +124,7 @@
                                 <MudTh Style="text-align: right;">Budgeted</MudTh>
                                 <MudTh Style="text-align: right;">Actual</MudTh>
                                 <MudTh Style="text-align: right;">Remaining</MudTh>
+                                <MudTh>Notes</MudTh>
                                 <MudTh Style="text-align: center;">Rollover</MudTh>
                             </HeaderContent>
                             <RowTemplate>
@@ -172,6 +173,14 @@
                                                 </MudTooltip>
                                             }
                                         </div>
+                                    }
+                                </MudTd>
+                                <MudTd>
+                                    @{
+                                        var notesText = string.IsNullOrWhiteSpace(context.Notes) ? "—" : context.Notes;
+                                        <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                            @notesText
+                                        </MudText>
                                     }
                                 </MudTd>
                                 <MudTd Style="text-align: center;">
