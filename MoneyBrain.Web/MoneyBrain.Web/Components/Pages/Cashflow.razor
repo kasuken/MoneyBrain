@@ -1,0 +1,335 @@
+@page "/cashflow"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Reporting.Cashflow
+@using System.Globalization
+@inject ICashflowService CashflowService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+<PageTitle>Monthly Cashflow - MoneyBrain</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="mr-2" />
+        Monthly Cashflow Summary
+    </MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudDatePicker Label="Start Date" 
+                              @bind-Date="_startDate" 
+                              MaxDate="DateTime.Today"
+                              @bind-Date:after="LoadDataAsync" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudDatePicker Label="End Date" 
+                              @bind-Date="_endDate" 
+                              MaxDate="DateTime.Today"
+                              @bind-Date:after="LoadDataAsync" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="my-4" />
+    }
+    else if (_cashflowData.Any())
+    {
+        <!-- Summary Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" md="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Color="Color.Success">Total Income</MudText>
+                        <MudText Typo="Typo.h4">@_totalIncome.ToString("C")</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count months</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Color="Color.Error">Total Expenses</MudText>
+                        <MudText Typo="Typo.h4">@_totalExpenses.ToString("C")</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count months</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Color="@(_netCashflow >= 0 ? Color.Success : Color.Error)">
+                            Net Cashflow
+                        </MudText>
+                        <MudText Typo="Typo.h4" Color="@(_netCashflow >= 0 ? Color.Success : Color.Error)">
+                            @_netCashflow.ToString("C")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @((_netCashflow >= 0 ? "Positive" : "Negative"))
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Monthly Cashflow Chart -->
+        <MudPaper Class="pa-4 mb-4">
+            <MudText Typo="Typo.h6" Class="mb-4">Monthly Trend</MudText>
+            <MudChart ChartType="ChartType.Bar"
+                     ChartSeries="@_chartSeries"
+                     XAxisLabels="@_chartLabels"
+                     Width="100%"
+                     Height="350px"
+                     ChartOptions="@_chartOptions" />
+        </MudPaper>
+
+        <!-- Detailed Monthly Table -->
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">Monthly Details</MudText>
+            <MudTable Items="@_cashflowData" Hover="true" Dense="true" Striped="true">
+                <HeaderContent>
+                    <MudTh>Month</MudTh>
+                    <MudTh Style="text-align: right">Income</MudTh>
+                    <MudTh Style="text-align: right">Expenses</MudTh>
+                    <MudTh Style="text-align: right">Net Cashflow</MudTh>
+                    <MudTh Style="text-align: center">Transactions</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Month">
+                        @GetMonthName(context.Year, context.Month)
+                    </MudTd>
+                    <MudTd DataLabel="Income" Style="text-align: right">
+                        <MudText Color="Color.Success">@context.TotalIncome.ToString("C")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Expenses" Style="text-align: right">
+                        <MudText Color="Color.Error">@context.TotalExpenses.ToString("C")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Net" Style="text-align: right">
+                        <MudText Color="@(context.NetCashflow >= 0 ? Color.Success : Color.Error)">
+                            @context.NetCashflow.ToString("C")
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Transactions" Style="text-align: center">
+                        @context.TransactionCount
+                    </MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown"
+                                      Size="Size.Small"
+                                      OnClick="@(() => ToggleMonthDetails(context))"
+                                      aria-label="Expand details" />
+                    </MudTd>
+                </RowTemplate>
+                <ChildRowContent>
+                    @if (_expandedMonth == context)
+                    {
+                        <MudTr>
+                            <td colspan="6" style="padding: 0;">
+                                <MudPaper Class="pa-4 ma-2" Elevation="0">
+                                    <MudGrid>
+                                        <!-- Income by Category -->
+                                        <MudItem xs="12" md="6">
+                                            <MudText Typo="Typo.subtitle1" Class="mb-2" Color="Color.Success">
+                                                <strong>Income by Category</strong>
+                                            </MudText>
+                                            @if (context.IncomeByCategory.Any())
+                                            {
+                                                <MudSimpleTable Dense="true" Hover="true" Style="max-height: 300px; overflow-y: auto;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Category</th>
+                                                            <th style="text-align: right">Amount</th>
+                                                            <th style="text-align: right">%</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var cat in context.IncomeByCategory)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    @if (!string.IsNullOrEmpty(cat.CategoryGroupName))
+                                                                    {
+                                                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@cat.CategoryGroupName</MudText>
+                                                                        <br />
+                                                                    }
+                                                                    @cat.CategoryName
+                                                                </td>
+                                                                <td style="text-align: right">
+                                                                    <MudText Color="Color.Success">@cat.Amount.ToString("C")</MudText>
+                                                                </td>
+                                                                <td style="text-align: right">@cat.Percentage.ToString("F1")%</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </MudSimpleTable>
+                                            }
+                                            else
+                                            {
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary">No income this month</MudText>
+                                            }
+                                        </MudItem>
+
+                                        <!-- Expenses by Category -->
+                                        <MudItem xs="12" md="6">
+                                            <MudText Typo="Typo.subtitle1" Class="mb-2" Color="Color.Error">
+                                                <strong>Expenses by Category</strong>
+                                            </MudText>
+                                            @if (context.ExpensesByCategory.Any())
+                                            {
+                                                <MudSimpleTable Dense="true" Hover="true" Style="max-height: 300px; overflow-y: auto;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Category</th>
+                                                            <th style="text-align: right">Amount</th>
+                                                            <th style="text-align: right">%</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var cat in context.ExpensesByCategory)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    @if (!string.IsNullOrEmpty(cat.CategoryGroupName))
+                                                                    {
+                                                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@cat.CategoryGroupName</MudText>
+                                                                        <br />
+                                                                    }
+                                                                    @cat.CategoryName
+                                                                </td>
+                                                                <td style="text-align: right">
+                                                                    <MudText Color="Color.Error">@cat.Amount.ToString("C")</MudText>
+                                                                </td>
+                                                                <td style="text-align: right">@cat.Percentage.ToString("F1")%</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </MudSimpleTable>
+                                            }
+                                            else
+                                            {
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary">No expenses this month</MudText>
+                                            }
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudPaper>
+                            </td>
+                        </MudTr>
+                    }
+                </ChildRowContent>
+            </MudTable>
+        </MudPaper>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info">
+            No cashflow data found for the selected period. Create some transactions to see your cashflow summary.
+        </MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private List<MonthlyCashflowDto> _cashflowData = [];
+    private bool _loading = true;
+    private DateTime? _startDate = DateTime.Today.AddMonths(-5);
+    private DateTime? _endDate = DateTime.Today;
+    private string _userId = string.Empty;
+
+    private decimal _totalIncome;
+    private decimal _totalExpenses;
+    private decimal _netCashflow;
+
+    private MonthlyCashflowDto? _expandedMonth;
+
+    // Chart data
+    private List<ChartSeries> _chartSeries = [];
+    private string[] _chartLabels = [];
+    private ChartOptions _chartOptions = new()
+    {
+        YAxisTicks = 1000,
+        MaxNumYAxisTicks = 10,
+        YAxisFormat = "C0"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+
+        try
+        {
+            _cashflowData = await CashflowService.GetMonthlyCashflowAsync(
+                _userId,
+                _startDate,
+                _endDate);
+
+            // Calculate totals
+            _totalIncome = _cashflowData.Sum(c => c.TotalIncome);
+            _totalExpenses = _cashflowData.Sum(c => c.TotalExpenses);
+            _netCashflow = _totalIncome - _totalExpenses;
+
+            // Prepare chart data
+            PrepareChartData();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void PrepareChartData()
+    {
+        _chartLabels = _cashflowData
+            .Select(c => $"{CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(c.Month)} {c.Year}")
+            .ToArray();
+
+        _chartSeries = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = "Income",
+                Data = _cashflowData.Select(c => (double)c.TotalIncome).ToArray()
+            },
+            new ChartSeries
+            {
+                Name = "Expenses",
+                Data = _cashflowData.Select(c => (double)c.TotalExpenses).ToArray()
+            },
+            new ChartSeries
+            {
+                Name = "Net Cashflow",
+                Data = _cashflowData.Select(c => (double)c.NetCashflow).ToArray()
+            }
+        };
+    }
+
+    private string GetMonthName(int year, int month)
+    {
+        var date = new DateTime(year, month, 1);
+        return date.ToString("MMMM yyyy");
+    }
+
+    private void ToggleMonthDetails(MonthlyCashflowDto month)
+    {
+        if (_expandedMonth == month)
+        {
+            _expandedMonth = null;
+        }
+        else
+        {
+            _expandedMonth = month;
+        }
+    }
+}

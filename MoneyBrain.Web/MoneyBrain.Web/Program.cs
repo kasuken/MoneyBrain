@@ -6,6 +6,7 @@ using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
 using MoneyBrain.Web.Application.Reconciliation;
 using MoneyBrain.Web.Application.Settings;
+using MoneyBrain.Web.Application.Reporting.Cashflow;
 using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Application.Transactions.Ledger;
@@ -59,6 +60,7 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ITransactionCsvImportService, TransactionCsvImportService>();
 builder.Services.AddScoped<IReconciliationService, ReconciliationService>();
 builder.Services.AddScoped<ILedgerService, LedgerService>();
+builder.Services.AddScoped<ICashflowService, CashflowService>();
 
 var app = builder.Build();
 
