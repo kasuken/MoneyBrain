@@ -33,6 +33,12 @@
                     <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
                 }
             </MudSelect>
+            <MudButton Variant="Variant.Outlined" 
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Upload"
+                       OnClick="@OpenCsvImportDialog">
+                Import CSV
+            </MudButton>
             <MudButton Variant="Variant.Filled" 
                        Class="mb-btn-primary"
                        StartIcon="@Icons.Material.Filled.Add"
@@ -182,6 +188,27 @@
         {
             await LoadTransactions();
             SnackbarService.Add("Transaction created successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenCsvImportDialog()
+    {
+        var parameters = new DialogParameters<TransactionCsvImportDialog>
+        {
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TransactionCsvImportDialog>("Import Transactions from CSV", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: int importedCount })
+        {
+            if (importedCount > 0)
+            {
+                await LoadTransactions();
+                SnackbarService.Add($"Imported {importedCount} transactions", Severity.Success);
+            }
         }
     }
 

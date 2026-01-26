@@ -1,0 +1,11 @@
+Date,Description,Amount,Category,Cleared
+01/15/2026,Grocery Store,-125.50,Food & Dining,true
+01/16/2026,Gas Station,-45.00,Transportation,true
+01/17/2026,Monthly Salary,3500.00,Income,true
+01/18/2026,Electric Bill,-89.32,Utilities,false
+01/19/2026,Coffee Shop,-5.75,Food & Dining,true
+01/20/2026,Online Shopping,-67.99,Shopping,false
+01/21/2026,Gym Membership,-49.99,Health & Fitness,true
+01/22/2026,Restaurant,-85.25,Food & Dining,true
+01/23/2026,Freelance Payment,500.00,Income,true
+01/24/2026,Internet Bill,-59.99,Utilities,true

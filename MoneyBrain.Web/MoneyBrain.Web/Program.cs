@@ -5,6 +5,7 @@ using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Categories;
 using MoneyBrain.Web.Application.Settings;
 using MoneyBrain.Web.Application.Transactions;
+using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Components;
 using MoneyBrain.Web.Components.Account;
 using MoneyBrain.Web.Data;
@@ -51,6 +52,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<ITransactionCsvImportService, TransactionCsvImportService>();
 
 var app = builder.Build();
 
