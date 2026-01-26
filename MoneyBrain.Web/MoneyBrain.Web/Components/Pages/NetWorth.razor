@@ -1,0 +1,352 @@
+@page "/net-worth"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Reporting.NetWorth
+@using MudBlazor
+@attribute [Authorize]
+@inject INetWorthService NetWorthService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Net Worth</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Net Worth Over Time</MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="Start Date" 
+                               @bind-Date="_startDate" 
+                               @bind-Date:after="LoadDataAsync"
+                               PickerVariant="PickerVariant.Dialog"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="End Date" 
+                               @bind-Date="_endDate"
+                               @bind-Date:after="LoadDataAsync"
+                               PickerVariant="PickerVariant.Dialog"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudNumericField Label="Interval (Days)" 
+                                 @bind-Value="_intervalDays"
+                                 @bind-Value:after="LoadDataAsync"
+                                 Min="1"
+                                 Max="365"
+                                 Variant="Variant.Outlined" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+    }
+    else if (_history != null)
+    {
+        <!-- Summary Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Current Net Worth</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_history.CurrentNetWorth >= 0 ? Color.Success : Color.Error)">
+                        @_history.CurrentNetWorth.ToString("C2")
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Total Assets</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">@_history.CurrentTotalAssets.ToString("C2")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Total Liabilities</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Secondary">@_history.CurrentTotalLiabilities.ToString("C2")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Change Over Period</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_history.TotalChange >= 0 ? Color.Success : Color.Error)">
+                        @_history.TotalChange.ToString("C2")
+                        <MudChip T="string" Size="Size.Small" Color="@(_history.TotalChange >= 0 ? Color.Success : Color.Error)">
+                            @(_history.TotalChange >= 0 ? "+" : "")@_history.PercentageChange.ToString("F1")%
+                        </MudChip>
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Peak and Low Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Peak Net Worth</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Success">
+                        @_history.PeakNetWorth.ToString("C2")
+                    </MudText>
+                    @if (_history.PeakDate.HasValue)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Default">
+                            on @_history.PeakDate.Value.ToString("MMM dd, yyyy")
+                        </MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Lowest Net Worth</MudText>
+                    <MudText Typo="Typo.h6" Color="@(_history.LowestNetWorth >= 0 ? Color.Info : Color.Error)">
+                        @_history.LowestNetWorth.ToString("C2")
+                    </MudText>
+                    @if (_history.LowestDate.HasValue)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Default">
+                            on @_history.LowestDate.Value.ToString("MMM dd, yyyy")
+                        </MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Net Worth Trend Chart -->
+        @if (_chartData.Any())
+        {
+            <MudPaper Class="pa-4 mb-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-4">Net Worth Trend</MudText>
+                <MudChart ChartType="ChartType.Line" 
+                          ChartSeries="_chartSeries" 
+                          XAxisLabels="_chartData.Select(d => d.DateDisplay).ToArray()"
+                          Width="100%" 
+                          Height="400px"
+                          ChartOptions="_chartOptions" />
+            </MudPaper>
+        }
+
+        <!-- Snapshot Details Table -->
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-4">Snapshot Details</MudText>
+            <MudTable Items="_history.Snapshots" 
+                      Hover="true" 
+                      Dense="true"
+                      FixedHeader="true"
+                      Height="600px">
+                <HeaderContent>
+                    <MudTh>Date</MudTh>
+                    <MudTh Style="text-align: right;">Assets</MudTh>
+                    <MudTh Style="text-align: right;">Liabilities</MudTh>
+                    <MudTh Style="text-align: right;">Net Worth</MudTh>
+                    <MudTh Style="text-align: right;">Change</MudTh>
+                    <MudTh Style="text-align: center;">Details</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date">@context.DateDisplay</MudTd>
+                    <MudTd DataLabel="Assets" Style="text-align: right;">@context.TotalAssets.ToString("C2")</MudTd>
+                    <MudTd DataLabel="Liabilities" Style="text-align: right;">@context.TotalLiabilities.ToString("C2")</MudTd>
+                    <MudTd DataLabel="Net Worth" Style="text-align: right;">
+                        <span style="color: @(context.NetWorth >= 0 ? "green" : "red")">
+                            @context.NetWorth.ToString("C2")
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="Change" Style="text-align: right;">
+                        @if (context.ChangeFromPrevious.HasValue)
+                        {
+                            <span style="color: @(context.ChangeFromPrevious.Value >= 0 ? "green" : "red")">
+                                @(context.ChangeFromPrevious.Value >= 0 ? "+" : "")@context.ChangeFromPrevious.Value.ToString("C2")
+                                (@(context.PercentageChange >= 0 ? "+" : "")@context.PercentageChange?.ToString("F1")%)
+                            </span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Details" Style="text-align: center;">
+                        <MudIconButton Icon="@(_expandedSnapshots.Contains(context) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" 
+                                       OnClick="@(() => ToggleSnapshotExpansion(context))"
+                                       Size="Size.Small" />
+                    </MudTd>
+                </RowTemplate>
+                <ChildRowContent>
+                    @if (_expandedSnapshots.Contains(context))
+                    {
+                        <MudTr>
+                            <td colspan="6">
+                                <MudCard Elevation="0" Class="my-2">
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.subtitle2" Class="mb-2">
+                                            Account Balances - @context.DateDisplay
+                                        </MudText>
+                                        
+                                        @if (context.AccountBalances.Any())
+                                        {
+                                            <MudGrid>
+                                                <MudItem xs="12" md="6">
+                                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-2">Assets</MudText>
+                                                    <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Account</th>
+                                                                <th style="text-align: right;">Balance</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var account in context.AccountBalances.Where(a => a.AccountType == "Asset"))
+                                                            {
+                                                                <tr>
+                                                                    <td>
+                                                                        @account.AccountName
+                                                                        @if (!account.IsActive)
+                                                                        {
+                                                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">Inactive</MudChip>
+                                                                        }
+                                                                    </td>
+                                                                    <td style="text-align: right;">@account.Balance.ToString("C2")</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </MudSimpleTable>
+                                                </MudItem>
+                                                <MudItem xs="12" md="6">
+                                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2">Liabilities</MudText>
+                                                    <MudSimpleTable Dense="true" Hover="true" Elevation="0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Account</th>
+                                                                <th style="text-align: right;">Balance</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var account in context.AccountBalances.Where(a => a.AccountType == "Liability"))
+                                                            {
+                                                                <tr>
+                                                                    <td>
+                                                                        @account.AccountName
+                                                                        @if (!account.IsActive)
+                                                                        {
+                                                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">Inactive</MudChip>
+                                                                        }
+                                                                    </td>
+                                                                    <td style="text-align: right;">@account.Balance.ToString("C2")</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </MudSimpleTable>
+                                                </MudItem>
+                                            </MudGrid>
+                                        }
+                                        else
+                                        {
+                                            <MudAlert Severity="Severity.Info" Dense="true">
+                                                No accounts found.
+                                            </MudAlert>
+                                        }
+                                    </MudCardContent>
+                                </MudCard>
+                            </td>
+                        </MudTr>
+                    }
+                </ChildRowContent>
+            </MudTable>
+        </MudPaper>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info">
+            Select a date range to view net worth history.
+        </MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private DateTime? _startDate = DateTime.Now.AddMonths(-12);
+    private DateTime? _endDate = DateTime.Now;
+    private int _intervalDays = 30;
+    private bool _loading = true;
+    private NetWorthHistoryDto? _history;
+    private List<NetWorthSnapshotDto> _chartData = [];
+    private HashSet<NetWorthSnapshotDto> _expandedSnapshots = [];
+
+    private List<ChartSeries> _chartSeries = [];
+    private ChartOptions _chartOptions = new()
+    {
+        YAxisTicks = 1000,
+        YAxisFormat = "C0",
+        InterpolationOption = InterpolationOption.Straight,
+        LineStrokeWidth = 3
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (_startDate == null || _endDate == null)
+            return;
+
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return;
+
+            _history = await NetWorthService.GetNetWorthHistoryAsync(
+                userId, 
+                _startDate.Value, 
+                _endDate.Value,
+                _intervalDays);
+
+            PrepareChartData();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void PrepareChartData()
+    {
+        if (_history == null)
+            return;
+
+        _chartData = _history.Snapshots
+            .OrderBy(s => s.Date)
+            .ToList();
+
+        _chartSeries =
+        [
+            new ChartSeries
+            {
+                Name = "Net Worth",
+                Data = _chartData.Select(d => (double)d.NetWorth).ToArray()
+            },
+            new ChartSeries
+            {
+                Name = "Assets",
+                Data = _chartData.Select(d => (double)d.TotalAssets).ToArray()
+            },
+            new ChartSeries
+            {
+                Name = "Liabilities",
+                Data = _chartData.Select(d => (double)d.TotalLiabilities).ToArray()
+            }
+        ];
+    }
+
+    private void ToggleSnapshotExpansion(NetWorthSnapshotDto snapshot)
+    {
+        if (_expandedSnapshots.Contains(snapshot))
+            _expandedSnapshots.Remove(snapshot);
+        else
+            _expandedSnapshots.Add(snapshot);
+    }
+}
