@@ -1,3 +1,4 @@
+using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
 
@@ -61,6 +62,11 @@ public interface ITransactionService
     /// Delete a transaction
     /// </summary>
     Task<bool> DeleteTransactionAsync(int transactionId, string userId, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Search and filter transactions
+    /// </summary>
+    Task<List<Transaction>> SearchTransactionsAsync(string userId, TransactionFilter filter, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Get list of payees for autocomplete

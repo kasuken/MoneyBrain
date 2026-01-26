@@ -2,7 +2,9 @@
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Application.Transactions.Filtering
 @using MoneyBrain.Web.Application.Settings
+@using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using System.Security.Claims
@@ -11,6 +13,7 @@
 
 @inject ITransactionService TransactionService
 @inject IAccountService AccountService
+@inject ICategoryService CategoryService
 @inject IUserSettingsService SettingsService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
@@ -26,13 +29,12 @@
             <p class="mb-subtitle">Track income and expenses</p>
         </div>
         <div class="d-flex gap-2">
-            <MudSelect T="int?" @bind-Value="_selectedAccountId" Label="Account" Dense="true" Style="min-width: 200px;">
-                <MudSelectItem T="int?" Value="@((int?)null)">All Accounts</MudSelectItem>
-                @foreach (var account in _accounts)
-                {
-                    <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
-                }
-            </MudSelect>
+            <MudButton Variant="Variant.Outlined" 
+                       Color="Color.Primary"
+                       StartIcon="@(_showFilters ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.FilterAlt)"
+                       OnClick="@(() => _showFilters = !_showFilters)">
+                @(_showFilters ? "Hide Filters" : "Show Filters")
+            </MudButton>
             <MudButton Variant="Variant.Outlined" 
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Upload"
@@ -47,6 +49,63 @@
             </MudButton>
         </div>
     </div>
+
+    @if (_showFilters)
+    {
+        <MudPaper Class="mb-4 pa-4">
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudSelect T="int?" @bind-Value="@_filter.AccountId" Label="Account" Variant="Variant.Outlined" Clearable OnClearButtonClick="ApplyFilters">
+                        @foreach (var account in _accounts)
+                        {
+                            <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudTextField @bind-Value="@_filter.SearchText" Label="Search" Variant="Variant.Outlined" 
+                                  Placeholder="Payee, memo, category..."
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudSelect T="TransactionType?" @bind-Value="@_filter.TransactionType" Label="Transaction Type" Variant="Variant.Outlined" Clearable>
+                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Income">Income</MudSelectItem>
+                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Expense">Expense</MudSelectItem>
+                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Transfer">Transfer</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudDatePicker @bind-Date="@_filter.StartDate" Label="Start Date" Variant="Variant.Outlined" Clearable />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudDatePicker @bind-Date="@_filter.EndDate" Label="End Date" Variant="Variant.Outlined" Clearable />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudSelect T="TransactionStatus?" @bind-Value="@_filter.Status" Label="Status" Variant="Variant.Outlined" Clearable>
+                        <MudSelectItem T="TransactionStatus?" Value="@TransactionStatus.Pending">Pending</MudSelectItem>
+                        <MudSelectItem T="TransactionStatus?" Value="@TransactionStatus.Posted">Posted</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudNumericField @bind-Value="@_filter.MinAmount" Label="Min Amount" Variant="Variant.Outlined" Format="N2" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudNumericField @bind-Value="@_filter.MaxAmount" Label="Max Amount" Variant="Variant.Outlined" Format="N2" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCheckBox @bind-Value="@_filter.IsCleared" Label="Cleared Only" Color="Color.Primary" TriState />
+                </MudItem>
+            </MudGrid>
+            <div class="d-flex gap-2 mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyFilters">Apply Filters</MudButton>
+                <MudButton Variant="Variant.Outlined" OnClick="ClearFilters">Clear All</MudButton>
+                @if (_filter.HasActiveFilters)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@GetActiveFilterCount() filter(s) active</MudChip>
+                }
+            </div>
+        </MudPaper>
+    }
 
     @if (_isLoading)
     {
@@ -126,7 +185,8 @@
     private bool _isLoading = true;
     private string? _userId;
     private string _currencyCode = "USD";
-    private int? _selectedAccountId;
+    private TransactionFilter _filter = new();
+    private bool _showFilters = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -161,14 +221,40 @@
         if (string.IsNullOrWhiteSpace(_userId))
             return;
 
-        if (_selectedAccountId.HasValue)
-        {
-            _transactions = await TransactionService.GetAccountTransactionsAsync(_selectedAccountId.Value, _userId);
-        }
-        else
-        {
-            _transactions = await TransactionService.GetUserTransactionsAsync(_userId);
-        }
+        _transactions = await TransactionService.SearchTransactionsAsync(_userId, _filter);
+    }
+
+    private async Task ApplyFilters()
+    {
+        await LoadTransactions();
+    }
+
+    private async Task ClearFilters()
+    {
+        _filter.Clear();
+        await LoadTransactions();
+    }
+
+    private int GetActiveFilterCount()
+    {
+        int count = 0;
+        
+        if (_filter.AccountId.HasValue) count++;
+        if (!string.IsNullOrWhiteSpace(_filter.SearchText)) count++;
+        if (_filter.StartDate.HasValue) count++;
+        if (_filter.EndDate.HasValue) count++;
+        if (_filter.MinAmount.HasValue) count++;
+        if (_filter.MaxAmount.HasValue) count++;
+        if (_filter.TransactionType.HasValue) count++;
+        if (_filter.CategoryIds?.Any() == true) count++;
+        if (_filter.PayeeIds?.Any() == true) count++;
+        if (_filter.Status.HasValue) count++;
+        if (_filter.IsCleared.HasValue) count++;
+        if (_filter.IsReconciled.HasValue) count++;
+        if (!_filter.IncludeTransfers) count++;
+        if (_filter.Tags?.Any() == true) count++;
+        
+        return count;
     }
 
     private async Task OpenCreateTransactionDialog()
@@ -177,7 +263,7 @@
         {
             { x => x.UserId, _userId },
             { x => x.IsNew, true },
-            { x => x.PreselectedAccountId, _selectedAccountId }
+            { x => x.PreselectedAccountId, _filter.AccountId }
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };

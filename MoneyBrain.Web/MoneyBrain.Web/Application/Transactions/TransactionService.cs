@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
@@ -162,6 +163,122 @@ public class TransactionService : ITransactionService
         _context.Transactions.Remove(transaction);
         await _context.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<List<Transaction>> SearchTransactionsAsync(string userId, TransactionFilter filter, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Transactions
+            .Include(t => t.Account)
+            .Include(t => t.Payee)
+            .Include(t => t.Category)
+                .ThenInclude(c => c!.CategoryGroup)
+            .Where(t => t.UserId == userId);
+
+        // Account filter
+        if (filter.AccountId.HasValue)
+        {
+            query = query.Where(t => t.AccountId == filter.AccountId.Value);
+        }
+
+        // Date range filter
+        if (filter.StartDate.HasValue)
+        {
+            query = query.Where(t => t.Date >= filter.StartDate.Value);
+        }
+        if (filter.EndDate.HasValue)
+        {
+            query = query.Where(t => t.Date <= filter.EndDate.Value);
+        }
+
+        // Amount range filter
+        if (filter.MinAmount.HasValue)
+        {
+            query = query.Where(t => t.Amount >= filter.MinAmount.Value);
+        }
+        if (filter.MaxAmount.HasValue)
+        {
+            query = query.Where(t => t.Amount <= filter.MaxAmount.Value);
+        }
+
+        // Transaction type filter
+        if (filter.TransactionType.HasValue)
+        {
+            switch (filter.TransactionType.Value)
+            {
+                case Filtering.TransactionType.Income:
+                    query = query.Where(t => t.Amount > 0 && t.TransferTransactionId == null);
+                    break;
+                case Filtering.TransactionType.Expense:
+                    query = query.Where(t => t.Amount < 0 && t.TransferTransactionId == null);
+                    break;
+                case Filtering.TransactionType.Transfer:
+                    query = query.Where(t => t.TransferTransactionId != null);
+                    break;
+            }
+        }
+
+        // Category filter
+        if (filter.CategoryIds != null && filter.CategoryIds.Count > 0)
+        {
+            query = query.Where(t => t.CategoryId.HasValue && filter.CategoryIds.Contains(t.CategoryId.Value));
+        }
+
+        // Payee filter
+        if (filter.PayeeIds != null && filter.PayeeIds.Count > 0)
+        {
+            query = query.Where(t => t.PayeeId.HasValue && filter.PayeeIds.Contains(t.PayeeId.Value));
+        }
+
+        // Status filter
+        if (filter.Status.HasValue)
+        {
+            query = query.Where(t => t.Status == filter.Status.Value);
+        }
+
+        // Cleared filter
+        if (filter.IsCleared.HasValue)
+        {
+            query = query.Where(t => t.IsCleared == filter.IsCleared.Value);
+        }
+
+        // Reconciled filter
+        if (filter.IsReconciled.HasValue)
+        {
+            query = query.Where(t => t.IsReconciled == filter.IsReconciled.Value);
+        }
+
+        // Transfer filter
+        if (!filter.IncludeTransfers)
+        {
+            query = query.Where(t => t.TransferTransactionId == null);
+        }
+
+        // Tags filter
+        if (filter.Tags != null && filter.Tags.Count > 0)
+        {
+            foreach (var tag in filter.Tags)
+            {
+                var tagLower = tag.ToLower();
+                query = query.Where(t => t.Tags != null && t.Tags.ToLower().Contains(tagLower));
+            }
+        }
+
+        // Text search filter (payee, memo, category, reference number)
+        if (!string.IsNullOrWhiteSpace(filter.SearchText))
+        {
+            var searchLower = filter.SearchText.ToLower();
+            query = query.Where(t =>
+                (t.Payee != null && t.Payee.Name.ToLower().Contains(searchLower)) ||
+                (t.Memo != null && t.Memo.ToLower().Contains(searchLower)) ||
+                (t.Category != null && t.Category.Name.ToLower().Contains(searchLower)) ||
+                (t.ReferenceNumber != null && t.ReferenceNumber.ToLower().Contains(searchLower)));
+        }
+
+        // Order by date descending, then ID descending for consistent pagination
+        return await query
+            .OrderByDescending(t => t.Date)
+            .ThenByDescending(t => t.Id)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Payee>> GetPayeesAsync(string userId, CancellationToken cancellationToken = default)

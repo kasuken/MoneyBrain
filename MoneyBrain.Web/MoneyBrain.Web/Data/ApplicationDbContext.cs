@@ -57,6 +57,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<TransactionSplit> TransactionSplits => Set<TransactionSplit>();
 
+    /// <summary>
+    /// Saved transaction filters for quick access
+    /// </summary>
+    public DbSet<SavedTransactionFilter> SavedTransactionFilters => Set<SavedTransactionFilter>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -268,6 +273,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             // Decimal precision for money values
             entity.Property(ts => ts.Amount).HasPrecision(18, 2);
+        });
+
+        // Configure SavedTransactionFilter entity
+        modelBuilder.Entity<SavedTransactionFilter>(entity =>
+        {
+            entity.HasKey(stf => stf.Id);
+
+            entity.HasIndex(stf => stf.UserId);
+            entity.HasIndex(stf => new { stf.UserId, stf.IsDefault });
+
+            entity.Property(stf => stf.Name).IsRequired().HasMaxLength(100);
+            entity.Property(stf => stf.FilterJson).IsRequired();
         });
     }
 }
