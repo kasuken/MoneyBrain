@@ -2,6 +2,7 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Application.Transactions.Splits
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using MudBlazor
@@ -28,18 +29,30 @@
             <MudAutocomplete T="string" @bind-Value="_payeeName" Label="Payee"
                              SearchFunc="@SearchPayees" Clearable="true" />
 
-            <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="Category" Clearable="true">
-                @foreach (var group in _categoryGroups)
-                {
-                    <MudSelectItem T="int?" Value="@((int?)null)" Disabled="true">
-                        <strong>@group.Name</strong>
-                    </MudSelectItem>
-                    @foreach (var category in group.Categories)
+            <MudSwitch @bind-Value="_useSplits" Color="MudBlazor.Color.Primary" Class="my-2">Split Across Categories</MudSwitch>
+
+            @if (_useSplits)
+            {
+                <TransactionSplitEditor Splits="@_splits" 
+                                       TransactionAmount="@_amount" 
+                                       UserId="@UserId" 
+                                       OnSplitsChanged="@OnSplitsChanged" />
+            }
+            else
+            {
+                <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="Category" Clearable="true">
+                    @foreach (var group in _categoryGroups)
                     {
-                        <MudSelectItem T="int?" Value="@category.Id">&nbsp;&nbsp;@category.Name</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@((int?)null)" Disabled="true">
+                            <strong>@group.Name</strong>
+                        </MudSelectItem>
+                        @foreach (var category in group.Categories)
+                        {
+                            <MudSelectItem T="int?" Value="@category.Id">&nbsp;&nbsp;@category.Name</MudSelectItem>
+                        }
                     }
-                }
-            </MudSelect>
+                </MudSelect>
+            }
 
             <MudTextField @bind-Value="_memo" Label="Memo" Lines="2" />
 
@@ -85,6 +98,8 @@
     private string? _referenceNumber;
     private bool _isCleared;
     private TransactionStatus _status = TransactionStatus.Posted;
+    private bool _useSplits;
+    private List<TransactionSplitDto> _splits = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,6 +128,19 @@
             _referenceNumber = Transaction.ReferenceNumber;
             _isCleared = Transaction.IsCleared;
             _status = Transaction.Status;
+            
+            // Load splits if they exist
+            if (Transaction.Splits?.Any() == true)
+            {
+                _useSplits = true;
+                _splits = Transaction.Splits.Select(s => new TransactionSplitDto
+                {
+                    Id = s.Id,
+                    CategoryId = s.CategoryId,
+                    Amount = s.Amount,
+                    Memo = s.Memo
+                }).ToList();
+            }
         }
         else if (PreselectedAccountId.HasValue)
         {
@@ -152,33 +180,69 @@
 
             if (IsNew)
             {
-                await TransactionService.CreateTransactionAsync(
-                    UserId!,
-                    _selectedAccountId,
-                    _date!.Value,
-                    _amount,
-                    payeeId,
-                    _selectedCategoryId,
-                    _memo,
-                    _status,
-                    _isCleared,
-                    _referenceNumber,
-                    null);  // tags
+                if (_useSplits)
+                {
+                    await TransactionService.CreateTransactionWithSplitsAsync(
+                        UserId!,
+                        _selectedAccountId,
+                        _date!.Value,
+                        _amount,
+                        payeeId,
+                        _memo,
+                        _status,
+                        _isCleared,
+                        _referenceNumber,
+                        null,  // tags
+                        _splits);
+                }
+                else
+                {
+                    await TransactionService.CreateTransactionAsync(
+                        UserId!,
+                        _selectedAccountId,
+                        _date!.Value,
+                        _amount,
+                        payeeId,
+                        _selectedCategoryId,
+                        _memo,
+                        _status,
+                        _isCleared,
+                        _referenceNumber,
+                        null);  // tags
+                }
             }
             else if (Transaction != null)
             {
-                await TransactionService.UpdateTransactionAsync(
-                    Transaction.Id,
-                    UserId!,
-                    _date!.Value,
-                    _amount,
-                    payeeId,
-                    _selectedCategoryId,
-                    _memo,
-                    _status,
-                    _isCleared,
-                    _referenceNumber,
-                    null);  // tags
+                if (_useSplits)
+                {
+                    await TransactionService.UpdateTransactionWithSplitsAsync(
+                        Transaction.Id,
+                        UserId!,
+                        _date!.Value,
+                        _amount,
+                        payeeId,
+                        _memo,
+                        _status,
+                        _isCleared,
+                        _referenceNumber,
+                        null,  // tags
+                        _splits);
+                }
+                else
+                {
+                    await TransactionService.UpdateTransactionAsync(
+                        Transaction.Id,
+                        UserId!,
+                        _date!.Value,
+                        _amount,
+                        payeeId,
+                        _selectedCategoryId,
+                        _memo,
+                        _status,
+                        _isCleared,
+                        _referenceNumber,
+                        null);  // tags
+                }
             }
 
             MudDialog.Close(DialogResult.Ok(true));
@@ -193,5 +257,11 @@
     private void Cancel()
     {
         MudDialog.Cancel();
+    }
+
+    private Task OnSplitsChanged()
+    {
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 }

@@ -1,5 +1,6 @@
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
+using MoneyBrain.Web.Application.Transactions.Splits;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
 
@@ -109,4 +110,43 @@ public interface ITransactionService
     /// Skips reconciled transactions to preserve data integrity
     /// </summary>
     Task<BulkEditResult> BulkUpdateTransactionsAsync(string userId, BulkEditTransactionRequest request, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Validate split transactions against the transaction amount
+    /// </summary>
+    SplitValidationResult ValidateSplits(decimal transactionAmount, List<TransactionSplitDto> splits);
+    
+    /// <summary>
+    /// Create transaction with splits
+    /// </summary>
+    Task<Transaction> CreateTransactionWithSplitsAsync(
+        string userId,
+        int accountId,
+        DateTime date,
+        decimal amount,
+        int? payeeId,
+        string? memo,
+        TransactionStatus status,
+        bool isCleared,
+        string? referenceNumber,
+        string? tags,
+        List<TransactionSplitDto> splits,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Update transaction with splits
+    /// </summary>
+    Task<bool> UpdateTransactionWithSplitsAsync(
+        int transactionId,
+        string userId,
+        DateTime date,
+        decimal amount,
+        int? payeeId,
+        string? memo,
+        TransactionStatus status,
+        bool isCleared,
+        string? referenceNumber,
+        string? tags,
+        List<TransactionSplitDto> splits,
+        CancellationToken cancellationToken = default);
 }

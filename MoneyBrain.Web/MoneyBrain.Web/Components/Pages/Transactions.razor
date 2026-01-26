@@ -154,7 +154,18 @@
                 <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" />
                 <PropertyColumn Property="t => t.Account.Name" Title="Account" />
                 <PropertyColumn Property="t => t.Payee!.Name" Title="Payee" />
-                <PropertyColumn Property="t => t.Category!.Name" Title="Category" />
+                <TemplateColumn Title="Category">
+                    <CellTemplate>
+                        @if (context.Item.Splits?.Any() == true)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info">Split (@context.Item.Splits.Count)</MudChip>
+                        }
+                        else
+                        {
+                            @context.Item.Category?.Name
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
                 <PropertyColumn Property="t => t.Memo" Title="Memo" />
                 <TemplateColumn Title="Amount" SortBy="t => t.Amount">
                     <CellTemplate>

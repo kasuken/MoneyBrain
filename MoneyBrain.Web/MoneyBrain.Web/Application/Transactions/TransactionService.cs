@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
+using MoneyBrain.Web.Application.Transactions.Splits;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -64,7 +65,9 @@ public class TransactionService : ITransactionService
             .Include(t => t.Account)
             .Include(t => t.Payee)
             .Include(t => t.Category)
-            .ThenInclude(c => c!.CategoryGroup)
+                .ThenInclude(c => c!.CategoryGroup)
+            .Include(t => t.Splits)
+                .ThenInclude(s => s.Category)
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
     }
 
@@ -173,6 +176,8 @@ public class TransactionService : ITransactionService
             .Include(t => t.Payee)
             .Include(t => t.Category)
                 .ThenInclude(c => c!.CategoryGroup)
+            .Include(t => t.Splits)
+                .ThenInclude(s => s.Category)
             .Where(t => t.UserId == userId);
 
         // Account filter
@@ -555,5 +560,173 @@ public class TransactionService : ITransactionService
         }
 
         return result;
+    }
+
+    public SplitValidationResult ValidateSplits(decimal transactionAmount, List<TransactionSplitDto> splits)
+    {
+        if (splits == null || splits.Count == 0)
+        {
+            return SplitValidationResult.Failure("At least one split is required");
+        }
+
+        var errors = new List<string>();
+        var totalSplitAmount = splits.Sum(s => s.Amount);
+
+        // Check if split amounts sum to transaction amount (with small tolerance for rounding)
+        if (Math.Abs(totalSplitAmount - transactionAmount) > 0.01m)
+        {
+            errors.Add($"Split amounts ({totalSplitAmount:N2}) must equal transaction amount ({transactionAmount:N2})");
+        }
+
+        // Check for zero or invalid amounts
+        if (splits.Any(s => s.Amount == 0))
+        {
+            errors.Add("Split amounts cannot be zero");
+        }
+
+        // Check for consistent signs (all splits should have same sign as transaction)
+        var transactionSign = Math.Sign(transactionAmount);
+        if (splits.Any(s => Math.Sign(s.Amount) != transactionSign))
+        {
+            errors.Add("All split amounts must have the same sign as the transaction amount");
+        }
+
+        return errors.Count > 0 
+            ? SplitValidationResult.Failure(errors.ToArray())
+            : SplitValidationResult.Success();
+    }
+
+    public async Task<Transaction> CreateTransactionWithSplitsAsync(
+        string userId,
+        int accountId,
+        DateTime date,
+        decimal amount,
+        int? payeeId,
+        string? memo,
+        TransactionStatus status,
+        bool isCleared,
+        string? referenceNumber,
+        string? tags,
+        List<TransactionSplitDto> splits,
+        CancellationToken cancellationToken = default)
+    {
+        // Validate splits
+        var validation = ValidateSplits(amount, splits);
+        if (!validation.IsValid)
+        {
+            throw new InvalidOperationException($"Invalid splits: {string.Join(", ", validation.Errors)}");
+        }
+
+        // Create transaction without category (splits define categories)
+        var transaction = new Transaction
+        {
+            UserId = userId,
+            AccountId = accountId,
+            Date = date,
+            Amount = amount,
+            PayeeId = payeeId,
+            CategoryId = null, // Null when using splits
+            Memo = memo,
+            Status = status,
+            IsCleared = isCleared,
+            ReferenceNumber = referenceNumber,
+            Tags = tags,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Transactions.Add(transaction);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Create splits
+        foreach (var splitDto in splits)
+        {
+            var split = new TransactionSplit
+            {
+                TransactionId = transaction.Id,
+                CategoryId = splitDto.CategoryId,
+                Amount = splitDto.Amount,
+                Memo = splitDto.Memo,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.TransactionSplits.Add(split);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Reload with navigation properties
+        return await _context.Transactions
+            .Include(t => t.Account)
+            .Include(t => t.Payee)
+            .Include(t => t.Splits)
+                .ThenInclude(s => s.Category)
+            .FirstAsync(t => t.Id == transaction.Id, cancellationToken);
+    }
+
+    public async Task<bool> UpdateTransactionWithSplitsAsync(
+        int transactionId,
+        string userId,
+        DateTime date,
+        decimal amount,
+        int? payeeId,
+        string? memo,
+        TransactionStatus status,
+        bool isCleared,
+        string? referenceNumber,
+        string? tags,
+        List<TransactionSplitDto> splits,
+        CancellationToken cancellationToken = default)
+    {
+        // Validate splits
+        var validation = ValidateSplits(amount, splits);
+        if (!validation.IsValid)
+        {
+            throw new InvalidOperationException($"Invalid splits: {string.Join(", ", validation.Errors)}");
+        }
+
+        var transaction = await _context.Transactions
+            .Include(t => t.Splits)
+            .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
+
+        if (transaction == null)
+            return false;
+
+        // Cannot modify reconciled transactions
+        if (transaction.IsReconciled)
+            throw new InvalidOperationException("Cannot modify reconciled transaction");
+
+        // Update transaction properties
+        transaction.Date = date;
+        transaction.Amount = amount;
+        transaction.PayeeId = payeeId;
+        transaction.CategoryId = null; // Null when using splits
+        transaction.Memo = memo;
+        transaction.Status = status;
+        transaction.IsCleared = isCleared;
+        transaction.ReferenceNumber = referenceNumber;
+        transaction.Tags = tags;
+        transaction.UpdatedAt = DateTime.UtcNow;
+
+        // Remove existing splits
+        _context.TransactionSplits.RemoveRange(transaction.Splits);
+
+        // Add new splits
+        foreach (var splitDto in splits)
+        {
+            var split = new TransactionSplit
+            {
+                TransactionId = transaction.Id,
+                CategoryId = splitDto.CategoryId,
+                Amount = splitDto.Amount,
+                Memo = splitDto.Memo,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.TransactionSplits.Add(split);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }
