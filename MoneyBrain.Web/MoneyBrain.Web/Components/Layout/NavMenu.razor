@@ -7,11 +7,20 @@
     <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">Accounts</a>
     <a href="/transactions" class="mb-header-nav-link @(IsActive("/transactions") ? "active" : "")">Transactions</a>
     <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">Budgets</a>
-    <a href="/cashflow" class="mb-header-nav-link @(IsActive("/cashflow") ? "active" : "")">Cashflow</a>
-    <a href="/category-spending" class="mb-header-nav-link @(IsActive("/category-spending") ? "active" : "")">Category Spending</a>
-    <a href="/budget-comparison" class="mb-header-nav-link @(IsActive("/budget-comparison") ? "active" : "")">Budget vs Actual</a>
-    <a href="/net-worth" class="mb-header-nav-link @(IsActive("/net-worth") ? "active" : "")">Net Worth</a>
-    <a href="/account-balance-history" class="mb-header-nav-link @(IsActive("/account-balance-history") ? "active" : "")">Balance History</a>
+    
+    <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" ActivationEvent="@MouseEvent.MouseOver">
+        <ActivatorContent>
+            <span class="mb-header-nav-link @(IsActiveInReports() ? "active" : "")" style="cursor: pointer;">Reports</span>
+        </ActivatorContent>
+        <ChildContent>
+            <MudMenuItem Href="/cashflow">Monthly Cashflow</MudMenuItem>
+            <MudMenuItem Href="/category-spending">Category Spending</MudMenuItem>
+            <MudMenuItem Href="/budget-comparison">Budget vs Actual</MudMenuItem>
+            <MudMenuItem Href="/net-worth">Net Worth</MudMenuItem>
+            <MudMenuItem Href="/account-balance-history">Balance History</MudMenuItem>
+        </ChildContent>
+    </MudMenu>
+    
     <a href="/categories" class="mb-header-nav-link @(IsActive("/categories") ? "active" : "")">Categories</a>
     <a href="/payees" class="mb-header-nav-link @(IsActive("/payees") ? "active" : "")">Payees</a>
     <a href="/reconciliations" class="mb-header-nav-link @(IsActive("/reconciliations") ? "active" : "")">Reconciliations</a>
@@ -43,6 +52,15 @@
         // Check if current path starts with the menu path
         return !string.IsNullOrEmpty(currentPath) && 
                currentPath.StartsWith(path.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool IsActiveInReports()
+    {
+        var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var reportPaths = new[] { "cashflow", "category-spending", "budget-comparison", "net-worth", "account-balance-history" };
+        
+        return !string.IsNullOrEmpty(currentPath) && 
+               reportPaths.Any(rp => currentPath.StartsWith(rp, StringComparison.OrdinalIgnoreCase));
     }
 
     public void Dispose()
