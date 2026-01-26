@@ -1,0 +1,260 @@
+@page "/payees"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Application.Transactions.PayeeNormalization
+@using MoneyBrain.Web.Domain.Entities
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject ITransactionService TransactionService
+@inject IDialogService DialogService
+@inject ISnackbar SnackbarService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Payee Management | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <!-- Header -->
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">Payee Management</h1>
+            <p class="mb-subtitle">Manage and normalize payee names</p>
+        </div>
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined" 
+                       Color="Color.Warning"
+                       StartIcon="@Icons.Material.Filled.FindReplace"
+                       OnClick="@FindDuplicates">
+                Find Duplicates
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" 
+                       Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.DeleteSweep"
+                       OnClick="@DeleteUnusedPayees">
+                Clean Up Unused
+            </MudButton>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="d-flex justify-center align-center" style="min-height: 400px;">
+            <MudProgressCircular Indeterminate Size="Size.Large" />
+        </div>
+    }
+    else
+    {
+        @if (_duplicateGroups.Count > 0)
+        {
+            <MudPaper Class="mb-4 pa-4">
+                <MudAlert Severity="Severity.Warning" Class="mb-4">
+                    Found @_duplicateGroups.Count potential duplicate groups affecting @_duplicateGroups.Sum(g => g.Payees.Count) payees
+                </MudAlert>
+
+                <MudText Typo="Typo.h6" Class="mb-3">Potential Duplicates</MudText>
+
+                @foreach (var group in _duplicateGroups)
+                {
+                    <MudCard Class="mb-3">
+                        <MudCardContent>
+                            <MudText Typo="Typo.subtitle2" Class="mb-2">
+                                Suggested merge: @group.SuggestedPrimary?.Payee.Name (keep this one)
+                            </MudText>
+                            <MudList T="string" Dense>
+                                @foreach (var payeeUsage in group.Payees)
+                                {
+                                    <MudListItem T="string">
+                                        <div class="d-flex align-center justify-space-between" style="width: 100%;">
+                                            <div>
+                                                <MudText>
+                                                    <strong>@payeeUsage.Payee.Name</strong>
+                                                    @if (payeeUsage.Payee.Id == group.SuggestedPrimary?.Payee.Id)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">Primary</MudChip>
+                                                    }
+                                                </MudText>
+                                                <MudText Typo="Typo.caption">
+                                                    @payeeUsage.TransactionCount transaction(s) • Last used: @(payeeUsage.LastUsedDate?.ToString("MM/dd/yyyy") ?? "Never")
+                                                </MudText>
+                                            </div>
+                                        </div>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Color="Color.Primary" OnClick="@(() => MergeGroup(group))">
+                                Merge All → @group.SuggestedPrimary?.Payee.Name
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                }
+            </MudPaper>
+        }
+
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-3">All Payees (@_payees.Count)</MudText>
+            
+            <MudTable Items="_payees" Dense Hover FixedHeader Height="600px">
+                <HeaderContent>
+                    <MudTh>Payee Name</MudTh>
+                    <MudTh>Transactions</MudTh>
+                    <MudTh>Last Used</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Payee Name">@context.Payee.Name</MudTd>
+                    <MudTd DataLabel="Transactions">@context.TransactionCount</MudTd>
+                    <MudTd DataLabel="Last Used">@(context.LastUsedDate?.ToString("MM/dd/yyyy") ?? "Never")</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                       Size="Size.Small" 
+                                       Color="Color.Primary" 
+                                       OnClick="@(() => RenamePayee(context))" />
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <div class="pa-8 text-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Class="mb-4" Style="opacity: 0.3;" />
+                        <MudText Typo="Typo.h6">No payees yet</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Payees will appear as you add transactions</MudText>
+                    </div>
+                </NoRecordsContent>
+            </MudTable>
+        </MudPaper>
+    }
+</div>
+
+@code {
+    private string _userId = string.Empty;
+    private bool _isLoading = true;
+    private List<PayeeWithUsage> _payees = new();
+    private List<PayeeDuplicateGroup> _duplicateGroups = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        }
+
+        await LoadPayees();
+    }
+
+    private async Task LoadPayees()
+    {
+        _isLoading = true;
+
+        if (!string.IsNullOrWhiteSpace(_userId))
+        {
+            _payees = await TransactionService.GetPayeesWithUsageAsync(_userId);
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task FindDuplicates()
+    {
+        _isLoading = true;
+
+        if (!string.IsNullOrWhiteSpace(_userId))
+        {
+            _duplicateGroups = await TransactionService.FindDuplicatePayeesAsync(_userId);
+            
+            if (_duplicateGroups.Count == 0)
+            {
+                SnackbarService.Add("No duplicate payees found", Severity.Success);
+            }
+            else
+            {
+                SnackbarService.Add($"Found {_duplicateGroups.Count} potential duplicate groups", Severity.Warning);
+            }
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task MergeGroup(PayeeDuplicateGroup group)
+    {
+        if (group.SuggestedPrimary == null)
+            return;
+
+        var parameters = new DialogParameters<PayeeMergeDialog>
+        {
+            { x => x.TargetPayee, group.SuggestedPrimary },
+            { x => x.SourcePayees, group.Payees.Where(p => p.Payee.Id != group.SuggestedPrimary.Payee.Id).ToList() }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<PayeeMergeDialog>("Merge Payees", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            var sourceIds = group.Payees
+                .Where(p => p.Payee.Id != group.SuggestedPrimary.Payee.Id)
+                .Select(p => p.Payee.Id)
+                .ToList();
+
+            var success = await TransactionService.MergePayeesAsync(_userId, group.SuggestedPrimary.Payee.Id, sourceIds);
+
+            if (success)
+            {
+                SnackbarService.Add("Payees merged successfully", Severity.Success);
+                await LoadPayees();
+                _duplicateGroups.Remove(group);
+            }
+            else
+            {
+                SnackbarService.Add("Failed to merge payees", Severity.Error);
+            }
+        }
+    }
+
+    private async Task RenamePayee(PayeeWithUsage payeeUsage)
+    {
+        var parameters = new DialogParameters<PayeeRenameDialog>
+        {
+            { x => x.PayeeId, payeeUsage.Payee.Id },
+            { x => x.CurrentName, payeeUsage.Payee.Name }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<PayeeRenameDialog>("Rename Payee", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: string newName })
+        {
+            var success = await TransactionService.RenamePayeeAsync(payeeUsage.Payee.Id, _userId, newName);
+
+            if (success)
+            {
+                SnackbarService.Add("Payee renamed successfully", Severity.Success);
+                await LoadPayees();
+            }
+            else
+            {
+                SnackbarService.Add("Failed to rename payee", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteUnusedPayees()
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Delete Unused Payees",
+            "This will permanently delete all payees with no transactions. Continue?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (confirm == true)
+        {
+            var count = await TransactionService.DeleteUnusedPayeesAsync(_userId);
+            SnackbarService.Add($"Deleted {count} unused payees", Severity.Success);
+            await LoadPayees();
+        }
+    }
+}

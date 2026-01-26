@@ -1,0 +1,42 @@
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="_newName" 
+                      Label="Payee Name" 
+                      Variant="Variant.Outlined"
+                      Required
+                      HelperText="Enter the new name for this payee" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Confirm" Disabled="@string.IsNullOrWhiteSpace(_newName)">
+            Rename
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public int PayeeId { get; set; }
+    [Parameter] public string CurrentName { get; set; } = string.Empty;
+
+    private string _newName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _newName = CurrentName;
+    }
+
+    private void Confirm()
+    {
+        if (!string.IsNullOrWhiteSpace(_newName))
+        {
+            MudDialog.Close(DialogResult.Ok(_newName));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

@@ -71,4 +71,29 @@ public interface ITransactionService
     /// Create or get existing payee by name
     /// </summary>
     Task<Payee> CreateOrGetPayeeAsync(string userId, string name, int? defaultCategoryId = null, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Get payees with usage statistics
+    /// </summary>
+    Task<List<PayeeNormalization.PayeeWithUsage>> GetPayeesWithUsageAsync(string userId, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Find potential duplicate payees
+    /// </summary>
+    Task<List<PayeeNormalization.PayeeDuplicateGroup>> FindDuplicatePayeesAsync(string userId, double similarityThreshold = 0.85, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Merge multiple payees into a target payee
+    /// </summary>
+    Task<bool> MergePayeesAsync(string userId, int targetPayeeId, List<int> sourcePayeeIds, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Rename a payee
+    /// </summary>
+    Task<bool> RenamePayeeAsync(int payeeId, string userId, string newName, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Delete unused payees (no transactions)
+    /// </summary>
+    Task<int> DeleteUnusedPayeesAsync(string userId, CancellationToken cancellationToken = default);
 }

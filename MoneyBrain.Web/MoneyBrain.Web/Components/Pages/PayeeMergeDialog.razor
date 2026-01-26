@@ -1,0 +1,50 @@
+@using MoneyBrain.Web.Application.Transactions.PayeeNormalization
+
+<MudDialog>
+    <DialogContent>
+        <MudText Class="mb-4">
+            Are you sure you want to merge these payees into <strong>@TargetPayee?.Payee.Name</strong>?
+        </MudText>
+
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Payees to be merged:</MudText>
+        <MudList T="string" Dense>
+            @foreach (var source in SourcePayees)
+            {
+                <MudListItem T="string">
+                    <MudText>
+                        @source.Payee.Name
+                        <MudText Typo="Typo.caption" Inline>
+                            (@source.TransactionCount transaction(s))
+                        </MudText>
+                    </MudText>
+                </MudListItem>
+            }
+        </MudList>
+
+        <MudAlert Severity="Severity.Info" Class="mt-4">
+            All transactions from the payees above will be updated to use <strong>@TargetPayee?.Payee.Name</strong>.
+            Reconciled transactions will not be modified.
+        </MudAlert>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Confirm">Merge</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public PayeeWithUsage? TargetPayee { get; set; }
+    [Parameter] public List<PayeeWithUsage> SourcePayees { get; set; } = new();
+
+    private void Confirm()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
