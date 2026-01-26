@@ -1,7 +1,5 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Web
-@inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthStateProvider
 
 @attribute [ExcludeFromInteractiveRouting]
 
@@ -125,13 +123,3 @@
     </div>
 </footer>
 
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated == true)
-        {
-            NavigationManager.NavigateTo("/dashboard", replace: true);
-        }
-    }
-}

@@ -89,6 +89,22 @@ else
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+// If the user is already logged in, send them straight to the app dashboard.
+// This avoids rendering the (static) marketing home page for authenticated sessions.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/" && context.User.Identity?.IsAuthenticated == true)
+    {
+        context.Response.Redirect("/dashboard");
+        return;
+    }
+
+    await next();
+});
+
 app.UseAntiforgery();
 
 app.MapStaticAssets();
