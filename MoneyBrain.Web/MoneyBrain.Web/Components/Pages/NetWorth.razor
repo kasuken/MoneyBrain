@@ -1,9 +1,13 @@
 @page "/net-worth"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Reporting.NetWorth
+@using MoneyBrain.Web.Application.Reporting.CsvExport
+@using Microsoft.JSInterop
 @using MudBlazor
 @attribute [Authorize]
 @inject INetWorthService NetWorthService
+@inject ICsvExportService CsvExportService
+@inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Net Worth</PageTitle>
@@ -34,6 +38,16 @@
                                  Min="1"
                                  Max="365"
                                  Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportToCsv"
+                           Disabled="@(_history == null)"
+                           FullWidth="true">
+                    Export to CSV
+                </MudButton>
             </MudItem>
         </MudGrid>
     </MudPaper>
@@ -348,5 +362,17 @@
             _expandedSnapshots.Remove(snapshot);
         else
             _expandedSnapshots.Add(snapshot);
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (_history == null)
+            return;
+
+        var csvBytes = CsvExportService.ExportNetWorthToCsv(_history);
+        var fileName = $"net_worth_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var base64 = Convert.ToBase64String(csvBytes);
+        
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
     }
 }

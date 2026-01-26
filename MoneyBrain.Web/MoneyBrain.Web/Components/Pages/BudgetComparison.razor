@@ -1,9 +1,13 @@
 @page "/budget-comparison"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Reporting.BudgetComparison
+@using MoneyBrain.Web.Application.Reporting.CsvExport
+@using Microsoft.JSInterop
 @using MudBlazor
 @attribute [Authorize]
 @inject IBudgetComparisonService BudgetComparisonService
+@inject ICsvExportService CsvExportService
+@inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Budget vs Actual</PageTitle>
@@ -26,6 +30,16 @@
                                @bind-Date:after="LoadDataAsync"
                                PickerVariant="PickerVariant.Dialog"
                                DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportToCsv"
+                           Disabled="@(_summary == null)"
+                           FullWidth="true">
+                    Export to CSV
+                </MudButton>
             </MudItem>
         </MudGrid>
     </MudPaper>
@@ -296,5 +310,17 @@
             <= 100 => "Near Limit",
             _ => "Over Budget"
         };
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (_summary == null)
+            return;
+
+        var csvBytes = CsvExportService.ExportBudgetComparisonToCsv(_summary);
+        var fileName = $"budget_comparison_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var base64 = Convert.ToBase64String(csvBytes);
+        
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
     }
 }

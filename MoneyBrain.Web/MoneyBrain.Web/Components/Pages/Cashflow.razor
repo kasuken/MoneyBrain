@@ -1,8 +1,12 @@
 @page "/cashflow"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Reporting.Cashflow
+@using MoneyBrain.Web.Application.Reporting.CsvExport
 @using System.Globalization
+@using Microsoft.JSInterop
 @inject ICashflowService CashflowService
+@inject ICsvExportService CsvExportService
+@inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
@@ -27,6 +31,16 @@
                               @bind-Date="_endDate" 
                               MaxDate="DateTime.Today"
                               @bind-Date:after="LoadDataAsync" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportToCsv"
+                           Disabled="@(_cashflowData == null || !_cashflowData.Any())"
+                           FullWidth="true">
+                    Export to CSV
+                </MudButton>
             </MudItem>
         </MudGrid>
     </MudPaper>
@@ -331,5 +345,17 @@
         {
             _expandedMonth = month;
         }
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (_cashflowData == null || !_cashflowData.Any())
+            return;
+
+        var csvBytes = CsvExportService.ExportCashflowToCsv(_cashflowData);
+        var fileName = $"cashflow_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var base64 = Convert.ToBase64String(csvBytes);
+        
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
     }
 }

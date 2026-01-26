@@ -1,12 +1,16 @@
 @page "/account-balance-history"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Reporting.AccountBalanceHistory
+@using MoneyBrain.Web.Application.Reporting.CsvExport
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Domain.Entities
+@using Microsoft.JSInterop
 @using MudBlazor
 @attribute [Authorize]
 @inject IAccountBalanceHistoryService BalanceHistoryService
 @inject IAccountService AccountService
+@inject ICsvExportService CsvExportService
+@inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Account Balance History</PageTitle>
@@ -51,6 +55,16 @@
                                  Min="1"
                                  Max="365"
                                  Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportToCsv"
+                           Disabled="@(_singleAccountHistory == null && _multiAccountHistory == null)"
+                           FullWidth="true">
+                    Export to CSV
+                </MudButton>
             </MudItem>
         </MudGrid>
     </MudPaper>
@@ -453,5 +467,23 @@
     {
         _selectedAccountId = accountId;
         await LoadSingleAccountDataAsync();
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (_singleAccountHistory != null)
+        {
+            var csvBytes = CsvExportService.ExportAccountBalanceHistoryToCsv(_singleAccountHistory);
+            var fileName = $"account_balance_history_{_singleAccountHistory.AccountName.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            var base64 = Convert.ToBase64String(csvBytes);
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+        }
+        else if (_multiAccountHistory != null)
+        {
+            var csvBytes = CsvExportService.ExportMultiAccountBalanceHistoryToCsv(_multiAccountHistory);
+            var fileName = $"multi_account_balance_history_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            var base64 = Convert.ToBase64String(csvBytes);
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+        }
     }
 }

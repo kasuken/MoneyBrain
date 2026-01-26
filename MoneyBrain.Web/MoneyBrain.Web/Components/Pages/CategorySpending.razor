@@ -1,8 +1,12 @@
 @page "/category-spending"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Reporting.CategorySpending
+@using MoneyBrain.Web.Application.Reporting.CsvExport
 @using System.Globalization
+@using Microsoft.JSInterop
 @inject ICategorySpendingService CategorySpendingService
+@inject ICsvExportService CsvExportService
+@inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
@@ -27,6 +31,16 @@
                               @bind-Date="_endDate" 
                               MaxDate="DateTime.Today"
                               @bind-Date:after="LoadDataAsync" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportToCsv"
+                           Disabled="@(_summary == null || !_summary.Categories.Any())"
+                           FullWidth="true">
+                    Export to CSV
+                </MudButton>
             </MudItem>
         </MudGrid>
     </MudPaper>
@@ -303,5 +317,17 @@
             .ThenBy(m => m.Month)
             .Select(m => m.MonthName)
             .ToArray();
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (_summary == null || !_summary.Categories.Any())
+            return;
+
+        var csvBytes = CsvExportService.ExportCategorySpendingToCsv(_summary);
+        var fileName = $"category_spending_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var base64 = Convert.ToBase64String(csvBytes);
+        
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
     }
 }

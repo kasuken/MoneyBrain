@@ -11,6 +11,7 @@ using MoneyBrain.Web.Application.Reporting.CategorySpending;
 using MoneyBrain.Web.Application.Reporting.BudgetComparison;
 using MoneyBrain.Web.Application.Reporting.NetWorth;
 using MoneyBrain.Web.Application.Reporting.AccountBalanceHistory;
+using MoneyBrain.Web.Application.Reporting.CsvExport;
 using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Application.Transactions.Ledger;
@@ -69,6 +70,7 @@ builder.Services.AddScoped<ICategorySpendingService, CategorySpendingService>();
 builder.Services.AddScoped<IBudgetComparisonService, BudgetComparisonService>();
 builder.Services.AddScoped<INetWorthService, NetWorthService>();
 builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryService>();
+builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 
 var app = builder.Build();
 
