@@ -570,12 +570,8 @@ public class TransactionService : ITransactionService
                 }
             }
 
-            // Update reconciled flag
-            if (request.IsReconciled.HasValue)
-            {
-                transaction.IsReconciled = request.IsReconciled.Value;
-                updated = true;
-            }
+            // Note: IsReconciled flag is intentionally not updated here.
+            // Reconciliation must be done through ReconciliationService to maintain proper audit trail.
 
             if (updated)
             {
@@ -1080,8 +1076,8 @@ public class TransactionService : ITransactionService
 
         foreach (var transaction in transactions)
         {
-            // Skip reconciled transactions if requested
-            if (request.SkipReconciled && transaction.IsReconciled)
+            // Always skip reconciled transactions - they are immutable
+            if (transaction.IsReconciled)
             {
                 result.SkippedTransactionIds.Add(transaction.Id);
                 continue;
@@ -1107,32 +1103,12 @@ public class TransactionService : ITransactionService
         ReconciledFlagRequest request,
         CancellationToken cancellationToken = default)
     {
-        var result = new FlagUpdateResult();
-
-        if (request.TransactionIds.Count == 0)
-            return result;
-
-        // If trying to unreconcile without explicit permission, fail fast
-        if (!request.IsReconciled && !request.AllowUnreconcile)
-        {
-            throw new InvalidOperationException("Unreconciling transactions requires explicit AllowUnreconcile flag");
-        }
-
-        // Load transactions
-        var transactions = await _context.Transactions
-            .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
-            .ToListAsync(cancellationToken);
-
-        foreach (var transaction in transactions)
-        {
-            // Update reconciled flag
-            transaction.IsReconciled = request.IsReconciled;
-            transaction.UpdatedAt = DateTime.UtcNow;
-            result.UpdatedCount++;
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-        return result;
+        // This method is deprecated and should not be used.
+        // Reconciliation must be managed through ReconciliationService to maintain proper audit trail
+        // and link transactions to reconciliation sessions.
+        throw new InvalidOperationException(
+            "Direct manipulation of reconciled flag is not allowed. " +
+            "Use ReconciliationService to reconcile or unreconcile transactions.");
     }
 
     public async Task<bool> ToggleClearedFlagAsync(
@@ -1163,23 +1139,12 @@ public class TransactionService : ITransactionService
         bool allowUnreconcile = false,
         CancellationToken cancellationToken = default)
     {
-        var transaction = await _context.Transactions
-            .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
-
-        if (transaction == null)
-            return false;
-
-        var newValue = !transaction.IsReconciled;
-
-        // If trying to unreconcile, require explicit permission
-        if (!newValue && !allowUnreconcile)
-            throw new InvalidOperationException("Unreconciling transaction requires explicit permission");
-
-        transaction.IsReconciled = newValue;
-        transaction.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync(cancellationToken);
-        return true;
+        // This method is deprecated and should not be used.
+        // Reconciliation must be managed through ReconciliationService to maintain proper audit trail
+        // and link transactions to reconciliation sessions.
+        throw new InvalidOperationException(
+            "Direct toggling of reconciled flag is not allowed. " +
+            "Use ReconciliationService to reconcile or unreconcile transactions.");
     }
 }
 

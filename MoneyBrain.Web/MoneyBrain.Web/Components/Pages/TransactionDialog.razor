@@ -9,27 +9,39 @@
 @inject ITransactionService TransactionService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
+@inject IDialogService DialogService
 
 <MudDialog>
     <DialogContent>
+        @if (!IsNew && Transaction?.IsReconciled == true)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Warning" Class="mb-4" Icon="@Icons.Material.Filled.Lock">
+                <strong>This transaction is reconciled and cannot be edited.</strong><br/>
+                Reconciled transactions are locked to maintain financial accuracy. 
+                To modify this transaction, you must first unreconcile it through the Reconciliation page.
+            </MudAlert>
+        }
+        
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
-            <MudSelect T="int" @bind-Value="_selectedAccountId" Label="Account" Required="true">
+            <MudSelect T="int" @bind-Value="_selectedAccountId" Label="Account" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                 @foreach (var account in _accounts)
                 {
                     <MudSelectItem T="int" Value="@account.Id">@account.Name</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudDatePicker @bind-Date="_date" Label="Date" Required="true" MaxDate="DateTime.Today.AddDays(30)" />
+            <MudDatePicker @bind-Date="_date" Label="Date" Required="true" MaxDate="DateTime.Today.AddDays(30)" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudNumericField @bind-Value="_amount" Label="Amount" Required="true" Format="F2"
                              Adornment="Adornment.Start" AdornmentText="$"
-                             HelperText="Positive for income, negative for expense" />
+                             HelperText="Positive for income, negative for expense" 
+                             Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudAutocomplete T="string" @bind-Value="_payeeName" Label="Payee"
-                             SearchFunc="@SearchPayees" Clearable="true" />
+                             SearchFunc="@SearchPayees" Clearable="true" 
+                             Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudSwitch @bind-Value="_useSplits" Color="MudBlazor.Color.Primary" Class="my-2">Split Across Categories</MudSwitch>
+            <MudSwitch @bind-Value="_useSplits" Color="MudBlazor.Color.Primary" Class="my-2" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">Split Across Categories</MudSwitch>
 
             @if (_useSplits)
             {
@@ -40,7 +52,7 @@
             }
             else
             {
-                <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="Category" Clearable="true">
+                <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="Category" Clearable="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                     @foreach (var group in _categoryGroups)
                     {
                         <MudSelectItem T="int?" Value="@((int?)null)" Disabled="true">
@@ -54,21 +66,21 @@
                 </MudSelect>
             }
 
-            <MudTextField @bind-Value="_memo" Label="Memo" Lines="2" />
+            <MudTextField @bind-Value="_memo" Label="Memo" Lines="2" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudTextField @bind-Value="_referenceNumber" Label="Reference#" HelperText="Check number, confirmation, etc." />
+            <MudTextField @bind-Value="_referenceNumber" Label="Reference#" HelperText="Check number, confirmation, etc." Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudSwitch @bind-Value="_isCleared" Color="MudBlazor.Color.Success">Cleared</MudSwitch>
+            <MudSwitch @bind-Value="_isCleared" Color="MudBlazor.Color.Success" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">Cleared</MudSwitch>
 
-            <MudSelect T="TransactionStatus" @bind-Value="_status" Label="Status">
+            <MudSelect T="TransactionStatus" @bind-Value="_status" Label="Status" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                 <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Pending">Pending</MudSelectItem>
                 <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Posted">Posted</MudSelectItem>
             </MudSelect>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid)">
+        <MudButton OnClick="Cancel">@((!IsNew && Transaction?.IsReconciled == true) ? "Close" : "Cancel")</MudButton>
+        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid || (!IsNew && Transaction?.IsReconciled == true))">
             @(IsNew ? "Create" : "Update")
         </MudButton>
     </DialogActions>
@@ -249,8 +261,11 @@
         }
         catch (InvalidOperationException ex)
         {
-            // Handle reconciled transaction error
-            MudDialog.Close(DialogResult.Cancel());
+            // Show error for reconciled transaction or other validation errors
+            await DialogService.ShowMessageBox(
+                "Cannot Modify Transaction",
+                ex.Message,
+                yesText: "OK");
         }
     }
 

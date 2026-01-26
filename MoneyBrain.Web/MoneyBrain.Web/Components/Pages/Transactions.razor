@@ -263,24 +263,31 @@
                         }
                         else
                         {
+                            @if (context.Item.IsReconciled)
+                            {
+                                <MudTooltip Text="Reconciled transaction (locked)">
+                                    <MudIcon Icon="@Icons.Material.Filled.Lock" 
+                                            Size="MudBlazor.Size.Small"
+                                            Color="MudBlazor.Color.Success" />
+                                </MudTooltip>
+                            }
                             <MudIconButton Icon="@(context.Item.IsCleared ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.CheckCircle)" 
                                            Size="MudBlazor.Size.Small"
                                            Color="@(context.Item.IsCleared ? MudBlazor.Color.Info : MudBlazor.Color.Default)"
                                            OnClick="@(() => ToggleCleared(context.Item))"
-                                           Disabled="@context.Item.IsReconciled" />
-                            <MudIconButton Icon="@(context.Item.IsReconciled ? Icons.Material.Filled.Lock : Icons.Material.Outlined.LockOpen)" 
-                                           Size="MudBlazor.Size.Small"
-                                           Color="@(context.Item.IsReconciled ? MudBlazor.Color.Success : MudBlazor.Color.Default)"
-                                           OnClick="@(() => ToggleReconciled(context.Item))" />
+                                           Disabled="@context.Item.IsReconciled"
+                                           Title="@(context.Item.IsReconciled ? "Cannot clear/unclear reconciled transaction" : "Toggle cleared")" />
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                            Size="MudBlazor.Size.Small"
                                            OnClick="@(() => OpenEditTransactionDialog(context.Item))"
-                                           Disabled="@context.Item.IsReconciled" />
+                                           Disabled="@context.Item.IsReconciled"
+                                           Title="@(context.Item.IsReconciled ? "Cannot edit reconciled transaction" : "Edit transaction")" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Size="MudBlazor.Size.Small"
                                            Color="MudBlazor.Color.Error"
                                            OnClick="@(() => DeleteTransaction(context.Item))"
-                                           Disabled="@context.Item.IsReconciled" />
+                                           Disabled="@context.Item.IsReconciled"
+                                           Title="@(context.Item.IsReconciled ? "Cannot delete reconciled transaction" : "Delete transaction")" />
                         }
                     </CellTemplate>
                 </TemplateColumn>
@@ -692,43 +699,7 @@
         }
         catch (InvalidOperationException ex)
         {
-            SnackbarService.Add(ex.Message, Severity.Error);
-        }
-    }
-
-    private async Task ToggleReconciled(Transaction transaction)
-    {
-        // If trying to unreconcile, require confirmation
-        if (transaction.IsReconciled)
-        {
-            var result = await DialogService.ShowMessageBox(
-                "Unreconcile Transaction",
-                "WARNING: Unreconciling this transaction will allow it to be modified again. This can break your reconciliation integrity. Are you sure?",
-                yesText: "Unreconcile",
-                cancelText: "Cancel");
-
-            if (result != true)
-                return;
-        }
-
-        try
-        {
-            var success = await TransactionService.ToggleReconciledFlagAsync(_userId!, transaction.Id, allowUnreconcile: true);
-            if (success)
-            {
-                await LoadTransactions();
-                await LoadUnreconciledCount();
-                var newState = !transaction.IsReconciled ? "reconciled" : "unreconciled";
-                SnackbarService.Add($"Transaction marked as {newState}", Severity.Success);
-            }
-            else
-            {
-                SnackbarService.Add("Failed to update transaction", Severity.Error);
-            }
-        }
-        catch (InvalidOperationException ex)
-        {
-            SnackbarService.Add(ex.Message, Severity.Error);
+            SnackbarService.Add(ex.Message, MudBlazor.Severity.Error);
         }
     }
 }
