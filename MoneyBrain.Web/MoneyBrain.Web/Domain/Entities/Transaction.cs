@@ -39,6 +39,11 @@ public class Transaction
     public bool IsReconciled { get; set; }
     
     /// <summary>
+    /// Reconciliation session this transaction belongs to (if reconciled)
+    /// </summary>
+    public int? ReconciliationId { get; set; }
+    
+    /// <summary>
     /// Reference number (check number, confirmation, etc.)
     /// </summary>
     public string? ReferenceNumber { get; set; }
@@ -63,6 +68,8 @@ public class Transaction
     public Payee? Payee { get; set; }
     
     public Category? Category { get; set; }
+    
+    public Reconciliation? Reconciliation { get; set; }
     
     public Transaction? TransferTransaction { get; set; }
     

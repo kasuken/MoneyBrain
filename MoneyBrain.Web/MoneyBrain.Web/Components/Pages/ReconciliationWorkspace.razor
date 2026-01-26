@@ -1,0 +1,401 @@
+@page "/reconciliations/{ReconciliationId:int}"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Reconciliation
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject IReconciliationService ReconciliationService
+@inject IAccountService AccountService
+@inject IDialogService DialogService
+@inject ISnackbar SnackbarService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Reconciliation | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="MudBlazor.Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
+    else if (_reconciliation == null)
+    {
+        <div class="mb-empty-state">
+            <MudIcon Icon="@Icons.Material.Outlined.Error" Class="mb-empty-state-icon" />
+            <MudText Typo="Typo.h6" Class="mb-2">Reconciliation not found</MudText>
+            <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@(() => NavigationManager.NavigateTo("/reconciliations"))">
+                Back to Reconciliations
+            </MudButton>
+        </div>
+    }
+    else
+    {
+        <!-- Header -->
+        <div class="mb-section-header">
+            <div>
+                <h1 class="mb-title">Reconcile @_account?.Name</h1>
+                <p class="mb-subtitle">Statement Date: @_reconciliation.StatementDate.ToString("yyyy-MM-dd")</p>
+            </div>
+            <div class="d-flex gap-2">
+                @if (!_reconciliation.IsCompleted)
+                {
+                    <MudButton Variant="Variant.Outlined" 
+                               OnClick="@(() => NavigationManager.NavigateTo("/reconciliations"))">
+                        Cancel
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" 
+                               Color="@(_isBalanced ? MudBlazor.Color.Success : MudBlazor.Color.Primary)"
+                               StartIcon="@Icons.Material.Filled.CheckCircle"
+                               OnClick="@CompleteReconciliation"
+                               Disabled="@(!_isBalanced)">
+                        Complete Reconciliation
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" 
+                               OnClick="@(() => NavigationManager.NavigateTo("/reconciliations"))">
+                        Back to Reconciliations
+                    </MudButton>
+                }
+            </div>
+        </div>
+
+        <!-- Reconciliation Summary -->
+        <div class="mb-grid-stats mb-6">
+            <div class="mb-card-stat info">
+                <div class="mb-label">Opening Balance</div>
+                <div class="mb-amount @GetBalanceClass(_reconciliation.OpeningBalance)">
+                    @FormatCurrency(_reconciliation.OpeningBalance)
+                </div>
+            </div>
+            <div class="mb-card-stat info">
+                <div class="mb-label">Reconciled Balance</div>
+                <div class="mb-amount @GetBalanceClass(_reconciliation.ReconciledBalance)">
+                    @FormatCurrency(_reconciliation.ReconciledBalance)
+                </div>
+            </div>
+            <div class="mb-card-stat info">
+                <div class="mb-label">Statement Balance</div>
+                <div class="mb-amount @GetBalanceClass(_reconciliation.StatementBalance)">
+                    @FormatCurrency(_reconciliation.StatementBalance)
+                </div>
+            </div>
+            <div class="mb-card-stat @(_isBalanced ? "income" : "expense")">
+                <div class="mb-label">Difference</div>
+                <div class="mb-amount @(_isBalanced ? "positive" : "negative")">
+                    @if (_isBalanced)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Class="me-1" />
+                        <span>Balanced</span>
+                    }
+                    else
+                    {
+                        <span>@FormatCurrency(_reconciliation.Difference)</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (_reconciliation.IsCompleted)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Success" Class="mb-4" Icon="@Icons.Material.Filled.Lock">
+                This reconciliation was completed on @_reconciliation.CompletedAt?.ToString("yyyy-MM-dd HH:mm"). 
+                Reconciled transactions are now locked and cannot be modified.
+            </MudAlert>
+        }
+        else
+        {
+            <MudAlert Severity="MudBlazor.Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.Info">
+                Check the transactions below that appear on your bank statement. 
+                When the reconciled balance matches your statement balance, you can complete the reconciliation.
+            </MudAlert>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_reconciliation.Notes))
+        {
+            <MudPaper Class="pa-4 mb-4">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Notes:</MudText>
+                <MudText Typo="Typo.body2">@_reconciliation.Notes</MudText>
+            </MudPaper>
+        }
+
+        <!-- Transactions Table -->
+        <div class="mb-section-header mt-6">
+            <h2 class="mb-section-title">Transactions</h2>
+            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                @_reconciledCount of @_transactions.Count transactions reconciled
+            </MudText>
+        </div>
+
+        @if (_transactions.Count == 0)
+        {
+            <MudPaper Class="pa-6 mb-4 text-center">
+                <MudText Typo="Typo.body1" Color="MudBlazor.Color.Default">
+                    No posted transactions found for this account up to the statement date.
+                </MudText>
+            </MudPaper>
+        }
+        else
+        {
+            <MudTable Items="@_transactions" 
+                      Hover="true" 
+                      Striped="true"
+                      Dense="true"
+                      Class="mb-table">
+                <HeaderContent>
+                    <MudTh Style="width: 50px;">
+                        @if (!_reconciliation.IsCompleted)
+                        {
+                            <MudCheckBox T="bool" 
+                                        Value="@_allChecked" 
+                                        ValueChanged="@ToggleAllTransactions"
+                                        Color="MudBlazor.Color.Primary" />
+                        }
+                    </MudTh>
+                    <MudTh>Date</MudTh>
+                    <MudTh>Payee</MudTh>
+                    <MudTh>Category</MudTh>
+                    <MudTh>Memo</MudTh>
+                    <MudTh>Amount</MudTh>
+                    <MudTh>Cleared</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="">
+                        @if (!_reconciliation.IsCompleted)
+                        {
+                            <MudCheckBox T="bool" 
+                                        Value="@IsTransactionReconciled(context)" 
+                                        ValueChanged="@((bool value) => ToggleTransaction(context, value))"
+                                        Color="MudBlazor.Color.Primary" />
+                        }
+                        else
+                        {
+                            @if (IsTransactionReconciled(context))
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="MudBlazor.Color.Success" Size="Size.Small" />
+                            }
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Date">@context.Date.ToString("yyyy-MM-dd")</MudTd>
+                    <MudTd DataLabel="Payee">@(context.Payee?.Name ?? "-")</MudTd>
+                    <MudTd DataLabel="Category">@(context.Category?.Name ?? "-")</MudTd>
+                    <MudTd DataLabel="Memo">@(context.Memo ?? "-")</MudTd>
+                    <MudTd DataLabel="Amount">
+                        <span class="@GetAmountClass(context.Amount)">
+                            @FormatCurrency(context.Amount)
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="Cleared">
+                        @if (context.IsCleared)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Check" Color="MudBlazor.Color.Success" Size="Size.Small" />
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int ReconciliationId { get; set; }
+
+    private bool _isLoading = true;
+    private Domain.Entities.Reconciliation? _reconciliation;
+    private Account? _account;
+    private List<Transaction> _transactions = new();
+    private HashSet<int> _reconciledTransactionIds = new();
+    private string? _userId;
+    private int _reconciledCount;
+    private bool _allChecked;
+    private bool _isBalanced;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(_userId))
+        {
+            return;
+        }
+
+        await LoadData();
+        _isLoading = false;
+    }
+
+    private async Task LoadData()
+    {
+        if (string.IsNullOrEmpty(_userId)) return;
+
+        try
+        {
+            _reconciliation = await ReconciliationService.GetReconciliationByIdAsync(ReconciliationId, _userId);
+            
+            if (_reconciliation == null)
+            {
+                return;
+            }
+
+            _account = await AccountService.GetAccountByIdAsync(_reconciliation.AccountId, _userId);
+            _transactions = await ReconciliationService.GetUnreconciledTransactionsAsync(
+                _reconciliation.AccountId, 
+                _userId, 
+                _reconciliation.StatementDate);
+
+            // Build set of reconciled transaction IDs
+            _reconciledTransactionIds = _transactions
+                .Where(t => t.ReconciliationId == ReconciliationId)
+                .Select(t => t.Id)
+                .ToHashSet();
+
+            UpdateCounts();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add($"Error loading reconciliation: {ex.Message}", MudBlazor.Severity.Error);
+        }
+    }
+
+    private bool IsTransactionReconciled(Transaction transaction)
+    {
+        return _reconciledTransactionIds.Contains(transaction.Id);
+    }
+
+    private async Task ToggleTransaction(Transaction transaction, bool isReconciled)
+    {
+        if (_reconciliation?.IsCompleted == true || string.IsNullOrEmpty(_userId))
+        {
+            return;
+        }
+
+        try
+        {
+            if (isReconciled)
+            {
+                await ReconciliationService.ReconcileTransactionsAsync(
+                    ReconciliationId, 
+                    _userId,
+                    new List<int> { transaction.Id });
+                _reconciledTransactionIds.Add(transaction.Id);
+            }
+            else
+            {
+                await ReconciliationService.UnreconcileTransactionsAsync(
+                    ReconciliationId, 
+                    _userId,
+                    new List<int> { transaction.Id });
+                _reconciledTransactionIds.Remove(transaction.Id);
+            }
+
+            // Reload reconciliation to get updated balances
+            _reconciliation = await ReconciliationService.GetReconciliationByIdAsync(ReconciliationId, _userId);
+            UpdateCounts();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add($"Error updating transaction: {ex.Message}", MudBlazor.Severity.Error);
+        }
+    }
+
+    private async Task ToggleAllTransactions(bool isReconciled)
+    {
+        if (_reconciliation?.IsCompleted == true || string.IsNullOrEmpty(_userId))
+        {
+            return;
+        }
+
+        try
+        {
+            var transactionIds = _transactions.Select(t => t.Id).ToList();
+
+            if (isReconciled)
+            {
+                await ReconciliationService.ReconcileTransactionsAsync(
+                    ReconciliationId, 
+                    _userId,
+                    transactionIds);
+                foreach (var id in transactionIds)
+                {
+                    _reconciledTransactionIds.Add(id);
+                }
+            }
+            else
+            {
+                await ReconciliationService.UnreconcileTransactionsAsync(
+                    ReconciliationId, 
+                    _userId,
+                    transactionIds);
+                _reconciledTransactionIds.Clear();
+            }
+
+            // Reload reconciliation to get updated balances
+            _reconciliation = await ReconciliationService.GetReconciliationByIdAsync(ReconciliationId, _userId);
+            UpdateCounts();
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add($"Error updating transactions: {ex.Message}", MudBlazor.Severity.Error);
+        }
+    }
+
+    private void UpdateCounts()
+    {
+        _reconciledCount = _reconciledTransactionIds.Count;
+        _allChecked = _transactions.Count > 0 && _reconciledCount == _transactions.Count;
+        _isBalanced = _reconciliation?.Difference == 0;
+    }
+
+    private async Task CompleteReconciliation()
+    {
+        if (_reconciliation == null || !_isBalanced || string.IsNullOrEmpty(_userId))
+        {
+            return;
+        }
+
+        var confirmed = await DialogService.ShowMessageBox(
+            "Complete Reconciliation",
+            "Are you sure you want to complete this reconciliation? Reconciled transactions will be locked and cannot be edited.",
+            yesText: "Complete",
+            cancelText: "Cancel");
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await ReconciliationService.CompleteReconciliationAsync(ReconciliationId, _userId);
+                SnackbarService.Add("Reconciliation completed successfully", MudBlazor.Severity.Success);
+                await LoadData(); // Reload to show completed state
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.Add($"Error completing reconciliation: {ex.Message}", MudBlazor.Severity.Error);
+            }
+        }
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        return amount.ToString("C2");
+    }
+
+    private string GetBalanceClass(decimal balance)
+    {
+        if (balance > 0) return "mb-amount-positive";
+        if (balance < 0) return "mb-amount-negative";
+        return "mb-amount-neutral";
+    }
+
+    private string GetAmountClass(decimal amount)
+    {
+        if (amount > 0) return "mb-amount-income";
+        if (amount < 0) return "mb-amount-expense";
+        return "";
+    }
+}

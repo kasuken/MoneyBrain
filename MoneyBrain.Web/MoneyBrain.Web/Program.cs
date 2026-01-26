@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
+using MoneyBrain.Web.Application.Reconciliation;
 using MoneyBrain.Web.Application.Settings;
 using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.CsvImport;
@@ -55,6 +56,7 @@ builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ITransactionCsvImportService, TransactionCsvImportService>();
+builder.Services.AddScoped<IReconciliationService, ReconciliationService>();
 
 var app = builder.Build();
 

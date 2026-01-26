@@ -1,0 +1,136 @@
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Reconciliation
+@using MoneyBrain.Web.Domain.Entities
+@using MudBlazor
+
+@attribute [Authorize]
+
+@inject IReconciliationService ReconciliationService
+@inject ISnackbar SnackbarService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isFormValid">
+            <MudSelect T="int?" 
+                       @bind-Value="_selectedAccountId" 
+                       Label="Account" 
+                       Variant="Variant.Outlined"
+                       Required="true"
+                       RequiredError="Account is required"
+                       Class="mb-3">
+                @foreach (var account in Accounts)
+                {
+                    <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudDatePicker Label="Statement Date" 
+                          @bind-Date="_statementDate"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="Statement date is required"
+                          DisableFuture="true"
+                          Class="mb-3" />
+
+            <MudNumericField T="decimal" 
+                            @bind-Value="_statementBalance"
+                            Label="Statement Balance" 
+                            Variant="Variant.Outlined"
+                            Required="true"
+                            RequiredError="Statement balance is required"
+                            Format="N2"
+                            Class="mb-3"
+                            Adornment="Adornment.Start"
+                            AdornmentText="$" />
+
+            <MudTextField @bind-Value="_notes"
+                         Label="Notes (Optional)"
+                         Variant="Variant.Outlined"
+                         Lines="3"
+                         Class="mb-3" />
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-3">
+                    @_errorMessage
+                </MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="MudBlazor.Color.Primary" 
+                   Variant="Variant.Filled"
+                   OnClick="StartReconciliation"
+                   Disabled="@(!_isFormValid || _isSaving)">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                <span class="ms-2">Starting...</span>
+            }
+            else
+            {
+                <span>Start Reconciliation</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public List<Account> Accounts { get; set; } = new();
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    private MudForm _form = null!;
+    private bool _isFormValid;
+    private bool _isSaving;
+    private string? _errorMessage;
+
+    private int? _selectedAccountId;
+    private DateTime? _statementDate = DateTime.Today;
+    private decimal _statementBalance;
+    private string? _notes;
+
+    private async Task StartReconciliation()
+    {
+        if (!_isFormValid || !_selectedAccountId.HasValue || !_statementDate.HasValue)
+        {
+            return;
+        }
+
+        _isSaving = true;
+        _errorMessage = null;
+
+        try
+        {
+            var reconciliation = await ReconciliationService.StartReconciliationAsync(
+                _selectedAccountId.Value,
+                UserId,
+                _statementDate.Value,
+                _statementBalance,
+                _notes);
+
+            SnackbarService.Add("Reconciliation started successfully", MudBlazor.Severity.Success);
+            MudDialog.Close(DialogResult.Ok(reconciliation));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+            SnackbarService.Add($"Error starting reconciliation: {ex.Message}", MudBlazor.Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

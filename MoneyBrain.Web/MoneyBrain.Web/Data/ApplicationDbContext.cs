@@ -77,6 +77,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<BudgetCategory> BudgetCategories => Set<BudgetCategory>();
 
+    /// <summary>
+    /// Account reconciliations track statement matching sessions
+    /// </summary>
+    public DbSet<Reconciliation> Reconciliations => Set<Reconciliation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
