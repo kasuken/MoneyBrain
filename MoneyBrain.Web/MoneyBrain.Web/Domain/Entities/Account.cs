@@ -102,4 +102,10 @@ public class Account
     /// These directly affect the calculated balance: Balance = OpeningBalance + Transactions + ManualAdjustments.
     /// </summary>
     public ICollection<ManualBalanceAdjustment> ManualBalanceAdjustments { get; set; } = new List<ManualBalanceAdjustment>();
+
+    /// <summary>
+    /// Navigation property for all transactions in this account.
+    /// Every transaction belongs to exactly one account.
+    /// </summary>
+    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

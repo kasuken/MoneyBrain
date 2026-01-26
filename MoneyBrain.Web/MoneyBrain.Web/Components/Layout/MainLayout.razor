@@ -22,8 +22,9 @@
         <AuthorizeView>
             <Authorized>
                 <div class="mb-header-nav ms-6">
-                    <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">Dashboard</a>
+                    <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active"  : "")">Dashboard</a>
                     <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">Accounts</a>
+                    <a href="/transactions" class="mb-header-nav-link @(IsActive("/transactions") ? "active" : "")">Transactions</a>
                     <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">Budgets</a>
                 </div>
             </Authorized>

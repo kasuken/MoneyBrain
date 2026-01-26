@@ -1,0 +1,250 @@
+@page "/transactions"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Application.Settings
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject ITransactionService TransactionService
+@inject IAccountService AccountService
+@inject IUserSettingsService SettingsService
+@inject IDialogService DialogService
+@inject ISnackbar SnackbarService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Transactions | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <!-- Header -->
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">Transactions</h1>
+            <p class="mb-subtitle">Track income and expenses</p>
+        </div>
+        <div class="d-flex gap-2">
+            <MudSelect T="int?" @bind-Value="_selectedAccountId" Label="Account" Dense="true" Style="min-width: 200px;">
+                <MudSelectItem T="int?" Value="@((int?)null)">All Accounts</MudSelectItem>
+                @foreach (var account in _accounts)
+                {
+                    <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton Variant="Variant.Filled" 
+                       Class="mb-btn-primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@OpenCreateTransactionDialog">
+                Add Transaction
+            </MudButton>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="MudBlazor.Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
+    else if (_transactions.Count == 0)
+    {
+        <div class="mb-empty-state">
+            <MudIcon Icon="@Icons.Material.Outlined.Receipt" Class="mb-empty-state-icon" />
+            <MudText Typo="Typo.h6" Class="mb-2">No transactions yet</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
+                Start tracking your income and expenses
+            </MudText>
+            <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateTransactionDialog">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
+                Add Your First Transaction
+            </MudButton>
+        </div>
+    }
+    else
+    {
+        <MudDataGrid T="Transaction" Items="@_transactions" Dense="true" Hover="true">
+            <Columns>
+                <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" />
+                <PropertyColumn Property="t => t.Account.Name" Title="Account" />
+                <PropertyColumn Property="t => t.Payee!.Name" Title="Payee" />
+                <PropertyColumn Property="t => t.Category!.Name" Title="Category" />
+                <PropertyColumn Property="t => t.Memo" Title="Memo" />
+                <TemplateColumn Title="Amount" SortBy="t => t.Amount">
+                    <CellTemplate>
+                        <span class="mb-amount @GetAmountClass(context.Item.Amount)">
+                            @FormatCurrency(context.Item.Amount)
+                        </span>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Status">
+                    <CellTemplate>
+                        @if (context.Item.IsReconciled)
+                        {
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Success">Reconciled</MudChip>
+                        }
+                        else if (context.Item.IsCleared)
+                        {
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info">Cleared</MudChip>
+                        }
+                        else if (context.Item.Status == TransactionStatus.Posted)
+                        {
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default">Posted</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Warning">Pending</MudChip>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Actions" Sortable="false">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                       Size="MudBlazor.Size.Small"
+                                       OnClick="@(() => OpenEditTransactionDialog(context.Item))"
+                                       Disabled="@context.Item.IsReconciled" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                       Size="MudBlazor.Size.Small"
+                                       Color="MudBlazor.Color.Error"
+                                       OnClick="@(() => DeleteTransaction(context.Item))"
+                                       Disabled="@context.Item.IsReconciled" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    }
+</div>
+
+@code {
+    private List<Transaction> _transactions = [];
+    private List<Account> _accounts = [];
+    private bool _isLoading = true;
+    private string? _userId;
+    private string _currencyCode = "USD";
+    private int? _selectedAccountId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrWhiteSpace(_userId))
+        {
+            var settings = await SettingsService.GetSettingsAsync(_userId);
+            if (settings != null)
+            {
+                _currencyCode = settings.CurrencyCode;
+            }
+
+            _accounts = (await AccountService.GetUserAccountsAsync(_userId)).ToList();
+            await LoadTransactions();
+        }
+
+        _isLoading = false;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_isLoading && _userId != null)
+        {
+            await LoadTransactions();
+        }
+    }
+
+    private async Task LoadTransactions()
+    {
+        if (string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        if (_selectedAccountId.HasValue)
+        {
+            _transactions = await TransactionService.GetAccountTransactionsAsync(_selectedAccountId.Value, _userId);
+        }
+        else
+        {
+            _transactions = await TransactionService.GetUserTransactionsAsync(_userId);
+        }
+    }
+
+    private async Task OpenCreateTransactionDialog()
+    {
+        var parameters = new DialogParameters<TransactionDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.IsNew, true },
+            { x => x.PreselectedAccountId, _selectedAccountId }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TransactionDialog>("Add Transaction", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadTransactions();
+            SnackbarService.Add("Transaction created successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditTransactionDialog(Transaction transaction)
+    {
+        var parameters = new DialogParameters<TransactionDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.Transaction, transaction },
+            { x => x.IsNew, false }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TransactionDialog>("Edit Transaction", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadTransactions();
+            SnackbarService.Add("Transaction updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task DeleteTransaction(Transaction transaction)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Delete Transaction",
+            $"Are you sure you want to delete this transaction? This action cannot be undone.",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (result == true && _userId != null)
+        {
+            try
+            {
+                var deleted = await TransactionService.DeleteTransactionAsync(transaction.Id, _userId);
+                if (deleted)
+                {
+                    await LoadTransactions();
+                    SnackbarService.Add("Transaction deleted successfully", Severity.Success);
+                }
+                else
+                {
+                    SnackbarService.Add("Failed to delete transaction", Severity.Error);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                SnackbarService.Add("Cannot delete reconciled transaction", Severity.Error);
+            }
+        }
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        var sign = amount >= 0 ? "+" : "";
+        return $"{sign}{amount:N2} {_currencyCode}";
+    }
+
+    private string GetAmountClass(decimal amount) => amount switch
+    {
+        > 0 => "positive",
+        < 0 => "negative",
+        _ => "neutral"
+    };
+}

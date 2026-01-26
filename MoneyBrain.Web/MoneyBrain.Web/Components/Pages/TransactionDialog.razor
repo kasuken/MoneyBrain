@@ -1,0 +1,197 @@
+@using Microsoft.AspNetCore.Components
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+@using MudBlazor
+@inject ITransactionService TransactionService
+@inject IAccountService AccountService
+@inject ICategoryService CategoryService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudSelect T="int" @bind-Value="_selectedAccountId" Label="Account" Required="true">
+                @foreach (var account in _accounts)
+                {
+                    <MudSelectItem T="int" Value="@account.Id">@account.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudDatePicker @bind-Date="_date" Label="Date" Required="true" MaxDate="DateTime.Today.AddDays(30)" />
+
+            <MudNumericField @bind-Value="_amount" Label="Amount" Required="true" Format="F2"
+                             Adornment="Adornment.Start" AdornmentText="$"
+                             HelperText="Positive for income, negative for expense" />
+
+            <MudAutocomplete T="string" @bind-Value="_payeeName" Label="Payee"
+                             SearchFunc="@SearchPayees" Clearable="true" />
+
+            <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="Category" Clearable="true">
+                @foreach (var group in _categoryGroups)
+                {
+                    <MudSelectItem T="int?" Value="@((int?)null)" Disabled="true">
+                        <strong>@group.Name</strong>
+                    </MudSelectItem>
+                    @foreach (var category in group.Categories)
+                    {
+                        <MudSelectItem T="int?" Value="@category.Id">&nbsp;&nbsp;@category.Name</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+            <MudTextField @bind-Value="_memo" Label="Memo" Lines="2" />
+
+            <MudTextField @bind-Value="_referenceNumber" Label="Reference#" HelperText="Check number, confirmation, etc." />
+
+            <MudSwitch @bind-Value="_isCleared" Color="MudBlazor.Color.Success">Cleared</MudSwitch>
+
+            <MudSelect T="TransactionStatus" @bind-Value="_status" Label="Status">
+                <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Pending">Pending</MudSelectItem>
+                <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Posted">Posted</MudSelectItem>
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid)">
+            @(IsNew ? "Create" : "Update")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public string? UserId { get; set; }
+    [Parameter] public Transaction? Transaction { get; set; }
+    [Parameter] public bool IsNew { get; set; } = true;
+    [Parameter] public int? PreselectedAccountId { get; set; }
+
+    private MudForm _form = null!;
+    private bool _isValid;
+
+    private List<Account> _accounts = [];
+    private List<CategoryGroup> _categoryGroups = [];
+    private List<string> _payeeNames = [];
+
+    private int _selectedAccountId;
+    private DateTime? _date = DateTime.Today;
+    private decimal _amount;
+    private string? _payeeName;
+    private int? _selectedCategoryId;
+    private string? _memo;
+    private string? _referenceNumber;
+    private bool _isCleared;
+    private TransactionStatus _status = TransactionStatus.Posted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(UserId))
+            return;
+
+        // Load accounts
+        _accounts = (await AccountService.GetUserAccountsAsync(UserId)).ToList();
+
+        // Load categories with groups
+        _categoryGroups = await CategoryService.GetCategoryGroupsAsync(UserId, includeCategories: true);
+
+        // Load payees for autocomplete
+        var payees = await TransactionService.GetPayeesAsync(UserId);
+        _payeeNames = payees.Select(p => p.Name).ToList();
+
+        // If editing existing transaction
+        if (!IsNew && Transaction != null)
+        {
+            _selectedAccountId = Transaction.AccountId;
+            _date = Transaction.Date;
+            _amount = Transaction.Amount;
+            _payeeName = Transaction.Payee?.Name;
+            _selectedCategoryId = Transaction.CategoryId;
+            _memo = Transaction.Memo;
+            _referenceNumber = Transaction.ReferenceNumber;
+            _isCleared = Transaction.IsCleared;
+            _status = Transaction.Status;
+        }
+        else if (PreselectedAccountId.HasValue)
+        {
+            _selectedAccountId = PreselectedAccountId.Value;
+        }
+        else if (_accounts.Any())
+        {
+            _selectedAccountId = _accounts.First().Id;
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchPayees(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return _payeeNames.Take(10);
+
+        return _payeeNames
+            .Where(p => p.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Take(10);
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_isValid)
+            return;
+
+        try
+        {
+            // Handle payee creation if needed
+            int? payeeId = null;
+            if (!string.IsNullOrWhiteSpace(_payeeName))
+            {
+                var payee = await TransactionService.CreateOrGetPayeeAsync(UserId!, _payeeName, _selectedCategoryId);
+                payeeId = payee.Id;
+            }
+
+            if (IsNew)
+            {
+                await TransactionService.CreateTransactionAsync(
+                    UserId!,
+                    _selectedAccountId,
+                    _date!.Value,
+                    _amount,
+                    payeeId,
+                    _selectedCategoryId,
+                    _memo,
+                    _status,
+                    _isCleared,
+                    _referenceNumber,
+                    null);  // tags
+            }
+            else if (Transaction != null)
+            {
+                await TransactionService.UpdateTransactionAsync(
+                    Transaction.Id,
+                    UserId!,
+                    _date!.Value,
+                    _amount,
+                    payeeId,
+                    _selectedCategoryId,
+                    _memo,
+                    _status,
+                    _isCleared,
+                    _referenceNumber,
+                    null);  // tags
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Handle reconciled transaction error
+            MudDialog.Close(DialogResult.Cancel());
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
