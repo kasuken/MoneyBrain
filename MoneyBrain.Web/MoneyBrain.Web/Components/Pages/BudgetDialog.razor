@@ -52,6 +52,48 @@
                                      Min="2000"
                                      Max="2100" />
                 </div>
+                
+                @if (IsNew && _defaultBudgets.Count > 0)
+                {
+                    <MudSwitch @bind-Value="_copyFromDefault" 
+                               Label="Copy from default budget" 
+                               Color="Color.Primary"
+                               T="bool">
+                        <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                            Start with categories from an existing default budget
+                        </MudText>
+                    </MudSwitch>
+                    
+                    @if (_copyFromDefault)
+                    {
+                        <MudSelect @bind-Value="_selectedDefaultBudgetId" 
+                                   Label="Select Default Budget" 
+                                   Variant="Variant.Outlined"
+                                   Required="true">
+                            @foreach (var defaultBudget in _defaultBudgets)
+                            {
+                                <MudSelectItem Value="@defaultBudget.Id">@defaultBudget.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                        
+                        @if (_selectedDefaultBudgetId > 0)
+                        {
+                            <MudButton Variant="Variant.Outlined" 
+                                       StartIcon="@Icons.Material.Filled.ContentCopy"
+                                       OnClick="@CopyFromDefaultBudget"
+                                       Disabled="@(_budgetCategories.Count > 0)">
+                                Copy Categories
+                            </MudButton>
+                            
+                            @if (_budgetCategories.Count > 0)
+                            {
+                                <MudAlert Severity="Severity.Info" Dense="true">
+                                    Categories copied. You can modify or remove them below.
+                                </MudAlert>
+                            }
+                        }
+                    }
+                }
             }
 
             <MudDivider Class="my-2" />
@@ -145,12 +187,22 @@
     
     private List<BudgetCategory> _budgetCategories = [];
     private List<Category> _allCategories = [];
+    private List<Budget> _defaultBudgets = [];
+    private bool _copyFromDefault = false;
+    private int _selectedDefaultBudgetId = 0;
 
     protected override async Task OnInitializedAsync()
     {
         // Load all available categories
         var groups = await CategoryService.GetCategoryGroupsAsync(UserId, includeCategories: true);
         _allCategories = groups.SelectMany(g => g.Categories.Where(c => c.IsActive)).ToList();
+        
+        // Load default budgets for copying (only when creating new budget)
+        if (IsNew)
+        {
+            var allBudgets = await BudgetService.GetBudgetsAsync(UserId);
+            _defaultBudgets = allBudgets.Where(b => b.IsDefault).ToList();
+        }
 
         if (!IsNew && Budget != null)
         {
@@ -284,5 +336,47 @@
         
         _budgetCategories.Remove(budgetCategory);
         StateHasChanged();
+    }
+    
+    private async Task CopyFromDefaultBudget()
+    {
+        if (_selectedDefaultBudgetId <= 0)
+            return;
+            
+        try
+        {
+            var defaultBudget = await BudgetService.GetBudgetByIdAsync(_selectedDefaultBudgetId, UserId);
+            if (defaultBudget == null)
+            {
+                SnackbarService.Add("Default budget not found", Severity.Error);
+                return;
+            }
+            
+            // Clear existing categories
+            _budgetCategories.Clear();
+            
+            // Copy categories from default budget
+            foreach (var bc in defaultBudget.BudgetCategories)
+            {
+                var category = _allCategories.FirstOrDefault(c => c.Id == bc.CategoryId);
+                if (category != null)
+                {
+                    _budgetCategories.Add(new BudgetCategory
+                    {
+                        CategoryId = bc.CategoryId,
+                        Category = category,
+                        PlannedAmount = bc.PlannedAmount,
+                        AllowRollover = bc.AllowRollover
+                    });
+                }
+            }
+            
+            StateHasChanged();
+            SnackbarService.Add($"Copied {_budgetCategories.Count} categories from {defaultBudget.Name}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SnackbarService.Add($"Error copying categories: {ex.Message}", Severity.Error);
+        }
     }
 }

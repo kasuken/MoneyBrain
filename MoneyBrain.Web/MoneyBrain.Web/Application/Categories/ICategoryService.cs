@@ -148,6 +148,16 @@ public interface ICategoryService
     /// Get monthly spending totals for a category
     /// </summary>
     Task<List<MonthlySpending>> GetMonthlySpendingAsync(int categoryId, string userId, int monthsBack = 12, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Get actual spending for a category in a specific month (expenses only, positive value)
+    /// </summary>
+    Task<decimal> GetCategoryActualSpendingAsync(int categoryId, string userId, int year, int month, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Get actual spending for all categories in a specific month (returns dictionary of categoryId -> spending amount)
+    /// </summary>
+    Task<Dictionary<int, decimal>> GetAllCategoriesActualSpendingAsync(string userId, int year, int month, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

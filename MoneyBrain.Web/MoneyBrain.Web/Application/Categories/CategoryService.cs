@@ -737,4 +737,77 @@ public class CategoryService : ICategoryService
             .ThenByDescending(m => m.Month)
             .ToList();
     }
+
+    public async Task<decimal> GetCategoryActualSpendingAsync(int categoryId, string userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(-1);
+
+        // Get transaction expenses (negative amounts represent expenses)
+        var transactionExpenses = await _context.Transactions
+            .Where(t => t.CategoryId == categoryId && 
+                       t.UserId == userId && 
+                       t.Status == Domain.Enums.TransactionStatus.Posted &&
+                       t.Date >= startDate && t.Date <= endDate &&
+                       t.Amount < 0)
+            .SumAsync(t => -t.Amount, cancellationToken);
+
+        // Get split expenses
+        var splitExpenses = await _context.TransactionSplits
+            .Include(ts => ts.Transaction)
+            .Where(ts => ts.CategoryId == categoryId && 
+                        ts.Transaction.UserId == userId &&
+                        ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted &&
+                        ts.Transaction.Date >= startDate && ts.Transaction.Date <= endDate &&
+                        ts.Amount < 0)
+            .SumAsync(ts => -ts.Amount, cancellationToken);
+
+        return transactionExpenses + splitExpenses;
+    }
+
+    public async Task<Dictionary<int, decimal>> GetAllCategoriesActualSpendingAsync(string userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(-1);
+
+        var result = new Dictionary<int, decimal>();
+
+        // Get transaction expenses grouped by category
+        var transactionExpenses = await _context.Transactions
+            .Where(t => t.CategoryId != null &&
+                       t.UserId == userId &&
+                       t.Status == Domain.Enums.TransactionStatus.Posted &&
+                       t.Date >= startDate && t.Date <= endDate &&
+                       t.Amount < 0)
+            .GroupBy(t => t.CategoryId!.Value)
+            .Select(g => new { CategoryId = g.Key, Amount = g.Sum(t => -t.Amount) })
+            .ToListAsync(cancellationToken);
+
+        foreach (var item in transactionExpenses)
+        {
+            result[item.CategoryId] = item.Amount;
+        }
+
+        // Get split expenses grouped by category
+        var splitExpenses = await _context.TransactionSplits
+            .Include(ts => ts.Transaction)
+            .Where(ts => ts.CategoryId != null &&
+                        ts.Transaction.UserId == userId &&
+                        ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted &&
+                        ts.Transaction.Date >= startDate && ts.Transaction.Date <= endDate &&
+                        ts.Amount < 0)
+            .GroupBy(ts => ts.CategoryId!.Value)
+            .Select(g => new { CategoryId = g.Key, Amount = g.Sum(ts => -ts.Amount) })
+            .ToListAsync(cancellationToken);
+
+        foreach (var item in splitExpenses)
+        {
+            if (result.ContainsKey(item.CategoryId))
+                result[item.CategoryId] += item.Amount;
+            else
+                result[item.CategoryId] = item.Amount;
+        }
+
+        return result;
+    }
 }

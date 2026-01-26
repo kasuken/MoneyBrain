@@ -1,12 +1,14 @@
 @page "/budgets"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Budgets
+@using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using System.Security.Claims
 
 @attribute [Authorize]
 
 @inject IBudgetService BudgetService
+@inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -119,7 +121,9 @@
                                   Hover="true">
                             <HeaderContent>
                                 <MudTh>Category</MudTh>
-                                <MudTh Style="text-align: right;">Planned Amount</MudTh>
+                                <MudTh Style="text-align: right;">Budgeted</MudTh>
+                                <MudTh Style="text-align: right;">Actual</MudTh>
+                                <MudTh Style="text-align: right;">Remaining</MudTh>
                                 <MudTh Style="text-align: center;">Rollover</MudTh>
                             </HeaderContent>
                             <RowTemplate>
@@ -133,6 +137,42 @@
                                 </MudTd>
                                 <MudTd Style="text-align: right;">
                                     <MudText Typo="Typo.body2">@context.PlannedAmount.ToString("C2")</MudText>
+                                </MudTd>
+                                <MudTd Style="text-align: right;">
+                                    @{
+                                        var actualSpent = GetActualSpending(budget, context.CategoryId);
+                                        var isOverspent = actualSpent > context.PlannedAmount;
+                                        
+                                        <MudText Color="@(isOverspent ? Color.Error : Color.Default)">
+                                            @actualSpent.ToString("C2")
+                                        </MudText>
+                                    }
+                                </MudTd>
+                                <MudTd Style="text-align: right;">
+                                    @{
+                                        var actualSpent = GetActualSpending(budget, context.CategoryId);
+                                        var remaining = context.PlannedAmount - actualSpent;
+                                        var isOverspent = remaining < 0;
+                                        var percentUsed = context.PlannedAmount > 0 ? (actualSpent / context.PlannedAmount) * 100 : 0;
+                                        
+                                        <div class="d-flex align-center justify-end gap-2">
+                                            <MudText Color="@(isOverspent ? Color.Error : remaining < context.PlannedAmount * 0.1m ? Color.Warning : Color.Success)">
+                                                @remaining.ToString("C2")
+                                            </MudText>
+                                            @if (isOverspent)
+                                            {
+                                                <MudTooltip Text="@($"Overspent by {Math.Abs(remaining):C2} ({percentUsed:F0}% of budget)")">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Error" />
+                                                </MudTooltip>
+                                            }
+                                            else if (percentUsed >= 90)
+                                            {
+                                                <MudTooltip Text="@($"{percentUsed:F0}% of budget used")">
+                                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Warning" />
+                                                </MudTooltip>
+                                            }
+                                        </div>
+                                    }
                                 </MudTd>
                                 <MudTd Style="text-align: center;">
                                     @if (context.AllowRollover)
@@ -162,6 +202,7 @@
 @code {
     private List<Budget> _budgets = [];
     private List<Budget> _allBudgets = [];
+    private Dictionary<string, Dictionary<int, decimal>> _actualSpendingByBudget = new();
     private bool _isLoading = true;
     private string? _userId;
     private string _viewMode = "all"; // "all" or "defaults"
@@ -185,7 +226,36 @@
             return;
 
         _allBudgets = await BudgetService.GetBudgetsAsync(_userId);
+        
+        // Load actual spending for period-specific budgets
+        _actualSpendingByBudget.Clear();
+        foreach (var budget in _allBudgets.Where(b => !b.IsDefault && b.Year.HasValue && b.Month.HasValue))
+        {
+            var key = $"{budget.Id}";
+            var spending = await CategoryService.GetAllCategoriesActualSpendingAsync(_userId, budget.Year.Value, budget.Month.Value);
+            _actualSpendingByBudget[key] = spending;
+        }
+        
+        // Load current month spending for default budgets
+        if (_allBudgets.Any(b => b.IsDefault))
+        {
+            var now = DateTime.UtcNow;
+            var currentMonthSpending = await CategoryService.GetAllCategoriesActualSpendingAsync(_userId, now.Year, now.Month);
+            _actualSpendingByBudget["default"] = currentMonthSpending;
+        }
+        
         ApplyFilter();
+    }
+
+    private decimal GetActualSpending(Budget budget, int categoryId)
+    {
+        var key = budget.IsDefault ? "default" : $"{budget.Id}";
+        
+        if (_actualSpendingByBudget.TryGetValue(key, out var spending))
+        {
+            return spending.TryGetValue(categoryId, out var amount) ? amount : 0m;
+        }
+        return 0m;
     }
 
     private void SetViewMode(string mode)

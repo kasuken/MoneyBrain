@@ -119,6 +119,8 @@
                                 <HeaderContent>
                                     <MudTh>Category</MudTh>
                                     <MudTh Style="text-align: right;">Budgeted</MudTh>
+                                    <MudTh Style="text-align: right;">Actual</MudTh>
+                                    <MudTh Style="text-align: right;">Remaining</MudTh>
                                     <MudTh Style="text-align: right;">Actions</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
@@ -142,6 +144,60 @@
                                                     {
                                                         <MudTooltip Text="Rollover enabled">
                                                             <MudIcon Icon="@Icons.Material.Filled.Repeat" Size="Size.Small" Color="Color.Info" />
+                                                        </MudTooltip>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <MudText Style="color: var(--mb-text-muted);">—</MudText>
+                                            }
+                                        }
+                                    </MudTd>
+                                    <MudTd Style="text-align: right;">
+                                        @{
+                                            var actualSpent = _actualSpending.ContainsKey(context.Id) ? _actualSpending[context.Id] : 0m;
+                                            var budget = _monthlyBudgets.FirstOrDefault(b => b.CategoryId == context.Id);
+                                            
+                                            if (budget != null)
+                                            {
+                                                var isOverspent = actualSpent > budget.PlannedAmount;
+                                                
+                                                <MudText Color="@(isOverspent ? Color.Error : Color.Default)">
+                                                    @actualSpent.ToString("C2")
+                                                </MudText>
+                                            }
+                                            else
+                                            {
+                                                <MudText Style="color: var(--mb-text-muted);">—</MudText>
+                                            }
+                                        }
+                                    </MudTd>
+                                    <MudTd Style="text-align: right;">
+                                        @{
+                                            var actualSpent = _actualSpending.ContainsKey(context.Id) ? _actualSpending[context.Id] : 0m;
+                                            var budget = _monthlyBudgets.FirstOrDefault(b => b.CategoryId == context.Id);
+                                            
+                                            if (budget != null)
+                                            {
+                                                var remaining = budget.PlannedAmount - actualSpent;
+                                                var isOverspent = remaining < 0;
+                                                var percentUsed = budget.PlannedAmount > 0 ? (actualSpent / budget.PlannedAmount) * 100 : 0;
+                                                
+                                                <div class="d-flex align-center justify-end gap-2">
+                                                    <MudText Color="@(isOverspent ? Color.Error : remaining < budget.PlannedAmount * 0.1m ? Color.Warning : Color.Success)">
+                                                        @remaining.ToString("C2")
+                                                    </MudText>
+                                                    @if (isOverspent)
+                                                    {
+                                                        <MudTooltip Text="@($"Overspent by {Math.Abs(remaining):C2} ({percentUsed:F0}% of budget)")">
+                                                            <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Error" />
+                                                        </MudTooltip>
+                                                    }
+                                                    else if (percentUsed >= 90)
+                                                    {
+                                                        <MudTooltip Text="@($"{percentUsed:F0}% of budget used")">
+                                                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Warning" />
                                                         </MudTooltip>
                                                     }
                                                 </div>
@@ -263,6 +319,7 @@
 @code {
     private List<CategoryGroup> _categoryGroups = [];
     private List<MonthlyBudget> _monthlyBudgets = [];
+    private Dictionary<int, decimal> _actualSpending = new();
     private bool _isLoading = true;
     private string? _userId;
     private string _viewMode = "categories"; // "categories" or "budgets"
@@ -309,10 +366,14 @@
         if (_showingDefaults)
         {
             _monthlyBudgets = await CategoryService.GetDefaultBudgetsAsync(_userId);
+            // Load actual spending for current month to show overspending indicators
+            var now = DateTime.UtcNow;
+            _actualSpending = await CategoryService.GetAllCategoriesActualSpendingAsync(_userId, now.Year, now.Month);
         }
         else
         {
             _monthlyBudgets = await CategoryService.GetEffectiveBudgetsForMonthAsync(_userId, _selectedYear, _selectedMonth);
+            _actualSpending = await CategoryService.GetAllCategoriesActualSpendingAsync(_userId, _selectedYear, _selectedMonth);
         }
     }
 

@@ -86,5 +86,5 @@ yarn-error.log*
 # Keep this file tracked
 !/.gitignore
 
-.db-wal
-.db-shm
+*.db-wal
+*.db-shm
