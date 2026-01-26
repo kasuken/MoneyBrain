@@ -181,7 +181,9 @@
     {
         <MudDataGrid T="Transaction" Items="@_transactions" Dense="true" Hover="true" 
                      MultiSelection="true" @bind-SelectedItems="_selectedTransactions"
-                     SelectOnRowClick="false">
+                     SelectOnRowClick="false"
+                     Pagination="true"
+                     PageSize="100">
             <Columns>
                 <SelectColumn T="Transaction" />
                 <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" />
@@ -298,6 +300,10 @@
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
+            <PagerContent>
+                <MudDataGridPager T="Transaction" 
+                                  PageSizeOptions="new int[] { 50, 100, 250, 500 }" />
+            </PagerContent>
         </MudDataGrid>
     }
 </div>
