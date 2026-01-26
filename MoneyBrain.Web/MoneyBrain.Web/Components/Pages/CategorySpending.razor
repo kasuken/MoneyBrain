@@ -1,0 +1,307 @@
+@page "/category-spending"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Reporting.CategorySpending
+@using System.Globalization
+@inject ICategorySpendingService CategorySpendingService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+<PageTitle>Category Spending - MoneyBrain</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.PieChart" Class="mr-2" />
+        Category Spending Report
+    </MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudDatePicker Label="Start Date" 
+                              @bind-Date="_startDate" 
+                              MaxDate="DateTime.Today"
+                              @bind-Date:after="LoadDataAsync" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudDatePicker Label="End Date" 
+                              @bind-Date="_endDate" 
+                              MaxDate="DateTime.Today"
+                              @bind-Date:after="LoadDataAsync" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="my-4" />
+    }
+    else if (_summary != null && _summary.Categories.Any())
+    {
+        <!-- Summary Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" md="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Color="Color.Error">Total Spending</MudText>
+                        <MudText Typo="Typo.h4">@_summary.TotalSpending.ToString("C")</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @_summary.StartDate.ToString("MMM d") - @_summary.EndDate.ToString("MMM d, yyyy")
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Color="Color.Info">Categories</MudText>
+                        <MudText Typo="Typo.h4">@_summary.CategoryCount</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">With spending</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Color="Color.Success">Transactions</MudText>
+                        <MudText Typo="Typo.h4">@_summary.TotalTransactions</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Avg: @(_summary.TotalTransactions > 0 ? (_summary.TotalSpending / _summary.TotalTransactions).ToString("C") : "$0")
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Top Categories Chart -->
+        <MudPaper Class="pa-4 mb-4">
+            <MudText Typo="Typo.h6" Class="mb-4">Top @_topCount Categories</MudText>
+            <MudChart ChartType="ChartType.Donut"
+                     InputData="@_chartData"
+                     InputLabels="@_chartLabels"
+                     Width="100%"
+                     Height="350px"
+                     ChartOptions="@_chartOptions" />
+        </MudPaper>
+
+        <!-- Detailed Category Table -->
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">All Categories</MudText>
+            <MudTable Items="@_summary.Categories" Hover="true" Dense="true" Striped="true">
+                <HeaderContent>
+                    <MudTh>Category</MudTh>
+                    <MudTh Style="text-align: right">Total Spending</MudTh>
+                    <MudTh Style="text-align: right">% of Total</MudTh>
+                    <MudTh Style="text-align: center">Transactions</MudTh>
+                    <MudTh Style="text-align: right">Avg/Transaction</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Category">
+                        @if (!string.IsNullOrEmpty(context.CategoryGroupName))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.CategoryGroupName</MudText>
+                            <br />
+                        }
+                        <strong>@context.CategoryName</strong>
+                    </MudTd>
+                    <MudTd DataLabel="Total" Style="text-align: right">
+                        <MudText Color="Color.Error"><strong>@context.TotalSpending.ToString("C")</strong></MudText>
+                    </MudTd>
+                    <MudTd DataLabel="%" Style="text-align: right">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">@context.PercentageOfTotal.ToString("F1")%</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Transactions" Style="text-align: center">
+                        @context.TransactionCount
+                    </MudTd>
+                    <MudTd DataLabel="Average" Style="text-align: right">
+                        @context.AverageTransactionAmount.ToString("C")
+                    </MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown"
+                                      Size="Size.Small"
+                                      OnClick="@(() => ToggleCategoryDetails(context))"
+                                      aria-label="Expand details" />
+                    </MudTd>
+                </RowTemplate>
+                <ChildRowContent>
+                    @if (_expandedCategory == context)
+                    {
+                        <MudTr>
+                            <td colspan="6" style="padding: 0;">
+                                <MudPaper Class="pa-4 ma-2" Elevation="0">
+                                    <MudText Typo="Typo.subtitle1" Class="mb-3">
+                                        <strong>Monthly Spending Trend</strong>
+                                    </MudText>
+
+                                    @if (context.MonthlyBreakdown.Any())
+                                    {
+                                        <!-- Monthly Trend Chart -->
+                                        <MudChart ChartType="ChartType.Line"
+                                                 ChartSeries="@GetCategoryChartSeries(context)"
+                                                 XAxisLabels="@GetCategoryChartLabels(context)"
+                                                 Width="100%"
+                                                 Height="250px"
+                                                 ChartOptions="@_lineChartOptions" />
+
+                                        <!-- Monthly Table -->
+                                        <MudSimpleTable Dense="true" Hover="true" Class="mt-4" Style="max-height: 300px; overflow-y: auto;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Month</th>
+                                                    <th style="text-align: right">Amount</th>
+                                                    <th style="text-align: center">Transactions</th>
+                                                    <th style="text-align: right">Avg/Transaction</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var month in context.MonthlyBreakdown.OrderByDescending(m => m.Year).ThenByDescending(m => m.Month))
+                                                {
+                                                    <tr>
+                                                        <td>@month.MonthName</td>
+                                                        <td style="text-align: right">
+                                                            <MudText Color="Color.Error">@month.Amount.ToString("C")</MudText>
+                                                        </td>
+                                                        <td style="text-align: center">@month.TransactionCount</td>
+                                                        <td style="text-align: right">
+                                                            @((month.TransactionCount > 0 ? month.Amount / month.TransactionCount : 0).ToString("C"))
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </MudSimpleTable>
+                                    }
+                                    else
+                                    {
+                                        <MudAlert Severity="Severity.Info">No monthly breakdown available</MudAlert>
+                                    }
+                                </MudPaper>
+                            </td>
+                        </MudTr>
+                    }
+                </ChildRowContent>
+            </MudTable>
+        </MudPaper>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info">
+            No spending data found for the selected period. Create some expense transactions to see category spending reports.
+        </MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private CategorySpendingSummaryDto? _summary;
+    private bool _loading = true;
+    private DateTime? _startDate = DateTime.Today.AddMonths(-6);
+    private DateTime? _endDate = DateTime.Today;
+    private string _userId = string.Empty;
+    private int _topCount = 10;
+
+    private CategorySpendingDto? _expandedCategory;
+
+    // Chart data for top categories donut chart
+    private double[] _chartData = [];
+    private string[] _chartLabels = [];
+    private ChartOptions _chartOptions = new()
+    {
+        ChartPalette = new[]
+        {
+            "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF",
+            "#FF9F40", "#FF6384", "#C9CBCF", "#4BC0C0", "#FF6384"
+        }
+    };
+
+    private ChartOptions _lineChartOptions = new()
+    {
+        YAxisTicks = 100,
+        MaxNumYAxisTicks = 10,
+        YAxisFormat = "C0",
+        LineStrokeWidth = 3
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (_startDate == null || _endDate == null)
+            return;
+
+        _loading = true;
+
+        try
+        {
+            _summary = await CategorySpendingService.GetCategorySpendingSummaryAsync(
+                _userId,
+                _startDate.Value,
+                _endDate.Value,
+                _topCount);
+
+            PrepareChartData();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void PrepareChartData()
+    {
+        if (_summary == null || !_summary.TopCategories.Any())
+        {
+            _chartData = [];
+            _chartLabels = [];
+            return;
+        }
+
+        _chartData = _summary.TopCategories.Select(c => (double)c.TotalSpending).ToArray();
+        _chartLabels = _summary.TopCategories.Select(c => c.CategoryName).ToArray();
+    }
+
+    private void ToggleCategoryDetails(CategorySpendingDto category)
+    {
+        if (_expandedCategory == category)
+        {
+            _expandedCategory = null;
+        }
+        else
+        {
+            _expandedCategory = category;
+        }
+    }
+
+    private List<ChartSeries> GetCategoryChartSeries(CategorySpendingDto category)
+    {
+        return new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = category.CategoryName,
+                Data = category.MonthlyBreakdown
+                    .OrderBy(m => m.Year)
+                    .ThenBy(m => m.Month)
+                    .Select(m => (double)m.Amount)
+                    .ToArray()
+            }
+        };
+    }
+
+    private string[] GetCategoryChartLabels(CategorySpendingDto category)
+    {
+        return category.MonthlyBreakdown
+            .OrderBy(m => m.Year)
+            .ThenBy(m => m.Month)
+            .Select(m => m.MonthName)
+            .ToArray();
+    }
+}
