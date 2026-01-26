@@ -1,0 +1,300 @@
+@page "/budget-comparison"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Reporting.BudgetComparison
+@using MudBlazor
+@attribute [Authorize]
+@inject IBudgetComparisonService BudgetComparisonService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Budget vs Actual</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Budget vs Actual Comparison</MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="Start Date" 
+                               @bind-Date="_startDate" 
+                               @bind-Date:after="LoadDataAsync"
+                               PickerVariant="PickerVariant.Dialog"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="End Date" 
+                               @bind-Date="_endDate"
+                               @bind-Date:after="LoadDataAsync"
+                               PickerVariant="PickerVariant.Dialog"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+    }
+    else if (_summary != null)
+    {
+        <!-- Summary Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Total Budgeted</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">@_summary.TotalBudgeted.ToString("C2")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Total Actual</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Secondary">@_summary.TotalActual.ToString("C2")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Remaining</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_summary.TotalRemaining >= 0 ? Color.Success : Color.Error)">
+                        @_summary.TotalRemaining.ToString("C2")
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Budget Used</MudText>
+                    <MudText Typo="Typo.h5">
+                        @_summary.OverallPercentageUsed.ToString("F1")%
+                        <MudChip T="string" Size="Size.Small" Color="@GetPercentageColor(_summary.OverallPercentageUsed)">
+                            @GetPercentageStatus(_summary.OverallPercentageUsed)
+                        </MudChip>
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Budget Usage Chart -->
+        @if (_chartData.Any())
+        {
+            <MudPaper Class="pa-4 mb-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-4">Monthly Budget Usage</MudText>
+                <MudChart ChartType="ChartType.Bar" 
+                          ChartSeries="_chartSeries" 
+                          XAxisLabels="_chartData.Select(d => d.MonthName).ToArray()"
+                          Width="100%" 
+                          Height="350px"
+                          ChartOptions="_chartOptions" />
+            </MudPaper>
+        }
+
+        <!-- Monthly Breakdown Table -->
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-4">Monthly Breakdown</MudText>
+            <MudTable Items="_summary.MonthlyComparisons" 
+                      Hover="true" 
+                      Dense="true"
+                      FixedHeader="true"
+                      Height="600px">
+                <HeaderContent>
+                    <MudTh>Month</MudTh>
+                    <MudTh Style="text-align: right;">Budgeted</MudTh>
+                    <MudTh Style="text-align: right;">Actual</MudTh>
+                    <MudTh Style="text-align: right;">Remaining</MudTh>
+                    <MudTh Style="text-align: right;">% Used</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh Style="text-align: center;">Details</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Month">@context.MonthName</MudTd>
+                    <MudTd DataLabel="Budgeted" Style="text-align: right;">@context.TotalBudgeted.ToString("C2")</MudTd>
+                    <MudTd DataLabel="Actual" Style="text-align: right;">@context.TotalActual.ToString("C2")</MudTd>
+                    <MudTd DataLabel="Remaining" Style="text-align: right;">
+                        <span style="color: @(context.Remaining >= 0 ? "green" : "red")">
+                            @context.Remaining.ToString("C2")
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="% Used" Style="text-align: right;">@context.PercentageUsed.ToString("F1")%</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@GetPercentageColor(context.PercentageUsed)">
+                            @GetPercentageStatus(context.PercentageUsed)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Details" Style="text-align: center;">
+                        <MudIconButton Icon="@(_expandedMonths.Contains(context) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" 
+                                       OnClick="@(() => ToggleMonthExpansion(context))"
+                                       Size="Size.Small" />
+                    </MudTd>
+                </RowTemplate>
+                <ChildRowContent>
+                    @if (_expandedMonths.Contains(context))
+                    {
+                        <MudTr>
+                            <td colspan="7">
+                                <MudCard Elevation="0" Class="my-2">
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.subtitle2" Class="mb-2">
+                                            Category Breakdown - @context.MonthName
+                                        </MudText>
+                                        
+                                        @if (context.Categories.Any())
+                                        {
+                                            <MudTable Items="context.Categories" 
+                                                      Hover="true" 
+                                                      Dense="true"
+                                                      Elevation="0">
+                                                <HeaderContent>
+                                                    <MudTh>Category</MudTh>
+                                                    <MudTh>Group</MudTh>
+                                                    <MudTh Style="text-align: right;">Budgeted</MudTh>
+                                                    <MudTh Style="text-align: right;">Actual</MudTh>
+                                                    <MudTh Style="text-align: right;">Remaining</MudTh>
+                                                    <MudTh Style="text-align: right;">% Used</MudTh>
+                                                    <MudTh Style="text-align: center;">Transactions</MudTh>
+                                                </HeaderContent>
+                                                <RowTemplate Context="category">
+                                                    <MudTd DataLabel="Category">
+                                                        <strong>@category.CategoryName</strong>
+                                                    </MudTd>
+                                                    <MudTd DataLabel="Group">@(category.CategoryGroupName ?? "-")</MudTd>
+                                                    <MudTd DataLabel="Budgeted" Style="text-align: right;">@category.Budgeted.ToString("C2")</MudTd>
+                                                    <MudTd DataLabel="Actual" Style="text-align: right;">@category.Actual.ToString("C2")</MudTd>
+                                                    <MudTd DataLabel="Remaining" Style="text-align: right;">
+                                                        <span style="color: @(category.Remaining >= 0 ? "green" : "red")">
+                                                            @category.Remaining.ToString("C2")
+                                                        </span>
+                                                    </MudTd>
+                                                    <MudTd DataLabel="% Used" Style="text-align: right;">
+                                                        @category.PercentageUsed.ToString("F1")%
+                                                    </MudTd>
+                                                    <MudTd DataLabel="Transactions" Style="text-align: center;">
+                                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@category.TransactionCount</MudChip>
+                                                    </MudTd>
+                                                </RowTemplate>
+                                            </MudTable>
+                                        }
+                                        else
+                                        {
+                                            <MudAlert Severity="Severity.Info" Dense="true">
+                                                No budgeted categories for this month.
+                                            </MudAlert>
+                                        }
+                                    </MudCardContent>
+                                </MudCard>
+                            </td>
+                        </MudTr>
+                    }
+                </ChildRowContent>
+            </MudTable>
+        </MudPaper>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info">
+            Select a date range to view budget comparison.
+        </MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private DateTime? _startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-5);
+    private DateTime? _endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1).AddDays(-1);
+    private bool _loading = true;
+    private BudgetComparisonSummaryDto? _summary;
+    private List<MonthlyBudgetComparisonDto> _chartData = [];
+    private HashSet<MonthlyBudgetComparisonDto> _expandedMonths = [];
+
+    private List<ChartSeries> _chartSeries = [];
+    private ChartOptions _chartOptions = new()
+    {
+        YAxisTicks = 1000,
+        YAxisFormat = "C0",
+        InterpolationOption = InterpolationOption.Straight
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (_startDate == null || _endDate == null)
+            return;
+
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return;
+
+            _summary = await BudgetComparisonService.GetBudgetComparisonSummaryAsync(
+                userId, 
+                _startDate.Value, 
+                _endDate.Value);
+
+            PrepareChartData();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void PrepareChartData()
+    {
+        if (_summary == null)
+            return;
+
+        _chartData = _summary.MonthlyComparisons
+            .OrderBy(m => m.Year)
+            .ThenBy(m => m.Month)
+            .ToList();
+
+        _chartSeries =
+        [
+            new ChartSeries
+            {
+                Name = "Budgeted",
+                Data = _chartData.Select(d => (double)d.TotalBudgeted).ToArray()
+            },
+            new ChartSeries
+            {
+                Name = "Actual",
+                Data = _chartData.Select(d => (double)d.TotalActual).ToArray()
+            }
+        ];
+    }
+
+    private void ToggleMonthExpansion(MonthlyBudgetComparisonDto month)
+    {
+        if (_expandedMonths.Contains(month))
+            _expandedMonths.Remove(month);
+        else
+            _expandedMonths.Add(month);
+    }
+
+    private Color GetPercentageColor(decimal percentage)
+    {
+        return percentage switch
+        {
+            <= 75 => Color.Success,
+            <= 90 => Color.Info,
+            <= 100 => Color.Warning,
+            _ => Color.Error
+        };
+    }
+
+    private string GetPercentageStatus(decimal percentage)
+    {
+        return percentage switch
+        {
+            <= 75 => "On Track",
+            <= 90 => "Good",
+            <= 100 => "Near Limit",
+            _ => "Over Budget"
+        };
+    }
+}
