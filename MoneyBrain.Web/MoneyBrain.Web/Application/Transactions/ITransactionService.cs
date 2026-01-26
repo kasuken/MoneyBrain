@@ -1,3 +1,4 @@
+using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -102,4 +103,10 @@ public interface ITransactionService
     /// Delete unused payees (no transactions)
     /// </summary>
     Task<int> DeleteUnusedPayeesAsync(string userId, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Bulk update multiple transactions (category, payee, tags)
+    /// Skips reconciled transactions to preserve data integrity
+    /// </summary>
+    Task<BulkEditResult> BulkUpdateTransactionsAsync(string userId, BulkEditTransactionRequest request, CancellationToken cancellationToken = default);
 }

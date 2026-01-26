@@ -3,6 +3,7 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Application.Transactions
 @using MoneyBrain.Web.Application.Transactions.Filtering
+@using MoneyBrain.Web.Application.Transactions.BulkEdit
 @using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
@@ -29,24 +30,42 @@
             <p class="mb-subtitle">Track income and expenses</p>
         </div>
         <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Outlined" 
-                       Color="Color.Primary"
-                       StartIcon="@(_showFilters ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.FilterAlt)"
-                       OnClick="@(() => _showFilters = !_showFilters)">
-                @(_showFilters ? "Hide Filters" : "Show Filters")
-            </MudButton>
-            <MudButton Variant="Variant.Outlined" 
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Upload"
-                       OnClick="@OpenCsvImportDialog">
-                Import CSV
-            </MudButton>
-            <MudButton Variant="Variant.Filled" 
-                       Class="mb-btn-primary"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="@OpenCreateTransactionDialog">
-                Add Transaction
-            </MudButton>
+            @if (_selectedTransactions.Count > 0)
+            {
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Info"
+                           StartIcon="@Icons.Material.Filled.Edit"
+                           OnClick="@OpenBulkEditDialog">
+                    Bulk Edit (@_selectedTransactions.Count)
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" 
+                           Color="Color.Default"
+                           StartIcon="@Icons.Material.Filled.Clear"
+                           OnClick="@ClearSelection">
+                    Clear Selection
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Outlined" 
+                           Color="Color.Primary"
+                           StartIcon="@(_showFilters ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.FilterAlt)"
+                           OnClick="@(() => _showFilters = !_showFilters)">
+                    @(_showFilters ? "Hide Filters" : "Show Filters")
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" 
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Upload"
+                           OnClick="@OpenCsvImportDialog">
+                    Import CSV
+                </MudButton>
+                <MudButton Variant="Variant.Filled" 
+                           Class="mb-btn-primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="@OpenCreateTransactionDialog">
+                    Add Transaction
+                </MudButton>
+            }
         </div>
     </div>
 
@@ -127,8 +146,11 @@
     }
     else
     {
-        <MudDataGrid T="Transaction" Items="@_transactions" Dense="true" Hover="true">
+        <MudDataGrid T="Transaction" Items="@_transactions" Dense="true" Hover="true" 
+                     MultiSelection="true" @bind-SelectedItems="_selectedTransactions"
+                     SelectOnRowClick="false">
             <Columns>
+                <SelectColumn T="Transaction" />
                 <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" />
                 <PropertyColumn Property="t => t.Account.Name" Title="Account" />
                 <PropertyColumn Property="t => t.Payee!.Name" Title="Payee" />
@@ -187,6 +209,7 @@
     private string _currencyCode = "USD";
     private TransactionFilter _filter = new();
     private bool _showFilters = false;
+    private HashSet<Transaction> _selectedTransactions = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -360,4 +383,49 @@
         < 0 => "negative",
         _ => "neutral"
     };
+
+    private void ClearSelection()
+    {
+        _selectedTransactions.Clear();
+    }
+
+    private async Task OpenBulkEditDialog()
+    {
+        if (_selectedTransactions.Count == 0)
+            return;
+
+        var selectedIds = _selectedTransactions.Select(t => t.Id).ToList();
+        var reconciledCount = _selectedTransactions.Count(t => t.IsReconciled);
+
+        var parameters = new DialogParameters<BulkEditTransactionDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.SelectedTransactionIds, selectedIds },
+            { x => x.ReconciledCount, reconciledCount }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<BulkEditTransactionDialog>("Bulk Edit Transactions", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: BulkEditResult editResult })
+        {
+            if (editResult.UpdatedCount > 0)
+            {
+                await LoadTransactions();
+                _selectedTransactions.Clear();
+                
+                var message = $"Updated {editResult.UpdatedCount} transaction{(editResult.UpdatedCount != 1 ? "s" : "")}";
+                if (editResult.SkippedTransactionIds.Count > 0)
+                {
+                    message += $" ({editResult.SkippedTransactionIds.Count} skipped: {editResult.SkipReason})";
+                }
+                SnackbarService.Add(message, Severity.Success);
+            }
+            else if (editResult.SkippedTransactionIds.Count > 0)
+            {
+                SnackbarService.Add($"All transactions skipped: {editResult.SkipReason}", Severity.Warning);
+            }
+        }
+    }
 }

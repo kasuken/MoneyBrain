@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Data;
@@ -467,5 +468,92 @@ public class TransactionService : ITransactionService
 
         await _context.SaveChangesAsync(cancellationToken);
         return unusedPayees.Count;
+    }
+
+    public async Task<BulkEditResult> BulkUpdateTransactionsAsync(string userId, BulkEditTransactionRequest request, CancellationToken cancellationToken = default)
+    {
+        var result = new BulkEditResult();
+
+        if (!request.HasUpdates || request.TransactionIds.Count == 0)
+        {
+            return result;
+        }
+
+        // Get all transactions to update
+        var transactions = await _context.Transactions
+            .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        // Separate reconciled from non-reconciled
+        var reconciledIds = transactions
+            .Where(t => t.IsReconciled)
+            .Select(t => t.Id)
+            .ToList();
+
+        var transactionsToUpdate = transactions
+            .Where(t => !t.IsReconciled)
+            .ToList();
+
+        // Track skipped reconciled transactions
+        if (reconciledIds.Count > 0)
+        {
+            result.SkippedTransactionIds = reconciledIds;
+            result.SkipReason = "Reconciled transactions cannot be modified";
+        }
+
+        // Apply updates to non-reconciled transactions
+        foreach (var transaction in transactionsToUpdate)
+        {
+            var updated = false;
+
+            // Update category
+            if (request.ClearCategory)
+            {
+                transaction.CategoryId = null;
+                updated = true;
+            }
+            else if (request.CategoryId.HasValue)
+            {
+                transaction.CategoryId = request.CategoryId.Value;
+                updated = true;
+            }
+
+            // Update payee
+            if (request.ClearPayee)
+            {
+                transaction.PayeeId = null;
+                updated = true;
+            }
+            else if (request.PayeeId.HasValue)
+            {
+                transaction.PayeeId = request.PayeeId.Value;
+                updated = true;
+            }
+
+            // Update tags
+            if (request.ClearTags)
+            {
+                transaction.Tags = null;
+                updated = true;
+            }
+            else if (request.Tags != null)
+            {
+                transaction.Tags = request.Tags.Count > 0 ? string.Join(",", request.Tags) : null;
+                updated = true;
+            }
+
+            if (updated)
+            {
+                transaction.UpdatedAt = DateTime.UtcNow;
+                result.UpdatedCount++;
+            }
+        }
+
+        if (result.UpdatedCount > 0)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        return result;
     }
 }
