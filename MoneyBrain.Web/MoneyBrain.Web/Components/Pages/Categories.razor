@@ -31,21 +31,18 @@
                     Budgets
                 </MudButton>
             </MudButtonGroup>
-            @if (_viewMode == "categories")
-            {
-                <MudButton Variant="Variant.Outlined" 
-                           Color="Color.Secondary"
-                           StartIcon="@Icons.Material.Filled.Add"
-                           OnClick="@OpenCreateGroupDialog">
-                    New Group
-                </MudButton>
-                <MudButton Variant="Variant.Filled" 
-                           Class="mb-btn-primary"
-                           StartIcon="@Icons.Material.Filled.Add"
-                           OnClick="@(() => OpenCreateCategoryDialog())">
-                    New Category
-                </MudButton>
-            }
+            <MudButton Variant="Variant.Outlined" 
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@OpenCreateGroupDialog">
+                New Group
+            </MudButton>
+            <MudButton Variant="Variant.Filled" 
+                       Class="mb-btn-primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@(() => OpenCreateCategoryDialog())">
+                New Category
+            </MudButton>
         </div>
     </div>
 

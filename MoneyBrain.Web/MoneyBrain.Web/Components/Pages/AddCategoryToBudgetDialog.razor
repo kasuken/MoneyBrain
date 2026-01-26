@@ -23,8 +23,8 @@
                         <MudStack Spacing="2">
                             <div class="d-flex align-center justify-space-between">
                                 <MudCheckBox T="bool" 
-                                             Checked="@IsGroupFullySelected(group.Id)"
-                                             CheckedChanged="@((bool value) => ToggleGroup(group.Id, value))"
+                                             Value="@IsGroupFullySelected(group.Id)"
+                                             ValueChanged="@((bool value) => ToggleGroup(group.Id, value))"
                                              Label="@group.Name"
                                              Color="Color.Primary"
                                              Dense="true" />
@@ -39,8 +39,8 @@
                                     @foreach (var category in groupCategories.OrderBy(c => c.Name))
                                     {
                                         <MudCheckBox T="bool"
-                                                     Checked="@_selectedCategoryIds.Contains(category.Id)"
-                                                     CheckedChanged="@((bool value) => ToggleCategory(category.Id, value))"
+                                                     Value="@_selectedCategoryIds.Contains(category.Id)"
+                                                     ValueChanged="@((bool value) => ToggleCategory(category.Id, value))"
                                                      Label="@category.Name"
                                                      Color="Color.Primary"
                                                      Dense="true"
@@ -190,6 +190,8 @@
                 _selectedCategoryIds.Remove(category.Id);
             }
         }
+        
+        InvokeAsync(StateHasChanged);
     }
 
     private void ToggleCategory(int categoryId, bool selected)
@@ -198,6 +200,8 @@
             _selectedCategoryIds.Add(categoryId);
         else
             _selectedCategoryIds.Remove(categoryId);
+            
+        InvokeAsync(StateHasChanged);
     }
 
     private void Cancel()
