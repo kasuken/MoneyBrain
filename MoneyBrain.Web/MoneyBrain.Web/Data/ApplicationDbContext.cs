@@ -82,6 +82,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<Reconciliation> Reconciliations => Set<Reconciliation>();
 
+    /// <summary>
+    /// Ledger entries for double-entry bookkeeping - every transaction generates at least 2 entries
+    /// </summary>
+    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -391,6 +396,42 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithMany()
                 .HasForeignKey(bc => bc.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure LedgerEntry entity
+        modelBuilder.Entity<LedgerEntry>(entity =>
+        {
+            entity.HasKey(le => le.Id);
+
+            // Relationship: LedgerEntry belongs to one Transaction
+            entity.HasOne(le => le.Transaction)
+                .WithMany(t => t.LedgerEntries)
+                .HasForeignKey(le => le.TransactionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship: LedgerEntry affects one Account
+            entity.HasOne(le => le.Account)
+                .WithMany()
+                .HasForeignKey(le => le.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relationship: LedgerEntry can be associated with a Category
+            entity.HasOne(le => le.Category)
+                .WithMany()
+                .HasForeignKey(le => le.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Indexes for common queries
+            entity.HasIndex(le => le.UserId);
+            entity.HasIndex(le => le.TransactionId);
+            entity.HasIndex(le => le.AccountId);
+            entity.HasIndex(le => le.EntryDate);
+            entity.HasIndex(le => new { le.AccountId, le.EntryDate });
+            entity.HasIndex(le => new { le.UserId, le.EntryDate });
+
+            // Decimal precision for money values
+            entity.Property(le => le.DebitAmount).HasPrecision(18, 2);
+            entity.Property(le => le.CreditAmount).HasPrecision(18, 2);
         });
     }
 }

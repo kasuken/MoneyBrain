@@ -1,0 +1,96 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace MoneyBrain.Web.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddDoubleEntryBookkeeping : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateTable(
+                name: "LedgerEntries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    TransactionId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AccountId = table.Column<int>(type: "INTEGER", nullable: false),
+                    CategoryId = table.Column<int>(type: "INTEGER", nullable: true),
+                    DebitAmount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    CreditAmount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    EntryDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LedgerEntries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LedgerEntries_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_LedgerEntries_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_LedgerEntries_Transactions_TransactionId",
+                        column: x => x.TransactionId,
+                        principalTable: "Transactions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LedgerEntries_AccountId",
+                table: "LedgerEntries",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LedgerEntries_AccountId_EntryDate",
+                table: "LedgerEntries",
+                columns: new[] { "AccountId", "EntryDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LedgerEntries_CategoryId",
+                table: "LedgerEntries",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LedgerEntries_EntryDate",
+                table: "LedgerEntries",
+                column: "EntryDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LedgerEntries_TransactionId",
+                table: "LedgerEntries",
+                column: "TransactionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LedgerEntries_UserId",
+                table: "LedgerEntries",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LedgerEntries_UserId_EntryDate",
+                table: "LedgerEntries",
+                columns: new[] { "UserId", "EntryDate" });
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "LedgerEntries");
+        }
+    }
+}

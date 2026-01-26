@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.FlagManagement;
+using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Application.Transactions.Splits;
 using MoneyBrain.Web.Application.Transactions.StatusManagement;
@@ -15,10 +16,12 @@ namespace MoneyBrain.Web.Application.Transactions;
 public class TransactionService : ITransactionService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILedgerService _ledgerService;
 
-    public TransactionService(ApplicationDbContext context)
+    public TransactionService(ApplicationDbContext context, ILedgerService ledgerService)
     {
         _context = context;
+        _ledgerService = ledgerService;
     }
 
     public async Task<List<Transaction>> GetAccountTransactionsAsync(int accountId, string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
@@ -113,6 +116,14 @@ public class TransactionService : ITransactionService
         _context.Transactions.Add(transaction);
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Load the Account navigation property for ledger entry generation
+        await _context.Entry(transaction)
+            .Reference(t => t.Account)
+            .LoadAsync(cancellationToken);
+
+        // Generate ledger entries for double-entry bookkeeping
+        await _ledgerService.GenerateLedgerEntriesAsync(transaction, cancellationToken);
+
         return transaction;
     }
 
@@ -152,6 +163,15 @@ public class TransactionService : ITransactionService
         transaction.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Load the Account navigation property for ledger entry regeneration
+        await _context.Entry(transaction)
+            .Reference(t => t.Account)
+            .LoadAsync(cancellationToken);
+
+        // Regenerate ledger entries to reflect the updated transaction
+        await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
+
         return true;
     }
 
@@ -166,6 +186,9 @@ public class TransactionService : ITransactionService
         // Enforce reconciled transaction immutability
         if (transaction.IsReconciled)
             throw new InvalidOperationException("Cannot delete reconciled transaction");
+
+        // Delete ledger entries first (cascade delete would handle this, but explicit is clearer)
+        await _ledgerService.DeleteLedgerEntriesAsync(transactionId, cancellationToken);
 
         _context.Transactions.Remove(transaction);
         await _context.SaveChangesAsync(cancellationToken);
@@ -682,12 +705,17 @@ public class TransactionService : ITransactionService
         await _context.SaveChangesAsync(cancellationToken);
 
         // Reload with navigation properties
-        return await _context.Transactions
+        var createdTransaction = await _context.Transactions
             .Include(t => t.Account)
             .Include(t => t.Payee)
             .Include(t => t.Splits)
                 .ThenInclude(s => s.Category)
             .FirstAsync(t => t.Id == transaction.Id, cancellationToken);
+
+        // Generate ledger entries for double-entry bookkeeping
+        await _ledgerService.GenerateLedgerEntriesAsync(createdTransaction, cancellationToken);
+
+        return createdTransaction;
     }
 
     public async Task<bool> UpdateTransactionWithSplitsAsync(
@@ -753,6 +781,20 @@ public class TransactionService : ITransactionService
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Load the Account navigation property for ledger entry regeneration
+        await _context.Entry(transaction)
+            .Reference(t => t.Account)
+            .LoadAsync(cancellationToken);
+
+        // Reload splits for ledger entry generation
+        await _context.Entry(transaction)
+            .Collection(t => t.Splits)
+            .LoadAsync(cancellationToken);
+
+        // Regenerate ledger entries to reflect the updated transaction with splits
+        await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
+
         return true;
     }
 
@@ -831,6 +873,10 @@ public class TransactionService : ITransactionService
         toTransaction = await _context.Transactions
             .Include(t => t.Account)
             .FirstAsync(t => t.Id == toTransaction.Id, cancellationToken);
+
+        // Generate ledger entries for both sides of the transfer
+        await _ledgerService.GenerateLedgerEntriesAsync(fromTransaction, cancellationToken);
+        await _ledgerService.GenerateLedgerEntriesAsync(toTransaction, cancellationToken);
 
         return new TransferResult
         {

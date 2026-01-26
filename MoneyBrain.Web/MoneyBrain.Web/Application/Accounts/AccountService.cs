@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -13,11 +14,16 @@ public class AccountService : IAccountService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<AccountService> _logger;
+    private readonly ILedgerService _ledgerService;
 
-    public AccountService(ApplicationDbContext context, ILogger<AccountService> logger)
+    public AccountService(
+        ApplicationDbContext context, 
+        ILogger<AccountService> logger,
+        ILedgerService ledgerService)
     {
         _context = context;
         _logger = logger;
+        _ledgerService = ledgerService;
     }
 
     public async Task<IReadOnlyList<Account>> GetUserAccountsAsync(
@@ -373,19 +379,17 @@ public class AccountService : IAccountService
             throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
         }
 
-        // Calculate balance: OpeningBalance + sum(manual adjustments)
-        // TODO: When transaction support is added, include: + sum(posted transactions)
-        var manualAdjustments = await _context.ManualBalanceAdjustments
-            .Where(mba => mba.AccountId == accountId)
-            .SumAsync(mba => mba.Amount, cancellationToken);
-
-        var currentBalance = account.OpeningBalance + manualAdjustments;
+        // Use ledger-based balance calculation (double-entry bookkeeping)
+        // This includes opening balance + ledger entries + manual adjustments
+        var currentBalance = await _ledgerService.GetAccountBalanceAsync(
+            accountId, 
+            userId, 
+            asOfDate: null, // Current balance
+            cancellationToken);
 
         _logger.LogDebug(
-            "Calculated current balance for account {AccountId}: Opening={Opening} + Adjustments={Adjustments} = {Total}",
+            "Calculated current balance for account {AccountId} using double-entry bookkeeping: {Balance}",
             accountId,
-            account.OpeningBalance,
-            manualAdjustments,
             currentBalance);
 
         return currentBalance;
