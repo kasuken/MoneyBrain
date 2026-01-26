@@ -1,5 +1,6 @@
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
+using MoneyBrain.Web.Application.Transactions.FlagManagement;
 using MoneyBrain.Web.Application.Transactions.Splits;
 using MoneyBrain.Web.Application.Transactions.StatusManagement;
 using MoneyBrain.Web.Application.Transactions.Transfers;
@@ -209,5 +210,43 @@ public interface ITransactionService
         string userId,
         DateTime? throughDate = null,
         int? accountId = null,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Bulk update cleared flag for multiple transactions
+    /// Skips reconciled transactions by default to prevent data corruption
+    /// </summary>
+    Task<FlagUpdateResult> BulkUpdateClearedFlagAsync(
+        string userId,
+        ClearedFlagRequest request,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Bulk update reconciled flag for multiple transactions
+    /// WARNING: Setting IsReconciled = true makes transactions immutable
+    /// Setting IsReconciled = false requires explicit AllowUnreconcile flag
+    /// </summary>
+    Task<FlagUpdateResult> BulkUpdateReconciledFlagAsync(
+        string userId,
+        ReconciledFlagRequest request,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Toggle cleared flag for a single transaction
+    /// Cannot toggle if reconciled
+    /// </summary>
+    Task<bool> ToggleClearedFlagAsync(
+        string userId,
+        int transactionId,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Toggle reconciled flag for a single transaction
+    /// Setting to true is allowed; setting to false requires allowUnreconcile = true
+    /// </summary>
+    Task<bool> ToggleReconciledFlagAsync(
+        string userId,
+        int transactionId,
+        bool allowUnreconcile = false,
         CancellationToken cancellationToken = default);
 }

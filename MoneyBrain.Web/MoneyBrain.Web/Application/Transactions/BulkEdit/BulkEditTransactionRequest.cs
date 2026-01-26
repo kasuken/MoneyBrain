@@ -32,6 +32,17 @@ public class BulkEditTransactionRequest
     public Domain.Enums.TransactionStatus? Status { get; set; }
 
     /// <summary>
+    /// New cleared flag (null = no change)
+    /// </summary>
+    public bool? IsCleared { get; set; }
+
+    /// <summary>
+    /// New reconciled flag (null = no change)
+    /// WARNING: Setting to true makes transactions immutable
+    /// </summary>
+    public bool? IsReconciled { get; set; }
+
+    /// <summary>
     /// Whether to clear the selected field instead of setting it
     /// </summary>
     public bool ClearCategory { get; set; }
@@ -42,6 +53,6 @@ public class BulkEditTransactionRequest
     /// Checks if any update is specified
     /// </summary>
     public bool HasUpdates => CategoryId.HasValue || PayeeId.HasValue || Tags != null || 
-                              Status.HasValue ||
+                              Status.HasValue || IsCleared.HasValue || IsReconciled.HasValue ||
                               ClearCategory || ClearPayee || ClearTags;
 }

@@ -62,6 +62,15 @@
                         Post All Pending
                     </MudButton>
                 }
+                @if (_unreconciledTransactionCount > 0)
+                {
+                    <MudButton Variant="Variant.Outlined" 
+                               Color="Color.Info"
+                               StartIcon="@Icons.Material.Outlined.LockOpen"
+                               OnClick="@ShowUnreconciledTransactions">
+                        @_unreconciledTransactionCount Unreconciled
+                    </MudButton>
+                }
                 <MudButton Variant="Variant.Outlined" 
                            Color="Color.Primary"
                            StartIcon="@(_showFilters ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.FilterAlt)"
@@ -134,6 +143,9 @@
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
                     <MudCheckBox @bind-Value="@_filter.IsCleared" Label="Cleared Only" Color="Color.Primary" TriState />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCheckBox @bind-Value="@_filter.IsReconciled" Label="Reconciled Only" Color="Color.Primary" TriState />
                 </MudItem>
             </MudGrid>
             <div class="d-flex gap-2 mt-4">
@@ -251,6 +263,15 @@
                         }
                         else
                         {
+                            <MudIconButton Icon="@(context.Item.IsCleared ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.CheckCircle)" 
+                                           Size="MudBlazor.Size.Small"
+                                           Color="@(context.Item.IsCleared ? MudBlazor.Color.Info : MudBlazor.Color.Default)"
+                                           OnClick="@(() => ToggleCleared(context.Item))"
+                                           Disabled="@context.Item.IsReconciled" />
+                            <MudIconButton Icon="@(context.Item.IsReconciled ? Icons.Material.Filled.Lock : Icons.Material.Outlined.LockOpen)" 
+                                           Size="MudBlazor.Size.Small"
+                                           Color="@(context.Item.IsReconciled ? MudBlazor.Color.Success : MudBlazor.Color.Default)"
+                                           OnClick="@(() => ToggleReconciled(context.Item))" />
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                            Size="MudBlazor.Size.Small"
                                            OnClick="@(() => OpenEditTransactionDialog(context.Item))"
@@ -278,6 +299,7 @@
     private bool _showFilters = false;
     private HashSet<Transaction> _selectedTransactions = [];
     private int _pendingTransactionCount = 0;
+    private int _unreconciledTransactionCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -295,6 +317,7 @@
             _accounts = (await AccountService.GetUserAccountsAsync(_userId)).ToList();
             await LoadTransactions();
             await LoadPendingCount();
+            await LoadUnreconciledCount();
         }
 
         _isLoading = false;
@@ -322,6 +345,16 @@
             return;
 
         _pendingTransactionCount = await TransactionService.GetPendingTransactionCountAsync(_userId);
+    }
+
+    private async Task LoadUnreconciledCount()
+    {
+        if (string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        var unreconciledFilter = new TransactionFilter { IsReconciled = false };
+        var unreconciledTransactions = await TransactionService.SearchTransactionsAsync(_userId, unreconciledFilter);
+        _unreconciledTransactionCount = unreconciledTransactions.Count;
     }
 
     private async Task ApplyFilters()
@@ -602,6 +635,13 @@
         await LoadTransactions();
     }
 
+    private async Task ShowUnreconciledTransactions()
+    {
+        _filter.Clear();
+        _filter.IsReconciled = false;
+        await LoadTransactions();
+    }
+
     private async Task PostAllPendingTransactions()
     {
         var result = await DialogService.ShowMessageBox(
@@ -619,6 +659,7 @@
                 {
                     await LoadTransactions();
                     await LoadPendingCount();
+                    await LoadUnreconciledCount();
                     SnackbarService.Add($"Posted {statusResult.UpdatedCount} transaction{(statusResult.UpdatedCount != 1 ? "s" : "")}", Severity.Success);
                 }
                 else
@@ -630,6 +671,64 @@
             {
                 SnackbarService.Add($"Error posting transactions: {ex.Message}", Severity.Error);
             }
+        }
+    }
+
+    private async Task ToggleCleared(Transaction transaction)
+    {
+        try
+        {
+            var success = await TransactionService.ToggleClearedFlagAsync(_userId!, transaction.Id);
+            if (success)
+            {
+                await LoadTransactions();
+                var newState = !transaction.IsCleared ? "cleared" : "uncleared";
+                SnackbarService.Add($"Transaction marked as {newState}", Severity.Success);
+            }
+            else
+            {
+                SnackbarService.Add("Failed to update transaction", Severity.Error);
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            SnackbarService.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task ToggleReconciled(Transaction transaction)
+    {
+        // If trying to unreconcile, require confirmation
+        if (transaction.IsReconciled)
+        {
+            var result = await DialogService.ShowMessageBox(
+                "Unreconcile Transaction",
+                "WARNING: Unreconciling this transaction will allow it to be modified again. This can break your reconciliation integrity. Are you sure?",
+                yesText: "Unreconcile",
+                cancelText: "Cancel");
+
+            if (result != true)
+                return;
+        }
+
+        try
+        {
+            var success = await TransactionService.ToggleReconciledFlagAsync(_userId!, transaction.Id, allowUnreconcile: true);
+            if (success)
+            {
+                await LoadTransactions();
+                await LoadUnreconciledCount();
+                var newState = !transaction.IsReconciled ? "reconciled" : "unreconciled";
+                SnackbarService.Add($"Transaction marked as {newState}", Severity.Success);
+            }
+            else
+            {
+                SnackbarService.Add("Failed to update transaction", Severity.Error);
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            SnackbarService.Add(ex.Message, Severity.Error);
         }
     }
 }

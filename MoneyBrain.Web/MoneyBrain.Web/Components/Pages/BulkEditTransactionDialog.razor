@@ -95,6 +95,32 @@
                     </MudSelect>
                 }
             </MudStack>
+
+            <!-- Cleared Flag -->
+            <MudStack Spacing="2">
+                <MudCheckBox @bind-Value="_updateCleared" Label="Update Cleared Flag" Color="MudBlazor.Color.Primary" />
+                @if (_updateCleared)
+                {
+                    <MudCheckBox @bind-Value="_isCleared" Label="Mark as Cleared" Color="MudBlazor.Color.Info" 
+                                 Disabled="!_updateCleared" />
+                }
+            </MudStack>
+
+            <!-- Reconciled Flag -->
+            <MudStack Spacing="2">
+                <MudCheckBox @bind-Value="_updateReconciled" Label="Update Reconciled Flag" Color="MudBlazor.Color.Primary" />
+                @if (_updateReconciled)
+                {
+                    <MudCheckBox @bind-Value="_isReconciled" Label="Mark as Reconciled" Color="MudBlazor.Color.Success" 
+                                 Disabled="!_updateReconciled" />
+                    @if (_updateReconciled)
+                    {
+                        <MudAlert Severity="Severity.Warning" Dense="true">
+                            <strong>Warning:</strong> Reconciled transactions become immutable and cannot be edited.
+                        </MudAlert>
+                    }
+                }
+            </MudStack>
         </MudStack>
 
         @if (!string.IsNullOrWhiteSpace(_errorMessage))
@@ -132,12 +158,16 @@
     private bool _updatePayee;
     private bool _updateTags;
     private bool _updateStatus;
+    private bool _updateCleared;
+    private bool _updateReconciled;
 
     // Values
     private int? _categoryId;
     private int? _payeeId;
     private string _tagsInput = string.Empty;
     private TransactionStatus? _status;
+    private bool _isCleared;
+    private bool _isReconciled;
 
     // Clear flags
     private bool _clearCategory;
@@ -165,7 +195,7 @@
         _errorMessage = null;
 
         // Validate at least one update is selected
-        if (!_updateCategory && !_updatePayee && !_updateTags && !_updateStatus)
+        if (!_updateCategory && !_updatePayee && !_updateTags && !_updateStatus && !_updateCleared && !_updateReconciled)
         {
             _errorMessage = "Please select at least one field to update";
             return;
@@ -214,6 +244,16 @@
         if (_updateStatus && _status.HasValue)
         {
             request.Status = _status.Value;
+        }
+
+        if (_updateCleared)
+        {
+            request.IsCleared = _isCleared;
+        }
+
+        if (_updateReconciled)
+        {
+            request.IsReconciled = _isReconciled;
         }
 
         _isSubmitting = true;

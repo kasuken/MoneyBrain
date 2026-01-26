@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
+using MoneyBrain.Web.Application.Transactions.FlagManagement;
 using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Application.Transactions.Splits;
 using MoneyBrain.Web.Application.Transactions.StatusManagement;
@@ -558,6 +559,24 @@ public class TransactionService : ITransactionService
                 updated = true;
             }
 
+            // Update cleared flag
+            if (request.IsCleared.HasValue)
+            {
+                // Can only update cleared if not reconciled
+                if (!transaction.IsReconciled)
+                {
+                    transaction.IsCleared = request.IsCleared.Value;
+                    updated = true;
+                }
+            }
+
+            // Update reconciled flag
+            if (request.IsReconciled.HasValue)
+            {
+                transaction.IsReconciled = request.IsReconciled.Value;
+                updated = true;
+            }
+
             if (updated)
             {
                 transaction.UpdatedAt = DateTime.UtcNow;
@@ -1042,6 +1061,125 @@ public class TransactionService : ITransactionService
 
         await _context.SaveChangesAsync(cancellationToken);
         return result;
+    }
+
+    public async Task<FlagUpdateResult> BulkUpdateClearedFlagAsync(
+        string userId,
+        ClearedFlagRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new FlagUpdateResult();
+
+        if (request.TransactionIds.Count == 0)
+            return result;
+
+        // Load transactions
+        var transactions = await _context.Transactions
+            .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var transaction in transactions)
+        {
+            // Skip reconciled transactions if requested
+            if (request.SkipReconciled && transaction.IsReconciled)
+            {
+                result.SkippedTransactionIds.Add(transaction.Id);
+                continue;
+            }
+
+            // Update cleared flag
+            transaction.IsCleared = request.IsCleared;
+            transaction.UpdatedAt = DateTime.UtcNow;
+            result.UpdatedCount++;
+        }
+
+        if (result.SkippedTransactionIds.Count > 0)
+        {
+            result.SkipReason = "reconciled";
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return result;
+    }
+
+    public async Task<FlagUpdateResult> BulkUpdateReconciledFlagAsync(
+        string userId,
+        ReconciledFlagRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new FlagUpdateResult();
+
+        if (request.TransactionIds.Count == 0)
+            return result;
+
+        // If trying to unreconcile without explicit permission, fail fast
+        if (!request.IsReconciled && !request.AllowUnreconcile)
+        {
+            throw new InvalidOperationException("Unreconciling transactions requires explicit AllowUnreconcile flag");
+        }
+
+        // Load transactions
+        var transactions = await _context.Transactions
+            .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var transaction in transactions)
+        {
+            // Update reconciled flag
+            transaction.IsReconciled = request.IsReconciled;
+            transaction.UpdatedAt = DateTime.UtcNow;
+            result.UpdatedCount++;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return result;
+    }
+
+    public async Task<bool> ToggleClearedFlagAsync(
+        string userId,
+        int transactionId,
+        CancellationToken cancellationToken = default)
+    {
+        var transaction = await _context.Transactions
+            .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
+
+        if (transaction == null)
+            return false;
+
+        // Cannot toggle cleared if reconciled
+        if (transaction.IsReconciled)
+            throw new InvalidOperationException("Cannot modify cleared flag on reconciled transaction");
+
+        transaction.IsCleared = !transaction.IsCleared;
+        transaction.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> ToggleReconciledFlagAsync(
+        string userId,
+        int transactionId,
+        bool allowUnreconcile = false,
+        CancellationToken cancellationToken = default)
+    {
+        var transaction = await _context.Transactions
+            .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
+
+        if (transaction == null)
+            return false;
+
+        var newValue = !transaction.IsReconciled;
+
+        // If trying to unreconcile, require explicit permission
+        if (!newValue && !allowUnreconcile)
+            throw new InvalidOperationException("Unreconciling transaction requires explicit permission");
+
+        transaction.IsReconciled = newValue;
+        transaction.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }
 
