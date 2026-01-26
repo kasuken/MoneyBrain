@@ -1,0 +1,288 @@
+@using MoneyBrain.Web.Application.Budgets
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@inject IBudgetService BudgetService
+@inject ICategoryService CategoryService
+@inject IDialogService DialogService
+@inject ISnackbar SnackbarService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_name" 
+                          Label="Budget Name" 
+                          Variant="Variant.Outlined" 
+                          Required="true"
+                          MaxLength="200"
+                          Placeholder="e.g., January 2026 Budget" />
+
+            <MudTextField @bind-Value="_description" 
+                          Label="Description (Optional)" 
+                          Variant="Variant.Outlined"
+                          Lines="2"
+                          MaxLength="500" />
+
+            <MudSwitch @bind-Value="_isDefault" 
+                       Label="Default Budget (applies to all months)" 
+                       Color="Color.Primary">
+                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                    Default budgets are reusable templates that can be applied to any month
+                </MudText>
+            </MudSwitch>
+
+            @if (!_isDefault)
+            {
+                <div class="d-flex gap-2">
+                    <MudSelect @bind-Value="_selectedMonth" 
+                               Label="Month" 
+                               Variant="Variant.Outlined"
+                               Required="true">
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            var month = i;
+                            var monthName = new DateTime(2000, month, 1).ToString("MMMM");
+                            <MudSelectItem Value="@month">@monthName</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudNumericField @bind-Value="_selectedYear" 
+                                     Label="Year" 
+                                     Variant="Variant.Outlined"
+                                     Required="true"
+                                     Min="2000"
+                                     Max="2100" />
+                </div>
+            }
+
+            <MudDivider Class="my-2" />
+
+            <div class="d-flex justify-space-between align-center">
+                <MudText Typo="Typo.h6">Categories</MudText>
+                <MudButton Variant="Variant.Outlined" 
+                           Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="@OpenAddCategoryDialog"
+                           Disabled="@(!IsNew && Budget == null)">
+                    Add Category
+                </MudButton>
+            </div>
+
+            @if (_budgetCategories.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
+                    No categories added yet
+                </MudText>
+            }
+            else
+            {
+                <MudTable Items="@_budgetCategories.OrderBy(bc => bc.Category.Name)" 
+                          Dense="true"
+                          Hover="true">
+                    <HeaderContent>
+                        <MudTh>Category</MudTh>
+                        <MudTh Style="text-align: right;">Amount</MudTh>
+                        <MudTh Style="text-align: center;">Rollover</MudTh>
+                        <MudTh Style="text-align: right;">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.Category.Name</MudTd>
+                        <MudTd Style="text-align: right;">@context.PlannedAmount.ToString("C2")</MudTd>
+                        <MudTd Style="text-align: center;">
+                            @if (context.AllowRollover)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Color="Color.Success" />
+                            }
+                        </MudTd>
+                        <MudTd Style="text-align: right;">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="@(() => RemoveCategory(context))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    <strong>Total:</strong> @_budgetCategories.Sum(bc => bc.PlannedAmount).ToString("C2")
+                </MudText>
+            }
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="_isSubmitting">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            @(IsNew ? "Create Budget" : "Update Budget")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    [Parameter] public Budget? Budget { get; set; }
+    [Parameter] public bool IsNew { get; set; } = true;
+
+    private string _name = string.Empty;
+    private string? _description;
+    private bool _isDefault = false;
+    private int _selectedYear = DateTime.UtcNow.Year;
+    private int _selectedMonth = DateTime.UtcNow.Month;
+    private bool _isSubmitting;
+    private string? _errorMessage;
+    
+    private List<BudgetCategory> _budgetCategories = [];
+    private List<Category> _allCategories = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load all available categories
+        var groups = await CategoryService.GetCategoryGroupsAsync(UserId, includeCategories: true);
+        _allCategories = groups.SelectMany(g => g.Categories.Where(c => c.IsActive)).ToList();
+
+        if (!IsNew && Budget != null)
+        {
+            _name = Budget.Name;
+            _description = Budget.Description;
+            _isDefault = Budget.IsDefault;
+            _selectedYear = Budget.Year ?? DateTime.UtcNow.Year;
+            _selectedMonth = Budget.Month ?? DateTime.UtcNow.Month;
+            
+            // Load existing budget categories
+            var loadedBudget = await BudgetService.GetBudgetByIdAsync(Budget.Id, UserId);
+            if (loadedBudget != null)
+            {
+                _budgetCategories = loadedBudget.BudgetCategories.ToList();
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _errorMessage = "Budget name is required";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            Budget budget;
+            
+            if (IsNew)
+            {
+                // Create new budget
+                budget = await BudgetService.CreateBudgetAsync(
+                    UserId, 
+                    _name, 
+                    _description, 
+                    _isDefault,
+                    _isDefault ? null : _selectedYear, 
+                    _isDefault ? null : _selectedMonth);
+                
+                // Add all categories
+                foreach (var bc in _budgetCategories)
+                {
+                    await BudgetService.AddCategoryToBudgetAsync(budget.Id, UserId, bc.CategoryId, bc.PlannedAmount, bc.AllowRollover);
+                }
+            }
+            else
+            {
+                if (Budget == null)
+                {
+                    _errorMessage = "Budget not found";
+                    return;
+                }
+                
+                // Update existing budget
+                budget = await BudgetService.UpdateBudgetAsync(
+                    Budget.Id, 
+                    UserId, 
+                    _name, 
+                    _description, 
+                    _isDefault,
+                    _isDefault ? null : _selectedYear, 
+                    _isDefault ? null : _selectedMonth);
+            }
+
+            MudDialog.Close(DialogResult.Ok(budget));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task OpenAddCategoryDialog()
+    {
+        // Get categories not yet in the budget
+        var usedCategoryIds = _budgetCategories.Select(bc => bc.CategoryId).ToHashSet();
+        var availableCategories = _allCategories.Where(c => !usedCategoryIds.Contains(c.Id)).ToList();
+
+        if (availableCategories.Count == 0)
+        {
+            SnackbarService.Add("All categories have been added", Severity.Info);
+            return;
+        }
+
+        var parameters = new DialogParameters<AddCategoryToBudgetDialog>
+        {
+            { x => x.AvailableCategories, availableCategories },
+            { x => x.UserId, UserId },
+            { x => x.BudgetId, Budget?.Id ?? 0 },
+            { x => x.IsNewBudget, IsNew }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddCategoryToBudgetDialog>("Add Categories", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: List<BudgetCategory> categories })
+        {
+            _budgetCategories.AddRange(categories);
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveCategory(BudgetCategory budgetCategory)
+    {
+        if (!IsNew && budgetCategory.Id > 0)
+        {
+            // Remove from database
+            var success = await BudgetService.RemoveCategoryFromBudgetAsync(budgetCategory.Id, UserId);
+            if (!success)
+            {
+                SnackbarService.Add("Failed to remove category", Severity.Error);
+                return;
+            }
+        }
+        
+        _budgetCategories.Remove(budgetCategory);
+        StateHasChanged();
+    }
+}

@@ -62,6 +62,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<SavedTransactionFilter> SavedTransactionFilters => Set<SavedTransactionFilter>();
 
+    /// <summary>
+    /// Monthly budgets (envelopes) for categories - planned amounts per category per month
+    /// </summary>
+    public DbSet<MonthlyBudget> MonthlyBudgets => Set<MonthlyBudget>();
+
+    /// <summary>
+    /// Named budgets containing multiple category allocations for a specific period
+    /// </summary>
+    public DbSet<Budget> Budgets => Set<Budget>();
+
+    /// <summary>
+    /// Budget category allocations - links budgets to categories with planned amounts
+    /// </summary>
+    public DbSet<BudgetCategory> BudgetCategories => Set<BudgetCategory>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -285,6 +300,92 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             entity.Property(stf => stf.Name).IsRequired().HasMaxLength(100);
             entity.Property(stf => stf.FilterJson).IsRequired();
+        });
+
+        // Configure MonthlyBudget entity
+        modelBuilder.Entity<MonthlyBudget>(entity =>
+        {
+            entity.HasKey(mb => mb.Id);
+
+            // Relationship: Budget belongs to one Category
+            entity.HasOne(mb => mb.Category)
+                .WithMany()
+                .HasForeignKey(mb => mb.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes for common queries
+            entity.HasIndex(mb => mb.UserId);
+            entity.HasIndex(mb => mb.CategoryId);
+            entity.HasIndex(mb => new { mb.CategoryId, mb.IsDefault });
+            entity.HasIndex(mb => new { mb.UserId, mb.Year, mb.Month });
+            entity.HasIndex(mb => new { mb.CategoryId, mb.Year, mb.Month });
+
+            // Unique constraint: one default budget per category
+            entity.HasIndex(mb => new { mb.CategoryId, mb.IsDefault })
+                .IsUnique()
+                .HasFilter("[IsDefault] = 1");
+
+            // Unique constraint: one budget per category per month (for non-default budgets)
+            entity.HasIndex(mb => new { mb.CategoryId, mb.Year, mb.Month })
+                .IsUnique()
+                .HasFilter("[IsDefault] = 0");
+
+            // Decimal precision for money values
+            entity.Property(mb => mb.PlannedAmount).HasPrecision(18, 2);
+        });
+
+        // Configure Budget entity
+        modelBuilder.Entity<Budget>(entity =>
+        {
+            entity.HasKey(b => b.Id);
+
+            entity.Property(b => b.Name).IsRequired().HasMaxLength(200);
+            entity.Property(b => b.Description).HasMaxLength(500);
+            entity.Property(b => b.UserId).IsRequired();
+
+            // Indexes for common queries
+            entity.HasIndex(b => b.UserId);
+            entity.HasIndex(b => new { b.UserId, b.Year, b.Month });
+            entity.HasIndex(b => new { b.UserId, b.Name });
+            
+            // Unique constraint: one default budget with a given name per user
+            entity.HasIndex(b => new { b.UserId, b.Name, b.IsDefault })
+                .IsUnique()
+                .HasFilter("[IsDefault] = 1");
+            
+            // Unique constraint: one budget with a given name per period (for non-defaults)
+            entity.HasIndex(b => new { b.UserId, b.Name, b.Year, b.Month })
+                .IsUnique()
+                .HasFilter("[IsDefault] = 0");
+
+            // Relationship: Budget has many BudgetCategories
+            entity.HasMany(b => b.BudgetCategories)
+                .WithOne(bc => bc.Budget)
+                .HasForeignKey(bc => bc.BudgetId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure BudgetCategory entity
+        modelBuilder.Entity<BudgetCategory>(entity =>
+        {
+            entity.HasKey(bc => bc.Id);
+
+            entity.Property(bc => bc.PlannedAmount).HasPrecision(18, 2);
+
+            // Unique constraint: one entry per budget per category
+            entity.HasIndex(bc => new { bc.BudgetId, bc.CategoryId }).IsUnique();
+
+            // Relationship: BudgetCategory belongs to one Budget
+            entity.HasOne(bc => bc.Budget)
+                .WithMany(b => b.BudgetCategories)
+                .HasForeignKey(bc => bc.BudgetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship: BudgetCategory references one Category
+            entity.HasOne(bc => bc.Category)
+                .WithMany()
+                .HasForeignKey(bc => bc.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

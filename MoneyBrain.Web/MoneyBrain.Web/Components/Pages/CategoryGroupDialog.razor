@@ -1,0 +1,100 @@
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@inject ICategoryService CategoryService
+@inject ISnackbar SnackbarService
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="_name" 
+                      Label="Group Name" 
+                      Variant="Variant.Outlined" 
+                      Required="true"
+                      Immediate="true"
+                      MaxLength="100" />
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="MudBlazor.Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="_isSubmitting || string.IsNullOrWhiteSpace(_name)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            @(IsNew ? "Create" : "Update")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    [Parameter] public CategoryGroup? CategoryGroup { get; set; }
+    [Parameter] public bool IsNew { get; set; } = true;
+
+    private string _name = string.Empty;
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        if (!IsNew && CategoryGroup != null)
+        {
+            _name = CategoryGroup.Name;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _errorMessage = "Group name is required";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            if (IsNew)
+            {
+                var group = await CategoryService.CreateCategoryGroupAsync(UserId, _name.Trim());
+                MudDialog.Close(DialogResult.Ok(group));
+            }
+            else if (CategoryGroup != null)
+            {
+                var success = await CategoryService.UpdateCategoryGroupAsync(CategoryGroup.Id, UserId, _name.Trim());
+                if (success)
+                {
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    _errorMessage = "Failed to update category group";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

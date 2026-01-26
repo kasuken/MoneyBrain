@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Accounts;
+using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
 using MoneyBrain.Web.Application.Settings;
 using MoneyBrain.Web.Application.Transactions;
@@ -50,6 +51,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // MoneyBrain application services
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
+builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ITransactionCsvImportService, TransactionCsvImportService>();

@@ -1,0 +1,132 @@
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@inject ICategoryService CategoryService
+@inject ISnackbar SnackbarService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_name" 
+                          Label="Category Name" 
+                          Variant="Variant.Outlined" 
+                          Required="true"
+                          Immediate="true"
+                          MaxLength="100" />
+
+            <MudSelect T="int" @bind-Value="_categoryGroupId" 
+                       Label="Category Group" 
+                       Variant="Variant.Outlined" 
+                       Required="true">
+                @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
+                {
+                    <MudSelectItem T="int" Value="@group.Id">@group.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="MudBlazor.Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="_isSubmitting || string.IsNullOrWhiteSpace(_name) || _categoryGroupId == 0">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            @(IsNew ? "Create" : "Update")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    [Parameter] public Category? Category { get; set; }
+    [Parameter] public bool IsNew { get; set; } = true;
+    [Parameter] public int PreselectedGroupId { get; set; }
+
+    private List<CategoryGroup> _categoryGroups = [];
+    private string _name = string.Empty;
+    private int _categoryGroupId;
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categoryGroups = await CategoryService.GetCategoryGroupsAsync(UserId);
+
+        if (!IsNew && Category != null)
+        {
+            _name = Category.Name;
+            _categoryGroupId = Category.CategoryGroupId;
+        }
+        else if (PreselectedGroupId > 0)
+        {
+            _categoryGroupId = PreselectedGroupId;
+        }
+        else if (_categoryGroups.Count > 0)
+        {
+            _categoryGroupId = _categoryGroups.First().Id;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _errorMessage = "Category name is required";
+            return;
+        }
+
+        if (_categoryGroupId == 0)
+        {
+            _errorMessage = "Please select a category group";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            if (IsNew)
+            {
+                var category = await CategoryService.CreateCategoryAsync(UserId, _name.Trim(), _categoryGroupId);
+                MudDialog.Close(DialogResult.Ok(category));
+            }
+            else if (Category != null)
+            {
+                var success = await CategoryService.UpdateCategoryAsync(Category.Id, UserId, _name.Trim(), _categoryGroupId);
+                if (success)
+                {
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    _errorMessage = "Failed to update category";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

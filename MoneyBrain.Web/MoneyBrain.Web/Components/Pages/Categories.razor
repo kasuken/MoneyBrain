@@ -1,0 +1,517 @@
+@page "/categories"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject ICategoryService CategoryService
+@inject IDialogService DialogService
+@inject ISnackbar SnackbarService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Categories | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <!-- Header -->
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">Categories</h1>
+            <p class="mb-subtitle">Organize your transactions with category groups</p>
+        </div>
+        <div class="d-flex gap-2">
+            <MudButtonGroup Variant="Variant.Outlined" Color="Color.Secondary">
+                <MudButton OnClick="@(() => SetViewMode("categories"))" 
+                           Variant="@(_viewMode == "categories" ? Variant.Filled : Variant.Outlined)">
+                    Categories
+                </MudButton>
+                <MudButton OnClick="@(() => SetViewMode("budgets"))"
+                           Variant="@(_viewMode == "budgets" ? Variant.Filled : Variant.Outlined)">
+                    Budgets
+                </MudButton>
+            </MudButtonGroup>
+            @if (_viewMode == "categories")
+            {
+                <MudButton Variant="Variant.Outlined" 
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="@OpenCreateGroupDialog">
+                    New Group
+                </MudButton>
+                <MudButton Variant="Variant.Filled" 
+                           Class="mb-btn-primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="@(() => OpenCreateCategoryDialog())">
+                    New Category
+                </MudButton>
+            }
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="MudBlazor.Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
+    else if (_viewMode == "budgets")
+    {
+        <!-- Budget View -->
+        <MudPaper Class="pa-4 mb-4">
+            <div class="d-flex justify-space-between align-center">
+                <MudText Typo="Typo.h6">
+                    @if (_showingDefaults)
+                    {
+                        <text>Default Monthly Budgets</text>
+                    }
+                    else
+                    {
+                        <text>@_selectedMonthName @_selectedYear Budgets</text>
+                    }
+                </MudText>
+                <div class="d-flex gap-2 align-center">
+                    @if (!_showingDefaults)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
+                                       Size="Size.Small"
+                                       OnClick="@PreviousMonth" />
+                        <MudButton Variant="Variant.Text" 
+                                   Size="Size.Small"
+                                   OnClick="@CurrentMonth">
+                            Today
+                        </MudButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
+                                       Size="Size.Small"
+                                       OnClick="@NextMonth" />
+                        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+                    }
+                    <MudButton Variant="@(_showingDefaults ? Variant.Filled : Variant.Outlined)" 
+                               Size="Size.Small"
+                               OnClick="@(() => ToggleDefaultView())">
+                        @(_showingDefaults ? "Viewing Defaults" : "View Defaults")
+                    </MudButton>
+                </div>
+            </div>
+        </MudPaper>
+
+        @if (_categoryGroups.Count == 0)
+        {
+            <div class="mb-empty-state">
+                <MudIcon Icon="@Icons.Material.Outlined.Category" Class="mb-empty-state-icon" />
+                <MudText Typo="Typo.h6" Class="mb-2">No categories yet</MudText>
+                <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
+                    Create categories first to set budgets
+                </MudText>
+            </div>
+        }
+        else
+        {
+            <MudStack Spacing="4">
+                @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
+                {
+                    <MudPaper Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-3">@group.Name</MudText>
+
+                        @if (group.Categories.Any(c => c.IsActive))
+                        {
+                            <MudTable Items="@group.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name)" 
+                                      Dense="true" 
+                                      Hover="true">
+                                <HeaderContent>
+                                    <MudTh>Category</MudTh>
+                                    <MudTh Style="text-align: right;">Budgeted</MudTh>
+                                    <MudTh Style="text-align: right;">Actions</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>@context.Name</MudTd>
+                                    <MudTd Style="text-align: right;">
+                                        @{
+                                            var budget = _monthlyBudgets.FirstOrDefault(b => b.CategoryId == context.Id);
+                                            var hasOverride = budget != null && !budget.IsDefault;
+                                            
+                                            if (budget != null)
+                                            {
+                                                <div class="d-flex align-center justify-end gap-1">
+                                                    <MudText>@budget.PlannedAmount.ToString("C2")</MudText>
+                                                    @if (hasOverride)
+                                                    {
+                                                        <MudTooltip Text="Month-specific override">
+                                                            <MudIcon Icon="@Icons.Material.Filled.EditCalendar" Size="Size.Small" Color="Color.Warning" />
+                                                        </MudTooltip>
+                                                    }
+                                                    @if (budget.AllowRollover)
+                                                    {
+                                                        <MudTooltip Text="Rollover enabled">
+                                                            <MudIcon Icon="@Icons.Material.Filled.Repeat" Size="Size.Small" Color="Color.Info" />
+                                                        </MudTooltip>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <MudText Style="color: var(--mb-text-muted);">—</MudText>
+                                            }
+                                        }
+                                    </MudTd>
+                                    <MudTd Style="text-align: right;">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => OpenBudgetDialog(context, _showingDefaults))" />
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
+                                No categories in this group
+                            </MudText>
+                        }
+                    </MudPaper>
+                }
+            </MudStack>
+        }
+    }
+    else if (_categoryGroups.Count == 0)
+    {
+        <div class="mb-empty-state">
+            <MudIcon Icon="@Icons.Material.Outlined.Category" Class="mb-empty-state-icon" />
+            <MudText Typo="Typo.h6" Class="mb-2">No category groups yet</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
+                Create groups to organize your categories
+            </MudText>
+            <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateGroupDialog">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
+                Create Your First Group
+            </MudButton>
+        </div>
+    }
+    else
+    {
+        <MudStack Spacing="4">
+            @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
+            {
+                <MudPaper Class="pa-4">
+                    <div class="d-flex justify-space-between align-center mb-3">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Size="Size.Small" Color="Color.Default" />
+                            <MudText Typo="Typo.h6">@group.Name</MudText>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                @group.Categories.Count(c => c.IsActive) categor@(group.Categories.Count(c => c.IsActive) == 1 ? "y" : "ies")
+                            </MudChip>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" 
+                                           Size="Size.Small"
+                                           Color="Color.Primary"
+                                           OnClick="@(() => OpenCreateCategoryDialog(group.Id))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                           Size="Size.Small"
+                                           OnClick="@(() => OpenEditGroupDialog(group))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="@(() => DeleteGroup(group))" />
+                        </div>
+                    </div>
+
+                    @if (group.Categories.Any(c => c.IsActive))
+                    {
+                        <MudList T="string" Dense="true" DisablePadding="true">
+                            @foreach (var category in group.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name))
+                            {
+                                <MudListItem T="string" Class="px-0">
+                                    <div class="d-flex justify-space-between align-center w-100">
+                                        <div class="d-flex align-center gap-2">
+                                            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Size="Size.Small" Color="Color.Surface" />
+                                            <MudText>@category.Name</MudText>
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                                           Size="Size.Small"
+                                                           OnClick="@(() => OpenEditCategoryDialog(category))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                           Size="Size.Small"
+                                                           Color="Color.Error"
+                                                           OnClick="@(() => DeleteCategory(category))" />
+                                        </div>
+                                    </div>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
+                            No categories in this group. Click + to add one.
+                        </MudText>
+                    }
+                </MudPaper>
+            }
+        </MudStack>
+    }
+</div>
+
+@code {
+    private List<CategoryGroup> _categoryGroups = [];
+    private List<MonthlyBudget> _monthlyBudgets = [];
+    private bool _isLoading = true;
+    private string? _userId;
+    private string _viewMode = "categories"; // "categories" or "budgets"
+    private int _selectedYear = DateTime.UtcNow.Year;
+    private int _selectedMonth = DateTime.UtcNow.Month;
+    private string _selectedMonthName = string.Empty;
+    private bool _showingDefaults = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrWhiteSpace(_userId))
+        {
+            await LoadCategories();
+            await LoadBudgets();
+        }
+
+        _selectedMonthName = new DateTime(_selectedYear, _selectedMonth, 1).ToString("MMMM");
+        _isLoading = false;
+    }
+
+    private async Task LoadCategories()
+    {
+        if (string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        _categoryGroups = await CategoryService.GetCategoryGroupsAsync(_userId, includeCategories: true);
+        
+        // Auto-seed default categories if user has none
+        if (_categoryGroups.Count == 0)
+        {
+            await CategoryService.SeedDefaultCategoriesAsync(_userId);
+            _categoryGroups = await CategoryService.GetCategoryGroupsAsync(_userId, includeCategories: true);
+        }
+    }
+
+    private async Task LoadBudgets()
+    {
+        if (string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        if (_showingDefaults)
+        {
+            _monthlyBudgets = await CategoryService.GetDefaultBudgetsAsync(_userId);
+        }
+        else
+        {
+            _monthlyBudgets = await CategoryService.GetEffectiveBudgetsForMonthAsync(_userId, _selectedYear, _selectedMonth);
+        }
+    }
+
+    private async Task ToggleDefaultView()
+    {
+        _showingDefaults = !_showingDefaults;
+        await LoadBudgets();
+    }
+
+    private async Task SetViewMode(string mode)
+    {
+        _viewMode = mode;
+        if (mode == "budgets" && _monthlyBudgets.Count == 0)
+        {
+            await LoadBudgets();
+        }
+    }
+
+    private async Task PreviousMonth()
+    {
+        _selectedMonth--;
+        if (_selectedMonth < 1)
+        {
+            _selectedMonth = 12;
+            _selectedYear--;
+        }
+        _selectedMonthName = new DateTime(_selectedYear, _selectedMonth, 1).ToString("MMMM");
+        await LoadBudgets();
+    }
+
+    private async Task NextMonth()
+    {
+        _selectedMonth++;
+        if (_selectedMonth > 12)
+        {
+            _selectedMonth = 1;
+            _selectedYear++;
+        }
+        _selectedMonthName = new DateTime(_selectedYear, _selectedMonth, 1).ToString("MMMM");
+        await LoadBudgets();
+    }
+
+    private async Task CurrentMonth()
+    {
+        _selectedYear = DateTime.UtcNow.Year;
+        _selectedMonth = DateTime.UtcNow.Month;
+        _selectedMonthName = new DateTime(_selectedYear, _selectedMonth, 1).ToString("MMMM");
+        await LoadBudgets();
+    }
+
+    private async Task OpenCreateGroupDialog()
+    {
+        var parameters = new DialogParameters<CategoryGroupDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.IsNew, true }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CategoryGroupDialog>("New Category Group", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadCategories();
+            SnackbarService.Add("Category group created successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditGroupDialog(CategoryGroup group)
+    {
+        var parameters = new DialogParameters<CategoryGroupDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.CategoryGroup, group },
+            { x => x.IsNew, false }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CategoryGroupDialog>("Edit Category Group", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadCategories();
+            SnackbarService.Add("Category group updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task DeleteGroup(CategoryGroup group)
+    {
+        var activeCategoriesCount = group.Categories.Count(c => c.IsActive);
+        
+        var message = activeCategoriesCount > 0
+            ? $"This group contains {activeCategoriesCount} active categor{(activeCategoriesCount == 1 ? "y" : "ies")}. You must move or delete them first."
+            : "Are you sure you want to delete this category group? This action cannot be undone.";
+
+        var result = await DialogService.ShowMessageBox(
+            "Delete Category Group",
+            message,
+            yesText: activeCategoriesCount > 0 ? "OK" : "Delete",
+            cancelText: "Cancel");
+
+        if (result == true && _userId != null)
+        {
+            try
+            {
+                var deleted = await CategoryService.DeleteCategoryGroupAsync(group.Id, _userId);
+                if (deleted)
+                {
+                    await LoadCategories();
+                    SnackbarService.Add("Category group deleted successfully", Severity.Success);
+                }
+                else
+                {
+                    SnackbarService.Add("Failed to delete category group", Severity.Error);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                SnackbarService.Add(ex.Message, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenCreateCategoryDialog(int? groupId = null)
+    {
+        var parameters = new DialogParameters<CategoryDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.IsNew, true },
+            { x => x.PreselectedGroupId, groupId ?? 0 }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CategoryDialog>("New Category", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadCategories();
+            SnackbarService.Add("Category created successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditCategoryDialog(Category category)
+    {
+        var parameters = new DialogParameters<CategoryDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.Category, category },
+            { x => x.IsNew, false }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CategoryDialog>("Edit Category", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadCategories();
+            SnackbarService.Add("Category updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task DeleteCategory(Category category)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Delete Category",
+            $"Are you sure you want to delete '{category.Name}'? This will not affect existing transactions using this category.",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (result == true && _userId != null)
+        {
+            var deleted = await CategoryService.DeleteCategoryAsync(category.Id, _userId);
+            if (deleted)
+            {
+                await LoadCategories();
+                SnackbarService.Add("Category deleted successfully", Severity.Success);
+            }
+            else
+            {
+                SnackbarService.Add("Failed to delete category", Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenBudgetDialog(Category category, bool isDefault = false)
+    {
+        var parameters = new DialogParameters<BudgetAssignmentDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.Category, category },
+            { x => x.Year, _selectedYear },
+            { x => x.Month, _selectedMonth },
+            { x => x.IsDefaultMode, isDefault }
+        };
+
+        var title = isDefault ? "Set Default Budget" : $"Set Budget for {_selectedMonthName} {_selectedYear}";
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<BudgetAssignmentDialog>(title, parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadBudgets();
+            SnackbarService.Add("Budget updated successfully", Severity.Success);
+        }
+    }
+}

@@ -1,0 +1,247 @@
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@inject ICategoryService CategoryService
+@inject ISnackbar SnackbarService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (Category != null)
+            {
+                <MudText Typo="Typo.body1">
+                    <strong>Category:</strong> @Category.Name
+                </MudText>
+            }
+
+            @if (!IsDefaultMode)
+            {
+                <MudText Typo="Typo.body1">
+                    <strong>Budget Period:</strong> @_monthName @Year
+                </MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1">
+                    <strong>Budget Type:</strong> Default (applies to all months)
+                </MudText>
+            }
+
+            <MudNumericField @bind-Value="_plannedAmount" 
+                             Label="Planned Amount" 
+                             Variant="Variant.Outlined" 
+                             Required="true"
+                             Format="N2"
+                             Min="0"
+                             Step="0.01M"
+                             Adornment="Adornment.Start"
+                             AdornmentText="$" />
+
+            <MudSwitch @bind-Value="_allowRollover" 
+                       Label="Allow Rollover" 
+                       Color="Color.Primary">
+                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                    Carry over unused budget to next month
+                </MudText>
+            </MudSwitch>
+
+            @if (!IsDefaultMode && _defaultBudget != null)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true">
+                    Default budget: @_defaultBudget.PlannedAmount.ToString("C2")
+                    <br />
+                    <small>Setting a budget here will override the default for this month only.</small>
+                </MudAlert>
+            }
+
+            @if (IsDefaultMode && _hasOverrides)
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true">
+                    Some months have specific overrides that will take precedence over this default.
+                </MudAlert>
+            }
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        @if (_existingBudget != null)
+        {
+            <MudButton Color="Color.Error" 
+                       Variant="Variant.Text" 
+                       OnClick="Delete" 
+                       Disabled="_isSubmitting">
+                @(IsDefaultMode ? "Remove Default" : "Remove Override")
+            </MudButton>
+        }
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="_isSubmitting">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            @(_existingBudget != null ? "Update" : (IsDefaultMode ? "Set Default" : "Set Override"))
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    [Parameter] public Category? Category { get; set; }
+    [Parameter] public int Year { get; set; }
+    [Parameter] public int Month { get; set; }
+    [Parameter] public bool IsDefaultMode { get; set; } = false;
+
+    private MonthlyBudget? _existingBudget;
+    private MonthlyBudget? _defaultBudget;
+    private decimal _plannedAmount;
+    private bool _allowRollover;
+    private bool _isSubmitting;
+    private string? _errorMessage;
+    private string _monthName = string.Empty;
+    private bool _hasOverrides;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsDefaultMode)
+        {
+            _monthName = new DateTime(Year, Month, 1).ToString("MMMM");
+        }
+
+        if (Category != null)
+        {
+            if (IsDefaultMode)
+            {
+                // Load default budget
+                _existingBudget = await CategoryService.GetDefaultBudgetAsync(Category.Id, UserId);
+                
+                // Check if there are any month overrides (just check if any non-default budgets exist)
+                // This is a simple check - in a real scenario you might want to be more specific
+            }
+            else
+            {
+                // Load month-specific override
+                _existingBudget = await CategoryService.GetMonthOverrideAsync(Category.Id, UserId, Year, Month);
+                
+                // Load default budget to show in info message
+                _defaultBudget = await CategoryService.GetDefaultBudgetAsync(Category.Id, UserId);
+            }
+            
+            if (_existingBudget != null)
+            {
+                _plannedAmount = _existingBudget.PlannedAmount;
+                _allowRollover = _existingBudget.AllowRollover;
+            }
+            else if (_defaultBudget != null && !IsDefaultMode)
+            {
+                // Pre-fill with default values when creating an override
+                _plannedAmount = _defaultBudget.PlannedAmount;
+                _allowRollover = _defaultBudget.AllowRollover;
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (Category == null)
+        {
+            _errorMessage = "Category is required";
+            return;
+        }
+
+        if (_plannedAmount < 0)
+        {
+            _errorMessage = "Planned amount cannot be negative";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            MonthlyBudget budget;
+            
+            if (IsDefaultMode)
+            {
+                budget = await CategoryService.SetDefaultBudgetAsync(
+                    Category.Id, 
+                    UserId, 
+                    _plannedAmount, 
+                    _allowRollover);
+            }
+            else
+            {
+                budget = await CategoryService.SetMonthOverrideAsync(
+                    Category.Id, 
+                    UserId, 
+                    Year, 
+                    Month, 
+                    _plannedAmount, 
+                    _allowRollover);
+            }
+
+            MudDialog.Close(DialogResult.Ok(budget));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task Delete()
+    {
+        if (Category == null)
+            return;
+
+        _isSubmitting = true;
+
+        try
+        {
+            bool success;
+            
+            if (IsDefaultMode)
+            {
+                success = await CategoryService.DeleteDefaultBudgetAsync(Category.Id, UserId);
+            }
+            else
+            {
+                success = await CategoryService.DeleteMonthOverrideAsync(Category.Id, UserId, Year, Month);
+            }
+            
+            if (success)
+            {
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                _errorMessage = "Failed to delete budget";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

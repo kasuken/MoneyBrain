@@ -1,0 +1,271 @@
+@page "/budgets"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Budgets
+@using MoneyBrain.Web.Domain.Entities
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject IBudgetService BudgetService
+@inject IDialogService DialogService
+@inject ISnackbar SnackbarService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Budgets | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <!-- Header -->
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">Budgets</h1>
+            <p class="mb-subtitle">Create and manage named budgets for different periods</p>
+        </div>
+        <div class="d-flex gap-2">
+            <MudButtonGroup Variant="Variant.Outlined" Color="Color.Secondary">
+                <MudButton OnClick="@(() => SetViewMode("all"))" 
+                           Variant="@(_viewMode == "all" ? Variant.Filled : Variant.Outlined)">
+                    All Budgets
+                </MudButton>
+                <MudButton OnClick="@(() => SetViewMode("defaults"))"
+                           Variant="@(_viewMode == "defaults" ? Variant.Filled : Variant.Outlined)">
+                    Defaults Only
+                </MudButton>
+            </MudButtonGroup>
+            <MudButton Variant="Variant.Filled" 
+                       Class="mb-btn-primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@OpenCreateBudgetDialog">
+                New Budget
+            </MudButton>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="MudBlazor.Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
+    else if (_budgets.Count == 0)
+    {
+        <div class="mb-empty-state">
+            <MudIcon Icon="@Icons.Material.Outlined.AccountBalance" Class="mb-empty-state-icon" />
+            <MudText Typo="Typo.h6" Class="mb-2">No budgets yet</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
+                Create your first budget to start planning your spending
+            </MudText>
+            <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateBudgetDialog">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
+                Create Your First Budget
+            </MudButton>
+        </div>
+    }
+    else
+    {
+        <MudStack Spacing="4">
+            @foreach (var budget in _budgets)
+            {
+                var totalBudgeted = budget.BudgetCategories.Sum(bc => bc.PlannedAmount);
+                var categoryCount = budget.BudgetCategories.Count;
+                var periodName = budget.IsDefault ? "Default (All Months)" : new DateTime(budget.Year!.Value, budget.Month!.Value, 1).ToString("MMMM yyyy");
+
+                <MudPaper Class="pa-4">
+                    <div class="d-flex justify-space-between align-center mb-3">
+                        <div>
+                            <div class="d-flex align-center gap-2 mb-1">
+                                <MudText Typo="Typo.h6">@budget.Name</MudText>
+                                @if (budget.IsDefault)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary">
+                                        <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="me-1" />
+                                        Default
+                                    </MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                        @periodName
+                                    </MudChip>
+                                }
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(budget.Description))
+                            {
+                                <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                    @budget.Description
+                                </MudText>
+                            }
+                            <div class="d-flex gap-3 mt-2">
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                                    <strong>@categoryCount</strong> categor@(categoryCount == 1 ? "y" : "ies")
+                                </MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                                    <strong>@totalBudgeted.ToString("C2")</strong> total budgeted
+                                </MudText>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                           Size="Size.Small"
+                                           OnClick="@(() => OpenEditBudgetDialog(budget))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="@(() => DeleteBudget(budget))" />
+                        </div>
+                    </div>
+
+                    @if (categoryCount > 0)
+                    {
+                        <MudTable Items="@budget.BudgetCategories.OrderBy(bc => bc.Category.CategoryGroup.Name).ThenBy(bc => bc.Category.Name)" 
+                                  Dense="true" 
+                                  Hover="true">
+                            <HeaderContent>
+                                <MudTh>Category</MudTh>
+                                <MudTh Style="text-align: right;">Planned Amount</MudTh>
+                                <MudTh Style="text-align: center;">Rollover</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.body2">@context.Category.Name</MudText>
+                                        <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                                            @context.Category.CategoryGroup.Name
+                                        </MudText>
+                                    </div>
+                                </MudTd>
+                                <MudTd Style="text-align: right;">
+                                    <MudText Typo="Typo.body2">@context.PlannedAmount.ToString("C2")</MudText>
+                                </MudTd>
+                                <MudTd Style="text-align: center;">
+                                    @if (context.AllowRollover)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Color="Color.Success" />
+                                    }
+                                    else
+                                    {
+                                        <MudText Style="color: var(--mb-text-muted);">—</MudText>
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
+                            No categories assigned. Click edit to add categories.
+                        </MudText>
+                    }
+                </MudPaper>
+            }
+        </MudStack>
+    }
+</div>
+
+@code {
+    private List<Budget> _budgets = [];
+    private List<Budget> _allBudgets = [];
+    private bool _isLoading = true;
+    private string? _userId;
+    private string _viewMode = "all"; // "all" or "defaults"
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrWhiteSpace(_userId))
+        {
+            await LoadBudgets();
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task LoadBudgets()
+    {
+        if (string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        _allBudgets = await BudgetService.GetBudgetsAsync(_userId);
+        ApplyFilter();
+    }
+
+    private void SetViewMode(string mode)
+    {
+        _viewMode = mode;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        _budgets = _viewMode == "defaults" 
+            ? _allBudgets.Where(b => b.IsDefault).ToList() 
+            : _allBudgets;
+    }
+
+    private async Task OpenCreateBudgetDialog()
+    {
+        var parameters = new DialogParameters<BudgetDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.IsNew, true }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<BudgetDialog>("Create Budget", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadBudgets();
+            SnackbarService.Add("Budget created successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditBudgetDialog(Budget budget)
+    {
+        var parameters = new DialogParameters<BudgetDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.Budget, budget },
+            { x => x.IsNew, false }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<BudgetDialog>("Edit Budget", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadBudgets();
+            SnackbarService.Add("Budget updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task DeleteBudget(Budget budget)
+    {
+        var categoryCount = budget.BudgetCategories.Count;
+        
+        var message = categoryCount > 0
+            ? $"This budget contains {categoryCount} categor{(categoryCount == 1 ? "y" : "ies")}. Are you sure you want to delete it?"
+            : "Are you sure you want to delete this budget?";
+
+        var result = await DialogService.ShowMessageBox(
+            "Delete Budget",
+            message,
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (result == true && _userId != null)
+        {
+            var deleted = await BudgetService.DeleteBudgetAsync(budget.Id, _userId);
+            if (deleted)
+            {
+                await LoadBudgets();
+                SnackbarService.Add("Budget deleted successfully", Severity.Success);
+            }
+            else
+            {
+                SnackbarService.Add("Failed to delete budget", Severity.Error);
+            }
+        }
+    }
+}

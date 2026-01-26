@@ -1,0 +1,263 @@
+@using MoneyBrain.Web.Application.Budgets
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@inject IBudgetService BudgetService
+@inject ICategoryService CategoryService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.body2" Class="mb-2">
+                Select category groups or individual categories to add to this budget
+            </MudText>
+
+            @foreach (var group in _categoryGroups.OrderBy(g => g.Name))
+            {
+                var groupCategories = _availableCategoriesByGroup.ContainsKey(group.Id) 
+                    ? _availableCategoriesByGroup[group.Id] 
+                    : new List<Category>();
+                
+                if (groupCategories.Any())
+                {
+                    <MudPaper Class="pa-3" Outlined="true">
+                        <MudStack Spacing="2">
+                            <div class="d-flex align-center justify-space-between">
+                                <MudCheckBox T="bool" 
+                                             Checked="@IsGroupFullySelected(group.Id)"
+                                             CheckedChanged="@((bool value) => ToggleGroup(group.Id, value))"
+                                             Label="@group.Name"
+                                             Color="Color.Primary"
+                                             Dense="true" />
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Text">
+                                    @groupCategories.Count categor@(groupCategories.Count == 1 ? "y" : "ies")
+                                </MudChip>
+                            </div>
+                            
+                            @if (IsGroupExpanded(group.Id))
+                            {
+                                <MudStack Spacing="1" Class="ms-4">
+                                    @foreach (var category in groupCategories.OrderBy(c => c.Name))
+                                    {
+                                        <MudCheckBox T="bool"
+                                                     Checked="@_selectedCategoryIds.Contains(category.Id)"
+                                                     CheckedChanged="@((bool value) => ToggleCategory(category.Id, value))"
+                                                     Label="@category.Name"
+                                                     Color="Color.Primary"
+                                                     Dense="true"
+                                                     Size="Size.Small" />
+                                    }
+                                </MudStack>
+                            }
+                            
+                            <MudButton Size="Size.Small" 
+                                       Variant="Variant.Text"
+                                       OnClick="@(() => ToggleGroupExpansion(group.Id))">
+                                @(IsGroupExpanded(group.Id) ? "Hide" : "Show") Categories
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
+                }
+            }
+
+            <MudDivider Class="my-2" />
+
+            <MudNumericField @bind-Value="_plannedAmount" 
+                             Label="Default Planned Amount (per category)" 
+                             Variant="Variant.Outlined" 
+                             Required="true"
+                             Format="N2"
+                             Min="0"
+                             Step="0.01M"
+                             Adornment="Adornment.Start"
+                             AdornmentText="$"
+                             HelperText="This amount will be applied to all selected categories" />
+
+            <MudSwitch @bind-Value="_allowRollover" 
+                       Label="Allow Rollover" 
+                       Color="Color.Primary">
+                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                    Carry over unused budget to next month
+                </MudText>
+            </MudSwitch>
+
+            @if (_selectedCategoryIds.Count > 0)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true">
+                    <strong>@_selectedCategoryIds.Count</strong> categor@(_selectedCategoryIds.Count == 1 ? "y" : "ies") selected
+                </MudAlert>
+            }
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="@(_isSubmitting || _selectedCategoryIds.Count == 0)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            Add @(_selectedCategoryIds.Count) Categor@(_selectedCategoryIds.Count == 1 ? "y" : "ies")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public List<Category> AvailableCategories { get; set; } = [];
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    [Parameter] public int BudgetId { get; set; }
+    [Parameter] public bool IsNewBudget { get; set; }
+
+    private List<CategoryGroup> _categoryGroups = [];
+    private Dictionary<int, List<Category>> _availableCategoriesByGroup = new();
+    private HashSet<int> _selectedCategoryIds = new();
+    private HashSet<int> _expandedGroupIds = new();
+    private decimal _plannedAmount;
+    private bool _allowRollover;
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load category groups
+        var groups = await CategoryService.GetCategoryGroupsAsync(UserId, includeCategories: true);
+        _categoryGroups = groups;
+
+        // Group available categories by their group
+        _availableCategoriesByGroup = AvailableCategories
+            .GroupBy(c => c.CategoryGroupId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    private bool IsGroupFullySelected(int groupId)
+    {
+        if (!_availableCategoriesByGroup.ContainsKey(groupId))
+            return false;
+
+        var groupCategories = _availableCategoriesByGroup[groupId];
+        return groupCategories.All(c => _selectedCategoryIds.Contains(c.Id));
+    }
+
+    private bool IsGroupExpanded(int groupId)
+    {
+        return _expandedGroupIds.Contains(groupId);
+    }
+
+    private void ToggleGroupExpansion(int groupId)
+    {
+        if (_expandedGroupIds.Contains(groupId))
+            _expandedGroupIds.Remove(groupId);
+        else
+            _expandedGroupIds.Add(groupId);
+    }
+
+    private void ToggleGroup(int groupId, bool selected)
+    {
+        if (!_availableCategoriesByGroup.ContainsKey(groupId))
+            return;
+
+        var groupCategories = _availableCategoriesByGroup[groupId];
+        
+        if (selected)
+        {
+            // Select all categories in group
+            foreach (var category in groupCategories)
+            {
+                _selectedCategoryIds.Add(category.Id);
+            }
+        }
+        else
+        {
+            // Deselect all categories in group
+            foreach (var category in groupCategories)
+            {
+                _selectedCategoryIds.Remove(category.Id);
+            }
+        }
+    }
+
+    private void ToggleCategory(int categoryId, bool selected)
+    {
+        if (selected)
+            _selectedCategoryIds.Add(categoryId);
+        else
+            _selectedCategoryIds.Remove(categoryId);
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (_selectedCategoryIds.Count == 0)
+        {
+            _errorMessage = "Please select at least one category";
+            return;
+        }
+
+        if (_plannedAmount < 0)
+        {
+            _errorMessage = "Planned amount cannot be negative";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            var addedCategories = new List<BudgetCategory>();
+            
+            foreach (var categoryId in _selectedCategoryIds)
+            {
+                BudgetCategory budgetCategory;
+                
+                if (IsNewBudget)
+                {
+                    // For new budgets, create temporary BudgetCategory objects
+                    var category = AvailableCategories.First(c => c.Id == categoryId);
+                    budgetCategory = new BudgetCategory
+                    {
+                        CategoryId = categoryId,
+                        PlannedAmount = _plannedAmount,
+                        AllowRollover = _allowRollover,
+                        Category = category
+                    };
+                }
+                else
+                {
+                    // For existing budgets, save to database
+                    budgetCategory = await BudgetService.AddCategoryToBudgetAsync(
+                        BudgetId, 
+                        UserId, 
+                        categoryId, 
+                        _plannedAmount, 
+                        _allowRollover);
+                }
+                
+                addedCategories.Add(budgetCategory);
+            }
+
+            MudDialog.Close(DialogResult.Ok(addedCategories));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

@@ -73,6 +73,88 @@ public class CategoryService : ICategoryService
         return categoryGroup;
     }
 
+    public async Task<CategoryGroup?> GetCategoryGroupByIdAsync(int categoryGroupId, string userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.CategoryGroups
+            .Include(cg => cg.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name))
+            .FirstOrDefaultAsync(cg => cg.Id == categoryGroupId && cg.UserId == userId, cancellationToken);
+    }
+
+    public async Task<bool> UpdateCategoryGroupAsync(int categoryGroupId, string userId, string name, CancellationToken cancellationToken = default)
+    {
+        var group = await _context.CategoryGroups
+            .FirstOrDefaultAsync(cg => cg.Id == categoryGroupId && cg.UserId == userId, cancellationToken);
+
+        if (group == null)
+            return false;
+
+        group.Name = name;
+        group.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeleteCategoryGroupAsync(int categoryGroupId, string userId, CancellationToken cancellationToken = default)
+    {
+        var group = await _context.CategoryGroups
+            .Include(cg => cg.Categories)
+            .FirstOrDefaultAsync(cg => cg.Id == categoryGroupId && cg.UserId == userId, cancellationToken);
+
+        if (group == null)
+            return false;
+
+        // Check if group has active categories
+        if (group.Categories.Any(c => c.IsActive))
+            throw new InvalidOperationException("Cannot delete category group with active categories. Move or delete categories first.");
+
+        group.IsActive = false;
+        group.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> ReorderCategoryGroupsAsync(string userId, List<int> orderedGroupIds, CancellationToken cancellationToken = default)
+    {
+        var groups = await _context.CategoryGroups
+            .Where(cg => cg.UserId == userId && orderedGroupIds.Contains(cg.Id))
+            .ToListAsync(cancellationToken);
+
+        if (groups.Count != orderedGroupIds.Count)
+            return false;
+
+        for (int i = 0; i < orderedGroupIds.Count; i++)
+        {
+            var group = groups.First(cg => cg.Id == orderedGroupIds[i]);
+            group.SortOrder = i + 1;
+            group.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> ReorderCategoriesAsync(string userId, int categoryGroupId, List<int> orderedCategoryIds, CancellationToken cancellationToken = default)
+    {
+        var categories = await _context.Categories
+            .Where(c => c.UserId == userId && c.CategoryGroupId == categoryGroupId && orderedCategoryIds.Contains(c.Id))
+            .ToListAsync(cancellationToken);
+
+        if (categories.Count != orderedCategoryIds.Count)
+            return false;
+
+        for (int i = 0; i < orderedCategoryIds.Count; i++)
+        {
+            var category = categories.First(c => c.Id == orderedCategoryIds[i]);
+            category.SortOrder = i + 1;
+            category.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<Category> CreateCategoryAsync(string userId, string name, int categoryGroupId, CancellationToken cancellationToken = default)
     {
         var maxSortOrder = await _context.Categories
@@ -171,5 +253,202 @@ public class CategoryService : ICategoryService
             }
             await _context.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    public async Task<MonthlyBudget?> GetEffectiveBudgetAsync(int categoryId, string userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        // First check for month-specific override
+        var monthOverride = await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && 
+                                      !mb.IsDefault && mb.Year == year && mb.Month == month, cancellationToken);
+
+        if (monthOverride != null)
+            return monthOverride;
+
+        // Fall back to default budget
+        return await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && mb.IsDefault, cancellationToken);
+    }
+
+    public async Task<MonthlyBudget?> GetDefaultBudgetAsync(int categoryId, string userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && mb.IsDefault, cancellationToken);
+    }
+
+    public async Task<MonthlyBudget?> GetMonthOverrideAsync(int categoryId, string userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        return await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && 
+                                      !mb.IsDefault && mb.Year == year && mb.Month == month, cancellationToken);
+    }
+
+    public async Task<List<MonthlyBudget>> GetEffectiveBudgetsForMonthAsync(string userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        // Get all month-specific overrides
+        var overrides = await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .ThenInclude(c => c.CategoryGroup)
+            .Where(mb => mb.UserId == userId && !mb.IsDefault && mb.Year == year && mb.Month == month)
+            .ToListAsync(cancellationToken);
+
+        var overrideCategoryIds = overrides.Select(o => o.CategoryId).ToHashSet();
+
+        // Get default budgets for categories without overrides
+        var defaults = await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .ThenInclude(c => c.CategoryGroup)
+            .Where(mb => mb.UserId == userId && mb.IsDefault && !overrideCategoryIds.Contains(mb.CategoryId))
+            .ToListAsync(cancellationToken);
+
+        // Combine and sort
+        return overrides.Concat(defaults)
+            .OrderBy(mb => mb.Category.CategoryGroup.SortOrder)
+            .ThenBy(mb => mb.Category.CategoryGroup.Name)
+            .ThenBy(mb => mb.Category.SortOrder)
+            .ThenBy(mb => mb.Category.Name)
+            .ToList();
+    }
+
+    public async Task<List<MonthlyBudget>> GetDefaultBudgetsAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .ThenInclude(c => c.CategoryGroup)
+            .Where(mb => mb.UserId == userId && mb.IsDefault)
+            .OrderBy(mb => mb.Category.CategoryGroup.SortOrder)
+            .ThenBy(mb => mb.Category.CategoryGroup.Name)
+            .ThenBy(mb => mb.Category.SortOrder)
+            .ThenBy(mb => mb.Category.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<MonthlyBudget>> GetMonthOverridesAsync(string userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        return await _context.MonthlyBudgets
+            .Include(mb => mb.Category)
+            .ThenInclude(c => c.CategoryGroup)
+            .Where(mb => mb.UserId == userId && !mb.IsDefault && mb.Year == year && mb.Month == month)
+            .OrderBy(mb => mb.Category.CategoryGroup.SortOrder)
+            .ThenBy(mb => mb.Category.CategoryGroup.Name)
+            .ThenBy(mb => mb.Category.SortOrder)
+            .ThenBy(mb => mb.Category.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<MonthlyBudget> SetDefaultBudgetAsync(int categoryId, string userId, decimal plannedAmount, bool allowRollover = false, CancellationToken cancellationToken = default)
+    {
+        // Verify the category belongs to the user
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
+
+        if (category == null)
+            throw new InvalidOperationException("Category not found or access denied");
+
+        // Check if default budget already exists
+        var existingBudget = await _context.MonthlyBudgets
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && mb.IsDefault, cancellationToken);
+
+        if (existingBudget != null)
+        {
+            // Update existing default budget
+            existingBudget.PlannedAmount = plannedAmount;
+            existingBudget.AllowRollover = allowRollover;
+            existingBudget.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            return existingBudget;
+        }
+        else
+        {
+            // Create new default budget
+            var newBudget = new MonthlyBudget
+            {
+                UserId = userId,
+                CategoryId = categoryId,
+                IsDefault = true,
+                Year = null,
+                Month = null,
+                PlannedAmount = plannedAmount,
+                AllowRollover = allowRollover
+            };
+
+            _context.MonthlyBudgets.Add(newBudget);
+            await _context.SaveChangesAsync(cancellationToken);
+            return newBudget;
+        }
+    }
+
+    public async Task<MonthlyBudget> SetMonthOverrideAsync(int categoryId, string userId, int year, int month, decimal plannedAmount, bool allowRollover = false, CancellationToken cancellationToken = default)
+    {
+        // Verify the category belongs to the user
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
+
+        if (category == null)
+            throw new InvalidOperationException("Category not found or access denied");
+
+        // Check if override already exists
+        var existingBudget = await _context.MonthlyBudgets
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && 
+                                      !mb.IsDefault && mb.Year == year && mb.Month == month, cancellationToken);
+
+        if (existingBudget != null)
+        {
+            // Update existing override
+            existingBudget.PlannedAmount = plannedAmount;
+            existingBudget.AllowRollover = allowRollover;
+            existingBudget.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            return existingBudget;
+        }
+        else
+        {
+            // Create new override
+            var newBudget = new MonthlyBudget
+            {
+                UserId = userId,
+                CategoryId = categoryId,
+                IsDefault = false,
+                Year = year,
+                Month = month,
+                PlannedAmount = plannedAmount,
+                AllowRollover = allowRollover
+            };
+
+            _context.MonthlyBudgets.Add(newBudget);
+            await _context.SaveChangesAsync(cancellationToken);
+            return newBudget;
+        }
+    }
+
+    public async Task<bool> DeleteDefaultBudgetAsync(int categoryId, string userId, CancellationToken cancellationToken = default)
+    {
+        var budget = await _context.MonthlyBudgets
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && mb.IsDefault, cancellationToken);
+
+        if (budget == null)
+            return false;
+
+        _context.MonthlyBudgets.Remove(budget);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeleteMonthOverrideAsync(int categoryId, string userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        var budget = await _context.MonthlyBudgets
+            .FirstOrDefaultAsync(mb => mb.CategoryId == categoryId && mb.UserId == userId && 
+                                      !mb.IsDefault && mb.Year == year && mb.Month == month, cancellationToken);
+
+        if (budget == null)
+            return false;
+
+        _context.MonthlyBudgets.Remove(budget);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

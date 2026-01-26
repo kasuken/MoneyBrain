@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MoneyBrain.Web.Data;
 
@@ -10,9 +11,11 @@ using MoneyBrain.Web.Data;
 namespace MoneyBrain.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260126083126_AddMonthlyBudget")]
+    partial class AddMonthlyBudget
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
@@ -330,94 +333,6 @@ namespace MoneyBrain.Web.Migrations
                     b.ToTable("AccountBalanceSnapshots");
                 });
 
-            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.Budget", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("Month")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("Year")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId", "Name");
-
-                    b.HasIndex("UserId", "Name", "IsDefault")
-                        .IsUnique()
-                        .HasFilter("[IsDefault] = 1");
-
-                    b.HasIndex("UserId", "Year", "Month");
-
-                    b.HasIndex("UserId", "Name", "Year", "Month")
-                        .IsUnique()
-                        .HasFilter("[IsDefault] = 0");
-
-                    b.ToTable("Budgets");
-                });
-
-            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.BudgetCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("AllowRollover")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("BudgetId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("PlannedAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("BudgetId", "CategoryId")
-                        .IsUnique();
-
-                    b.ToTable("BudgetCategories");
-                });
-
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -561,10 +476,7 @@ namespace MoneyBrain.Web.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("Month")
+                    b.Property<int>("Month")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("PlannedAmount")
@@ -578,7 +490,7 @@ namespace MoneyBrain.Web.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("Year")
+                    b.Property<int>("Year")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -587,13 +499,8 @@ namespace MoneyBrain.Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("CategoryId", "IsDefault")
-                        .IsUnique()
-                        .HasFilter("[IsDefault] = 1");
-
                     b.HasIndex("CategoryId", "Year", "Month")
-                        .IsUnique()
-                        .HasFilter("[IsDefault] = 0");
+                        .IsUnique();
 
                     b.HasIndex("UserId", "Year", "Month");
 
@@ -995,25 +902,6 @@ namespace MoneyBrain.Web.Migrations
                     b.Navigation("Account");
                 });
 
-            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.BudgetCategory", b =>
-                {
-                    b.HasOne("MoneyBrain.Web.Domain.Entities.Budget", "Budget")
-                        .WithMany("BudgetCategories")
-                        .HasForeignKey("BudgetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MoneyBrain.Web.Domain.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Budget");
-
-                    b.Navigation("Category");
-                });
-
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.Category", b =>
                 {
                     b.HasOne("MoneyBrain.Web.Domain.Entities.CategoryGroup", "CategoryGroup")
@@ -1145,11 +1033,6 @@ namespace MoneyBrain.Web.Migrations
                     b.Navigation("OpeningBalanceAdjustments");
 
                     b.Navigation("Transactions");
-                });
-
-            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.Budget", b =>
-                {
-                    b.Navigation("BudgetCategories");
                 });
 
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.Category", b =>
