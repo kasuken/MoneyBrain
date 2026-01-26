@@ -59,6 +59,12 @@
                            OnClick="@OpenCsvImportDialog">
                     Import CSV
                 </MudButton>
+                <MudButton Variant="Variant.Outlined" 
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Material.Filled.SwapHoriz"
+                           OnClick="@OpenCreateTransferDialog">
+                    Transfer
+                </MudButton>
                 <MudButton Variant="Variant.Filled" 
                            Class="mb-btn-primary"
                            StartIcon="@Icons.Material.Filled.Add"
@@ -153,10 +159,28 @@
                 <SelectColumn T="Transaction" />
                 <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" />
                 <PropertyColumn Property="t => t.Account.Name" Title="Account" />
-                <PropertyColumn Property="t => t.Payee!.Name" Title="Payee" />
+                <TemplateColumn Title="Payee">
+                    <CellTemplate>
+                        @if (context.Item.TransferTransactionId.HasValue)
+                        {
+                            <div class="d-flex align-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.SwapHoriz" Size="Size.Small" Color="Color.Secondary" />
+                                <span>Transfer</span>
+                            </div>
+                        }
+                        else
+                        {
+                            @context.Item.Payee?.Name
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
                 <TemplateColumn Title="Category">
                     <CellTemplate>
-                        @if (context.Item.Splits?.Any() == true)
+                        @if (context.Item.TransferTransactionId.HasValue)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Transfer</MudChip>
+                        }
+                        else if (context.Item.Splits?.Any() == true)
                         {
                             <MudChip T="string" Size="Size.Small" Color="Color.Info">Split (@context.Item.Splits.Count)</MudChip>
                         }
@@ -196,15 +220,32 @@
                 </TemplateColumn>
                 <TemplateColumn Title="Actions" Sortable="false">
                     <CellTemplate>
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                       Size="MudBlazor.Size.Small"
-                                       OnClick="@(() => OpenEditTransactionDialog(context.Item))"
-                                       Disabled="@context.Item.IsReconciled" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                       Size="MudBlazor.Size.Small"
-                                       Color="MudBlazor.Color.Error"
-                                       OnClick="@(() => DeleteTransaction(context.Item))"
-                                       Disabled="@context.Item.IsReconciled" />
+                        @if (context.Item.TransferTransactionId.HasValue)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.SwapHoriz" 
+                                           Size="MudBlazor.Size.Small"
+                                           OnClick="@(() => OpenEditTransferDialog(context.Item))"
+                                           Disabled="@context.Item.IsReconciled"
+                                           Title="Edit Transfer" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="MudBlazor.Size.Small"
+                                           Color="MudBlazor.Color.Error"
+                                           OnClick="@(() => DeleteTransfer(context.Item))"
+                                           Disabled="@context.Item.IsReconciled"
+                                           Title="Delete Transfer" />
+                        }
+                        else
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                           Size="MudBlazor.Size.Small"
+                                           OnClick="@(() => OpenEditTransactionDialog(context.Item))"
+                                           Disabled="@context.Item.IsReconciled" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                           Size="MudBlazor.Size.Small"
+                                           Color="MudBlazor.Color.Error"
+                                           OnClick="@(() => DeleteTransaction(context.Item))"
+                                           Disabled="@context.Item.IsReconciled" />
+                        }
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
@@ -436,6 +477,95 @@
             else if (editResult.SkippedTransactionIds.Count > 0)
             {
                 SnackbarService.Add($"All transactions skipped: {editResult.SkipReason}", Severity.Warning);
+            }
+        }
+    }
+
+    private async Task OpenCreateTransferDialog()
+    {
+        var parameters = new DialogParameters<TransferDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.IsNew, true }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TransferDialog>("Create Transfer", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadTransactions();
+            SnackbarService.Add("Transfer created successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditTransferDialog(Transaction transaction)
+    {
+        if (!transaction.TransferTransactionId.HasValue)
+            return;
+
+        var transfer = await TransactionService.GetTransferAsync(_userId!, transaction.Id);
+        if (transfer == null)
+        {
+            SnackbarService.Add("Transfer not found", Severity.Error);
+            return;
+        }
+
+        var parameters = new DialogParameters<TransferDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.Transfer, transfer },
+            { x => x.IsNew, false }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TransferDialog>("Edit Transfer", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadTransactions();
+            SnackbarService.Add("Transfer updated successfully", Severity.Success);
+        }
+    }
+
+    private async Task DeleteTransfer(Transaction transaction)
+    {
+        if (!transaction.TransferTransactionId.HasValue)
+            return;
+
+        var transfer = await TransactionService.GetTransferAsync(_userId!, transaction.Id);
+        if (transfer == null)
+        {
+            SnackbarService.Add("Transfer not found", Severity.Error);
+            return;
+        }
+
+        var result = await DialogService.ShowMessageBox(
+            "Delete Transfer",
+            $"Are you sure you want to delete this transfer of {FormatCurrency(transfer.Amount)} from {transfer.FromTransaction.Account.Name} to {transfer.ToTransaction.Account.Name}? This will delete both linked transactions and cannot be undone.",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (result == true && _userId != null)
+        {
+            try
+            {
+                var deleted = await TransactionService.DeleteTransferAsync(_userId, transaction.Id);
+                if (deleted)
+                {
+                    await LoadTransactions();
+                    SnackbarService.Add("Transfer deleted successfully", Severity.Success);
+                }
+                else
+                {
+                    SnackbarService.Add("Failed to delete transfer", Severity.Error);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                SnackbarService.Add(ex.Message, Severity.Error);
             }
         }
     }

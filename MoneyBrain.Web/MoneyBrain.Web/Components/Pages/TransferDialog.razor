@@ -1,0 +1,183 @@
+@using Microsoft.AspNetCore.Components
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Application.Transactions.Transfers
+@using MoneyBrain.Web.Domain.Entities
+@using MudBlazor
+@inject ITransactionService TransactionService
+@inject IAccountService AccountService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
+                Transfer money between your accounts. This creates two linked transactions.
+            </MudText>
+
+            <MudSelect T="int" @bind-Value="_fromAccountId" Label="From Account" Required="true"
+                       HelperText="Account to transfer money from">
+                @foreach (var account in _accounts)
+                {
+                    <MudSelectItem T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="int" @bind-Value="_toAccountId" Label="To Account" Required="true"
+                       HelperText="Account to transfer money to">
+                @foreach (var account in _accounts)
+                {
+                    <MudSelectItem T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudDatePicker @bind-Date="_date" Label="Date" Required="true" MaxDate="DateTime.Today.AddDays(30)" />
+
+            <MudNumericField @bind-Value="_amount" Label="Amount" Required="true" Format="F2"
+                             Adornment="Adornment.Start" AdornmentText="$"
+                             HelperText="Amount to transfer (always positive)"
+                             Min="0.01M" />
+
+            <MudTextField @bind-Value="_memo" Label="Memo" Lines="2" 
+                          HelperText="Optional note about this transfer" />
+
+            <MudTextField @bind-Value="_referenceNumber" Label="Reference#" 
+                          HelperText="Confirmation number, etc." />
+
+            <MudSwitch @bind-Value="_isCleared" Color="MudBlazor.Color.Success">
+                Mark as Cleared
+            </MudSwitch>
+
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid)">
+            @(IsNew ? "Create Transfer" : "Update Transfer")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public string? UserId { get; set; }
+    [Parameter] public TransferResult? Transfer { get; set; }
+    [Parameter] public bool IsNew { get; set; } = true;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private string? _errorMessage;
+
+    private List<Account> _accounts = [];
+
+    private int _fromAccountId;
+    private int _toAccountId;
+    private DateTime? _date = DateTime.Today;
+    private decimal _amount;
+    private string? _memo;
+    private string? _referenceNumber;
+    private bool _isCleared;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(UserId))
+            return;
+
+        // Load accounts
+        _accounts = (await AccountService.GetUserAccountsAsync(UserId))
+            .Where(a => a.IsActive)
+            .OrderBy(a => a.Name)
+            .ToList();
+
+        // If editing existing transfer
+        if (!IsNew && Transfer != null)
+        {
+            _fromAccountId = Transfer.FromAccountId;
+            _toAccountId = Transfer.ToAccountId;
+            _date = Transfer.Date;
+            _amount = Transfer.Amount;
+            _memo = Transfer.Memo;
+            _referenceNumber = Transfer.FromTransaction.ReferenceNumber;
+            _isCleared = Transfer.FromTransaction.IsCleared;
+        }
+        else if (_accounts.Count >= 2)
+        {
+            _fromAccountId = _accounts[0].Id;
+            _toAccountId = _accounts[1].Id;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_isValid)
+            return;
+
+        _errorMessage = null;
+
+        if (_fromAccountId == _toAccountId)
+        {
+            _errorMessage = "Cannot transfer to the same account";
+            return;
+        }
+
+        if (_amount <= 0)
+        {
+            _errorMessage = "Amount must be greater than zero";
+            return;
+        }
+
+        try
+        {
+            var transferDto = new TransferDto
+            {
+                FromAccountId = _fromAccountId,
+                ToAccountId = _toAccountId,
+                Amount = _amount,
+                Date = _date!.Value,
+                Memo = _memo,
+                ReferenceNumber = _referenceNumber,
+                IsCleared = _isCleared
+            };
+
+            if (IsNew)
+            {
+                var result = await TransactionService.CreateTransferAsync(UserId!, transferDto);
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+            else if (Transfer != null)
+            {
+                var updated = await TransactionService.UpdateTransferAsync(
+                    UserId!,
+                    Transfer.FromTransaction.Id,
+                    transferDto);
+                
+                if (updated)
+                {
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    _errorMessage = "Failed to update transfer";
+                }
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
