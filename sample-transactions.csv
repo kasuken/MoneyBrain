@@ -9,3 +9,119 @@ Date,Description,Amount,Category,Cleared
 01/22/2026,Restaurant,-85.25,Food & Dining,true
 01/23/2026,Freelance Payment,500.00,Income,true
 01/24/2026,Internet Bill,-59.99,Utilities,true
+01/25/2026,Streaming Service,-12.99,Subscriptions,true
+01/25/2026,Pharmacy,-14.50,Health & Fitness,true
+01/26/2026,Transfer to Savings,-500.00,Transfers,true
+01/27/2026,Taxi,-23.40,Transportation,true
+01/28/2026,Bookstore,-18.00,Personal,true
+01/29/2026,Car Payment,-320.00,Auto,true
+01/30/2026,House Rent,-1200.00,Housing,true
+02/01/2026,Dividend,25.00,Investment,true
+02/02/2026,Refund,15.00,Income,true
+02/03/2026,Pet Supplies,-42.10,Personal,false
+02/04/2026,Phone Bill,-45.00,Utilities,true
+02/05/2026,Concert Tickets,-120.00,Entertainment,false
+02/06/2026,Donation,-30.00,Miscellaneous,true
+02/07/2026,Coffee,-4.75,Food & Dining,true
+02/08/2026,Groceries,-98.45,Food & Dining,true
+02/09/2026,Bonus,1000.00,Income,true
+02/10/2026,Parking,-8.00,Transportation,true
+02/11/2026,Clothing,-75.00,Shopping,false
+02/12/2026,Water Bill,-32.40,Utilities,true
+02/13/2026,Valentine Dinner,-150.00,Food & Dining,false
+10/01/2025,Paycheck,3500.00,Income,true
+10/02/2025,Grocery Store,-95.20,Food & Dining,true
+10/03/2025,Gas Station,-38.50,Transportation,true
+10/04/2025,Coffee Shop,-6.25,Food & Dining,true
+10/05/2025,Electric Bill,-112.34,Utilities,true
+10/06/2025,Online Purchase,-59.99,Shopping,false
+10/07/2025,Restaurant,-44.20,Food & Dining,true
+10/08/2025,Pharmacy,-12.75,Health & Fitness,true
+10/09/2025,Streaming Service,-11.99,Subscriptions,true
+10/10/2025,Transfer to Savings,-300.00,Transfers,true
+10/11/2025,Freelance Payment,420.00,Income,true
+10/12/2025,Car Wash,-15.00,Auto,true
+10/13/2025,Bookstore,-22.50,Personal,true
+10/14/2025,Groceries,-88.60,Food & Dining,true
+10/15/2025,Gas Station,-46.00,Transportation,true
+10/16/2025,Internet Bill,-58.99,Utilities,true
+10/17/2025,Gym Membership,-49.99,Health & Fitness,true
+10/18/2025,Clothing,-60.00,Shopping,false
+10/19/2025,Dividend,12.50,Investment,true
+10/20/2025,Taxi,-20.00,Transportation,true
+10/21/2025,Movie Tickets,-25.00,Entertainment,true
+10/22/2025,Donation,-20.00,Miscellaneous,true
+10/23/2025,Paycheck,3500.00,Income,true
+10/24/2025,Groceries,-102.75,Food & Dining,true
+10/25/2025,Utilities Adjustment,-15.00,Utilities,false
+10/26/2025,Online Subscription,-7.99,Subscriptions,true
+10/27/2025,Pharmacy,-9.45,Health & Fitness,true
+10/28/2025,Restaurant,-65.00,Food & Dining,true
+10/29/2025,Car Payment,-320.00,Auto,true
+10/30/2025,Parking,-6.00,Transportation,true
+10/31/2025,Halloween Supplies,-32.00,Personal,false
+11/01/2025,Paycheck,3500.00,Income,true
+11/02/2025,Groceries,-110.20,Food & Dining,true
+11/03/2025,Coffee,-5.50,Food & Dining,true
+11/04/2025,Gas Station,-50.00,Transportation,true
+11/05/2025,Home Repair,-250.00,Housing,false
+11/06/2025,Online Shopping,-89.99,Shopping,false
+11/07/2025,Internet Bill,-58.99,Utilities,true
+11/08/2025,Restaurant,-72.30,Food & Dining,true
+11/09/2025,Freelance Payment,600.00,Income,true
+11/10/2025,Pharmacy,-18.20,Health & Fitness,true
+11/11/2025,Veterinary,-120.00,Personal,false
+11/12/2025,Streaming Service,-12.99,Subscriptions,true
+11/13/2025,Transfer to Savings,-400.00,Transfers,true
+11/14/2025,Gas Station,-42.00,Transportation,true
+11/15/2025,Groceries,-95.10,Food & Dining,true
+11/16/2025,Clothing,-45.00,Shopping,false
+11/17/2025,Dividend,30.00,Investment,true
+11/18/2025,Concert Tickets,-85.00,Entertainment,false
+11/19/2025,Donation,-25.00,Miscellaneous,true
+11/20/2025,Paycheck,3500.00,Income,true
+11/21/2025,Car Service,-220.00,Auto,false
+11/22/2025,Restaurant,-55.50,Food & Dining,true
+11/23/2025,Thanksgiving Dinner,-130.00,Food & Dining,false
+11/24/2025,Online Purchase,-45.00,Shopping,true
+11/25/2025,Black Friday Sale,-200.00,Shopping,false
+11/26/2025,Gas Station,-35.00,Transportation,true
+11/27/2025,Groceries,-120.00,Food & Dining,true
+11/28/2025,Internet Bill,-58.99,Utilities,true
+11/29/2025,Clothing,-90.00,Shopping,false
+11/30/2025,Paycheck,3500.00,Income,true
+12/01/2025,Groceries,-88.65,Food & Dining,true
+12/02/2025,Coffee,-4.50,Food & Dining,true
+12/03/2025,Gas Station,-47.00,Transportation,true
+12/04/2025,Utilities,-120.00,Utilities,true
+12/05/2025,Streaming Service,-11.99,Subscriptions,true
+12/06/2025,Holiday Gifts,-180.00,Personal,false
+12/07/2025,Car Payment,-320.00,Auto,true
+12/08/2025,Paycheck,3500.00,Income,true
+12/09/2025,Groceries,-105.20,Food & Dining,true
+12/10/2025,Online Shopping,-75.00,Shopping,false
+12/11/2025,Pharmacy,-22.00,Health & Fitness,true
+12/12/2025,Restaurant,-60.00,Food & Dining,true
+12/13/2025,Donation,-50.00,Miscellaneous,true
+12/14/2025,Bonus,500.00,Income,true
+12/15/2025,Electric Bill,-115.40,Utilities,true
+12/16/2025,Groceries,-92.10,Food & Dining,true
+12/17/2025,Gas Station,-44.00,Transportation,true
+12/18/2025,Hotel,-220.00,Travel,false
+12/19/2025,Airfare,-350.00,Travel,false
+12/20/2025,Restaurant,-95.00,Food & Dining,false
+12/21/2025,Streaming Service,-11.99,Subscriptions,true
+12/22/2025,Transfer to Savings,-500.00,Transfers,true
+12/23/2025,Groceries,-130.00,Food & Dining,true
+12/24/2025,Gift,-75.00,Personal,false
+12/24/2025,Movie Tickets,-30.00,Entertainment,true
+12/25/2025,Holiday Shopping,-210.00,Shopping,false
+12/26/2025,Boxing Day Sale,-95.00,Shopping,false
+12/27/2025,Pharmacy,-16.75,Health & Fitness,true
+12/28/2025,Gas Station,-40.00,Transportation,true
+12/29/2025,Groceries,-98.00,Food & Dining,true
+12/30/2025,Car Insurance,-250.00,Insurance,true
+12/31/2025,Paycheck,3500.00,Income,true
+12/31/2025,Year-end Bonus,250.00,Income,true
+12/31/2025,New Year's Eve Dinner,-180.00,Food & Dining,false
+12/31/2025,Charity Donation,-100.00,Miscellaneous,true
