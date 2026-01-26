@@ -1,0 +1,263 @@
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@inject ICategoryService CategoryService
+
+<MudDialog>
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center align-center pa-8">
+                <MudProgressCircular Indeterminate="true" />
+            </div>
+        }
+        else if (_errorMessage != null)
+        {
+            <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+        }
+        else
+        {
+            <MudStack Spacing="4">
+                <!-- Header -->
+                <div>
+                    <MudText Typo="Typo.h5">@Category.Name</MudText>
+                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                        @Category.CategoryGroup.Name
+                    </MudText>
+                </div>
+
+                <!-- Overall Statistics -->
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.h6" Class="mb-3">Usage Statistics</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="6" sm="3">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Total Transactions</MudText>
+                                <MudText Typo="Typo.h6">@(_stats.TransactionCount + _stats.SplitCount)</MudText>
+                            </MudStack>
+                        </MudItem>
+                        <MudItem xs="6" sm="3">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Total Income</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Success">@_stats.TotalIncome.ToString("C2")</MudText>
+                            </MudStack>
+                        </MudItem>
+                        <MudItem xs="6" sm="3">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Total Expenses</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Error">@_stats.TotalExpense.ToString("C2")</MudText>
+                            </MudStack>
+                        </MudItem>
+                        <MudItem xs="6" sm="3">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Net Amount</MudText>
+                                <MudText Typo="Typo.h6" Color="@(_stats.NetAmount >= 0 ? Color.Success : Color.Error)">
+                                    @_stats.NetAmount.ToString("C2")
+                                </MudText>
+                            </MudStack>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">First Used</MudText>
+                                <MudText Typo="Typo.body2">
+                                    @(_stats.FirstUsed?.ToString("MMM dd, yyyy") ?? "Never")
+                                </MudText>
+                            </MudStack>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Last Used</MudText>
+                                <MudText Typo="Typo.body2">
+                                    @(_stats.LastUsed?.ToString("MMM dd, yyyy") ?? "Never")
+                                </MudText>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <!-- Monthly Trends -->
+                @if (_monthlySpending.Count > 0)
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.h6" Class="mb-3">Monthly Activity (Last 12 Months)</MudText>
+                        
+                        <!-- Use MudBlazor chart -->
+                        <MudChart ChartType="ChartType.Bar" 
+                                  ChartSeries="@_chartSeries" 
+                                  XAxisLabels="@_chartLabels"
+                                  Width="100%" 
+                                  Height="300px"
+                                  ChartOptions="@_chartOptions" />
+
+                        <!-- Monthly data table -->
+                        <MudTable Items="@_monthlySpending" 
+                                  Dense="true" 
+                                  Hover="true" 
+                                  Class="mt-4">
+                            <HeaderContent>
+                                <MudTh>Month</MudTh>
+                                <MudTh Style="text-align: right;">Income</MudTh>
+                                <MudTh Style="text-align: right;">Expenses</MudTh>
+                                <MudTh Style="text-align: right;">Net</MudTh>
+                                <MudTh Style="text-align: right;">Transactions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@(new DateTime(context.Year, context.Month, 1).ToString("MMM yyyy"))</MudTd>
+                                <MudTd Style="text-align: right;">
+                                    <MudText Color="Color.Success">@context.Income.ToString("C2")</MudText>
+                                </MudTd>
+                                <MudTd Style="text-align: right;">
+                                    <MudText Color="Color.Error">@context.Expense.ToString("C2")</MudText>
+                                </MudTd>
+                                <MudTd Style="text-align: right;">
+                                    <MudText Color="@(context.Net >= 0 ? Color.Success : Color.Error)">
+                                        @context.Net.ToString("C2")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd Style="text-align: right;">@context.TransactionCount</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+                }
+
+                <!-- Recent Transactions -->
+                @if (_transactions.Count > 0)
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.h6" Class="mb-3">Recent Transactions (Last 100)</MudText>
+                        <MudTable Items="@_transactions" 
+                                  Dense="true" 
+                                  Hover="true"
+                                  FixedHeader="true"
+                                  Height="400px">
+                            <HeaderContent>
+                                <MudTh>Date</MudTh>
+                                <MudTh>Account</MudTh>
+                                <MudTh>Payee</MudTh>
+                                <MudTh>Memo</MudTh>
+                                <MudTh Style="text-align: right;">Amount</MudTh>
+                                <MudTh>Status</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Date.ToString("MM/dd/yyyy")</MudTd>
+                                <MudTd>@context.Account?.Name</MudTd>
+                                <MudTd>@(context.Payee?.Name ?? "—")</MudTd>
+                                <MudTd>
+                                    <MudText Typo="Typo.body2" Style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @(context.Memo ?? "—")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd Style="text-align: right;">
+                                    <MudText Color="@(context.Amount >= 0 ? Color.Success : Color.Error)">
+                                        @context.Amount.ToString("C2")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd>
+                                    @if (context.IsReconciled)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">Reconciled</MudChip>
+                                    }
+                                    else if (context.IsCleared)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">Cleared</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text">@context.Status</MudChip>
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+                }
+                else if (_stats.TransactionCount + _stats.SplitCount == 0)
+                {
+                    <MudAlert Severity="Severity.Info">
+                        This category has not been used in any transactions yet.
+                    </MudAlert>
+                }
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public Category Category { get; set; } = null!;
+    [Parameter] public string UserId { get; set; } = string.Empty;
+
+    private CategoryUsageStats _stats = new();
+    private List<Transaction> _transactions = [];
+    private List<MonthlySpending> _monthlySpending = [];
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    // Chart data
+    private List<ChartSeries> _chartSeries = [];
+    private string[] _chartLabels = Array.Empty<string>();
+    private ChartOptions _chartOptions = new()
+    {
+        YAxisTicks = 5,
+        YAxisFormat = "C0",
+        InterpolationOption = InterpolationOption.NaturalSpline
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load statistics
+            _stats = await CategoryService.GetCategoryUsageStatsAsync(Category.Id, UserId);
+
+            // Load transactions
+            _transactions = await CategoryService.GetTransactionsByCategoryAsync(Category.Id, UserId);
+
+            // Load monthly spending
+            _monthlySpending = await CategoryService.GetMonthlySpendingAsync(Category.Id, UserId, monthsBack: 12);
+
+            // Prepare chart data
+            PrepareChartData();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error loading usage history: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void PrepareChartData()
+    {
+        if (_monthlySpending.Count == 0)
+            return;
+
+        // Reverse for chronological order
+        var orderedData = _monthlySpending.OrderBy(m => m.Year).ThenBy(m => m.Month).ToList();
+
+        _chartLabels = orderedData.Select(m => new DateTime(m.Year, m.Month, 1).ToString("MMM yy")).ToArray();
+
+        _chartSeries = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = "Income",
+                Data = orderedData.Select(m => (double)m.Income).ToArray()
+            },
+            new ChartSeries
+            {
+                Name = "Expenses",
+                Data = orderedData.Select(m => (double)m.Expense).ToArray()
+            }
+        };
+    }
+
+    private void Close()
+    {
+        MudDialog.Close();
+    }
+}

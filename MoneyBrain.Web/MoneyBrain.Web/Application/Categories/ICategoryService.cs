@@ -133,4 +133,47 @@ public interface ICategoryService
     /// Updates all transactions and budgets from source to target, then soft-deletes source
     /// </summary>
     Task<bool> MergeCategoriesAsync(int sourceCategoryId, int targetCategoryId, string userId, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Get usage statistics for a category
+    /// </summary>
+    Task<CategoryUsageStats> GetCategoryUsageStatsAsync(int categoryId, string userId, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Get transactions using a specific category
+    /// </summary>
+    Task<List<Transaction>> GetTransactionsByCategoryAsync(int categoryId, string userId, int pageSize = 100, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Get monthly spending totals for a category
+    /// </summary>
+    Task<List<MonthlySpending>> GetMonthlySpendingAsync(int categoryId, string userId, int monthsBack = 12, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Category usage statistics
+/// </summary>
+public class CategoryUsageStats
+{
+    public int TransactionCount { get; set; }
+    public int SplitCount { get; set; }
+    public decimal TotalIncome { get; set; }
+    public decimal TotalExpense { get; set; }
+    public decimal NetAmount { get; set; }
+    public DateTime? FirstUsed { get; set; }
+    public DateTime? LastUsed { get; set; }
+    public int MonthsWithActivity { get; set; }
+}
+
+/// <summary>
+/// Monthly spending data for a category
+/// </summary>
+public class MonthlySpending
+{
+    public int Year { get; set; }
+    public int Month { get; set; }
+    public decimal Income { get; set; }
+    public decimal Expense { get; set; }
+    public decimal Net { get; set; }
+    public int TransactionCount { get; set; }
 }

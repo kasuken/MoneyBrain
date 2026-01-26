@@ -227,6 +227,10 @@
                                         </div>
                                         <div class="d-flex gap-1">
                                             <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                                                <MudMenuItem Icon="@Icons.Material.Filled.History" OnClick="@(() => OpenUsageHistoryDialog(category))">
+                                                    View Usage History
+                                                </MudMenuItem>
+                                                <MudDivider />
                                                 <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenRenameCategoryDialog(category))">
                                                     Rename
                                                 </MudMenuItem>
@@ -515,6 +519,18 @@
             await LoadCategories();
             SnackbarService.Add("Category renamed successfully", Severity.Success);
         }
+    }
+
+    private async Task OpenUsageHistoryDialog(Category category)
+    {
+        var parameters = new DialogParameters<CategoryUsageHistoryDialog>
+        {
+            { x => x.Category, category },
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true };
+        await DialogService.ShowAsync<CategoryUsageHistoryDialog>($"{category.Name} - Usage History", parameters, options);
     }
 
     private async Task OpenMergeCategoryDialog(Category category)

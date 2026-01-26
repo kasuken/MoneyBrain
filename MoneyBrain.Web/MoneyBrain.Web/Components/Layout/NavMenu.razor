@@ -3,12 +3,12 @@
 @inject NavigationManager NavigationManager
 
 <div class="mb-header-nav ms-6">
-    <a href="/dashboard" class="mb-header-nav-link @(IsActive("/") ? "active" : "")">Dashboard</a>
+    <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">Dashboard</a>
     <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">Accounts</a>
     <a href="/transactions" class="mb-header-nav-link @(IsActive("/transactions") ? "active" : "")">Transactions</a>
     <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">Budgets</a>
     <a href="/categories" class="mb-header-nav-link @(IsActive("/categories") ? "active" : "")">Categories</a>
-    <a href="/payee-management" class="mb-header-nav-link @(IsActive("/payees") ? "active" : "")">Payees</a>
+    <a href="/payees" class="mb-header-nav-link @(IsActive("/payees") ? "active" : "")">Payees</a>
 </div>
 
 @code {

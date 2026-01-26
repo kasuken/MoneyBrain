@@ -584,4 +584,157 @@ public class CategoryService : ICategoryService
             throw;
         }
     }
+
+    public async Task<CategoryUsageStats> GetCategoryUsageStatsAsync(int categoryId, string userId, CancellationToken cancellationToken = default)
+    {
+        // Verify category belongs to user
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
+
+        if (category == null)
+            throw new InvalidOperationException("Category not found or access denied");
+
+        // Get transaction stats
+        var transactions = await _context.Transactions
+            .Where(t => t.CategoryId == categoryId && t.UserId == userId && t.Status == Domain.Enums.TransactionStatus.Posted)
+            .ToListAsync(cancellationToken);
+
+        // Get split stats
+        var splits = await _context.TransactionSplits
+            .Include(ts => ts.Transaction)
+            .Where(ts => ts.CategoryId == categoryId && ts.Transaction.UserId == userId && ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted)
+            .ToListAsync(cancellationToken);
+
+        var stats = new CategoryUsageStats
+        {
+            TransactionCount = transactions.Count,
+            SplitCount = splits.Count,
+            TotalIncome = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount) + splits.Where(s => s.Amount > 0).Sum(s => s.Amount),
+            TotalExpense = Math.Abs(transactions.Where(t => t.Amount < 0).Sum(t => t.Amount)) + Math.Abs(splits.Where(s => s.Amount < 0).Sum(s => s.Amount)),
+            FirstUsed = transactions.Any() || splits.Any() 
+                ? new[] { transactions.Any() ? transactions.Min(t => t.Date) : DateTime.MaxValue, splits.Any() ? splits.Min(s => s.Transaction.Date) : DateTime.MaxValue }.Min()
+                : null,
+            LastUsed = transactions.Any() || splits.Any()
+                ? new[] { transactions.Any() ? transactions.Max(t => t.Date) : DateTime.MinValue, splits.Any() ? splits.Max(s => s.Transaction.Date) : DateTime.MinValue }.Max()
+                : null
+        };
+
+        stats.NetAmount = stats.TotalIncome - stats.TotalExpense;
+
+        // Calculate months with activity
+        var allDates = transactions.Select(t => new { t.Date.Year, t.Date.Month })
+            .Concat(splits.Select(s => new { s.Transaction.Date.Year, s.Transaction.Date.Month }))
+            .Distinct()
+            .ToList();
+
+        stats.MonthsWithActivity = allDates.Count;
+
+        return stats;
+    }
+
+    public async Task<List<Transaction>> GetTransactionsByCategoryAsync(int categoryId, string userId, int pageSize = 100, CancellationToken cancellationToken = default)
+    {
+        // Verify category belongs to user
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
+
+        if (category == null)
+            throw new InvalidOperationException("Category not found or access denied");
+
+        return await _context.Transactions
+            .Include(t => t.Account)
+            .Include(t => t.Payee)
+            .Include(t => t.Category)
+            .Where(t => t.CategoryId == categoryId && t.UserId == userId)
+            .OrderByDescending(t => t.Date)
+            .ThenByDescending(t => t.Id)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<MonthlySpending>> GetMonthlySpendingAsync(int categoryId, string userId, int monthsBack = 12, CancellationToken cancellationToken = default)
+    {
+        // Verify category belongs to user
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
+
+        if (category == null)
+            throw new InvalidOperationException("Category not found or access denied");
+
+        var startDate = DateTime.UtcNow.AddMonths(-monthsBack);
+
+        // Get transactions
+        var transactions = await _context.Transactions
+            .Where(t => t.CategoryId == categoryId && t.UserId == userId && 
+                       t.Status == Domain.Enums.TransactionStatus.Posted &&
+                       t.Date >= startDate)
+            .ToListAsync(cancellationToken);
+
+        // Get splits
+        var splits = await _context.TransactionSplits
+            .Include(ts => ts.Transaction)
+            .Where(ts => ts.CategoryId == categoryId && 
+                        ts.Transaction.UserId == userId &&
+                        ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted &&
+                        ts.Transaction.Date >= startDate)
+            .ToListAsync(cancellationToken);
+
+        // Group by month
+        var monthlyData = transactions
+            .GroupBy(t => new { t.Date.Year, t.Date.Month })
+            .Select(g => new MonthlySpending
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Income = g.Where(t => t.Amount > 0).Sum(t => t.Amount),
+                Expense = Math.Abs(g.Where(t => t.Amount < 0).Sum(t => t.Amount)),
+                TransactionCount = g.Count()
+            })
+            .ToList();
+
+        // Add split data
+        var splitMonthlyData = splits
+            .GroupBy(s => new { s.Transaction.Date.Year, s.Transaction.Date.Month })
+            .Select(g => new
+            {
+                g.Key.Year,
+                g.Key.Month,
+                Income = g.Where(s => s.Amount > 0).Sum(s => s.Amount),
+                Expense = Math.Abs(g.Where(s => s.Amount < 0).Sum(s => s.Amount)),
+                Count = g.Count()
+            });
+
+        foreach (var splitGroup in splitMonthlyData)
+        {
+            var existing = monthlyData.FirstOrDefault(m => m.Year == splitGroup.Year && m.Month == splitGroup.Month);
+            if (existing != null)
+            {
+                existing.Income += splitGroup.Income;
+                existing.Expense += splitGroup.Expense;
+                existing.TransactionCount += splitGroup.Count;
+            }
+            else
+            {
+                monthlyData.Add(new MonthlySpending
+                {
+                    Year = splitGroup.Year,
+                    Month = splitGroup.Month,
+                    Income = splitGroup.Income,
+                    Expense = splitGroup.Expense,
+                    TransactionCount = splitGroup.Count
+                });
+            }
+        }
+
+        // Calculate net and sort
+        foreach (var month in monthlyData)
+        {
+            month.Net = month.Income - month.Expense;
+        }
+
+        return monthlyData
+            .OrderByDescending(m => m.Year)
+            .ThenByDescending(m => m.Month)
+            .ToList();
+    }
 }
