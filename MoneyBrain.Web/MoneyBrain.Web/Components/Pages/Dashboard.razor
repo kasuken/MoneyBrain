@@ -2,12 +2,16 @@
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Application.Settings
+@using MoneyBrain.Web.Application.Reporting.Cashflow
+@using MoneyBrain.Web.Application.Reporting.NetWorth
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 
 @attribute [Authorize]
 @inject IAccountService AccountService
 @inject IUserSettingsService SettingsService
+@inject ICashflowService CashflowService
+@inject INetWorthService NetWorthService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
@@ -82,48 +86,125 @@
             </div>
         </div>
         
-        <!-- Charts Section (Placeholder) -->
+        <!-- Charts Section -->
         <div class="mb-grid-charts">
             <div class="mb-chart-container">
                 <div class="mb-chart-header">
                     <div>
-                        <div class="mb-chart-title">Account Balance</div>
-                        <div class="mb-chart-subtitle">@_periodStart.ToString("MMM dd") - @_periodEnd.ToString("dd")</div>
-                    </div>
-                    <div class="mb-toggle-group">
-                        <button class="mb-toggle-btn active">Days</button>
-                        <button class="mb-toggle-btn">Weeks</button>
-                        <button class="mb-toggle-btn">Months</button>
+                        <div class="mb-chart-title">Income vs Expenses</div>
+                        <div class="mb-chart-subtitle">@_periodStart.ToString("MMMM yyyy")</div>
                     </div>
                 </div>
-                <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
-                    <MudStack AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@Icons.Material.Outlined.ShowChart" Style="font-size: 3rem; opacity: 0.5;" />
-                        <MudText Typo="Typo.body2">Charts coming with transactions feature</MudText>
-                    </MudStack>
-                </div>
+                @if (_totalIncome > 0 || _totalExpenses > 0)
+                {
+                    <MudChart ChartType="ChartType.Bar" 
+                              ChartSeries="@_incomeExpenseChartSeries" 
+                              XAxisLabels="@_incomeExpenseChartLabels"
+                              Width="100%" 
+                              Height="250px"
+                              ChartOptions="@(new ChartOptions { YAxisTicks = 5 })" />
+                }
+                else
+                {
+                    <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
+                        <MudStack AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Outlined.BarChart" Style="font-size: 3rem; opacity: 0.5;" />
+                            <MudText Typo="Typo.body2">No transactions this month</MudText>
+                        </MudStack>
+                    </div>
+                }
             </div>
             
             <div class="mb-chart-container">
                 <div class="mb-chart-header">
                     <div>
-                        <div class="mb-chart-title">Income vs Expenses</div>
-                        <div class="mb-chart-subtitle">@_periodStart.ToString("MMM dd") - @_periodEnd.ToString("dd")</div>
-                    </div>
-                    <div class="mb-toggle-group">
-                        <button class="mb-toggle-btn active">Days</button>
-                        <button class="mb-toggle-btn">Weeks</button>
-                        <button class="mb-toggle-btn">Months</button>
+                        <div class="mb-chart-title">Top Expense Categories</div>
+                        <div class="mb-chart-subtitle">@_periodStart.ToString("MMMM yyyy")</div>
                     </div>
                 </div>
-                <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
-                    <MudStack AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@Icons.Material.Outlined.BarChart" Style="font-size: 3rem; opacity: 0.5;" />
-                        <MudText Typo="Typo.body2">Charts coming with transactions feature</MudText>
-                    </MudStack>
-                </div>
+                @if (_totalExpenses > 0)
+                {
+                    <MudChart ChartType="ChartType.Donut" 
+                              InputData="@_categoryPieData" 
+                              InputLabels="@_categoryPieLabels"
+                              Width="100%" 
+                              Height="250px" />
+                }
+                else
+                {
+                    <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
+                        <MudStack AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Outlined.PieChart" Style="font-size: 3rem; opacity: 0.5;" />
+                            <MudText Typo="Typo.body2">No expenses this month</MudText>
+                        </MudStack>
+                    </div>
+                }
             </div>
         </div>
+        
+        <!-- Trend Charts Section -->
+        @if (_hasTrendData)
+        {
+            <div class="mb-section-header mt-6">
+                <h2 class="mb-section-title">Trends (Last 6 Months)</h2>
+            </div>
+            
+            <div class="mb-grid-charts">
+                <div class="mb-chart-container">
+                    <div class="mb-chart-header">
+                        <div>
+                            <div class="mb-chart-title">Net Worth Trend</div>
+                            <div class="mb-chart-subtitle">Financial health over time</div>
+                        </div>
+                    </div>
+                    @if (_netWorthTrendSeries.Any() && _netWorthTrendSeries[0].Data.Length > 0)
+                    {
+                        <MudChart ChartType="ChartType.Line" 
+                                  ChartSeries="@_netWorthTrendSeries" 
+                                  XAxisLabels="@_netWorthTrendLabels"
+                                  Width="100%" 
+                                  Height="250px"
+                                  ChartOptions="@(new ChartOptions { YAxisTicks = 5, LineStrokeWidth = 3 })" />
+                    }
+                    else
+                    {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
+                            <MudStack AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Outlined.TrendingUp" Style="font-size: 3rem; opacity: 0.5;" />
+                                <MudText Typo="Typo.body2">Not enough data yet</MudText>
+                            </MudStack>
+                        </div>
+                    }
+                </div>
+                
+                <div class="mb-chart-container">
+                    <div class="mb-chart-header">
+                        <div>
+                            <div class="mb-chart-title">Monthly Cashflow</div>
+                            <div class="mb-chart-subtitle">Income vs Expenses over time</div>
+                        </div>
+                    </div>
+                    @if (_cashflowTrendSeries.Any() && _cashflowTrendSeries[0].Data.Length > 0)
+                    {
+                        <MudChart ChartType="ChartType.Line" 
+                                  ChartSeries="@_cashflowTrendSeries" 
+                                  XAxisLabels="@_cashflowTrendLabels"
+                                  Width="100%" 
+                                  Height="250px"
+                                  ChartOptions="@(new ChartOptions { YAxisTicks = 5, LineStrokeWidth = 3 })" />
+                    }
+                    else
+                    {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
+                            <MudStack AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Outlined.ShowChart" Style="font-size: 3rem; opacity: 0.5;" />
+                                <MudText Typo="Typo.body2">Not enough data yet</MudText>
+                            </MudStack>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
         
         @if (!_accounts.Any())
         {
@@ -153,6 +234,19 @@
     private decimal _periodChange;
     private decimal _totalExpenses;
     private decimal _totalIncome;
+    
+    // Chart data
+    private List<ChartSeries> _incomeExpenseChartSeries = [];
+    private string[] _incomeExpenseChartLabels = [];
+    private double[] _categoryPieData = [];
+    private string[] _categoryPieLabels = [];
+    
+    // Trend chart data
+    private List<ChartSeries> _netWorthTrendSeries = [];
+    private string[] _netWorthTrendLabels = [];
+    private List<ChartSeries> _cashflowTrendSeries = [];
+    private string[] _cashflowTrendLabels = [];
+    private bool _hasTrendData = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -190,26 +284,75 @@
         }
         
         // Calculate totals
-        _totalBalance = _accounts.Sum(a => a.CurrentBalance);
+        _totalBalance = _accounts.Where(a => a.Account.Type == AccountType.Asset).Sum(a => a.CurrentBalance)
+                      - _accounts.Where(a => a.Account.Type == AccountType.Liability).Sum(a => Math.Abs(a.CurrentBalance));
         
-        // Mock data for demo - in production, these would come from transactions
-        _totalIncome = 0m;
-        _totalExpenses = 0m;
-        _periodChange = _totalIncome - _totalExpenses;
+        // Load cashflow data for the selected period
+        var cashflow = await CashflowService.GetMonthCashflowAsync(_userId, _periodStart.Year, _periodStart.Month);
+        _totalIncome = cashflow.TotalIncome;
+        _totalExpenses = cashflow.TotalExpenses;
+        _periodChange = cashflow.NetCashflow;
+        
+        // Prepare chart data
+        PrepareChartData(cashflow);
+        
+        // Load trend data (last 6 months)
+        await LoadTrendDataAsync();
+    }
+    
+    private async Task LoadTrendDataAsync()
+    {
+        if (string.IsNullOrEmpty(_userId)) return;
+        
+        var endDate = DateTime.Today;
+        var startDate = endDate.AddMonths(-5).AddDays(1 - endDate.Day); // Start of month, 6 months ago
+        
+        // Load cashflow trend
+        var cashflowData = await CashflowService.GetMonthlyCashflowAsync(_userId, startDate, endDate);
+        
+        if (cashflowData.Any())
+        {
+            _hasTrendData = true;
+            
+            // Prepare cashflow trend chart
+            var orderedCashflow = cashflowData.OrderBy(c => c.Year).ThenBy(c => c.Month).ToList();
+            _cashflowTrendLabels = orderedCashflow.Select(c => new DateTime(c.Year, c.Month, 1).ToString("MMM")).ToArray();
+            _cashflowTrendSeries = new List<ChartSeries>
+            {
+                new ChartSeries { Name = "Income", Data = orderedCashflow.Select(c => (double)c.TotalIncome).ToArray() },
+                new ChartSeries { Name = "Expenses", Data = orderedCashflow.Select(c => (double)c.TotalExpenses).ToArray() }
+            };
+        }
+        
+        // Load net worth trend
+        var netWorthHistory = await NetWorthService.GetNetWorthHistoryAsync(_userId, startDate, endDate, intervalDays: 30);
+        
+        if (netWorthHistory.Snapshots.Any())
+        {
+            _hasTrendData = true;
+            
+            _netWorthTrendLabels = netWorthHistory.Snapshots.Select(s => s.Date.ToString("MMM")).ToArray();
+            _netWorthTrendSeries = new List<ChartSeries>
+            {
+                new ChartSeries { Name = "Net Worth", Data = netWorthHistory.Snapshots.Select(s => (double)s.NetWorth).ToArray() }
+            };
+        }
     }
 
-    private void PreviousMonth()
+    private async Task PreviousMonth()
     {
         _periodStart = _periodStart.AddMonths(-1);
         _periodEnd = _periodStart.AddMonths(1).AddDays(-1);
+        await LoadDataAsync();
     }
 
-    private void NextMonth()
+    private async Task NextMonth()
     {
         if (_periodEnd >= DateTime.Today) return;
         _periodStart = _periodStart.AddMonths(1);
         _periodEnd = _periodStart.AddMonths(1).AddDays(-1);
         if (_periodEnd > DateTime.Today) _periodEnd = DateTime.Today;
+        await LoadDataAsync();
     }
 
     private void NavigateToAccount(int accountId)
@@ -260,5 +403,32 @@
         public int Id => Account.Id;
         public string Name => Account.Name;
         public AccountSubType SubType => Account.SubType;
+    }
+    
+    private void PrepareChartData(MonthlyCashflowDto cashflow)
+    {
+        // Prepare income vs expenses bar chart
+        _incomeExpenseChartLabels = new[] { "Income", "Expenses" };
+        _incomeExpenseChartSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Amount", Data = new double[] { (double)cashflow.TotalIncome, (double)cashflow.TotalExpenses } }
+        };
+        
+        // Prepare expense category pie chart (top 5 categories)
+        var topCategories = cashflow.ExpensesByCategory
+            .OrderByDescending(c => c.Amount)
+            .Take(5)
+            .ToList();
+        
+        if (topCategories.Any())
+        {
+            _categoryPieData = topCategories.Select(c => (double)c.Amount).ToArray();
+            _categoryPieLabels = topCategories.Select(c => c.CategoryName).ToArray();
+        }
+        else
+        {
+            _categoryPieData = new double[] { 1 };
+            _categoryPieLabels = new[] { "No expenses" };
+        }
     }
 }

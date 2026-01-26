@@ -4,10 +4,13 @@
 
 <div class="mb-header-nav ms-6">
     <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">Dashboard</a>
-    <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">Accounts</a>
     <a href="/transactions" class="mb-header-nav-link @(IsActive("/transactions") ? "active" : "")">Transactions</a>
     <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">Budgets</a>
-    
+ 
+    <a href="/categories" class="mb-header-nav-link @(IsActive("/categories") ? "active" : "")">Categories</a>
+    <a href="/reconciliations" class="mb-header-nav-link @(IsActive("/reconciliations") ? "active" : "")">Reconciliations</a>
+    <a href="/payees" class="mb-header-nav-link @(IsActive("/payees") ? "active" : "")">Payees</a>
+
     <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" ActivationEvent="@MouseEvent.MouseOver">
         <ActivatorContent>
             <span class="mb-header-nav-link @(IsActiveInReports() ? "active" : "")" style="cursor: pointer;">Reports</span>
@@ -20,10 +23,8 @@
             <MudMenuItem Href="/account-balance-history">Balance History</MudMenuItem>
         </ChildContent>
     </MudMenu>
-    
-    <a href="/categories" class="mb-header-nav-link @(IsActive("/categories") ? "active" : "")">Categories</a>
-    <a href="/payees" class="mb-header-nav-link @(IsActive("/payees") ? "active" : "")">Payees</a>
-    <a href="/reconciliations" class="mb-header-nav-link @(IsActive("/reconciliations") ? "active" : "")">Reconciliations</a>
+
+    <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">Accounts</a>
 </div>
 
 @code {
