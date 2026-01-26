@@ -1,0 +1,457 @@
+@page "/account-balance-history"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Reporting.AccountBalanceHistory
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Domain.Entities
+@using MudBlazor
+@attribute [Authorize]
+@inject IAccountBalanceHistoryService BalanceHistoryService
+@inject IAccountService AccountService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Account Balance History</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Account Balance History</MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <MudSelect T="int?" 
+                           @bind-Value="_selectedAccountId"
+                           @bind-Value:after="LoadSingleAccountDataAsync"
+                           Label="Account"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem T="int?" Value="null">-- All Accounts --</MudSelectItem>
+                    @foreach (var account in _accounts)
+                    {
+                        <MudSelectItem T="int?" Value="@account.Id">@account.Name (@account.SubType)</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="Start Date" 
+                               @bind-Date="_startDate" 
+                               @bind-Date:after="LoadDataAsync"
+                               PickerVariant="PickerVariant.Dialog"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDatePicker Label="End Date" 
+                               @bind-Date="_endDate"
+                               @bind-Date:after="LoadDataAsync"
+                               PickerVariant="PickerVariant.Dialog"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="2">
+                <MudNumericField Label="Interval (Days)" 
+                                 @bind-Value="_intervalDays"
+                                 @bind-Value:after="LoadDataAsync"
+                                 Min="1"
+                                 Max="365"
+                                 Variant="Variant.Outlined" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+    }
+    else if (_selectedAccountId.HasValue && _singleAccountHistory != null)
+    {
+        <!-- Single Account View -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Current Balance</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_singleAccountHistory.CurrentBalance >= 0 ? Color.Success : Color.Error)">
+                        @_singleAccountHistory.CurrentBalance.ToString("C2")
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Opening Balance</MudText>
+                    <MudText Typo="Typo.h5">@_singleAccountHistory.OpeningBalance.ToString("C2")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Change</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_singleAccountHistory.BalanceChange >= 0 ? Color.Success : Color.Error)">
+                        @(_singleAccountHistory.BalanceChange >= 0 ? "+" : "")@_singleAccountHistory.BalanceChange.ToString("C2")
+                        <MudChip T="string" Size="Size.Small" Color="@(_singleAccountHistory.BalanceChange >= 0 ? Color.Success : Color.Error)">
+                            @(_singleAccountHistory.PercentageChange >= 0 ? "+" : "")@_singleAccountHistory.PercentageChange.ToString("F1")%
+                        </MudChip>
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Average Balance</MudText>
+                    <MudText Typo="Typo.h5">@_singleAccountHistory.AverageBalance.ToString("C2")</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Peak and Low Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Peak Balance</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Success">
+                        @_singleAccountHistory.PeakBalance.ToString("C2")
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Lowest Balance</MudText>
+                    <MudText Typo="Typo.h6" Color="@(_singleAccountHistory.LowestBalance >= 0 ? Color.Info : Color.Error)">
+                        @_singleAccountHistory.LowestBalance.ToString("C2")
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Balance Trend Chart -->
+        @if (_singleAccountChartData.Any())
+        {
+            <MudPaper Class="pa-4 mb-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-4">@_singleAccountHistory.AccountName - Balance Trend</MudText>
+                <MudChart ChartType="ChartType.Line" 
+                          ChartSeries="_singleAccountChartSeries" 
+                          XAxisLabels="_singleAccountChartData.Select(d => d.DateDisplay).ToArray()"
+                          Width="100%" 
+                          Height="400px"
+                          ChartOptions="_chartOptions" />
+            </MudPaper>
+        }
+
+        <!-- Snapshot Details Table -->
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-4">Balance Snapshots</MudText>
+            <MudTable Items="_singleAccountHistory.Snapshots" 
+                      Hover="true" 
+                      Dense="true"
+                      FixedHeader="true"
+                      Height="400px">
+                <HeaderContent>
+                    <MudTh>Date</MudTh>
+                    <MudTh Style="text-align: right;">Balance</MudTh>
+                    <MudTh Style="text-align: right;">Change</MudTh>
+                    <MudTh Style="text-align: right;">% Change</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date">@context.DateDisplay</MudTd>
+                    <MudTd DataLabel="Balance" Style="text-align: right;">
+                        <span style="color: @(context.Balance >= 0 ? "green" : "red")">
+                            @context.Balance.ToString("C2")
+                        </span>
+                    </MudTd>
+                    <MudTd DataLabel="Change" Style="text-align: right;">
+                        @if (context.ChangeFromPrevious.HasValue)
+                        {
+                            <span style="color: @(context.ChangeFromPrevious.Value >= 0 ? "green" : "red")">
+                                @(context.ChangeFromPrevious.Value >= 0 ? "+" : "")@context.ChangeFromPrevious.Value.ToString("C2")
+                            </span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="% Change" Style="text-align: right;">
+                        @if (context.PercentageChangeFromPrevious.HasValue)
+                        {
+                            <span style="color: @(context.PercentageChangeFromPrevious.Value >= 0 ? "green" : "red")">
+                                @(context.PercentageChangeFromPrevious.Value >= 0 ? "+" : "")@context.PercentageChangeFromPrevious.Value.ToString("F1")%
+                            </span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+    else if (!_selectedAccountId.HasValue && _multiAccountHistory != null)
+    {
+        <!-- Multi-Account View -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Total Current Balance</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_multiAccountHistory.TotalCurrentBalance >= 0 ? Color.Success : Color.Error)">
+                        @_multiAccountHistory.TotalCurrentBalance.ToString("C2")
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Total Opening Balance</MudText>
+                    <MudText Typo="Typo.h5">@_multiAccountHistory.TotalOpeningBalance.ToString("C2")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Total Change</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_multiAccountHistory.TotalChange >= 0 ? Color.Success : Color.Error)">
+                        @(_multiAccountHistory.TotalChange >= 0 ? "+" : "")@_multiAccountHistory.TotalChange.ToString("C2")
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Multi-Account Comparison Chart -->
+        @if (_multiAccountChartData.Any())
+        {
+            <MudPaper Class="pa-4 mb-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-4">Account Balances Over Time</MudText>
+                <MudChart ChartType="ChartType.Line" 
+                          ChartSeries="_multiAccountChartSeries" 
+                          XAxisLabels="_multiAccountChartLabels"
+                          Width="100%" 
+                          Height="500px"
+                          ChartOptions="_chartOptions" />
+            </MudPaper>
+        }
+
+        <!-- Account Summary Cards -->
+        <MudText Typo="Typo.h6" Class="mb-3">Account Summaries</MudText>
+        <MudGrid Class="mb-4">
+            @foreach (var account in _multiAccountHistory.Accounts)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="2">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@account.AccountName</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Default">@account.AccountSubType</MudText>
+                            
+                            <MudDivider Class="my-2" />
+                            
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2">Current:</MudText>
+                                    <MudText Typo="Typo.body1" Color="@(account.CurrentBalance >= 0 ? Color.Success : Color.Error)">
+                                        @account.CurrentBalance.ToString("C2")
+                                    </MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2">Change:</MudText>
+                                    <MudText Typo="Typo.body1" Color="@(account.BalanceChange >= 0 ? Color.Success : Color.Error)">
+                                        @(account.BalanceChange >= 0 ? "+" : "")@account.BalanceChange.ToString("C2")
+                                    </MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2">Peak:</MudText>
+                                    <MudText Typo="Typo.body1">@account.PeakBalance.ToString("C2")</MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2">Average:</MudText>
+                                    <MudText Typo="Typo.body1">@account.AverageBalance.ToString("C2")</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Size="Size.Small" 
+                                       Color="Color.Primary" 
+                                       OnClick="@(() => SelectAccount(account.AccountId))">
+                                View Details
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info">
+            Select a date range to view account balance history.
+        </MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private DateTime? _startDate = DateTime.Now.AddMonths(-6);
+    private DateTime? _endDate = DateTime.Now;
+    private int _intervalDays = 7; // Weekly by default
+    private int? _selectedAccountId;
+    private bool _loading = true;
+    
+    private List<Account> _accounts = [];
+    private AccountBalanceHistoryDto? _singleAccountHistory;
+    private MultiAccountBalanceHistoryDto? _multiAccountHistory;
+    
+    private List<BalanceSnapshotDto> _singleAccountChartData = [];
+    private List<ChartSeries> _singleAccountChartSeries = [];
+    
+    private List<ChartSeries> _multiAccountChartSeries = [];
+    private string[] _multiAccountChartLabels = [];
+    private List<BalanceSnapshotDto> _multiAccountChartData = [];
+
+    private ChartOptions _chartOptions = new()
+    {
+        YAxisTicks = 1000,
+        YAxisFormat = "C0",
+        InterpolationOption = InterpolationOption.Straight,
+        LineStrokeWidth = 2
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var accounts = await AccountService.GetUserAccountsAsync(userId, includeInactive: false);
+            _accounts = accounts.ToList();
+        }
+
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (_selectedAccountId.HasValue)
+        {
+            await LoadSingleAccountDataAsync();
+        }
+        else
+        {
+            await LoadMultiAccountDataAsync();
+        }
+    }
+
+    private async Task LoadSingleAccountDataAsync()
+    {
+        if (_startDate == null || _endDate == null || !_selectedAccountId.HasValue)
+            return;
+
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return;
+
+            _singleAccountHistory = await BalanceHistoryService.GetAccountBalanceHistoryAsync(
+                userId,
+                _selectedAccountId.Value,
+                _startDate.Value,
+                _endDate.Value,
+                _intervalDays);
+
+            _multiAccountHistory = null;
+            PrepareSingleAccountChartData();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadMultiAccountDataAsync()
+    {
+        if (_startDate == null || _endDate == null)
+            return;
+
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return;
+
+            _multiAccountHistory = await BalanceHistoryService.GetMultiAccountBalanceHistoryAsync(
+                userId,
+                null, // All accounts
+                _startDate.Value,
+                _endDate.Value,
+                _intervalDays,
+                includeInactive: false);
+
+            _singleAccountHistory = null;
+            PrepareMultiAccountChartData();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void PrepareSingleAccountChartData()
+    {
+        if (_singleAccountHistory == null)
+            return;
+
+        _singleAccountChartData = _singleAccountHistory.Snapshots
+            .OrderBy(s => s.Date)
+            .ToList();
+
+        _singleAccountChartSeries =
+        [
+            new ChartSeries
+            {
+                Name = "Balance",
+                Data = _singleAccountChartData.Select(d => (double)d.Balance).ToArray()
+            }
+        ];
+    }
+
+    private void PrepareMultiAccountChartData()
+    {
+        if (_multiAccountHistory == null || !_multiAccountHistory.Accounts.Any())
+            return;
+
+        // Get all unique dates across all accounts
+        var allDates = _multiAccountHistory.Accounts
+            .SelectMany(a => a.Snapshots.Select(s => s.Date))
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
+
+        _multiAccountChartLabels = allDates
+            .Select(d => d.ToString("MMM dd, yyyy"))
+            .ToArray();
+
+        _multiAccountChartSeries = new List<ChartSeries>();
+
+        foreach (var account in _multiAccountHistory.Accounts)
+        {
+            var seriesData = new List<double>();
+            
+            foreach (var date in allDates)
+            {
+                var snapshot = account.Snapshots.FirstOrDefault(s => s.Date == date);
+                seriesData.Add(snapshot != null ? (double)snapshot.Balance : 0);
+            }
+
+            _multiAccountChartSeries.Add(new ChartSeries
+            {
+                Name = account.AccountName,
+                Data = seriesData.ToArray()
+            });
+        }
+    }
+
+    private async Task SelectAccount(int accountId)
+    {
+        _selectedAccountId = accountId;
+        await LoadSingleAccountDataAsync();
+    }
+}
