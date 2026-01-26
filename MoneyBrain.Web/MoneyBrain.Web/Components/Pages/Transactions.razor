@@ -188,17 +188,23 @@
                 <PropertyColumn Property="t => t.Account.Name" Title="Account" />
                 <TemplateColumn Title="Payee">
                     <CellTemplate>
-                        @if (context.Item.TransferTransactionId.HasValue)
-                        {
-                            <div class="d-flex align-center gap-2">
+                        <div class="d-flex align-center gap-2">
+                            @if (context.Item.IsRecurring)
+                            {
+                                <MudTooltip Text="Recurring Transaction">
+                                    <MudIcon Icon="@Icons.Material.Filled.Loop" Size="Size.Small" Color="Color.Info" />
+                                </MudTooltip>
+                            }
+                            @if (context.Item.TransferTransactionId.HasValue)
+                            {
                                 <MudIcon Icon="@Icons.Material.Filled.SwapHoriz" Size="Size.Small" Color="Color.Secondary" />
                                 <span>Transfer</span>
-                            </div>
-                        }
-                        else
-                        {
-                            @context.Item.Payee?.Name
-                        }
+                            }
+                            else
+                            {
+                                <span>@context.Item.Payee?.Name</span>
+                            }
+                        </div>
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn Title="Category">

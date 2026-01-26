@@ -76,6 +76,26 @@
                 <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Pending">Pending</MudSelectItem>
                 <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Posted">Posted</MudSelectItem>
             </MudSelect>
+            
+            <MudDivider Class="my-4" />
+            
+            <MudSwitch @bind-Value="_isRecurring" Color="MudBlazor.Color.Primary" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
+                Make this a recurring transaction
+            </MudSwitch>
+            
+            @if (_isRecurring)
+            {
+                <MudSelect T="RecurrenceFrequency?" @bind-Value="_recurrenceFrequency" Label="Repeat Every" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Weekly">Weekly</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Monthly">Monthly</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Quarterly">Quarterly (3 months)</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.SixMonths">Semi-Annually (6 months)</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Yearly">Yearly</MudSelectItem>
+                </MudSelect>
+                
+                <MudDatePicker @bind-Date="_recurrenceStartDate" Label="First Occurrence Date" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)"
+                               HelperText="When should this recurring transaction first appear?" />
+            }
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -112,6 +132,9 @@
     private TransactionStatus _status = TransactionStatus.Posted;
     private bool _useSplits;
     private List<TransactionSplitDto> _splits = [];
+    private bool _isRecurring;
+    private RecurrenceFrequency? _recurrenceFrequency;
+    private DateTime? _recurrenceStartDate;
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,6 +160,9 @@
             _payeeName = Transaction.Payee?.Name;
             _selectedCategoryId = Transaction.CategoryId;
             _memo = Transaction.Memo;
+            _isRecurring = Transaction.IsRecurring;
+            _recurrenceFrequency = Transaction.RecurrenceFrequency;
+            _recurrenceStartDate = Transaction.RecurrenceStartDate;
             _referenceNumber = Transaction.ReferenceNumber;
             _isCleared = Transaction.IsCleared;
             _status = Transaction.Status;
@@ -220,7 +246,10 @@
                         _status,
                         _isCleared,
                         _referenceNumber,
-                        null);  // tags
+                        null,  // tags
+                        _isRecurring,
+                        _recurrenceFrequency,
+                        _recurrenceStartDate);
                 }
             }
             else if (Transaction != null)
@@ -253,7 +282,10 @@
                         _status,
                         _isCleared,
                         _referenceNumber,
-                        null);  // tags
+                        null,  // tags
+                        _isRecurring,
+                        _recurrenceFrequency,
+                        _recurrenceStartDate);
                 }
             }
 

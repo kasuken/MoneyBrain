@@ -212,6 +212,9 @@ public class TransactionCsvImportService : ITransactionCsvImportService
                     previewRow.IsCleared ?? false,
                     previewRow.ReferenceNumber,
                     null, // tags
+                    isRecurring: false, // CSV imported transactions are non-recurring
+                    recurrenceFrequency: null,
+                    recurrenceStartDate: null,
                     cancellationToken);
                 result.ImportedCount++;
             }

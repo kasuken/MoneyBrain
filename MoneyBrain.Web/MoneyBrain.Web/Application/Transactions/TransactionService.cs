@@ -89,6 +89,9 @@ public class TransactionService : ITransactionService
         bool isCleared,
         string? referenceNumber,
         string? tags,
+        bool isRecurring = false,
+        RecurrenceFrequency? recurrenceFrequency = null,
+        DateTime? recurrenceStartDate = null,
         CancellationToken cancellationToken = default)
     {
         // Verify account belongs to user
@@ -110,7 +113,11 @@ public class TransactionService : ITransactionService
             Status = status,
             IsCleared = isCleared,
             ReferenceNumber = referenceNumber,
-            Tags = tags
+            Tags = tags,
+            IsRecurring = isRecurring,
+            RecurrenceFrequency = recurrenceFrequency,
+            RecurrenceStartDate = recurrenceStartDate,
+            NextRecurrenceDate = isRecurring ? recurrenceStartDate : null
         };
 
         _context.Transactions.Add(transaction);
@@ -139,6 +146,9 @@ public class TransactionService : ITransactionService
         bool isCleared,
         string? referenceNumber,
         string? tags,
+        bool isRecurring = false,
+        RecurrenceFrequency? recurrenceFrequency = null,
+        DateTime? recurrenceStartDate = null,
         CancellationToken cancellationToken = default)
     {
         var transaction = await _context.Transactions
@@ -160,6 +170,20 @@ public class TransactionService : ITransactionService
         transaction.IsCleared = isCleared;
         transaction.ReferenceNumber = referenceNumber;
         transaction.Tags = tags;
+        transaction.IsRecurring = isRecurring;
+        transaction.RecurrenceFrequency = recurrenceFrequency;
+        transaction.RecurrenceStartDate = recurrenceStartDate;
+        
+        // Update NextRecurrenceDate if recurrence settings changed
+        if (isRecurring && recurrenceStartDate.HasValue)
+        {
+            transaction.NextRecurrenceDate = recurrenceStartDate.Value;
+        }
+        else if (!isRecurring)
+        {
+            transaction.NextRecurrenceDate = null;
+        }
+        
         transaction.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);

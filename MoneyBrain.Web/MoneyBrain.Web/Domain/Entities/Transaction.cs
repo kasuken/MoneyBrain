@@ -58,6 +58,31 @@ public class Transaction
     /// </summary>
     public int? TransferTransactionId { get; set; }
     
+    /// <summary>
+    /// Whether this transaction recurs automatically.
+    /// </summary>
+    public bool IsRecurring { get; set; }
+    
+    /// <summary>
+    /// Recurrence frequency (if IsRecurring is true).
+    /// </summary>
+    public RecurrenceFrequency? RecurrenceFrequency { get; set; }
+    
+    /// <summary>
+    /// First date when this recurring transaction should appear.
+    /// </summary>
+    public DateTime? RecurrenceStartDate { get; set; }
+    
+    /// <summary>
+    /// Next scheduled date for this recurring transaction (updated after each occurrence).
+    /// </summary>
+    public DateTime? NextRecurrenceDate { get; set; }
+    
+    /// <summary>
+    /// If this transaction was auto-generated from a recurring template, this links to the template.
+    /// </summary>
+    public int? RecurringTemplateId { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -72,6 +97,8 @@ public class Transaction
     public Reconciliation? Reconciliation { get; set; }
     
     public Transaction? TransferTransaction { get; set; }
+    
+    public Transaction? RecurringTemplate { get; set; }
     
     public ICollection<TransactionSplit> Splits { get; set; } = [];
     

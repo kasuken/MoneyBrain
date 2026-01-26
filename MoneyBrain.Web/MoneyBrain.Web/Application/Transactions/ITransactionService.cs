@@ -44,6 +44,9 @@ public interface ITransactionService
         bool isCleared,
         string? referenceNumber,
         string? tags,
+        bool isRecurring = false,
+        RecurrenceFrequency? recurrenceFrequency = null,
+        DateTime? recurrenceStartDate = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -61,6 +64,9 @@ public interface ITransactionService
         bool isCleared,
         string? referenceNumber,
         string? tags,
+        bool isRecurring = false,
+        RecurrenceFrequency? recurrenceFrequency = null,
+        DateTime? recurrenceStartDate = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>

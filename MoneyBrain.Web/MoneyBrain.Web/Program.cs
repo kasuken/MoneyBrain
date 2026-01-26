@@ -15,6 +15,7 @@ using MoneyBrain.Web.Application.Reporting.CsvExport;
 using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Application.Transactions.Ledger;
+using MoneyBrain.Web.Application.Transactions.RecurringTransactions;
 using MoneyBrain.Web.Components;
 using MoneyBrain.Web.Components.Account;
 using MoneyBrain.Web.Data;
@@ -63,6 +64,7 @@ builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ITransactionCsvImportService, TransactionCsvImportService>();
+builder.Services.AddScoped<IRecurringTransactionService, RecurringTransactionService>();
 builder.Services.AddScoped<IReconciliationService, ReconciliationService>();
 builder.Services.AddScoped<ILedgerService, LedgerService>();
 builder.Services.AddScoped<ICashflowService, CashflowService>();
@@ -71,6 +73,9 @@ builder.Services.AddScoped<IBudgetComparisonService, BudgetComparisonService>();
 builder.Services.AddScoped<INetWorthService, NetWorthService>();
 builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryService>();
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
+
+// Background services
+builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.RecurringTransactionBackgroundService>();
 
 var app = builder.Build();
 
