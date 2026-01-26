@@ -75,7 +75,7 @@ public class LedgerService(ApplicationDbContext context) : ILedgerService
         }
 
         var query = context.LedgerEntries
-            .Where(le => le.AccountId == accountId && le.UserId == userId);
+            .Where(le => le.AccountId == accountId && le.UserId == userId && le.CategoryId == null);
 
         // Filter by date if specified
         if (asOfDate.HasValue)
