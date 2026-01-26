@@ -226,13 +226,18 @@
                                             <MudText>@category.Name</MudText>
                                         </div>
                                         <div class="d-flex gap-1">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                                           Size="Size.Small"
-                                                           OnClick="@(() => OpenEditCategoryDialog(category))" />
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                                           Size="Size.Small"
-                                                           Color="Color.Error"
-                                                           OnClick="@(() => DeleteCategory(category))" />
+                                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                                                <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenRenameCategoryDialog(category))">
+                                                    Rename
+                                                </MudMenuItem>
+                                                <MudMenuItem Icon="@Icons.Material.Filled.Merge" OnClick="@(() => OpenMergeCategoryDialog(category))">
+                                                    Merge into another category
+                                                </MudMenuItem>
+                                                <MudDivider />
+                                                <MudMenuItem Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DeleteCategory(category))">
+                                                    <MudText Color="Color.Error">Delete</MudText>
+                                                </MudMenuItem>
+                                            </MudMenu>
                                         </div>
                                     </div>
                                 </MudListItem>
@@ -489,6 +494,45 @@
             {
                 SnackbarService.Add("Failed to delete category", Severity.Error);
             }
+        }
+    }
+
+    private async Task OpenRenameCategoryDialog(Category category)
+    {
+        var parameters = new DialogParameters<CategoryDialog>
+        {
+            { x => x.UserId, _userId },
+            { x => x.Category, category },
+            { x => x.IsNew, false }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CategoryDialog>("Rename Category", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadCategories();
+            SnackbarService.Add("Category renamed successfully", Severity.Success);
+        }
+    }
+
+    private async Task OpenMergeCategoryDialog(Category category)
+    {
+        var parameters = new DialogParameters<MergeCategoryDialog>
+        {
+            { x => x.SourceCategory, category },
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<MergeCategoryDialog>("Merge Category", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadCategories();
+            SnackbarService.Add($"Category '{category.Name}' merged successfully", Severity.Success);
         }
     }
 

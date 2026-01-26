@@ -451,4 +451,137 @@ public class CategoryService : ICategoryService
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public async Task<bool> RenameCategoryAsync(int categoryId, string userId, string newName, CancellationToken cancellationToken = default)
+    {
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
+
+        if (category == null)
+            return false;
+
+        // Check if new name already exists in the same group
+        var nameExists = await _context.Categories
+            .AnyAsync(c => c.UserId == userId && c.CategoryGroupId == category.CategoryGroupId && 
+                          c.Name == newName && c.Id != categoryId && c.IsActive, cancellationToken);
+
+        if (nameExists)
+            throw new InvalidOperationException($"A category named '{newName}' already exists in this group");
+
+        category.Name = newName;
+        category.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> MergeCategoriesAsync(int sourceCategoryId, int targetCategoryId, string userId, CancellationToken cancellationToken = default)
+    {
+        if (sourceCategoryId == targetCategoryId)
+            throw new InvalidOperationException("Cannot merge a category into itself");
+
+        // Verify both categories exist and belong to user
+        var sourceCategory = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == sourceCategoryId && c.UserId == userId, cancellationToken);
+
+        var targetCategory = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == targetCategoryId && c.UserId == userId, cancellationToken);
+
+        if (sourceCategory == null || targetCategory == null)
+            throw new InvalidOperationException("Source or target category not found");
+
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            // Update all transactions from source to target
+            var transactions = await _context.Transactions
+                .Where(t => t.CategoryId == sourceCategoryId && t.UserId == userId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var txn in transactions)
+            {
+                txn.CategoryId = targetCategoryId;
+                txn.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Update all transaction splits from source to target
+            var splits = await _context.TransactionSplits
+                .Include(ts => ts.Transaction)
+                .Where(ts => ts.CategoryId == sourceCategoryId && ts.Transaction.UserId == userId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var split in splits)
+            {
+                split.CategoryId = targetCategoryId;
+            }
+
+            // Handle monthly budgets - merge or delete
+            var sourceBudgets = await _context.MonthlyBudgets
+                .Where(mb => mb.CategoryId == sourceCategoryId && mb.UserId == userId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var sourceBudget in sourceBudgets)
+            {
+                // Check if target already has a budget for the same period
+                var targetBudget = await _context.MonthlyBudgets
+                    .FirstOrDefaultAsync(mb => mb.CategoryId == targetCategoryId && mb.UserId == userId &&
+                                              mb.IsDefault == sourceBudget.IsDefault &&
+                                              mb.Year == sourceBudget.Year && mb.Month == sourceBudget.Month, 
+                                        cancellationToken);
+
+                if (targetBudget == null)
+                {
+                    // Move the source budget to target
+                    sourceBudget.CategoryId = targetCategoryId;
+                    sourceBudget.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    // Target already has a budget, just delete source
+                    _context.MonthlyBudgets.Remove(sourceBudget);
+                }
+            }
+
+            // Handle named budget categories
+            var sourceBudgetCategories = await _context.BudgetCategories
+                .Where(bc => bc.CategoryId == sourceCategoryId)
+                .Include(bc => bc.Budget)
+                .Where(bc => bc.Budget.UserId == userId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var sourceBudgetCategory in sourceBudgetCategories)
+            {
+                // Check if target already has this budget assignment
+                var targetBudgetCategory = await _context.BudgetCategories
+                    .FirstOrDefaultAsync(bc => bc.BudgetId == sourceBudgetCategory.BudgetId && 
+                                              bc.CategoryId == targetCategoryId, cancellationToken);
+
+                if (targetBudgetCategory == null)
+                {
+                    // Move the source budget category to target
+                    sourceBudgetCategory.CategoryId = targetCategoryId;
+                }
+                else
+                {
+                    // Target already has this budget, just delete source
+                    _context.BudgetCategories.Remove(sourceBudgetCategory);
+                }
+            }
+
+            // Soft-delete the source category
+            sourceCategory.IsActive = false;
+            sourceCategory.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
 }

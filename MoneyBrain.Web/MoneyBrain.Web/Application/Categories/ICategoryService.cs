@@ -122,4 +122,15 @@ public interface ICategoryService
     /// Delete month-specific override (reverts to default)
     /// </summary>
     Task<bool> DeleteMonthOverrideAsync(int categoryId, string userId, int year, int month, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Rename a category (preserves all history)
+    /// </summary>
+    Task<bool> RenameCategoryAsync(int categoryId, string userId, string newName, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Merge source category into target category
+    /// Updates all transactions and budgets from source to target, then soft-deletes source
+    /// </summary>
+    Task<bool> MergeCategoriesAsync(int sourceCategoryId, int targetCategoryId, string userId, CancellationToken cancellationToken = default);
 }

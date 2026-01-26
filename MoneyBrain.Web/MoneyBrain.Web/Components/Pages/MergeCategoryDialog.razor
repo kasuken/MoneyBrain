@@ -1,0 +1,172 @@
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@inject ICategoryService CategoryService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (_errorMessage != null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true">@_errorMessage</MudAlert>
+            }
+
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                <MudText Typo="Typo.body2" Class="mb-2">
+                    <strong>Warning:</strong> This action will merge all data from the source category into the target category.
+                </MudText>
+                <MudText Typo="Typo.caption">
+                    • All transactions and splits will be moved to the target category<br/>
+                    • Budget data will be merged (target takes precedence if conflicts exist)<br/>
+                    • The source category will be deactivated<br/>
+                    • This action cannot be undone
+                </MudText>
+            </MudAlert>
+
+            <MudText Typo="Typo.body2" Class="mb-2">
+                <strong>Merge from (Source):</strong>
+            </MudText>
+            <MudPaper Class="pa-3" Outlined="true">
+                <div class="d-flex flex-column">
+                    <MudText Typo="Typo.body1">@SourceCategory.Name</MudText>
+                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
+                        @SourceCategory.CategoryGroup.Name
+                    </MudText>
+                </div>
+            </MudPaper>
+
+            <div class="d-flex align-center justify-center">
+                <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Large" Color="Color.Primary" />
+            </div>
+
+            <MudText Typo="Typo.body2" Class="mb-2">
+                <strong>Merge into (Target):</strong>
+            </MudText>
+            <MudSelect @bind-Value="_selectedTargetCategoryId" 
+                       Label="Select target category" 
+                       Variant="Variant.Outlined"
+                       Required="true"
+                       HelperText="All source category data will be merged into this category">
+                @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
+                {
+                    var categories = _allCategories
+                        .Where(c => c.CategoryGroupId == group.Id && c.Id != SourceCategory.Id)
+                        .OrderBy(c => c.SortOrder)
+                        .ThenBy(c => c.Name)
+                        .ToList();
+
+                    if (categories.Any())
+                    {
+                        <MudSelectItem Value="0" Disabled="true">
+                            <MudText Typo="Typo.caption" Style="font-weight: 600; color: var(--mb-text-muted);">
+                                @group.Name
+                            </MudText>
+                        </MudSelectItem>
+                        
+                        @foreach (var category in categories)
+                        {
+                            <MudSelectItem Value="@category.Id">
+                                <MudText Typo="Typo.body2" Class="ms-3">@category.Name</MudText>
+                            </MudSelectItem>
+                        }
+                    }
+                }
+            </MudSelect>
+
+            @if (_selectedTargetCategoryId > 0)
+            {
+                var targetCategory = _allCategories.FirstOrDefault(c => c.Id == _selectedTargetCategoryId);
+                if (targetCategory != null)
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        <MudText Typo="Typo.caption">
+                            <strong>Result:</strong> Category "@SourceCategory.Name" will be merged into "@targetCategory.Name" 
+                            (@targetCategory.CategoryGroup.Name)
+                        </MudText>
+                    </MudAlert>
+                }
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="_isSubmitting">Cancel</MudButton>
+        <MudButton Color="Color.Error" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="@(_isSubmitting || _selectedTargetCategoryId == 0)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            Merge Categories
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public Category SourceCategory { get; set; } = null!;
+    [Parameter] public string UserId { get; set; } = string.Empty;
+
+    private List<CategoryGroup> _categoryGroups = [];
+    private List<Category> _allCategories = [];
+    private int _selectedTargetCategoryId;
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load all category groups and categories
+        _categoryGroups = await CategoryService.GetCategoryGroupsAsync(UserId, includeCategories: false);
+        _allCategories = await CategoryService.GetCategoriesAsync(UserId, includeInactive: false);
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (_selectedTargetCategoryId == 0)
+        {
+            _errorMessage = "Please select a target category";
+            return;
+        }
+
+        if (_selectedTargetCategoryId == SourceCategory.Id)
+        {
+            _errorMessage = "Cannot merge a category into itself";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            var success = await CategoryService.MergeCategoriesAsync(
+                SourceCategory.Id, 
+                _selectedTargetCategoryId, 
+                UserId);
+
+            if (success)
+            {
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                _errorMessage = "Failed to merge categories";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}
