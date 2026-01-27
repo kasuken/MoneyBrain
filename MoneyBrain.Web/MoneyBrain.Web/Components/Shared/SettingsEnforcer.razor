@@ -1,6 +1,11 @@
 @using MoneyBrain.Web.Application.Settings
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
 
 @inject IUserSettingsService SettingsService
+@inject IAccountService AccountService
+@inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -56,27 +61,39 @@ else
 
     private async Task ShowSetupDialogAsync(string userId)
     {
-        var parameters = new DialogParameters<SetupRequiredDialog>
+        var parameters = new DialogParameters<SetupWizard>
         {
             { x => x.UserId, userId },
             { x => x.Currencies, SettingsService.GetAvailableCurrencies() },
             { x => x.TimeZones, SettingsService.GetAvailableTimeZones() },
-            { x => x.OnSave, SaveSettingsAsync }
+            { x => x.OnSaveSettings, SaveSettingsAsync },
+            { x => x.OnCreateAccount, CreateAccountAsync },
+            { x => x.OnSeedCategories, SeedCategoriesAsync }
         };
 
         var options = new DialogOptions
         {
             CloseButton = false,
             BackdropClick = false,
-            MaxWidth = MaxWidth.Small,
+            MaxWidth = MaxWidth.Medium,
             FullWidth = true
         };
 
-        await DialogService.ShowAsync<SetupRequiredDialog>("Setup Required", parameters, options);
+        await DialogService.ShowAsync<SetupWizard>("Setup Wizard", parameters, options);
     }
 
     private async Task SaveSettingsAsync(string userId, string currencyCode, string timeZoneId, string? dateFormat)
     {
         await SettingsService.SaveSettingsAsync(userId, currencyCode, timeZoneId, dateFormat);
+    }
+
+    private async Task<Account> CreateAccountAsync(Account account)
+    {
+        return await AccountService.CreateAccountAsync(account);
+    }
+
+    private async Task SeedCategoriesAsync(string userId)
+    {
+        await CategoryService.SeedDefaultCategoriesAsync(userId);
     }
 }

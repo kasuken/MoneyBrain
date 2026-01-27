@@ -1,0 +1,530 @@
+@using MoneyBrain.Web.Application.Settings
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
+
+<MudDialog Options="@(new DialogOptions { CloseButton = false, BackdropClick = false, MaxWidth = MaxWidth.Medium, FullWidth = true })">
+    <DialogContent>
+        <MudStepper @ref="_stepper" 
+                    @bind-ActiveIndex="_activeStep"
+                    Vertical="false"
+                    Class="mb-setup-wizard">
+            
+            <!-- Step 1: Welcome -->
+            <MudStep Title="Welcome" Icon="@Icons.Material.Filled.Celebration">
+                <div class="text-center pa-6">
+                    <div class="mb-logo" style="justify-content: center; margin-bottom: 2rem;">
+                        <div class="mb-logo-icon" style="width: 64px; height: 64px; font-size: 1.75rem;">M</div>
+                    </div>
+                    <MudText Typo="Typo.h4" Class="mb-4" Style="font-weight: 700; color: var(--mb-text-primary);">
+                        Welcome to MoneyBrain!
+                    </MudText>
+                    <MudText Typo="Typo.body1" Style="color: var(--mb-text-secondary); max-width: 500px; margin: 0 auto;">
+                        Your personal finance companion. Let's set up your account in just a few steps. 
+                        This will only take a couple of minutes.
+                    </MudText>
+                    
+                    <MudStack Row="true" Justify="Justify.Center" Class="mt-8" Spacing="6">
+                        <div class="text-center">
+                            <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2" Class="mt-2">Configure Settings</MudText>
+                        </div>
+                        <div class="text-center">
+                            <MudIcon Icon="@Icons.Material.Outlined.AccountBalance" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2" Class="mt-2">Add Account</MudText>
+                        </div>
+                        <div class="text-center">
+                            <MudIcon Icon="@Icons.Material.Outlined.Category" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2" Class="mt-2">Setup Categories</MudText>
+                        </div>
+                    </MudStack>
+                </div>
+            </MudStep>
+
+            <!-- Step 2: Settings -->
+            <MudStep Title="Settings" Icon="@Icons.Material.Filled.Settings">
+                <div class="pa-4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Configure Your Preferences</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
+                        Choose your currency, timezone, and date format. These settings help us display values correctly for you.
+                    </MudText>
+                    
+                    <MudForm @ref="_settingsForm" @bind-IsValid="@_settingsValid">
+                        <MudStack Spacing="4">
+                            <MudSelect T="string"
+                                       Label="Currency"
+                                       @bind-Value="_currencyCode"
+                                       Required="true"
+                                       RequiredError="Please select your currency"
+                                       Variant="Variant.Outlined"
+                                       AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var currency in Currencies)
+                                {
+                                    <MudSelectItem T="string" Value="@currency.Code">
+                                        @currency.Code - @currency.Name (@currency.Symbol)
+                                    </MudSelectItem>
+                                }
+                            </MudSelect>
+
+                            <MudSelect T="string"
+                                       Label="Timezone"
+                                       @bind-Value="_timeZoneId"
+                                       Required="true"
+                                       RequiredError="Please select your timezone"
+                                       Variant="Variant.Outlined"
+                                       AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var tz in TimeZones)
+                                {
+                                    <MudSelectItem T="string" Value="@tz.Id">
+                                        @tz.DisplayName
+                                    </MudSelectItem>
+                                }
+                            </MudSelect>
+
+                            <MudSelect T="string"
+                                       Label="Date Format"
+                                       @bind-Value="_dateFormat"
+                                       Variant="Variant.Outlined"
+                                       AnchorOrigin="Origin.BottomCenter">
+                                <MudSelectItem T="string" Value="@("yyyy-MM-dd")">2025-01-25 (ISO)</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("MM/dd/yyyy")">01/25/2025 (US)</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("dd/MM/yyyy")">25/01/2025 (EU)</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("dd.MM.yyyy")">25.01.2025</MudSelectItem>
+                            </MudSelect>
+                        </MudStack>
+                    </MudForm>
+                </div>
+            </MudStep>
+
+            <!-- Step 3: First Account -->
+            <MudStep Title="First Account" Icon="@Icons.Material.Filled.AccountBalance">
+                <div class="pa-4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Create Your First Account</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
+                        Add your first bank account, credit card, or cash account to start tracking your finances.
+                    </MudText>
+                    
+                    <MudForm @ref="_accountForm" @bind-IsValid="@_accountValid">
+                        <MudStack Spacing="3">
+                            <MudTextField @bind-Value="_accountName"
+                                          Label="Account Name"
+                                          Required="true"
+                                          RequiredError="Account name is required"
+                                          MaxLength="100"
+                                          Variant="Variant.Outlined"
+                                          Placeholder="e.g., Chase Checking, Main Credit Card" />
+
+                            <MudStack Row="true" Spacing="3">
+                                <MudSelect @bind-Value="_accountType"
+                                           Label="Account Type"
+                                           Required="true"
+                                           Variant="Variant.Outlined"
+                                           Style="flex: 1;">
+                                    <MudSelectItem Value="@AccountType.Asset">Asset (Bank, Cash, Savings)</MudSelectItem>
+                                    <MudSelectItem Value="@AccountType.Liability">Liability (Credit Card, Loan)</MudSelectItem>
+                                </MudSelect>
+
+                                <MudSelect @bind-Value="_accountSubType"
+                                           Label="Sub-Type"
+                                           Required="true"
+                                           Variant="Variant.Outlined"
+                                           Style="flex: 1;">
+                                    @if (_accountType == AccountType.Asset)
+                                    {
+                                        <MudSelectItem Value="@AccountSubType.Checking">Checking</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Savings">Savings</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Cash">Cash</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Investment">Investment</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.OtherAsset">Other Asset</MudSelectItem>
+                                    }
+                                    else
+                                    {
+                                        <MudSelectItem Value="@AccountSubType.CreditCard">Credit Card</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Loan">Loan</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Mortgage">Mortgage</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.OtherLiability">Other Liability</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudStack>
+
+                            <MudNumericField @bind-Value="_openingBalance"
+                                             Label="Current Balance"
+                                             Variant="Variant.Outlined"
+                                             Format="N2"
+                                             HelperText="Enter the current balance of this account" />
+                        </MudStack>
+                    </MudForm>
+
+                    @if (_createdAccounts.Count > 0)
+                    {
+                        <MudDivider Class="my-4" />
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Accounts Added:</MudText>
+                        <MudStack Spacing="2">
+                            @foreach (var account in _createdAccounts)
+                            {
+                                <MudPaper Class="pa-3 d-flex align-center justify-space-between" Elevation="0" Style="border: 1px solid var(--mb-border);">
+                                    <div class="d-flex align-center gap-3">
+                                        <MudIcon Icon="@GetAccountIcon(account.SubType)" Color="Color.Primary" />
+                                        <div>
+                                            <MudText Typo="Typo.body1" Style="font-weight: 500;">@account.Name</MudText>
+                                            <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@account.SubType.ToString()</MudText>
+                                        </div>
+                                    </div>
+                                    <MudText Typo="Typo.body2" Class="@(account.OpeningBalance >= 0 ? "mb-amount positive" : "mb-amount negative")">
+                                        @account.OpeningBalance.ToString("C2")
+                                    </MudText>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                        
+                        <MudButton Variant="Variant.Text" 
+                                   Color="Color.Primary" 
+                                   Class="mt-3"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="AddAnotherAccount">
+                            Add another account
+                        </MudButton>
+                    }
+                </div>
+            </MudStep>
+
+            <!-- Step 4: Categories -->
+            <MudStep Title="Categories" Icon="@Icons.Material.Filled.Category">
+                <div class="pa-4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Setup Categories</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
+                        Categories help you organize and track your spending. We'll set up some common categories for you.
+                    </MudText>
+                    
+                    <MudPaper Class="pa-4" Elevation="0" Style="border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg);">
+                        <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="3">
+                            <MudIcon Icon="@Icons.Material.Outlined.AutoAwesome" Color="Color.Primary" Size="Size.Large" />
+                            <div>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">Default Categories</MudText>
+                                <MudText Typo="Typo.body2" Style="color: var(--mb-text-secondary);">
+                                    We'll create a set of common categories to get you started:
+                                </MudText>
+                                
+                                <MudStack Row="true" Spacing="2" Class="mt-3" Wrap="Wrap.Wrap">
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Housing</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Transportation</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Food & Dining</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Utilities</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Shopping</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Entertainment</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Healthcare</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Income</MudChip>
+                                    <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Small">+ more</MudChip>
+                                </MudStack>
+                            </div>
+                        </MudStack>
+                    </MudPaper>
+                    
+                    <MudAlert Severity="Severity.Info" Class="mt-4" Dense="true">
+                        <MudText Typo="Typo.body2">
+                            You can customize, add, or remove categories at any time from the Categories page.
+                        </MudText>
+                    </MudAlert>
+                </div>
+            </MudStep>
+
+            <!-- Step 5: Complete -->
+            <MudStep Title="Complete" Icon="@Icons.Material.Filled.CheckCircle">
+                <div class="text-center pa-6">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
+                             Color="Color.Success" 
+                             Style="font-size: 80px;" 
+                             Class="mb-4" />
+                    
+                    <MudText Typo="Typo.h4" Class="mb-2" Style="font-weight: 700; color: var(--mb-text-primary);">
+                        You're All Set!
+                    </MudText>
+                    <MudText Typo="Typo.body1" Class="mb-6" Style="color: var(--mb-text-secondary);">
+                        Your MoneyBrain account is ready. Here's a summary of what we set up:
+                    </MudText>
+                    
+                    <MudPaper Class="pa-4 text-left" Elevation="0" Style="border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg); max-width: 400px; margin: 0 auto;">
+                        <MudStack Spacing="3">
+                            <div class="d-flex align-center gap-3">
+                                <MudIcon Icon="@Icons.Material.Outlined.Payments" Color="Color.Primary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Currency</MudText>
+                                    <MudText Typo="Typo.body1">@GetCurrencyDisplay()</MudText>
+                                </div>
+                            </div>
+                            
+                            <MudDivider />
+                            
+                            <div class="d-flex align-center gap-3">
+                                <MudIcon Icon="@Icons.Material.Outlined.Schedule" Color="Color.Primary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Timezone</MudText>
+                                    <MudText Typo="Typo.body1">@GetTimezoneDisplay()</MudText>
+                                </div>
+                            </div>
+                            
+                            <MudDivider />
+                            
+                            <div class="d-flex align-center gap-3">
+                                <MudIcon Icon="@Icons.Material.Outlined.AccountBalance" Color="Color.Primary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Accounts</MudText>
+                                    <MudText Typo="Typo.body1">@_createdAccounts.Count account(s) created</MudText>
+                                </div>
+                            </div>
+                            
+                            <MudDivider />
+                            
+                            <div class="d-flex align-center gap-3">
+                                <MudIcon Icon="@Icons.Material.Outlined.Category" Color="Color.Primary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Categories</MudText>
+                                    <MudText Typo="Typo.body1">Default categories ready</MudText>
+                                </div>
+                            </div>
+                        </MudStack>
+                    </MudPaper>
+                </div>
+            </MudStep>
+        </MudStepper>
+    </DialogContent>
+    <DialogActions>
+        <MudStack Row="true" Justify="Justify.SpaceBetween" Style="width: 100%;" Class="px-2">
+            <div>
+                @if (_activeStep > 0 && _activeStep < 5)
+                {
+                    <MudButton OnClick="PreviousStepAsync"
+                               Variant="Variant.Text"
+                               Disabled="@_saving">
+                        Back
+                    </MudButton>
+                }
+            </div>
+            <div>
+                @if (_activeStep == 4)
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="mb-btn-primary"
+                               OnClick="CompleteSetupAsync"
+                               Disabled="@_saving">
+                        @if (_saving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                        }
+                        Get Started
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="mb-btn-primary"
+                               OnClick="NextStepAsync"
+                               Disabled="@_saving">
+                        @if (_saving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                        }
+                        @GetNextButtonText()
+                    </MudButton>
+                }
+            </div>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    [Parameter]
+    public IReadOnlyList<CurrencyInfo> Currencies { get; set; } = [];
+
+    [Parameter]
+    public IReadOnlyList<TimeZoneInfo> TimeZones { get; set; } = [];
+
+    [Parameter]
+    public Func<string, string, string, string?, Task> OnSaveSettings { get; set; } = null!;
+
+    [Parameter]
+    public Func<Account, Task<Account>> OnCreateAccount { get; set; } = null!;
+
+    [Parameter]
+    public Func<string, Task> OnSeedCategories { get; set; } = null!;
+
+    private MudStepper? _stepper;
+    private int _activeStep;
+    private bool _saving;
+
+    // Settings form
+    private MudForm? _settingsForm;
+    private bool _settingsValid;
+    private string _currencyCode = "USD";
+    private string _timeZoneId = TimeZoneInfo.Local.Id;
+    private string _dateFormat = "yyyy-MM-dd";
+
+    // Account form
+    private MudForm? _accountForm;
+    private bool _accountValid;
+    private string _accountName = string.Empty;
+    private AccountType _accountType = AccountType.Asset;
+    private AccountSubType _accountSubType = AccountSubType.Checking;
+    private decimal _openingBalance;
+    private List<Account> _createdAccounts = new();
+    private bool _addingAnother;
+
+    private string GetNextButtonText()
+    {
+        return _activeStep switch
+        {
+            0 => "Let's Go",
+            1 => "Continue",
+            2 => _createdAccounts.Count == 0 ? "Create Account" : "Continue",
+            3 => "Finish Setup",
+            _ => "Next"
+        };
+    }
+
+    private Task PreviousStepAsync()
+    {
+        if (_activeStep > 0)
+        {
+            _activeStep--;
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task NextStepAsync()
+    {
+        // Validate settings form on step 1
+        if (_activeStep == 1)
+        {
+            if (_settingsForm != null)
+            {
+                await _settingsForm.Validate();
+                if (!_settingsValid) return;
+            }
+        }
+
+        // Handle account creation on step 2
+        if (_activeStep == 2 && _createdAccounts.Count == 0)
+        {
+            if (_accountForm != null)
+            {
+                await _accountForm.Validate();
+                if (!_accountValid) return;
+            }
+            
+            await CreateAccountAsync();
+            if (_createdAccounts.Count == 0) return;
+        }
+
+        // Seed categories when moving to step 4
+        if (_activeStep == 3)
+        {
+            _saving = true;
+            try
+            {
+                await OnSeedCategories(UserId);
+            }
+            finally
+            {
+                _saving = false;
+            }
+        }
+
+        _activeStep++;
+    }
+
+    private async Task CreateAccountAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_accountName)) return;
+
+        _saving = true;
+        try
+        {
+            var account = new Account
+            {
+                UserId = UserId,
+                Name = _accountName,
+                Type = _accountType,
+                SubType = _accountSubType,
+                OpeningBalance = _openingBalance,
+                IsActive = true
+            };
+
+            var created = await OnCreateAccount(account);
+            _createdAccounts.Add(created);
+            
+            // Reset form for another account
+            ResetAccountForm();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void ResetAccountForm()
+    {
+        _accountName = string.Empty;
+        _accountType = AccountType.Asset;
+        _accountSubType = AccountSubType.Checking;
+        _openingBalance = 0;
+        _accountValid = false;
+        _addingAnother = false;
+    }
+
+    private void AddAnotherAccount()
+    {
+        _addingAnother = true;
+        ResetAccountForm();
+    }
+
+    private async Task CompleteSetupAsync()
+    {
+        _saving = true;
+        try
+        {
+            // Save settings (this marks setup as complete)
+            await OnSaveSettings(UserId, _currencyCode, _timeZoneId, _dateFormat);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private string GetCurrencyDisplay()
+    {
+        var currency = Currencies.FirstOrDefault(c => c.Code == _currencyCode);
+        return currency != null ? $"{currency.Code} - {currency.Name}" : _currencyCode;
+    }
+
+    private string GetTimezoneDisplay()
+    {
+        var tz = TimeZones.FirstOrDefault(t => t.Id == _timeZoneId);
+        return tz?.DisplayName ?? _timeZoneId;
+    }
+
+    private string GetAccountIcon(AccountSubType subType)
+    {
+        return subType switch
+        {
+            AccountSubType.Checking => Icons.Material.Outlined.AccountBalance,
+            AccountSubType.Savings => Icons.Material.Outlined.Savings,
+            AccountSubType.Cash => Icons.Material.Outlined.Payments,
+            AccountSubType.Investment => Icons.Material.Outlined.TrendingUp,
+            AccountSubType.CreditCard => Icons.Material.Outlined.CreditCard,
+            AccountSubType.Loan => Icons.Material.Outlined.Receipt,
+            AccountSubType.Mortgage => Icons.Material.Outlined.Home,
+            _ => Icons.Material.Outlined.AccountBalanceWallet
+        };
+    }
+}
