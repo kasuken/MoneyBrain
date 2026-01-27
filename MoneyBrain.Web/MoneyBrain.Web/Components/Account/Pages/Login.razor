@@ -13,61 +13,62 @@
 
 <PageTitle>Log in</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
-    <div class="col-lg-6">
-        <section>
-            <StatusMessage Message="@errorMessage"/>
-            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
-                <DataAnnotationsValidator/>
-                <h2>Use a local account to log in.</h2>
-                <hr/>
-                <ValidationSummary class="text-danger" role="alert"/>
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="name@example.com"/>
-                    <label for="Input.Email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger"/>
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password"/>
-                    <label for="Input.Password" class="form-label">Password</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger"/>
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input"/>
-                        Remember me
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <hr/>
-                <div class="d-flex flex-column">
-                    <span class="text-secondary mx-auto mt-2">OR</span>
-                    <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
-                </div>
-                <hr/>
-                <div>
-                    <p>
-                        <a href="Account/ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a href="Account/ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </EditForm>
-        </section>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr/>
-            <ExternalLoginPicker/>
-        </section>
+<div class="mb-page mb-animate-in">
+    <div style="max-width: 480px; margin: 0 auto; padding-top: 4rem;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <div class="mb-logo" style="justify-content: center; margin-bottom: 1rem;">
+                <div class="mb-logo-icon">M</div>
+                <span>MoneyBrain</span>
+            </div>
+            <h1 style="font-weight: 700; color: var(--mb-text-primary); margin-bottom: 0.5rem; font-size: 1.75rem;">Welcome back</h1>
+            <p style="color: var(--mb-text-secondary); margin-bottom: 0;">Sign in to your account to continue</p>
+        </div>
+
+        <div class="mb-card" style="padding: 2rem;">
+            <section>
+                <StatusMessage Message="@errorMessage"/>
+                <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
+                    <DataAnnotationsValidator/>
+                    <ValidationSummary class="text-danger" role="alert"/>
+                    <div class="form-floating mb-3">
+                        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="name@example.com"/>
+                        <label for="Input.Email" class="form-label">Email</label>
+                        <ValidationMessage For="() => Input.Email" class="text-danger"/>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password"/>
+                        <label for="Input.Password" class="form-label">Password</label>
+                        <ValidationMessage For="() => Input.Password" class="text-danger"/>
+                    </div>
+                    <div class="checkbox mb-3">
+                        <label class="form-label">
+                            <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input"/>
+                            Remember me
+                        </label>
+                    </div>
+                    <div>
+                        <button type="submit" class="w-100 btn btn-lg mb-btn-primary" style="border-radius: var(--mb-radius);">Log in</button>
+                    </div>
+                    <hr/>
+                    <div class="d-flex flex-column">
+                        <span class="text-secondary mx-auto mt-2">OR</span>
+                        <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
+                    </div>
+                    <hr/>
+                    <div style="text-align: center;">
+                        <p>
+                            <a href="Account/ForgotPassword" style="color: var(--mb-primary); text-decoration: none;">Forgot your password?</a>
+                        </p>
+                        <p>
+                            <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" style="color: var(--mb-primary); text-decoration: none;">Register as a new user</a>
+                        </p>
+                        <p>
+                            <a href="Account/ResendEmailConfirmation" style="color: var(--mb-primary); text-decoration: none;">Resend email confirmation</a>
+                        </p>
+                    </div>
+                </EditForm>
+            </section>
+        </div>
     </div>
 </div>
 

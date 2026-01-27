@@ -103,7 +103,7 @@ app.Use(async (context, next) =>
 {
     if (context.Request.Path == "/" && context.User.Identity?.IsAuthenticated == true)
     {
-        context.Response.Redirect("/dashboard");
+        context.Response.Redirect("dashboard");
         return;
     }
 

@@ -18,12 +18,18 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 
     public void RedirectTo(string? uri)
     {
-        uri ??= "";
+        uri ??= "dashboard";
 
         // Prevent open redirects.
         if (!Uri.IsWellFormedUriString(uri, UriKind.Relative))
         {
             uri = navigationManager.ToBaseRelativePath(uri);
+        }
+
+        // Ensure no leading slash for relative URLs
+        if (uri.StartsWith("/") && !uri.StartsWith("//"))
+        {
+            uri = uri.TrimStart('/');
         }
 
         navigationManager.NavigateTo(uri);
