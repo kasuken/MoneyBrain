@@ -321,6 +321,31 @@
             }
         </MudStack>
     }
+    
+    <HelpButton Title="Categories Help"
+                Description="Organize your transactions with categories and groups. Categories help you understand where your money goes and are essential for budgeting and reporting."
+                Features="@(new[] { 
+                    "Create custom categories organized into groups",
+                    "Default categories are set up automatically for new users",
+                    "Rename categories while preserving transaction history",
+                    "Merge duplicate categories together",
+                    "View category usage statistics",
+                    "Reorder categories and groups via drag-and-drop"
+                })"
+                HowToUse="@(new[] {
+                    "Click 'Add Group' to create a new category group (e.g., 'Food', 'Housing')",
+                    "Click the + button on a group to add categories within it",
+                    "Click on a category name to rename it",
+                    "Use the menu (⋮) for merge, view usage, or delete options",
+                    "Drag categories between groups to reorganize"
+                })"
+                Tips="@(new[] {
+                    "Group related categories together (e.g., 'Groceries' and 'Restaurants' under 'Food')",
+                    "Keep category names short and clear",
+                    "Use 'Merge' to combine duplicate categories without losing data",
+                    "Deleting a category will uncategorize its transactions, not delete them",
+                    "Categories with transactions cannot be permanently deleted, only deactivated"
+                })" />
 </div>
 
 @code {

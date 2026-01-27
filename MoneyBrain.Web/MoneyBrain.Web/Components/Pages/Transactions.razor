@@ -306,6 +306,32 @@
             </PagerContent>
         </MudDataGrid>
     }
+    
+    <HelpButton Title="Transactions Help"
+                Description="View, add, and manage all your financial transactions. This is where you track every income, expense, and transfer across all your accounts."
+                Features="@(new[] { 
+                    "Add income and expense transactions manually",
+                    "Import transactions from CSV files",
+                    "Filter by date, account, category, payee, and status",
+                    "Bulk edit multiple transactions at once",
+                    "Split transactions across multiple categories",
+                    "Create transfers between accounts",
+                    "Mark transactions as cleared or reconciled"
+                })"
+                HowToUse="@(new[] {
+                    "Click 'Add Transaction' or 'Add Transfer' to create new entries",
+                    "Use 'Import CSV' to bulk import from bank exports",
+                    "Click on a transaction row to edit its details",
+                    "Use the filter panel to find specific transactions",
+                    "Select multiple rows and use 'Bulk Edit' for mass updates"
+                })"
+                Tips="@(new[] {
+                    "Positive amounts are income, negative amounts are expenses",
+                    "Use 'Posted' status for confirmed transactions, 'Pending' for future ones",
+                    "Reconciled transactions are locked and cannot be edited",
+                    "Transfers don't count as income or expense in reports",
+                    "Use the Flag column to mark important transactions for follow-up"
+                })" />
 </div>
 
 @code {

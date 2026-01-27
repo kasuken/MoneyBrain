@@ -1,0 +1,49 @@
+@* Floating help button that appears on the bottom-right of pages *@
+@rendermode InteractiveServer
+
+@inject IDialogService DialogService
+
+<MudFab StartIcon="@Icons.Material.Outlined.HelpOutline"
+        Color="Color.Primary"
+        Size="Size.Medium"
+        OnClick="ShowHelpDialog"
+        Style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;"
+        aria-label="Help" />
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Help";
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? Features { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? HowToUse { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? Tips { get; set; }
+
+    private async Task ShowHelpDialog()
+    {
+        var parameters = new DialogParameters<HelpDialog>
+        {
+            { x => x.Title, Title },
+            { x => x.Description, Description },
+            { x => x.Features, Features },
+            { x => x.HowToUse, HowToUse },
+            { x => x.Tips, Tips }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseOnEscapeKey = true
+        };
+
+        await DialogService.ShowAsync<HelpDialog>(Title, parameters, options);
+    }
+}

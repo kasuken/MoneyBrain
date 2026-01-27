@@ -241,6 +241,29 @@
             No cashflow data found for the selected period. Create some transactions to see your cashflow summary.
         </MudAlert>
     }
+    
+    <HelpButton Title="Cashflow Report Help"
+                Description="View your monthly income and expenses over time. Understand how money flows in and out of your accounts."
+                Features="@(new[] { 
+                    "Monthly breakdown of income vs expenses",
+                    "Net cashflow calculation per period",
+                    "Visual chart showing trends over time",
+                    "Selectable date range for analysis",
+                    "Summary totals for the selected period"
+                })"
+                HowToUse="@(new[] {
+                    "Set the date range using the Start and End date pickers",
+                    "Click 'Load' to refresh the data",
+                    "Review the chart for visual trends",
+                    "Scroll down to see monthly details in the table",
+                    "Green values indicate income, red indicates expenses"
+                })"
+                Tips="@(new[] {
+                    "Positive net cashflow means you're saving money",
+                    "Transfers between your accounts are excluded from this report",
+                    "Only posted transactions are included",
+                    "Use this report to identify months with unusually high expenses"
+                })" />
 </MudContainer>
 
 @code {

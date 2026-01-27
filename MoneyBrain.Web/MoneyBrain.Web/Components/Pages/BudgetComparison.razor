@@ -205,6 +205,29 @@
             Select a date range to view budget comparison.
         </MudAlert>
     }
+    
+    <HelpButton Title="Budget Comparison Help"
+                Description="Compare your planned budget amounts against actual spending across multiple months. Identify patterns and areas for improvement."
+                Features="@(new[] { 
+                    "Side-by-side comparison of budget vs actual",
+                    "Monthly breakdown by category",
+                    "Variance calculation (over/under budget)",
+                    "Visual progress indicators",
+                    "Expandable category groups"
+                })"
+                HowToUse="@(new[] {
+                    "Select the date range covering the months you want to compare",
+                    "Click 'Load' to generate the comparison",
+                    "Click on a category group row to expand details",
+                    "Review the 'Variance' column to see where you're over or under",
+                    "Use this to adjust future budget allocations"
+                })"
+                Tips="@(new[] {
+                    "Consistent overspending in a category may indicate unrealistic budgets",
+                    "Underspending might mean you can reallocate funds elsewhere",
+                    "This report helps you refine your budgets over time",
+                    "Only posted transactions are counted as actual spending"
+                })" />
 </MudContainer>
 
 @code {

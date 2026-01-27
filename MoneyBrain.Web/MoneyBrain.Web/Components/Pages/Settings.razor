@@ -95,6 +95,25 @@
             }
         </div>
     </div>
+    
+    <HelpButton Title="Settings Help"
+                Description="Configure your personal preferences for MoneyBrain. These settings affect how data is displayed throughout the application."
+                Features="@(new[] { 
+                    "Currency format and symbol customization",
+                    "Date format preferences",
+                    "Default account selection",
+                    "Display preferences and themes"
+                })"
+                HowToUse="@(new[] {
+                    "Update any setting values as needed",
+                    "Click 'Save Changes' to apply your preferences",
+                    "Changes take effect immediately across the app"
+                })"
+                Tips="@(new[] {
+                    "Currency settings affect display only, not actual values",
+                    "Choose date formats that match your region",
+                    "Settings are saved per user account"
+                })" />
 </div>
 
 @code {

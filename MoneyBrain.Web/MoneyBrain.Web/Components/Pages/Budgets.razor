@@ -206,6 +206,32 @@
             }
         </MudStack>
     }
+    
+    <HelpButton Title="Budgets Help"
+                Description="Create and manage monthly budgets using the envelope method. Assign planned amounts to categories and track your spending against those goals."
+                Features="@(new[] { 
+                    "Create budgets for specific months or use default templates",
+                    "Assign spending limits to individual categories",
+                    "Track actual spending vs. planned amounts",
+                    "Visual progress indicators show budget health",
+                    "Copy budgets to new months quickly",
+                    "Support for rollover of unused amounts (optional)"
+                })"
+                HowToUse="@(new[] {
+                    "Click 'Add Budget' to create a new monthly budget",
+                    "Set planned amounts for each category you want to track",
+                    "View the 'Remaining' column to see available funds",
+                    "Green progress = on track, Yellow = caution, Red = over budget",
+                    "Use 'Copy to Month' to duplicate a budget as a starting point",
+                    "Edit any budget to adjust planned amounts mid-month"
+                })"
+                Tips="@(new[] {
+                    "Start with your fixed expenses (rent, utilities) before discretionary spending",
+                    "Create a 'Default' budget to use as a template for new months",
+                    "Review your actual spending regularly to adjust future budgets",
+                    "Only posted transactions count toward budget spending",
+                    "Transfers are excluded from budget calculations"
+                })" />
 </div>
 
 @code {

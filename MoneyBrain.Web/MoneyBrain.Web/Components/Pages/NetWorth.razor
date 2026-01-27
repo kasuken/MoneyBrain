@@ -272,6 +272,29 @@
             Select a date range to view net worth history.
         </MudAlert>
     }
+    
+    <HelpButton Title="Net Worth Report Help"
+                Description="Track your financial progress over time. Net worth is calculated as total assets minus total liabilities."
+                Features="@(new[] { 
+                    "Historical net worth snapshots at regular intervals",
+                    "Breakdown of assets and liabilities by account",
+                    "Visual chart showing net worth trends",
+                    "Expandable rows to see account-level details",
+                    "Configurable interval (weekly, monthly, etc.)"
+                })"
+                HowToUse="@(new[] {
+                    "Set the date range for your analysis",
+                    "Choose an interval (days between snapshots)",
+                    "Click 'Load' to generate the report",
+                    "Click on a row to expand and see individual accounts",
+                    "Use the chart to visualize your financial progress"
+                })"
+                Tips="@(new[] {
+                    "Growing net worth indicates good financial health",
+                    "Asset accounts (checking, savings) add to net worth",
+                    "Liability accounts (credit cards, loans) subtract from net worth",
+                    "Regular snapshots help you track progress toward financial goals"
+                })" />
 </MudContainer>
 
 @code {

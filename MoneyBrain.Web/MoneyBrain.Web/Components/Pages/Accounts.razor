@@ -152,6 +152,29 @@
             </div>
         }
     }
+    
+    <HelpButton Title="Accounts Help"
+                Description="Manage all your financial accounts in one place. Track bank accounts, credit cards, cash, investments, and loans to get a complete picture of your finances."
+                Features="@(new[] { 
+                    "Create and manage multiple account types (checking, savings, credit cards, etc.)",
+                    "Track opening balances and current balances",
+                    "Organize accounts into groups (Personal, Business, etc.)",
+                    "View net worth summary (total assets minus liabilities)",
+                    "Deactivate accounts without losing historical data"
+                })"
+                HowToUse="@(new[] {
+                    "Click 'Add Account' to create a new account",
+                    "Select account type: Asset (things you own) or Liability (debts)",
+                    "Enter the opening balance (current balance when you start tracking)",
+                    "Click on any account to view its transactions",
+                    "Use edit/delete buttons to manage existing accounts"
+                })"
+                Tips="@(new[] {
+                    "Asset accounts (checking, savings, cash) show positive balances",
+                    "Liability accounts (credit cards, loans) affect your net worth negatively",
+                    "Group related accounts together for better organization",
+                    "You can adjust opening balances later if needed from the account settings"
+                })" />
 </div>
 
 @code {

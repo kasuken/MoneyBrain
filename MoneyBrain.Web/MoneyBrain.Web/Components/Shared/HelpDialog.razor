@@ -1,0 +1,114 @@
+@* Help dialog that shows context-specific help content *@
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" Color="Color.Primary" />
+            <MudText Typo="Typo.h6">@Title</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="4">
+            @if (!string.IsNullOrEmpty(Description))
+            {
+                <div>
+                    <MudText Typo="Typo.subtitle2" Style="color: var(--mb-text-secondary); margin-bottom: 0.5rem;">
+                        <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
+                        What's this screen?
+                    </MudText>
+                    <MudText Typo="Typo.body2">@Description</MudText>
+                </div>
+            }
+
+            @if (Features?.Any() == true)
+            {
+                <div>
+                    <MudText Typo="Typo.subtitle2" Style="color: var(--mb-text-secondary); margin-bottom: 0.5rem;">
+                        <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
+                        Key Features
+                    </MudText>
+                    <MudList T="string" Dense="true" DisableGutters="true">
+                        @foreach (var feature in Features)
+                        {
+                            <MudListItem T="string" Dense="true">
+                                <div class="d-flex align-start gap-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Color="Color.Primary" Style="margin-top: 2px;" />
+                                    <MudText Typo="Typo.body2">@feature</MudText>
+                                </div>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </div>
+            }
+
+            @if (HowToUse?.Any() == true)
+            {
+                <div>
+                    <MudText Typo="Typo.subtitle2" Style="color: var(--mb-text-secondary); margin-bottom: 0.5rem;">
+                        <MudIcon Icon="@Icons.Material.Outlined.PlayCircle" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
+                        How to Use
+                    </MudText>
+                    <MudList T="string" Dense="true" DisableGutters="true">
+                        @{
+                            var stepNumber = 1;
+                            foreach (var step in HowToUse)
+                            {
+                                <MudListItem T="string" Dense="true">
+                                    <div class="d-flex align-start gap-2">
+                                        <MudAvatar Size="Size.Small" Style="width: 20px; height: 20px; font-size: 0.75rem; background: var(--mb-primary); color: white;">@stepNumber</MudAvatar>
+                                        <MudText Typo="Typo.body2">@step</MudText>
+                                    </div>
+                                </MudListItem>
+                                stepNumber++;
+                            }
+                        }
+                    </MudList>
+                </div>
+            }
+
+            @if (Tips?.Any() == true)
+            {
+                <MudPaper Class="pa-3" Elevation="0" Style="background: var(--mb-primary-light); border-radius: var(--mb-radius);">
+                    <MudText Typo="Typo.subtitle2" Style="color: var(--mb-primary); margin-bottom: 0.5rem;">
+                        <MudIcon Icon="@Icons.Material.Outlined.Lightbulb" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
+                        Tips & Tricks
+                    </MudText>
+                    <MudStack Spacing="1">
+                        @foreach (var tip in Tips)
+                        {
+                            <MudText Typo="Typo.body2">• @tip</MudText>
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Variant="Variant.Filled" Color="Color.Primary" Class="mb-btn-primary">
+            Got it!
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string Title { get; set; } = "Help";
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? Features { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? HowToUse { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<string>? Tips { get; set; }
+
+    private void Close() => MudDialog.Close();
+}

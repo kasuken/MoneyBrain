@@ -219,6 +219,28 @@
             </div>
         }
     }
+    
+    <HelpButton Title="Dashboard Help"
+                Description="The Dashboard is your financial command center. Get a quick overview of all your accounts, net worth, and recent financial activity at a glance."
+                Features="@(new[] { 
+                    "View all account balances in one place",
+                    "Track your total net worth (assets minus liabilities)",
+                    "See monthly income vs expenses breakdown",
+                    "Monitor cashflow trends over time",
+                    "Quick access to add new accounts"
+                })"
+                HowToUse="@(new[] {
+                    "Review your account cards to see current balances",
+                    "Check the Net Worth section for your overall financial health",
+                    "Use the cashflow chart to spot spending patterns",
+                    "Click on any account card to view its transactions"
+                })"
+                Tips="@(new[] {
+                    "Green amounts indicate positive balances or income",
+                    "Red amounts indicate liabilities or expenses",
+                    "The dashboard updates automatically when you add transactions",
+                    "Use the quick-add button to create new accounts fast"
+                })" />
 </div>
 
 @code {

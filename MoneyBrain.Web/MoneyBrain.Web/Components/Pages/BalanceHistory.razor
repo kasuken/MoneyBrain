@@ -154,6 +154,28 @@
             }
         </MudGrid>
     }
+    
+    <HelpButton Title="Balance History Help"
+                Description="Track how an account balance changes over time. Use balance snapshots to record your actual bank statement balances."
+                Features="@(new[] { 
+                    "Historical balance snapshots per account",
+                    "Visual chart of balance over time",
+                    "Compare system balance vs actual statement balance",
+                    "Manual snapshot creation for point-in-time records",
+                    "Filterable date range"
+                })"
+                HowToUse="@(new[] {
+                    "Select an account from the dropdown",
+                    "Set the date range to view history",
+                    "Click 'Create Snapshot' to record current balance",
+                    "Review the chart to see balance trends",
+                    "Use snapshots to verify your records match the bank"
+                })"
+                Tips="@(new[] {
+                    "Create snapshots when you receive bank statements",
+                    "Discrepancies between snapshots and calculated balance may indicate missing transactions",
+                    "Use this alongside reconciliation for accurate records"
+                })" />
 </MudContainer>
 
 @code {

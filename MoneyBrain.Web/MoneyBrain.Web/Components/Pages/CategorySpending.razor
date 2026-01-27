@@ -202,6 +202,29 @@
             No spending data found for the selected period. Create some expense transactions to see category spending reports.
         </MudAlert>
     }
+    
+    <HelpButton Title="Category Spending Report Help"
+                Description="See where your money goes with detailed spending breakdowns by category. Identify your biggest expense areas."
+                Features="@(new[] { 
+                    "Spending totals grouped by category",
+                    "Percentage of total spending per category",
+                    "Monthly trend data per category",
+                    "Expandable rows for detailed breakdown",
+                    "Visual charts for quick understanding"
+                })"
+                HowToUse="@(new[] {
+                    "Set the date range for your analysis",
+                    "Click 'Load' to generate the report",
+                    "Review the pie chart for spending distribution",
+                    "Click category rows to see monthly details",
+                    "Sort columns to find highest spending areas"
+                })"
+                Tips="@(new[] {
+                    "Focus on your top 3-5 spending categories for the biggest impact",
+                    "Compare this report with your budgets to check alignment",
+                    "Uncategorized spending should be reviewed and categorized",
+                    "Transfers between accounts are excluded from this report"
+                })" />
 </MudContainer>
 
 @code {
