@@ -217,12 +217,12 @@ public class CategoryService : ICategoryService
         var defaults = new Dictionary<string, string[]>
         {
             { "Income", new[] {  "Salary", "Freelance", "Investments", "Other Income" } },
-            { "Housing", new[] { "Rent/Mortgage", "Utilities", "Maintenance", "Insurance" } },
-            { "Transportation", new[] { "Gas/Fuel", "Public Transit", "Parking", "Car Payment", "Maintenance" } },
+            { "Housing", new[] { "Rent/Mortgage", "Utilities", "Home Maintenance", "Home Insurance" } },
+            { "Transportation", new[] { "Gas/Fuel", "Public Transit", "Parking", "Car Payment", "Auto Maintenance" } },
             { "Food", new[] { "Groceries", "Restaurants", "Coffee/Snacks" } },
             { "Shopping", new[] { "Clothing", "Electronics", "Home Goods", "Other Shopping" } },
             { "Entertainment", new[] { "Subscriptions", "Movies/Events", "Hobbies" } },
-            { "Health", new[] { "Medical", "Pharmacy", "Fitness", "Insurance" } },
+            { "Health", new[] { "Medical", "Pharmacy", "Fitness", "Health Insurance" } },
             { "Personal", new[] { "Personal Care", "Education", "Gifts" } },
             { "Miscellaneous", new[] { "Fees/Charges", "Taxes", "Uncategorized" } }
         };

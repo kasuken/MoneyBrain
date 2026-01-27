@@ -160,10 +160,12 @@ public class TransactionCsvImportService : ITransactionCsvImportService
         var previewRows = await PreviewImportAsync(userId, csvContent, mapping, cancellationToken);
         result.TotalRows = previewRows.Count;
         
-        // Build category lookup
-        var categoryLookup = await _context.Categories
+        // Build category lookup - handle duplicates by taking the first match
+        var categoryLookup = (await _context.Categories
             .Where(c => c.UserId == userId && c.IsActive)
-            .ToDictionaryAsync(c => c.Name.ToLower(), c => c.Id, cancellationToken);
+            .ToListAsync(cancellationToken))
+            .GroupBy(c => c.Name.ToLower())
+            .ToDictionary(g => g.Key, g => g.First().Id);
         
         // Import transactions
         foreach (var previewRow in previewRows)
