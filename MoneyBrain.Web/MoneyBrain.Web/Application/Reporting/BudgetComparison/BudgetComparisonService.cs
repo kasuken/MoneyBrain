@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using MoneyBrain.Web.Application.Categories;
+using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Reporting.BudgetComparison;
@@ -10,12 +10,12 @@ namespace MoneyBrain.Web.Application.Reporting.BudgetComparison;
 public class BudgetComparisonService : IBudgetComparisonService
 {
     private readonly ApplicationDbContext _context;
-    private readonly ICategoryService _categoryService;
+    private readonly IBudgetService _budgetService;
 
-    public BudgetComparisonService(ApplicationDbContext context, ICategoryService categoryService)
+    public BudgetComparisonService(ApplicationDbContext context, IBudgetService budgetService)
     {
         _context = context;
-        _categoryService = categoryService;
+        _budgetService = budgetService;
     }
 
     /// <inheritdoc />
@@ -60,8 +60,24 @@ public class BudgetComparisonService : IBudgetComparisonService
         int month,
         CancellationToken cancellationToken = default)
     {
-        // Get effective budgets for this month
-        var effectiveBudgets = await _categoryService.GetEffectiveBudgetsForMonthAsync(userId, year, month, cancellationToken);
+        // Get all budgets for this month (period-specific or default)
+        var budgetsForPeriod = await _budgetService.GetBudgetsForPeriodAsync(userId, year, month);
+        var defaultBudgets = await _budgetService.GetDefaultBudgetsAsync(userId);
+        
+        // Combine: period-specific budgets take precedence, fall back to defaults
+        var allBudgets = budgetsForPeriod.Any() ? budgetsForPeriod : defaultBudgets;
+        
+        // Flatten all budget categories from all budgets
+        var budgetedCategories = allBudgets
+            .SelectMany(b => b.BudgetCategories)
+            .GroupBy(bc => bc.CategoryId)
+            .Select(g => new
+            {
+                CategoryId = g.Key,
+                Category = g.First().Category,
+                PlannedAmount = g.Sum(bc => bc.PlannedAmount)
+            })
+            .ToList();
 
         // Get actual spending from ledger entries for this month
         var firstDayOfMonth = new DateTime(year, month, 1);
@@ -95,22 +111,17 @@ public class BudgetComparisonService : IBudgetComparisonService
         // Build category comparisons
         var categoryComparisons = new List<CategoryBudgetComparisonDto>();
 
-        // Get all categories that have either a budget or actual spending
-        var categoriesWithBudget = effectiveBudgets.Select(b => b.CategoryId).ToHashSet();
-        var categoriesWithSpending = actualSpending.Select(a => a.CategoryId).ToHashSet();
-        var allCategories = categoriesWithBudget.Union(categoriesWithSpending).ToHashSet();
-
-        foreach (var categoryId in allCategories)
+        // Only show categories that have a budget defined (exclude unbudgeted spending)
+        foreach (var budgetedCategory in budgetedCategories)
         {
-            var budget = effectiveBudgets.FirstOrDefault(b => b.CategoryId == categoryId);
-            var spending = actualSpending.FirstOrDefault(a => a.CategoryId == categoryId);
+            var spending = actualSpending.FirstOrDefault(a => a.CategoryId == budgetedCategory.CategoryId);
 
             categoryComparisons.Add(new CategoryBudgetComparisonDto
             {
-                CategoryId = categoryId,
-                CategoryName = budget?.Category?.Name ?? spending?.CategoryName ?? "Unknown",
-                CategoryGroupName = budget?.Category?.CategoryGroup?.Name ?? spending?.CategoryGroupName,
-                Budgeted = budget?.PlannedAmount ?? 0,
+                CategoryId = budgetedCategory.CategoryId,
+                CategoryName = budgetedCategory.Category?.Name ?? "Unknown",
+                CategoryGroupName = budgetedCategory.Category?.CategoryGroup?.Name,
+                Budgeted = budgetedCategory.PlannedAmount,
                 Actual = spending?.TotalSpent ?? 0,
                 TransactionCount = spending?.TransactionCount ?? 0
             });

@@ -1,0 +1,52 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": ".NET Core Launch (web)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/MoneyBrain.Web/MoneyBrain.Web/bin/Debug/net10.0/MoneyBrain.Web.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/MoneyBrain.Web/MoneyBrain.Web",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run Without Debugging",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/MoneyBrain.Web/MoneyBrain.Web/bin/Debug/net10.0/MoneyBrain.Web.dll",
+      "cwd": "${workspaceFolder}/MoneyBrain.Web/MoneyBrain.Web",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Watch - dotnet watch run",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "dotnet",
+      "args": ["watch", "run", "--project", "${workspaceFolder}/MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    }
+  ]
+}

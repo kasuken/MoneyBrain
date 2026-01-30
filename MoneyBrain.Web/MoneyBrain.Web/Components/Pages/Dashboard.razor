@@ -4,6 +4,8 @@
 @using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Application.Reporting.Cashflow
 @using MoneyBrain.Web.Application.Reporting.NetWorth
+@using MoneyBrain.Web.Application.Reporting.BudgetComparison
+@using MoneyBrain.Web.Application.Budgets
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 
@@ -12,6 +14,8 @@
 @inject IUserSettingsService SettingsService
 @inject ICashflowService CashflowService
 @inject INetWorthService NetWorthService
+@inject IBudgetComparisonService BudgetComparisonService
+@inject IBudgetService BudgetService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
@@ -25,34 +29,6 @@
     }
     else
     {
-        <!-- Accounts Section -->
-        <div class="mb-section-header">
-            <h2 class="mb-section-title">Accounts</h2>
-        </div>
-        
-        <div class="mb-grid-accounts mb-4">
-            @foreach (var account in _accounts.Take(4))
-            {
-                <div class="mb-account-card" @onclick="() => NavigateToAccount(account.Id)">
-                    <div class="mb-account-icon @GetAccountIconClass(account.SubType)">
-                        <MudIcon Icon="@GetAccountIcon(account.SubType)" />
-                    </div>
-                    <div class="flex-grow-1">
-                        <div style="font-weight: 600; color: var(--mb-text-primary);">@account.Name</div>
-                        <div style="font-size: 0.875rem; color: var(--mb-text-muted);">@account.SubType</div>
-                    </div>
-                    <div class="mb-amount @GetBalanceClass(account.CurrentBalance)">
-                        @FormatCurrency(account.CurrentBalance)
-                    </div>
-                </div>
-            }
-            
-            <div class="mb-quick-action" @onclick="AddNewAccount">
-                <MudIcon Icon="@Icons.Material.Filled.Add" Class="mb-quick-action-icon" />
-                <span>Add New Account</span>
-            </div>
-        </div>
-        
         <!-- Overview Section -->
         <div class="mb-section-header mt-6">
             <h2 class="mb-section-title">Overview</h2>
@@ -85,6 +61,86 @@
                 <div class="mb-amount positive">@FormatCurrency(_totalIncome)</div>
             </div>
         </div>
+        
+        <!-- Budget Summary -->
+        @* @if (_budgetComparison != null && _budgetComparison.TotalBudgeted > 0)
+        { *@
+            <div class="mb-section-header mt-6">
+                <h2 class="mb-section-title">Budget Summary</h2>
+                <MudButton Variant="Variant.Text" 
+                           Color="Color.Primary" 
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           OnClick="@(() => NavigationManager.NavigateTo("/budgets"))">
+                    View All Budgets
+                </MudButton>
+            </div>
+            
+            @if (_activeBudgets.Any())
+            {
+                <MudPaper Class="pa-3 mb-4">
+                    <MudText Typo="Typo.body2" Style="font-weight: 500; margin-bottom: 8px;">Active Budgets for @_periodStart.ToString("MMMM yyyy")</MudText>
+                    <MudStack Row="true" Spacing="2">
+                        @foreach (var budget in _activeBudgets)
+                        {
+                            <MudChip T="string" 
+                                     Size="Size.Small" 
+                                     Color="@(budget.IsDefault ? Color.Info : Color.Primary)"
+                                     Icon="@(budget.IsDefault ? Icons.Material.Filled.Star : Icons.Material.Filled.AccountBalanceWallet)">
+                                @budget.Name @(!string.IsNullOrWhiteSpace(budget.Description) ? $" - {budget.Description}" : "")
+                            </MudChip>
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+            
+            <div class="mb-grid-stats mb-4">
+                <div class="mb-card-stat">
+                    <div class="mb-label">Budgeted This Month</div>
+                    <div class="mb-amount neutral">@FormatCurrency(_budgetComparison.TotalBudgeted)</div>
+                </div>
+                <div class="mb-card-stat @(_budgetComparison.IsOverBudget ? "expense" : "income")">
+                    <div class="mb-label">Actual Spending</div>
+                    <div class="mb-amount @(_budgetComparison.IsOverBudget ? "negative" : "positive")">@FormatCurrency(_budgetComparison.TotalActual)</div>
+                </div>
+                <div class="mb-card-stat @(_budgetComparison.Remaining >= 0 ? "income" : "expense")">
+                    <div class="mb-label">Remaining</div>
+                    <div class="mb-amount @GetBalanceClass(_budgetComparison.Remaining)">@FormatCurrency(_budgetComparison.Remaining)</div>
+                </div>
+                <div class="mb-card-stat @GetBudgetHealthClass(_budgetComparison.PercentageUsed)">
+                    <div class="mb-label">Budget Used</div>
+                    <div class="mb-amount">@_budgetComparison.PercentageUsed.ToString("F1")%</div>
+                </div>
+            </div>
+            
+            @if (_budgetComparison.Categories.Any())
+            {
+                <MudPaper Class="pa-4 mb-4">
+                    <div class="d-flex justify-space-between align-center mb-3">
+                        <MudText Typo="Typo.h6">Top Budget Categories</MudText>
+                        @if (_budgetComparison.CategoriesOverBudget > 0)
+                        {
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">@_budgetComparison.CategoriesOverBudget over budget</MudChip>
+                        }
+                    </div>
+                    <MudStack Spacing="2">
+                        @foreach (var category in _budgetComparison.Categories.Take(5))
+                        {
+                            <div>
+                                <div class="d-flex justify-space-between align-center mb-1">
+                                    <MudText Typo="Typo.body2" Style="font-weight: 500;">@category.CategoryName</MudText>
+                                    <MudText Typo="Typo.body2">
+                                        <span class="@(category.IsOverBudget ? "negative" : "")">@category.Actual.ToString("N2")</span> / @category.Budgeted.ToString("N2") @_currencyCode
+                                    </MudText>
+                                </div>
+                                <MudProgressLinear Color="@(category.IsOverBudget ? Color.Error : category.PercentageUsed > 90 ? Color.Warning : Color.Success)" 
+                                                   Value="@((double)Math.Min(category.PercentageUsed, 100))" 
+                                                   Size="Size.Small" />
+                            </div>
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+        @* } *@
         
         <!-- Charts Section -->
         <div class="mb-grid-charts">
@@ -205,41 +261,28 @@
                 </div>
             </div>
         }
-        
-        @if (!_accounts.Any())
-        {
-            <div class="mb-empty-state mt-6">
-                <MudIcon Icon="@Icons.Material.Outlined.AccountBalanceWallet" Class="mb-empty-state-icon" />
-                <MudText Typo="Typo.h6">No accounts yet</MudText>
-                <MudText Typo="Typo.body2" Class="mb-4">Create your first account to start tracking your finances</MudText>
-                <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="AddNewAccount">
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
-                    Add Your First Account
-                </MudButton>
-            </div>
-        }
     }
     
     <HelpButton Title="Dashboard Help"
-                Description="The Dashboard is your financial command center. Get a quick overview of all your accounts, net worth, and recent financial activity at a glance."
+                Description="The Dashboard is your financial command center. Get a quick overview of your budgets, net worth, and recent financial activity at a glance."
                 Features="@(new[] { 
-                    "View all account balances in one place",
+                    "View active budgets for the current month",
                     "Track your total net worth (assets minus liabilities)",
-                    "See monthly income vs expenses breakdown",
-                    "Monitor cashflow trends over time",
-                    "Quick access to add new accounts"
+                    "Monitor budget vs actual spending",
+                    "See top spending categories with progress bars",
+                    "Review monthly income vs expenses breakdown"
                 })"
                 HowToUse="@(new[] {
-                    "Review your account cards to see current balances",
-                    "Check the Net Worth section for your overall financial health",
-                    "Use the cashflow chart to spot spending patterns",
-                    "Click on any account card to view its transactions"
+                    "Check the Budget Summary to see overall budget health",
+                    "Review active budgets to see which budgets apply this month",
+                    "Use the progress bars to identify over-budget categories",
+                    "Monitor the cashflow chart to spot spending patterns"
                 })"
                 Tips="@(new[] {
-                    "Green amounts indicate positive balances or income",
-                    "Red amounts indicate liabilities or expenses",
+                    "Green progress bars indicate spending within budget",
+                    "Red progress bars indicate over-budget categories",
                     "The dashboard updates automatically when you add transactions",
-                    "Use the quick-add button to create new accounts fast"
+                    "Navigate between months to see budget trends over time"
                 })" />
 </div>
 
@@ -247,7 +290,6 @@
     private bool _loading = true;
     private string? _userId;
     private string _currencyCode = "USD";
-    private List<AccountWithBalance> _accounts = [];
     
     private DateTime _periodStart;
     private DateTime _periodEnd;
@@ -269,6 +311,10 @@
     private List<ChartSeries> _cashflowTrendSeries = [];
     private string[] _cashflowTrendLabels = [];
     private bool _hasTrendData = false;
+    
+    // Budget data
+    private MonthlyBudgetComparisonDto? _budgetComparison;
+    private List<Budget> _activeBudgets = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -295,19 +341,9 @@
             _currencyCode = settings.CurrencyCode;
         }
         
-        // Load accounts with balances
-        var accounts = await AccountService.GetUserAccountsAsync(_userId, includeInactive: false);
-        _accounts = [];
-        
-        foreach (var account in accounts)
-        {
-            var balance = await AccountService.CalculateCurrentBalanceAsync(account.Id, _userId);
-            _accounts.Add(new AccountWithBalance(account, balance));
-        }
-        
-        // Calculate totals
-        _totalBalance = _accounts.Where(a => a.Account.Type == AccountType.Asset).Sum(a => a.CurrentBalance)
-                      - _accounts.Where(a => a.Account.Type == AccountType.Liability).Sum(a => Math.Abs(a.CurrentBalance));
+        // Calculate net worth for total balance
+        var netWorth = await NetWorthService.GetNetWorthSnapshotAsync(_userId, DateTime.Today);
+        _totalBalance = netWorth.NetWorth;
         
         // Load cashflow data for the selected period
         var cashflow = await CashflowService.GetMonthCashflowAsync(_userId, _periodStart.Year, _periodStart.Month);
@@ -318,8 +354,37 @@
         // Prepare chart data
         PrepareChartData(cashflow);
         
+        // Load budget data for the selected period
+        await LoadBudgetDataAsync();
+        
         // Load trend data (last 6 months)
         await LoadTrendDataAsync();
+    }
+    
+    private async Task LoadBudgetDataAsync()
+    {
+        if (string.IsNullOrEmpty(_userId)) return;
+        
+        try
+        {
+            _budgetComparison = await BudgetComparisonService.GetMonthlyBudgetComparisonAsync(
+                _userId, 
+                _periodStart.Year, 
+                _periodStart.Month);
+                
+            // Load active budgets for the current period
+            var periodBudgets = await BudgetService.GetBudgetsForPeriodAsync(_userId, _periodStart.Year, _periodStart.Month);
+            var defaultBudgets = await BudgetService.GetDefaultBudgetsAsync(_userId);
+            
+            // Use period-specific budgets if available, otherwise default budgets
+            _activeBudgets = periodBudgets.Any() ? periodBudgets : defaultBudgets;
+        }
+        catch
+        {
+            // Budget comparison not available - this is okay
+            _budgetComparison = null;
+            _activeBudgets = [];
+        }
     }
     
     private async Task LoadTrendDataAsync()
@@ -377,16 +442,6 @@
         await LoadDataAsync();
     }
 
-    private void NavigateToAccount(int accountId)
-    {
-        NavigationManager.NavigateTo($"/balance-history?accountId={accountId}");
-    }
-
-    private void AddNewAccount()
-    {
-        NavigationManager.NavigateTo("/accounts");
-    }
-
     private string FormatCurrency(decimal amount)
     {
         var sign = amount >= 0 ? "+" : "";
@@ -400,33 +455,6 @@
         _ => "neutral"
     };
 
-    private string GetAccountIconClass(AccountSubType subType) => subType switch
-    {
-        AccountSubType.Checking or AccountSubType.Savings => "bank",
-        AccountSubType.Cash => "cash",
-        AccountSubType.CreditCard or AccountSubType.Loan or AccountSubType.Mortgage => "credit",
-        AccountSubType.Investment => "investment",
-        _ => "bank"
-    };
-
-    private string GetAccountIcon(AccountSubType subType) => subType switch
-    {
-        AccountSubType.Checking or AccountSubType.Savings => Icons.Material.Filled.AccountBalance,
-        AccountSubType.Cash => Icons.Material.Filled.Money,
-        AccountSubType.CreditCard => Icons.Material.Filled.CreditCard,
-        AccountSubType.Investment => Icons.Material.Filled.TrendingUp,
-        AccountSubType.Loan => Icons.Material.Filled.Receipt,
-        AccountSubType.Mortgage => Icons.Material.Filled.Home,
-        _ => Icons.Material.Filled.Wallet
-    };
-
-    private record AccountWithBalance(Account Account, decimal CurrentBalance)
-    {
-        public int Id => Account.Id;
-        public string Name => Account.Name;
-        public AccountSubType SubType => Account.SubType;
-    }
-    
     private void PrepareChartData(MonthlyCashflowDto cashflow)
     {
         // Prepare income vs expenses bar chart
@@ -453,4 +481,12 @@
             _categoryPieLabels = new[] { "No expenses" };
         }
     }
+    
+    private string GetBudgetHealthClass(decimal percentageUsed) => percentageUsed switch
+    {
+        <= 75 => "income",
+        <= 90 => "info",
+        <= 100 => "",
+        _ => "expense"
+    };
 }

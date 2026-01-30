@@ -182,11 +182,17 @@
         <MudDataGrid T="Transaction" Items="@_transactions" Dense="true" Hover="true" 
                      MultiSelection="true" @bind-SelectedItems="_selectedTransactions"
                      SelectOnRowClick="false"
+                     Groupable="true"
+                     GroupExpanded="true"
                      Pagination="true"
                      PageSize="100">
             <Columns>
                 <SelectColumn T="Transaction" />
-                <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" />
+                <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" Grouping>
+                    <GroupTemplate>
+                        <span style="font-weight: bold">@GetGroupDateHeader(context)</span>
+                    </GroupTemplate>
+                </PropertyColumn>
                 <PropertyColumn Property="t => t.Account.Name" Title="Account" />
                 <TemplateColumn Title="Payee">
                     <CellTemplate>
@@ -739,5 +745,14 @@
         {
             SnackbarService.Add(ex.Message, MudBlazor.Severity.Error);
         }
+    }
+
+    private string GetGroupDateHeader(MudBlazor.GroupDefinition<Transaction> groupDef)
+    {
+        if (groupDef.Grouping?.Key is DateTime date)
+        {
+            return date.ToString("dddd, MMMM dd, yyyy");
+        }
+        return groupDef.Grouping?.Key?.ToString() ?? "";
     }
 }
