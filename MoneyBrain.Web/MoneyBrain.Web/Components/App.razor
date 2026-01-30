@@ -17,6 +17,14 @@
     
     <link href="_content/Heron.MudCalendar/Heron.MudCalendar.min.css" rel="stylesheet" />
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MoneyBrain" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    
     <ImportMap/>
     <link rel="icon" type="image/png" href="favicon.png"/>
     <HeadOutlet @rendermode="PageRenderMode"/>
@@ -33,6 +41,7 @@
 <script src="_content/Blazor-ApexCharts/js/blazor-apex-charts.js"></script>
 <script type="module" src="_content/Heron.MudCalendar/Heron.MudCalendar.min.js"></script>
 <script src="@Assets["js/fileDownload.js"]"></script>
+<script src="@Assets["js/pwa.js"]"></script>
 
 </body>
 

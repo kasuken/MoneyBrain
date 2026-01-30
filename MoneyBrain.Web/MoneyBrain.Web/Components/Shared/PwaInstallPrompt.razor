@@ -1,0 +1,126 @@
+@* PWA Install Prompt Component *@
+@using MudBlazor
+@inject IJSRuntime JS
+
+<div class="pwa-install-prompt" style="display: @(_showPrompt ? "block" : "none");">
+    <MudPaper Class="pwa-prompt-card" Elevation="8">
+        <div class="d-flex align-center gap-3 pa-4">
+            <div class="pwa-icon">
+                <MudIcon Icon="@Icons.Material.Filled.GetApp" Size="Size.Large" Color="Color.Primary" />
+            </div>
+            <div class="flex-grow-1">
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 4px;">
+                    Install MoneyBrain
+                </MudText>
+                <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                    Get quick access from your home screen
+                </MudText>
+            </div>
+            <div class="d-flex gap-2">
+                <MudButton Variant="Variant.Text" 
+                           Size="Size.Small" 
+                           OnClick="DismissPrompt">
+                    Not Now
+                </MudButton>
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           Size="Size.Small"
+                           OnClick="InstallPwa">
+                    Install
+                </MudButton>
+            </div>
+        </div>
+    </MudPaper>
+</div>
+
+<style>
+    .pwa-install-prompt {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        max-width: 500px;
+        width: calc(100% - 32px);
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+
+    .pwa-prompt-card {
+        background: var(--mud-palette-surface);
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .pwa-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--mud-palette-primary-lighten);
+        border-radius: 50%;
+    }
+
+    @@media (max-width: 600px) {
+        .pwa-install-prompt {
+            bottom: 10px;
+            width: calc(100% - 20px);
+        }
+    }
+</style>
+
+@code {
+    private bool _showPrompt = false;
+    private DotNetObjectReference<PwaInstallPrompt>? _dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("window.moneybrainPwa.initialize", _dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public void ShowInstallPrompt()
+    {
+        _showPrompt = true;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void HideInstallPrompt()
+    {
+        _showPrompt = false;
+        StateHasChanged();
+    }
+
+    private async Task InstallPwa()
+    {
+        await JS.InvokeVoidAsync("window.moneybrainPwa.install");
+        _showPrompt = false;
+    }
+
+    private async Task DismissPrompt()
+    {
+        await JS.InvokeVoidAsync("window.moneybrainPwa.dismiss");
+        _showPrompt = false;
+    }
+
+    public void Dispose()
+    {
+        _dotNetRef?.Dispose();
+    }
+}

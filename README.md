@@ -19,6 +19,35 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 - **Reports**: cashflow, category spending, budget vs actual, net worth, and account balance history.
 - **CSV import & export**: import transactions with column mapping + preview, export reports to CSV.
 - **Recurring transactions**: generate upcoming transactions automatically.
+- **Progressive Web App (PWA)**: install on any device, works offline, app-like experience.
+
+> [!IMPORTANT]
+> No bank sync / PSD2 integrations (by design, v1). MoneyBrain is a tool — not a financial advisor.
+
+## 📱 Progressive Web App
+
+MoneyBrain is a full-featured PWA with:
+
+- **🚀 Installable** - Add to home screen on mobile, tablet, or desktop
+- **📴 Offline support** - Works without internet connection
+- **⚡ Fast & cached** - Smart caching for instant loading
+- **🔄 Auto-updates** - Seamless version updates
+- **🎨 Native feel** - Runs like a native app in standalone mode
+
+### Installing MoneyBrain
+
+**Desktop (Chrome/Edge):**
+- Click the install icon in the address bar
+- Or use browser menu → "Install MoneyBrain"
+
+**iOS (Safari):**
+- Tap Share button → "Add to Home Screen"
+
+**Android (Chrome):**
+- Tap menu (⋮) → "Add to Home screen"
+- Or use the in-app install prompt
+
+See [PWA_IMPLEMENTATION.md](PWA_IMPLEMENTATION.md) for complete setup guide.
 
 > [!IMPORTANT]
 > No bank sync / PSD2 integrations (by design, v1). MoneyBrain is a tool — not a financial advisor.
