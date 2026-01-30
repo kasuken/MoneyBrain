@@ -44,7 +44,7 @@
 
     @if (_isLoading)
     {
-        <MudProgressLinear Color="MudBlazor.Color.Primary" Indeterminate="true" Class="mb-4" />
+        <BudgetsLoader />
     }
     else if (_budgets.Count == 0)
     {

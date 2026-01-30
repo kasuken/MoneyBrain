@@ -1,0 +1,32 @@
+<MudStack Spacing="4">
+    @for (var i = 0; i < 2; i++)
+    {
+        <MudPaper Class="pa-4">
+            <div class="d-flex justify-space-between align-center mb-3">
+                <div>
+                    <div class="d-flex align-center gap-2 mb-2">
+                        <MudSkeleton SkeletonType="SkeletonType.Text" Width="160px" Height="20px" />
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="80px" Height="20px" />
+                    </div>
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="240px" Height="14px" />
+                    <div class="d-flex gap-3 mt-2">
+                        <MudSkeleton SkeletonType="SkeletonType.Text" Width="90px" Height="14px" />
+                        <MudSkeleton SkeletonType="SkeletonType.Text" Width="120px" Height="14px" />
+                    </div>
+                </div>
+                <div class="d-flex gap-1">
+                    <MudSkeleton SkeletonType="SkeletonType.Circle" Width="28px" Height="28px" />
+                    <MudSkeleton SkeletonType="SkeletonType.Circle" Width="28px" Height="28px" />
+                </div>
+            </div>
+
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="36px" Class="mb-2" />
+            <MudStack Spacing="2">
+                @for (var r = 0; r < 5; r++)
+                {
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="32px" />
+                }
+            </MudStack>
+        </MudPaper>
+    }
+</MudStack>

@@ -1,0 +1,13 @@
+<div class="mb-4">
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="240px" Height="36px" />
+</div>
+
+<MudPaper Class="pa-4">
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="36px" Class="mb-2" />
+    <MudStack Spacing="2">
+        @for (var i = 0; i < 6; i++)
+        {
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="32px" />
+        }
+    </MudStack>
+</MudPaper>

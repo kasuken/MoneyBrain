@@ -1,0 +1,96 @@
+<div class="mb-section-header mt-6">
+    <MudSkeleton SkeletonType="SkeletonType.Text" Width="150px" Height="32px" />
+    <div class="d-flex align-center gap-2">
+        <MudSkeleton SkeletonType="SkeletonType.Circle" Width="32px" Height="32px" />
+        <MudSkeleton SkeletonType="SkeletonType.Text" Width="200px" />
+        <MudSkeleton SkeletonType="SkeletonType.Circle" Width="32px" Height="32px" />
+    </div>
+</div>
+
+<div class="mb-grid-stats mb-4">
+    @for (int i = 0; i < 4; i++)
+    {
+        <div class="mb-card-stat">
+            <MudSkeleton SkeletonType="SkeletonType.Text" Width="100px" Height="16px" Class="mb-2" />
+            <MudSkeleton SkeletonType="SkeletonType.Text" Width="140px" Height="28px" />
+        </div>
+    }
+</div>
+
+<div class="mb-section-header mt-6">
+    <MudSkeleton SkeletonType="SkeletonType.Text" Width="180px" Height="32px" />
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="150px" Height="36px" />
+</div>
+
+<MudPaper Class="pa-3 mb-4">
+    <MudSkeleton SkeletonType="SkeletonType.Text" Width="200px" Height="16px" Class="mb-2" />
+    <MudStack Row="true" Spacing="2">
+        @for (int i = 0; i < 2; i++)
+        {
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="120px" Height="32px" />
+        }
+    </MudStack>
+</MudPaper>
+
+<div class="mb-grid-stats mb-4">
+    @for (int i = 0; i < 4; i++)
+    {
+        <div class="mb-card-stat">
+            <MudSkeleton SkeletonType="SkeletonType.Text" Width="120px" Height="16px" Class="mb-2" />
+            <MudSkeleton SkeletonType="SkeletonType.Text" Width="100px" Height="28px" />
+        </div>
+    }
+</div>
+
+<MudPaper Class="pa-4 mb-4">
+    <div class="d-flex justify-space-between align-center mb-3">
+        <MudSkeleton SkeletonType="SkeletonType.Text" Width="180px" Height="24px" />
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="120px" Height="24px" />
+    </div>
+    <MudStack Spacing="2">
+        @for (int i = 0; i < 5; i++)
+        {
+            <div>
+                <div class="d-flex justify-space-between align-center mb-1">
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="100px" Height="16px" />
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="120px" Height="16px" />
+                </div>
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="4px" />
+            </div>
+        }
+    </MudStack>
+</MudPaper>
+
+<div class="mb-grid-charts">
+    @for (int i = 0; i < 2; i++)
+    {
+        <div class="mb-chart-container">
+            <div class="mb-chart-header">
+                <div>
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="180px" Height="20px" Class="mb-1" />
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="120px" Height="14px" />
+                </div>
+            </div>
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="250px" />
+        </div>
+    }
+</div>
+
+<div class="mb-section-header mt-6">
+    <MudSkeleton SkeletonType="SkeletonType.Text" Width="220px" Height="32px" />
+</div>
+
+<div class="mb-grid-charts">
+    @for (int i = 0; i < 2; i++)
+    {
+        <div class="mb-chart-container">
+            <div class="mb-chart-header">
+                <div>
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="180px" Height="20px" Class="mb-1" />
+                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="150px" Height="14px" />
+                </div>
+            </div>
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="250px" />
+        </div>
+    }
+</div>

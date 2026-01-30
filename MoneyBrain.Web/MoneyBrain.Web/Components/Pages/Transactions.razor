@@ -161,7 +161,7 @@
 
     @if (_isLoading)
     {
-        <MudProgressLinear Color="MudBlazor.Color.Primary" Indeterminate="true" Class="mb-4" />
+        <TransactionsLoader />
     }
     else if (_transactions.Count == 0)
     {

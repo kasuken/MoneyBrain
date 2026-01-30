@@ -1,0 +1,27 @@
+<MudPaper Class="mb-4 pa-4">
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="40px" Class="mb-4" />
+    <MudSkeleton SkeletonType="SkeletonType.Text" Width="180px" Height="20px" Class="mb-3" />
+    @for (var i = 0; i < 2; i++)
+    {
+        <MudPaper Class="mb-3 pa-3">
+            <MudSkeleton SkeletonType="SkeletonType.Text" Width="240px" Height="16px" Class="mb-2" />
+            <MudStack Spacing="1">
+                @for (var r = 0; r < 3; r++)
+                {
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="28px" />
+                }
+            </MudStack>
+        </MudPaper>
+    }
+</MudPaper>
+
+<MudPaper Class="pa-4">
+    <MudSkeleton SkeletonType="SkeletonType.Text" Width="160px" Height="20px" Class="mb-3" />
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="36px" Class="mb-2" />
+    <MudStack Spacing="2">
+        @for (var i = 0; i < 8; i++)
+        {
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="32px" />
+        }
+    </MudStack>
+</MudPaper>
