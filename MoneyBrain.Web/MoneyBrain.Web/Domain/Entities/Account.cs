@@ -86,6 +86,35 @@ public class Account
     public string? CurrencyCode { get; set; }
 
     /// <summary>
+    /// Optional monthly spending limit for this account.
+    /// When set, the Accounts page shows a progress indicator (spent / limit).
+    /// </summary>
+    public decimal? MonthlySpendingLimit { get; set; }
+
+    /// <summary>
+    /// For credit cards: day of month (1-31) when the billing cycle closes.
+    /// On this day, pending transactions become posted and a bill is created.
+    /// </summary>
+    public int? BillingCycleDay { get; set; }
+
+    /// <summary>
+    /// For credit cards: the account where the monthly bill transaction will be created.
+    /// Typically a checking or savings account.
+    /// </summary>
+    public int? LinkedPaymentAccountId { get; set; }
+
+    /// <summary>
+    /// Navigation property for the linked payment account.
+    /// </summary>
+    public Account? LinkedPaymentAccount { get; set; }
+
+    /// <summary>
+    /// Date when the last billing cycle was processed.
+    /// Used to prevent duplicate processing.
+    /// </summary>
+    public DateTime? LastBillingCycleDate { get; set; }
+
+    /// <summary>
     /// Navigation property for all opening balance adjustments made to this account.
     /// Provides audit trail of opening balance changes.
     /// </summary>

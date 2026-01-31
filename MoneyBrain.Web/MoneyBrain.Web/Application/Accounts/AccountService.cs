@@ -107,6 +107,9 @@ public class AccountService : IAccountService
         existing.Notes = account.Notes;
         existing.IsActive = account.IsActive;
         existing.CurrencyCode = account.CurrencyCode;
+        existing.MonthlySpendingLimit = account.MonthlySpendingLimit;
+        existing.BillingCycleDay = account.BillingCycleDay;
+        existing.LinkedPaymentAccountId = account.LinkedPaymentAccountId;
         existing.UpdatedAt = DateTime.UtcNow;
 
         // OpeningBalance should NOT be updated directly - must use AdjustOpeningBalanceAsync
@@ -520,5 +523,99 @@ public class AccountService : IAccountService
             adjustment.AccountId);
 
         return true;
+    }
+
+    public async Task<MonthlySpendingSummary> GetMonthlySpendingAsync(
+        int accountId,
+        string userId,
+        int year,
+        int month,
+        CancellationToken cancellationToken = default)
+    {
+        var account = await _context.Accounts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                a => a.Id == accountId && a.UserId == userId,
+                cancellationToken);
+
+        if (account == null)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+
+        // Calculate date range for the month
+        var startDate = new DateTime(year, month, 1);
+        var endDate = startDate.AddMonths(1);
+
+        // Query transactions based on account type:
+        // - Credit cards: Only PENDING (unbilled charges), exclude Posted (already billed)
+        // - Other accounts: Both Posted AND Pending (real-time spending tracking)
+        var transactionQuery = _context.Transactions
+            .Where(t => t.AccountId == accountId
+                        && t.UserId == userId
+                        && t.TransferTransactionId == null
+                        && t.Date >= startDate
+                        && t.Date < endDate);
+
+        if (account.SubType == Domain.Enums.AccountSubType.CreditCard)
+        {
+            // Credit cards: Only count pending (unbilled) transactions
+            transactionQuery = transactionQuery.Where(t => t.Status == Domain.Enums.TransactionStatus.Pending);
+        }
+        else
+        {
+            // Other accounts: Count both posted and pending
+            transactionQuery = transactionQuery.Where(t => 
+                t.Status == Domain.Enums.TransactionStatus.Posted 
+                || t.Status == Domain.Enums.TransactionStatus.Pending);
+        }
+
+        var transactions = await transactionQuery
+            .Select(t => t.Amount)
+            .ToListAsync(cancellationToken);
+
+        // Calculate spending based on account type
+        decimal spentAmount;
+
+        if (account.Type == Domain.Enums.AccountType.Asset)
+        {
+            // For assets (debit/checking): spending = sum of expenses (negative amounts)
+            spentAmount = transactions.Where(a => a < 0).Sum(a => Math.Abs(a));
+        }
+        else
+        {
+            // For liabilities (credit cards): net spending = charges minus credits/refunds
+            // Charges are negative (money going out), credits/refunds are positive
+            var charges = transactions.Where(a => a < 0).Sum(a => Math.Abs(a));
+            var credits = transactions.Where(a => a > 0).Sum();
+            spentAmount = Math.Max(0, charges - credits);
+        }
+
+        // Calculate remaining and percentage
+        decimal? remaining = null;
+        decimal? percentUsed = null;
+        var isOverLimit = false;
+
+        if (account.MonthlySpendingLimit.HasValue && account.MonthlySpendingLimit.Value > 0)
+        {
+            remaining = account.MonthlySpendingLimit.Value - spentAmount;
+            percentUsed = (spentAmount / account.MonthlySpendingLimit.Value) * 100;
+            isOverLimit = spentAmount > account.MonthlySpendingLimit.Value;
+        }
+
+        _logger.LogDebug(
+            "Monthly spending for account {AccountId} ({Year}/{Month}): {Spent} / {Limit}",
+            accountId,
+            year,
+            month,
+            spentAmount,
+            account.MonthlySpendingLimit);
+
+        return new MonthlySpendingSummary(
+            spentAmount,
+            account.MonthlySpendingLimit,
+            remaining,
+            percentUsed,
+            isOverLimit);
     }
 }

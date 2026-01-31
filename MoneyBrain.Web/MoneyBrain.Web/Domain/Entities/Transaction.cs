@@ -82,6 +82,17 @@ public class Transaction
     /// If this transaction was auto-generated from a recurring template, this links to the template.
     /// </summary>
     public int? RecurringTemplateId { get; set; }
+
+    /// <summary>
+    /// If this transaction is a credit card bill, links to the credit card account.
+    /// </summary>
+    public int? CreditCardBillingSourceAccountId { get; set; }
+
+    /// <summary>
+    /// The billing cycle month this credit card bill represents (e.g., 2026-01 for January 2026).
+    /// Format: YYYY-MM
+    /// </summary>
+    public string? BillingCycleMonth { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
@@ -99,6 +110,11 @@ public class Transaction
     public Transaction? TransferTransaction { get; set; }
     
     public Transaction? RecurringTemplate { get; set; }
+
+    /// <summary>
+    /// Navigation property for the credit card account this bill was generated from.
+    /// </summary>
+    public Account? CreditCardBillingSourceAccount { get; set; }
     
     public ICollection<TransactionSplit> Splits { get; set; } = [];
     

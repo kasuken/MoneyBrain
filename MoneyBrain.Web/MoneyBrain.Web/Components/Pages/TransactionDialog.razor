@@ -22,8 +22,16 @@
             </MudAlert>
         }
         
+        @if (IsNew && _accounts.FirstOrDefault(a => a.Id == _selectedAccountId)?.SubType == AccountSubType.CreditCard)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.CreditCard">
+                <strong>Credit Card Transaction</strong><br/>
+                This transaction will be marked as <strong>Pending</strong> and will automatically be posted on your credit card's billing cycle day.
+            </MudAlert>
+        }
+        
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
-            <MudSelect T="int" @bind-Value="_selectedAccountId" Label="Account" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
+            <MudSelect T="int" Value="_selectedAccountId" ValueChanged="@OnAccountChanged" Label="Account" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                 @foreach (var account in _accounts)
                 {
                     <MudSelectItem T="int" Value="@account.Id">@account.Name</MudSelectItem>
@@ -183,10 +191,39 @@
         else if (PreselectedAccountId.HasValue)
         {
             _selectedAccountId = PreselectedAccountId.Value;
+            // Set default status based on account type
+            SetDefaultStatusForAccount(_selectedAccountId);
         }
         else if (_accounts.Any())
         {
             _selectedAccountId = _accounts.First().Id;
+            // Set default status based on account type
+            SetDefaultStatusForAccount(_selectedAccountId);
+        }
+    }
+
+    private void SetDefaultStatusForAccount(int accountId)
+    {
+        var account = _accounts.FirstOrDefault(a => a.Id == accountId);
+        if (account != null && account.SubType == AccountSubType.CreditCard)
+        {
+            // Credit card transactions default to Pending (will be posted on billing cycle day)
+            _status = TransactionStatus.Pending;
+        }
+        else
+        {
+            // Other accounts default to Posted
+            _status = TransactionStatus.Posted;
+        }
+    }
+
+    private void OnAccountChanged(int newAccountId)
+    {
+        _selectedAccountId = newAccountId;
+        // Update default status when account changes (only for new transactions)
+        if (IsNew)
+        {
+            SetDefaultStatusForAccount(newAccountId);
         }
     }
 

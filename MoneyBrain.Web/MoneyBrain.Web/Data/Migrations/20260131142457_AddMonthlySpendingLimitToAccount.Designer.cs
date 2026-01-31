@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MoneyBrain.Web.Data;
 
@@ -10,9 +11,11 @@ using MoneyBrain.Web.Data;
 namespace MoneyBrain.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260131142457_AddMonthlySpendingLimitToAccount")]
+    partial class AddMonthlySpendingLimitToAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
@@ -237,9 +240,6 @@ namespace MoneyBrain.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BillingCycleDay")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -252,12 +252,6 @@ namespace MoneyBrain.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("LastBillingCycleDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("LinkedPaymentAccountId")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal?>("MonthlySpendingLimit")
@@ -291,10 +285,6 @@ namespace MoneyBrain.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BillingCycleDay");
-
-                    b.HasIndex("LinkedPaymentAccountId");
 
                     b.HasIndex("UserId");
 
@@ -861,17 +851,11 @@ namespace MoneyBrain.Web.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("BillingCycleMonth")
-                        .HasColumnType("TEXT");
-
                     b.Property<int?>("CategoryId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
-
-                    b.Property<int?>("CreditCardBillingSourceAccountId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
@@ -930,8 +914,6 @@ namespace MoneyBrain.Web.Migrations
                     b.HasIndex("AccountId");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("CreditCardBillingSourceAccountId");
 
                     b.HasIndex("Date");
 
@@ -1133,18 +1115,11 @@ namespace MoneyBrain.Web.Migrations
 
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.Account", b =>
                 {
-                    b.HasOne("MoneyBrain.Web.Domain.Entities.Account", "LinkedPaymentAccount")
-                        .WithMany()
-                        .HasForeignKey("LinkedPaymentAccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("MoneyBrain.Web.Data.ApplicationUser", "User")
                         .WithMany("Accounts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("LinkedPaymentAccount");
 
                     b.Navigation("User");
                 });
@@ -1283,11 +1258,6 @@ namespace MoneyBrain.Web.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("MoneyBrain.Web.Domain.Entities.Account", "CreditCardBillingSourceAccount")
-                        .WithMany()
-                        .HasForeignKey("CreditCardBillingSourceAccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("MoneyBrain.Web.Domain.Entities.Payee", "Payee")
                         .WithMany("Transactions")
                         .HasForeignKey("PayeeId")
@@ -1309,8 +1279,6 @@ namespace MoneyBrain.Web.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Category");
-
-                    b.Navigation("CreditCardBillingSourceAccount");
 
                     b.Navigation("Payee");
 

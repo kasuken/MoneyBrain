@@ -352,6 +352,25 @@
     private int _pendingTransactionCount = 0;
     private int _unreconciledTransactionCount = 0;
 
+    // Query string parameters for deep-linking from other pages
+    [SupplyParameterFromQuery(Name = "accountId")]
+    public int? QueryAccountId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "startDate")]
+    public string? QueryStartDate { get; set; }
+
+    [SupplyParameterFromQuery(Name = "endDate")]
+    public string? QueryEndDate { get; set; }
+
+    [SupplyParameterFromQuery(Name = "status")]
+    public string? QueryStatus { get; set; }
+
+    [SupplyParameterFromQuery(Name = "transactionType")]
+    public string? QueryTransactionType { get; set; }
+
+    [SupplyParameterFromQuery(Name = "includeTransfers")]
+    public bool? QueryIncludeTransfers { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -365,6 +384,9 @@
                 _currencyCode = settings.CurrencyCode;
             }
 
+            // Apply query string parameters to filter
+            ApplyQueryStringParameters();
+
             _accounts = (await AccountService.GetUserAccountsAsync(_userId)).ToList();
             await LoadTransactions();
             await LoadPendingCount();
@@ -372,6 +394,53 @@
         }
 
         _isLoading = false;
+    }
+
+    private void ApplyQueryStringParameters()
+    {
+        var hasQueryParams = false;
+
+        if (QueryAccountId.HasValue)
+        {
+            _filter.AccountId = QueryAccountId;
+            hasQueryParams = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(QueryStartDate) && DateTime.TryParse(QueryStartDate, out var startDate))
+        {
+            _filter.StartDate = startDate;
+            hasQueryParams = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(QueryEndDate) && DateTime.TryParse(QueryEndDate, out var endDate))
+        {
+            _filter.EndDate = endDate;
+            hasQueryParams = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(QueryStatus) && Enum.TryParse<TransactionStatus>(QueryStatus, true, out var status))
+        {
+            _filter.Status = status;
+            hasQueryParams = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(QueryTransactionType) && Enum.TryParse<TransactionType>(QueryTransactionType, true, out var txType))
+        {
+            _filter.TransactionType = txType;
+            hasQueryParams = true;
+        }
+
+        if (QueryIncludeTransfers.HasValue)
+        {
+            _filter.IncludeTransfers = QueryIncludeTransfers.Value;
+            hasQueryParams = true;
+        }
+
+        // Show filters panel if any query parameters were applied
+        if (hasQueryParams)
+        {
+            _showFilters = true;
+        }
     }
 
     protected override async Task OnParametersSetAsync()

@@ -4,6 +4,21 @@ using MoneyBrain.Web.Domain.Enums;
 namespace MoneyBrain.Web.Application.Accounts;
 
 /// <summary>
+/// Summary of monthly spending for an account.
+/// </summary>
+/// <param name="SpentAmount">Total amount spent this month (always positive)</param>
+/// <param name="Limit">Monthly spending limit (null if not set)</param>
+/// <param name="Remaining">Remaining budget (null if no limit set)</param>
+/// <param name="PercentUsed">Percentage of limit used (null if no limit, can exceed 100)</param>
+/// <param name="IsOverLimit">True if spending exceeds the limit</param>
+public record MonthlySpendingSummary(
+    decimal SpentAmount,
+    decimal? Limit,
+    decimal? Remaining,
+    decimal? PercentUsed,
+    bool IsOverLimit);
+
+/// <summary>
 /// Service interface for account management operations.
 /// </summary>
 public interface IAccountService
@@ -99,4 +114,17 @@ public interface IAccountService
     /// Delete a manual adjustment (only if not reconciled).
     /// </summary>
     Task<bool> DeleteManualAdjustmentAsync(int adjustmentId, string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get the total amount spent in the current month for an account.
+    /// Counts posted AND pending, non-transfer transactions.
+    /// For assets: sum of negative amounts (expenses).
+    /// For liabilities: net spending (charges minus refunds/credits).
+    /// </summary>
+    /// <param name="accountId">Account to calculate spending for</param>
+    /// <param name="userId">User owning the account</param>
+    /// <param name="year">Year to calculate for</param>
+    /// <param name="month">Month to calculate for (1-12)</param>
+    /// <returns>Monthly spending summary including spent amount, limit, and remaining</returns>
+    Task<MonthlySpendingSummary> GetMonthlySpendingAsync(int accountId, string userId, int year, int month, CancellationToken cancellationToken = default);
 }

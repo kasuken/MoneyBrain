@@ -481,7 +481,7 @@ body {
 
 .mb-grid-accounts {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
     gap: 1rem;
 }
 
@@ -492,6 +492,10 @@ body {
 }
 
 @media (max-width: 768px) {
+    .mb-grid-accounts {
+        grid-template-columns: 1fr;
+    }
+    
     .mb-grid-charts {
         grid-template-columns: 1fr;
     }
@@ -500,7 +504,7 @@ body {
 /* Page Container */
 .mb-page {
     padding: 2rem;
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
 }
 

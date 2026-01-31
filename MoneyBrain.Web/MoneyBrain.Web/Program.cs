@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
+using MoneyBrain.Web.Application.CreditCardBilling;
 using MoneyBrain.Web.Application.Reconciliation;
 using MoneyBrain.Web.Application.Settings;
 using MoneyBrain.Web.Application.Reporting.Cashflow;
@@ -84,9 +85,11 @@ builder.Services.AddScoped<IBudgetComparisonService, BudgetComparisonService>();
 builder.Services.AddScoped<INetWorthService, NetWorthService>();
 builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryService>();
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
+builder.Services.AddScoped<ICreditCardBillingService, CreditCardBillingService>();
 
 // Background services
 builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.RecurringTransactionBackgroundService>();
+builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.CreditCardBillingBackgroundService>();
 
 var app = builder.Build();
 

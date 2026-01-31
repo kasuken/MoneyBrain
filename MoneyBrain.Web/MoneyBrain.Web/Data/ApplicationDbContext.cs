@@ -102,13 +102,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Relationship: Credit card can link to payment account
+            entity.HasOne(a => a.LinkedPaymentAccount)
+                .WithMany()
+                .HasForeignKey(a => a.LinkedPaymentAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Indexes for common queries
             entity.HasIndex(a => a.UserId);
             entity.HasIndex(a => new { a.UserId, a.IsActive });
             entity.HasIndex(a => new { a.UserId, a.Type });
+            entity.HasIndex(a => a.BillingCycleDay);
 
             // Decimal precision for money values
             entity.Property(a => a.OpeningBalance)
+                .HasPrecision(18, 2);
+
+            entity.Property(a => a.MonthlySpendingLimit)
                 .HasPrecision(18, 2);
         });
 
@@ -261,6 +271,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey(t => t.TransferTransactionId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // Relationship: Credit card bill links to source credit card account
+            entity.HasOne(t => t.CreditCardBillingSourceAccount)
+                .WithMany()
+                .HasForeignKey(t => t.CreditCardBillingSourceAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Indexes for common queries
             entity.HasIndex(t => t.UserId);
             entity.HasIndex(t => t.AccountId);
@@ -271,6 +287,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasIndex(t => new { t.UserId, t.IsReconciled });
             entity.HasIndex(t => t.PayeeId);
             entity.HasIndex(t => t.CategoryId);
+            entity.HasIndex(t => t.CreditCardBillingSourceAccountId);
 
             // Decimal precision for money values
             entity.Property(t => t.Amount).HasPrecision(18, 2);

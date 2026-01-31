@@ -8,6 +8,10 @@
         <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <NoWarn>$(NoWarn); RZ10012</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     </ItemGroup>

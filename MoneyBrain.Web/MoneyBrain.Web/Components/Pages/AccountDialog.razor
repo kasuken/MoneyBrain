@@ -61,6 +61,47 @@
                              Culture="@System.Globalization.CultureInfo.CurrentCulture"
                              HelperText="Initial balance when creating this account" />
 
+            <MudNumericField @bind-Value="_model.MonthlySpendingLimit"
+                             Label="Monthly Spending Limit (optional)"
+                             Variant="Variant.Outlined"
+                             Class="mb-3"
+                             Format="N2"
+                             Min="0"
+                             HelperText="Set a monthly cap to track spending vs limit" />
+
+            @if (_model.SubType == AccountSubType.CreditCard)
+            {
+                <MudDivider Class="my-4" />
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Credit Card Billing Cycle</MudText>
+                <MudText Typo="Typo.caption" Class="mb-3" Style="color: var(--mb-text-muted);">
+                    Configure automatic billing cycle processing. On the billing day, pending transactions become posted and a bill is created in your payment account.
+                </MudText>
+
+                <MudNumericField @bind-Value="_model.BillingCycleDay"
+                                 Label="Billing Cycle Day (1-31)"
+                                 Variant="Variant.Outlined"
+                                 Class="mb-3"
+                                 Required="true"
+                                 RequiredError="Billing cycle day is required for credit cards"
+                                 Min="1"
+                                 Max="31"
+                                 HelperText="Required: Day of month when the billing cycle closes" />
+
+                <MudSelect T="int?" @bind-Value="_model.LinkedPaymentAccountId"
+                           Label="Payment Account"
+                           Variant="Variant.Outlined"
+                           Class="mb-3"
+                           Required="true"
+                           RequiredError="Payment account is required for credit cards"
+                           Clearable="false"
+                           HelperText="Required: Account where the monthly bill will be created">
+                    @foreach (var account in _assetAccounts)
+                    {
+                        <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+
             <MudTextField @bind-Value="_model.Notes"
                           Label="Notes (optional)"
                           Lines="3"
@@ -111,9 +152,19 @@
     private bool _isValid;
     private bool _isSaving;
     private AccountModel _model = new();
+    private List<Account> _assetAccounts = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // Load asset accounts for the payment account dropdown
+        if (!string.IsNullOrWhiteSpace(UserId))
+        {
+            var allAccounts = await AccountService.GetUserAccountsAsync(UserId);
+            _assetAccounts = allAccounts
+                .Where(a => a.Type == AccountType.Asset && a.Id != Account?.Id)
+                .ToList();
+        }
+
         if (Account != null)
         {
             _model = new AccountModel
@@ -123,6 +174,9 @@
                 SubType = Account.SubType,
                 Group = Account.Group,
                 OpeningBalance = Account.OpeningBalance,
+                MonthlySpendingLimit = Account.MonthlySpendingLimit,
+                BillingCycleDay = Account.BillingCycleDay,
+                LinkedPaymentAccountId = Account.LinkedPaymentAccountId,
                 Notes = Account.Notes,
                 IsActive = Account.IsActive
             };
@@ -150,6 +204,19 @@
         if (!_isValid)
             return;
 
+        // Additional validation for credit cards
+        if (_model.SubType == AccountSubType.CreditCard)
+        {
+            if (!_model.BillingCycleDay.HasValue || _model.BillingCycleDay < 1 || _model.BillingCycleDay > 31)
+            {
+                return; // Form validation should have caught this
+            }
+            if (!_model.LinkedPaymentAccountId.HasValue)
+            {
+                return; // Form validation should have caught this
+            }
+        }
+
         _isSaving = true;
         try
         {
@@ -163,6 +230,9 @@
                     SubType = _model.SubType,
                     Group = _model.Group,
                     OpeningBalance = _model.OpeningBalance,
+                    MonthlySpendingLimit = _model.MonthlySpendingLimit,
+                    BillingCycleDay = _model.SubType == AccountSubType.CreditCard ? _model.BillingCycleDay : null,
+                    LinkedPaymentAccountId = _model.SubType == AccountSubType.CreditCard ? _model.LinkedPaymentAccountId : null,
                     Notes = _model.Notes,
                     IsActive = _model.IsActive
                 };
@@ -176,6 +246,9 @@
                 Account.SubType = _model.SubType;
                 Account.Group = _model.Group;
                 Account.OpeningBalance = _model.OpeningBalance;
+                Account.MonthlySpendingLimit = _model.MonthlySpendingLimit;
+                Account.BillingCycleDay = _model.SubType == AccountSubType.CreditCard ? _model.BillingCycleDay : null;
+                Account.LinkedPaymentAccountId = _model.SubType == AccountSubType.CreditCard ? _model.LinkedPaymentAccountId : null;
                 Account.Notes = _model.Notes;
                 Account.IsActive = _model.IsActive;
 
@@ -197,6 +270,9 @@
         public AccountSubType SubType { get; set; }
         public string? Group { get; set; }
         public decimal OpeningBalance { get; set; }
+        public decimal? MonthlySpendingLimit { get; set; }
+        public int? BillingCycleDay { get; set; }
+        public int? LinkedPaymentAccountId { get; set; }
         public string? Notes { get; set; }
         public bool IsActive { get; set; }
     }

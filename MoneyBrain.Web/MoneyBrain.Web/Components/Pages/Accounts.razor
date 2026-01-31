@@ -1,5 +1,6 @@
 @page "/accounts"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Domain.Entities
@@ -16,6 +17,68 @@
 @inject NavigationManager NavigationManager
 
 <PageTitle>Accounts | MoneyBrain</PageTitle>
+
+<style>
+    .mb-grid-accounts .mud-paper {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .mb-grid-accounts .mud-paper:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.12) !important;
+    }
+    
+    .mb-account-icon.bank {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .mb-account-icon.credit {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+    
+    .mb-account-icon.cash {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+    
+    .mb-account-icon.investment {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+    }
+    
+    .mb-grid-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .mb-card-stat {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s ease;
+    }
+    
+    .mb-card-stat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    .mb-card-stat.income {
+        border-left: 4px solid var(--mud-palette-success);
+    }
+    
+    .mb-card-stat.expense {
+        border-left: 4px solid var(--mud-palette-warning);
+    }
+    
+    .mb-card-stat.info {
+        border-left: 4px solid var(--mud-palette-info);
+    }
+</style>
 
 <div class="mb-page mb-animate-in">
     <!-- Header -->
@@ -71,41 +134,84 @@
         <!-- Assets Section -->
         @if (_accounts.Any(a => a.Type == AccountType.Asset))
         {
-            <div class="mb-section-header mt-6">
-                <h2 class="mb-section-title">Assets</h2>
+            <div class="mb-section-header mt-8 mb-4">
+                <h2 class="mb-section-title" style="font-size: 1.5rem; font-weight: 700; color: var(--mb-text-primary);">Assets</h2>
             </div>
             <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Asset))
                 {
-                    <div class="mb-account-card" @onclick="() => ViewBalanceHistory(account)">
-                        <div class="mb-account-icon @GetAccountIconClass(account.SubType)">
-                            <MudIcon Icon="@GetAccountIcon(account.SubType)" />
-                        </div>
-                        <div class="flex-grow-1">
-                            <div style="font-weight: 600; color: var(--mb-text-primary);">@account.Name</div>
-                            <div style="font-size: 0.875rem; color: var(--mb-text-muted);">
-                                @account.SubType
-                                @if (!string.IsNullOrWhiteSpace(account.Group))
+                    <MudPaper Elevation="2" Class="pa-4" Style="border-radius: 12px; cursor: pointer; transition: all 0.2s ease; border-left: 4px solid var(--mud-palette-success);" @onclick="() => ViewBalanceHistory(account)">
+                        <div class="d-flex gap-3">
+                            <div class="mb-account-icon @GetAccountIconClass(account.SubType)" style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <MudIcon Icon="@GetAccountIcon(account.SubType)" Size="MudBlazor.Size.Medium" />
+                            </div>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="d-flex justify-space-between align-start mb-2">
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <div style="font-weight: 600; font-size: 1.1rem; color: var(--mb-text-primary); margin-bottom: 6px;">@account.Name</div>
+                                        <div style="font-size: 0.875rem; color: var(--mb-text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <MudChip T="string" Size="MudBlazor.Size.Small" Variant="Variant.Text" Style="height: 20px; font-size: 0.75rem; padding: 0 8px;">@account.SubType</MudChip>
+                                            @if (!string.IsNullOrWhiteSpace(account.Group))
+                                            {
+                                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Primary" Variant="Variant.Text" Style="height: 20px; font-size: 0.75rem; padding: 0 8px;">@account.Group</MudChip>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="text-end ms-3" style="min-width: 140px; flex-shrink: 0;">
+                                        <div class="mb-amount @GetBalanceClass(account.CurrentBalance)" style="font-size: 1.5rem; font-weight: 700; line-height: 1; margin-bottom: 4px;">
+                                            @FormatCurrency(account.CurrentBalance)
+                                        </div>
+                                        @if (account.SpendingSummary != null && account.SpendingSummary.Remaining.HasValue)
+                                        {
+                                            <div style="font-size: 0.75rem; color: var(--mb-text-muted);">
+                                                @FormatAmount(account.SpendingSummary.Remaining.Value) left
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                @if (account.SpendingSummary != null)
                                 {
-                                    <span> · @account.Group</span>
+                                    <div class="mt-2" @onclick:stopPropagation="true" style="max-width: 500px;">
+                                        <MudTooltip Text="@GetSpendingTooltip(account)">
+                                            <div style="cursor: pointer;" @onclick="() => ViewMonthlyTransactions(account)">
+                                                <div class="d-flex justify-space-between align-center mb-1">
+                                                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--mb-text-secondary);">Monthly Spending</span>
+                                                    <span style="font-size: 0.75rem; font-weight: 600; color: @(account.SpendingSummary.IsOverLimit ? "var(--mud-palette-error)" : "var(--mb-text-secondary)");">
+                                                        @($"{account.SpendingSummary.PercentUsed ?? 0:N0}%")
+                                                    </span>
+                                                </div>
+                                                <MudProgressLinear Color="@GetSpendingColor(account.SpendingSummary)" 
+                                                                   Rounded="true" 
+                                                                   Size="MudBlazor.Size.Medium"
+                                                                   Style="height: 8px;"
+                                                                   Value="@GetSpendingProgress(account.SpendingSummary)" />
+                                                <div class="d-flex justify-space-between mt-1">
+                                                    <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
+                                                        @FormatAmount(account.SpendingSummary.SpentAmount) spent
+                                                    </span>
+                                                    <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
+                                                        @FormatAmount(account.MonthlyLimit ?? 0) limit
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </MudTooltip>
+                                    </div>
                                 }
                             </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="mb-amount @GetBalanceClass(account.CurrentBalance)" style="font-size: 1.25rem;">
-                                @FormatCurrency(account.CurrentBalance)
+                            <div class="d-flex flex-column gap-1 align-self-start" @onclick:stopPropagation="true" style="flex-shrink: 0;">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                               Size="MudBlazor.Size.Small"
+                                               Color="MudBlazor.Color.Primary"
+                                               Variant="Variant.Text"
+                                               OnClick="@(() => OpenEditAccountDialog(account.Account))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                               Size="MudBlazor.Size.Small"
+                                               Color="MudBlazor.Color.Error"
+                                               Variant="Variant.Text"
+                                               OnClick="@(() => DeleteAccount(account.Account))" />
                             </div>
                         </div>
-                        <div class="d-flex flex-column gap-1 ms-2" @onclick:stopPropagation="true">
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                           Size="MudBlazor.Size.Small"
-                                           OnClick="@(() => OpenEditAccountDialog(account.Account))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                           Size="MudBlazor.Size.Small"
-                                           Color="MudBlazor.Color.Error"
-                                           OnClick="@(() => DeleteAccount(account.Account))" />
-                        </div>
-                    </div>
+                    </MudPaper>
                 }
             </div>
         }
@@ -113,41 +219,94 @@
         <!-- Liabilities Section -->
         @if (_accounts.Any(a => a.Type == AccountType.Liability))
         {
-            <div class="mb-section-header mt-6">
-                <h2 class="mb-section-title">Liabilities</h2>
+            <div class="mb-section-header mt-8 mb-4">
+                <h2 class="mb-section-title" style="font-size: 1.5rem; font-weight: 700; color: var(--mb-text-primary);">Liabilities</h2>
             </div>
             <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Liability))
                 {
-                    <div class="mb-account-card" @onclick="() => ViewBalanceHistory(account)">
-                        <div class="mb-account-icon @GetAccountIconClass(account.SubType)">
-                            <MudIcon Icon="@GetAccountIcon(account.SubType)" />
-                        </div>
-                        <div class="flex-grow-1">
-                            <div style="font-weight: 600; color: var(--mb-text-primary);">@account.Name</div>
-                            <div style="font-size: 0.875rem; color: var(--mb-text-muted);">
-                                @account.SubType
-                                @if (!string.IsNullOrWhiteSpace(account.Group))
+                    <MudPaper Elevation="2" Class="pa-4" Style="border-radius: 12px; cursor: pointer; transition: all 0.2s ease; border-left: 4px solid var(--mud-palette-warning);" @onclick="() => ViewBalanceHistory(account)">
+                        <div class="d-flex gap-3">
+                            <div class="mb-account-icon @GetAccountIconClass(account.SubType)" style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <MudIcon Icon="@GetAccountIcon(account.SubType)" Size="MudBlazor.Size.Medium" />
+                            </div>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="d-flex justify-space-between align-start mb-2">
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <div style="font-weight: 600; font-size: 1.1rem; color: var(--mb-text-primary); margin-bottom: 6px;">@account.Name</div>
+                                        <div style="font-size: 0.875rem; color: var(--mb-text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <MudChip T="string" Size="MudBlazor.Size.Small" Variant="Variant.Text" Style="height: 20px; font-size: 0.75rem; padding: 0 8px;">@account.SubType</MudChip>
+                                            @if (!string.IsNullOrWhiteSpace(account.Group))
+                                            {
+                                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Primary" Variant="Variant.Text" Style="height: 20px; font-size: 0.75rem; padding: 0 8px;">@account.Group</MudChip>
+                                            }
+                                        </div>
+                                        @if (account.SubType == AccountSubType.CreditCard && account.Account.BillingCycleDay.HasValue)
+                                        {
+                                            <div class="mt-2">
+                                                <MudChip T="string" Icon="@Icons.Material.Filled.CalendarMonth" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" Variant="Variant.Outlined" Style="height: 22px; font-size: 0.75rem;">
+                                                    Bills on day @account.Account.BillingCycleDay
+                                                </MudChip>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="text-end ms-3" style="min-width: 140px; flex-shrink: 0;">
+                                        <div class="mb-amount negative" style="font-size: 1.5rem; font-weight: 700; line-height: 1; margin-bottom: 4px;">
+                                            @FormatCurrency(account.CurrentBalance)
+                                        </div>
+                                        @if (account.SpendingSummary != null && account.SpendingSummary.Remaining.HasValue)
+                                        {
+                                            <div style="font-size: 0.75rem; color: var(--mb-text-muted);">
+                                                @FormatAmount(account.SpendingSummary.Remaining.Value) left
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                @if (account.SpendingSummary != null)
                                 {
-                                    <span> · @account.Group</span>
+                                    <div class="mt-2" @onclick:stopPropagation="true" style="max-width: 500px;">
+                                        <MudTooltip Text="@GetSpendingTooltip(account)">
+                                            <div style="cursor: pointer;" @onclick="() => ViewMonthlyTransactions(account)">
+                                                <div class="d-flex justify-space-between align-center mb-1">
+                                                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--mb-text-secondary);">
+                                                        @(account.SubType == AccountSubType.CreditCard ? "Unbilled Charges" : "Monthly Spending")
+                                                    </span>
+                                                    <span style="font-size: 0.75rem; font-weight: 600; color: @(account.SpendingSummary.IsOverLimit ? "var(--mud-palette-error)" : "var(--mb-text-secondary)");">
+                                                        @($"{account.SpendingSummary.PercentUsed ?? 0:N0}%")
+                                                    </span>
+                                                </div>
+                                                <MudProgressLinear Color="@GetSpendingColor(account.SpendingSummary)" 
+                                                                   Rounded="true" 
+                                                                   Size="MudBlazor.Size.Medium"
+                                                                   Style="height: 8px;"
+                                                                   Value="@GetSpendingProgress(account.SpendingSummary)" />
+                                                <div class="d-flex justify-space-between mt-1">
+                                                    <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
+                                                        @FormatAmount(account.SpendingSummary.SpentAmount) @(account.SubType == AccountSubType.CreditCard ? "pending" : "spent")
+                                                    </span>
+                                                    <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
+                                                        @FormatAmount(account.MonthlyLimit ?? 0) limit
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </MudTooltip>
+                                    </div>
                                 }
                             </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="mb-amount negative" style="font-size: 1.25rem;">
-                                @FormatCurrency(account.CurrentBalance)
+                            <div class="d-flex flex-column gap-1 align-self-start" @onclick:stopPropagation="true" style="flex-shrink: 0;">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                               Size="MudBlazor.Size.Small"
+                                               Color="MudBlazor.Color.Primary"
+                                               Variant="Variant.Text"
+                                               OnClick="@(() => OpenEditAccountDialog(account.Account))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                               Size="MudBlazor.Size.Small"
+                                               Color="MudBlazor.Color.Error"
+                                               Variant="Variant.Text"
+                                               OnClick="@(() => DeleteAccount(account.Account))" />
                             </div>
                         </div>
-                        <div class="d-flex flex-column gap-1 ms-2" @onclick:stopPropagation="true">
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                           Size="MudBlazor.Size.Small"
-                                           OnClick="@(() => OpenEditAccountDialog(account.Account))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                           Size="MudBlazor.Size.Small"
-                                           Color="MudBlazor.Color.Error"
-                                           OnClick="@(() => DeleteAccount(account.Account))" />
-                        </div>
-                    </div>
+                    </MudPaper>
                 }
             </div>
         }
@@ -205,6 +364,16 @@
         _isLoading = false;
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload accounts when navigating back to this page
+        if (!_isLoading && !string.IsNullOrWhiteSpace(_userId))
+        {
+            await LoadAccounts();
+            StateHasChanged();
+        }
+    }
+
     private async Task LoadAccounts()
     {
         if (string.IsNullOrWhiteSpace(_userId))
@@ -213,10 +382,23 @@
         var accounts = await AccountService.GetUserAccountsAsync(_userId);
         _accounts = [];
         
+        var now = DateTime.Now;
+        var currentYear = now.Year;
+        var currentMonth = now.Month;
+        
         foreach (var account in accounts)
         {
             var balance = await AccountService.CalculateCurrentBalanceAsync(account.Id, _userId!);
-            _accounts.Add(new AccountWithBalance(account, balance));
+            
+            // Get monthly spending summary if account has a limit set
+            MonthlySpendingSummary? spendingSummary = null;
+            if (account.MonthlySpendingLimit.HasValue)
+            {
+                spendingSummary = await AccountService.GetMonthlySpendingAsync(
+                    account.Id, _userId!, currentYear, currentMonth);
+            }
+            
+            _accounts.Add(new AccountWithBalance(account, balance, spendingSummary));
         }
         
         _totalAssets = _accounts.Where(a => a.Type == AccountType.Asset).Sum(a => a.CurrentBalance);
@@ -324,12 +506,70 @@
         _ => Icons.Material.Filled.Wallet
     };
 
-    private record AccountWithBalance(Account Account, decimal CurrentBalance)
+    private string FormatAmount(decimal amount) => $"{amount:N2} {_currencyCode}";
+
+    private double GetSpendingProgress(MonthlySpendingSummary summary)
+    {
+        if (summary.PercentUsed.HasValue)
+        {
+            return Math.Min((double)summary.PercentUsed.Value, 100);
+        }
+        return 0;
+    }
+
+    private MudBlazor.Color GetSpendingColor(MonthlySpendingSummary summary)
+    {
+        if (summary.IsOverLimit)
+            return MudBlazor.Color.Error;
+        if (summary.PercentUsed >= 90)
+            return MudBlazor.Color.Warning;
+        if (summary.PercentUsed >= 75)
+            return MudBlazor.Color.Info;
+        return MudBlazor.Color.Success;
+    }
+
+    private string GetSpendingTooltip(AccountWithBalance account)
+    {
+        if (account.SpendingSummary == null)
+            return "";
+
+        var summary = account.SpendingSummary;
+        var isCreditCard = account.SubType == AccountSubType.CreditCard;
+        var qualifier = isCreditCard ? "pending (unbilled)" : "posted & pending";
+        
+        if (summary.IsOverLimit)
+        {
+            return $"⚠️ Over limit by {FormatAmount(Math.Abs(summary.Remaining ?? 0))}! Includes {qualifier} transactions. Click to view details.";
+        }
+        if (summary.Remaining.HasValue)
+        {
+            return $"✓ Remaining: {FormatAmount(summary.Remaining.Value)} ({100 - (summary.PercentUsed ?? 0):N0}% available). Includes {qualifier} transactions. Click to view details.";
+        }
+        return $"Includes {qualifier} transactions. Click to view this month's transactions.";
+    }
+
+    private void ViewMonthlyTransactions(AccountWithBalance account)
+    {
+        var now = DateTime.Now;
+        var startDate = new DateTime(now.Year, now.Month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(-1);
+        
+        // For credit cards, show pending transactions (unbilled charges)
+        // For other accounts, show posted transactions
+        var status = account.SubType == AccountSubType.CreditCard ? "Pending" : "Posted";
+        
+        // Navigate to transactions page with filters for this account's expenses this month
+        var url = $"/transactions?accountId={account.Id}&startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}&status={status}";
+        NavigationManager.NavigateTo(url);
+    }
+
+    private record AccountWithBalance(Account Account, decimal CurrentBalance, MonthlySpendingSummary? SpendingSummary)
     {
         public int Id => Account.Id;
         public string Name => Account.Name;
         public AccountType Type => Account.Type;
         public AccountSubType SubType => Account.SubType;
         public string? Group => Account.Group;
+        public decimal? MonthlyLimit => Account.MonthlySpendingLimit;
     }
 }
