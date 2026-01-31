@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# IDE and editors
+.vs
+.vscode
+.idea
+*.user
+*.suo
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# NuGet
+**/packages/
+
+# Docker
+Dockerfile*
+docker-compose*
+.docker
+
+# Documentation
+*.md
+!README.md
+
+# Test results
+**/TestResults/
+
+# SQLite database files (use PostgreSQL in Docker)
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+# User secrets
+secrets.json
+
+# OS files
+.DS_Store
+Thumbs.db

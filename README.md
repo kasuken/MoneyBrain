@@ -68,6 +68,105 @@ Then open:
 
 On first run, register the initial user, then start by creating an account and adding/importing transactions.
 
+## 🐳 Docker (with PostgreSQL)
+
+Run MoneyBrain with PostgreSQL using Docker Compose.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/) (included with Docker Desktop)
+
+### Quick start
+
+```bash
+# Clone the repository
+git clone https://github.com/MoneyBrain-App/MoneyBrain.git
+cd MoneyBrain
+
+# Build and start the containers
+docker compose up -d
+
+# View logs
+docker compose logs -f moneybrain
+```
+
+The application will be available at **http://localhost:8080**
+
+### Docker Compose services
+
+| Service | Description | Port |
+|---------|-------------|------|
+| `moneybrain` | The MoneyBrain web application | 8080 |
+| `postgres` | PostgreSQL 17 database | 5432 |
+
+### Configuration
+
+Default environment variables in `docker-compose.yml`:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DatabaseProvider` | Database type (`PostgreSQL` or `SQLite`) | `PostgreSQL` |
+| `ConnectionStrings__DefaultConnection` | Database connection string | PostgreSQL connection |
+| `POSTGRES_DB` | PostgreSQL database name | `moneybrain` |
+| `POSTGRES_USER` | PostgreSQL username | `moneybrain` |
+| `POSTGRES_PASSWORD` | PostgreSQL password | `moneybrain_secret` |
+
+> [!WARNING]
+> For production, change the default database password in `docker-compose.yml`.
+
+### Production configuration
+
+For production deployments, create a `docker-compose.override.yml`:
+
+```yaml
+services:
+  moneybrain:
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=moneybrain;Username=moneybrain;Password=YOUR_SECURE_PASSWORD
+  
+  postgres:
+    environment:
+      - POSTGRES_PASSWORD=YOUR_SECURE_PASSWORD
+```
+
+### Managing the containers
+
+```bash
+# Start containers
+docker compose up -d
+
+# Stop containers
+docker compose down
+
+# Stop and remove volumes (WARNING: deletes all data)
+docker compose down -v
+
+# Rebuild after code changes
+docker compose build --no-cache
+docker compose up -d
+
+# View application logs
+docker compose logs -f moneybrain
+
+# Access PostgreSQL directly
+docker compose exec postgres psql -U moneybrain -d moneybrain
+```
+
+### Data persistence
+
+PostgreSQL data is persisted in a Docker volume named `postgres-data`. Your data survives container restarts and updates.
+
+To backup your data:
+
+```bash
+# Create a database dump
+docker compose exec postgres pg_dump -U moneybrain moneybrain > backup.sql
+
+# Restore from backup
+cat backup.sql | docker compose exec -T postgres psql -U moneybrain -d moneybrain
+```
+
 ## Import sample data
 
 There’s a small sample file at `sample-transactions.csv`.
