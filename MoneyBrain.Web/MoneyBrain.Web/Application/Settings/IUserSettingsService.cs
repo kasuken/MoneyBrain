@@ -36,6 +36,17 @@ public interface IUserSettingsService
     /// Gets a list of available timezones.
     /// </summary>
     IReadOnlyList<TimeZoneInfo> GetAvailableTimeZones();
+
+    /// <summary>
+    /// Erases all data associated with a user, including accounts, transactions, budgets, etc.
+    /// Does NOT delete the user identity itself.
+    /// </summary>
+    Task EraseAllUserDataAsync(string userId);
+
+    /// <summary>
+    /// Loads realistic demo data for a user to explore the application.
+    /// </summary>
+    Task LoadDemoDataAsync(string userId);
 }
 
 /// <summary>

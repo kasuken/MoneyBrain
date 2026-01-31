@@ -6,6 +6,7 @@
 @inject IUserSettingsService SettingsService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <PageTitle>Settings | MoneyBrain</PageTitle>
 
@@ -94,6 +95,56 @@
                 </MudForm>
             }
         </div>
+
+        <div class="mb-card mt-4">
+            <MudStack Spacing="4">
+                <div>
+                    <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: var(--mb-text-secondary); font-weight: 600;">
+                        DATA MANAGEMENT
+                    </MudText>
+                </div>
+                
+                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                    <MudText Typo="Typo.body2">
+                        Erasing all data will permanently delete all your accounts, transactions, budgets, categories, and settings. 
+                        This action cannot be undone.
+                    </MudText>
+                </MudAlert>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.DeleteForever"
+                           OnClick="ShowEraseDataConfirmation"
+                           Disabled="@_erasing">
+                    @if (_erasing)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                    }
+                    Erase All Data
+                </MudButton>
+
+                <MudDivider Class="my-2" />
+
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                    <MudText Typo="Typo.body2">
+                        Load demo data to explore MoneyBrain with realistic sample accounts, transactions, and budgets.
+                        This will add data without affecting any existing records.
+                    </MudText>
+                </MudAlert>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.PlaylistAdd"
+                           OnClick="LoadDemoDataAsync"
+                           Disabled="@_loadingDemo">
+                    @if (_loadingDemo)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                    }
+                    Load Demo Data
+                </MudButton>
+            </MudStack>
+        </div>
     </div>
     
     <HelpButton Title="Settings Help"
@@ -119,6 +170,8 @@
 @code {
     private bool _loading = true;
     private bool _saving;
+    private bool _erasing;
+    private bool _loadingDemo;
     private bool _formValid;
     private MudForm? _form;
 
@@ -181,6 +234,101 @@
         finally
         {
             _saving = false;
+        }
+    }
+
+    private async Task ShowEraseDataConfirmation()
+    {
+        // First confirmation
+        var firstResult = await DialogService.ShowMessageBox(
+            "Erase All Data?",
+            "Are you sure you want to erase ALL your data? This includes accounts, transactions, budgets, categories, and settings. This action cannot be undone.",
+            yesText: "Yes, continue",
+            cancelText: "Cancel");
+
+        if (firstResult != true)
+            return;
+
+        // Second confirmation - more explicit
+        var secondResult = await DialogService.ShowMessageBox(
+            "Final Confirmation",
+            (MarkupString)"<strong>This is your last chance to cancel.</strong><br/><br/>All your financial data will be permanently deleted. You will need to set up MoneyBrain from scratch.<br/><br/>Are you absolutely sure?",
+            yesText: "Yes, erase everything",
+            cancelText: "No, keep my data");
+
+        if (secondResult != true)
+            return;
+
+        await EraseAllDataAsync();
+    }
+
+    private async Task EraseAllDataAsync()
+    {
+        _erasing = true;
+
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                Snackbar.Add("Unable to identify user", Severity.Error);
+                return;
+            }
+
+            await SettingsService.EraseAllUserDataAsync(userId);
+            Snackbar.Add("All data has been erased successfully", Severity.Success);
+
+            // Reset local state
+            _currencyCode = "USD";
+            _timeZoneId = TimeZoneInfo.Local.Id;
+            _dateFormat = "yyyy-MM-dd";
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error erasing data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _erasing = false;
+        }
+    }
+
+    private async Task LoadDemoDataAsync()
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Load Demo Data?",
+            "This will add sample accounts, transactions, categories, and budgets to help you explore MoneyBrain. Your existing data will not be affected.",
+            yesText: "Load Demo Data",
+            cancelText: "Cancel");
+
+        if (result != true)
+            return;
+
+        _loadingDemo = true;
+
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                Snackbar.Add("Unable to identify user", Severity.Error);
+                return;
+            }
+
+            await SettingsService.LoadDemoDataAsync(userId);
+            Snackbar.Add("Demo data loaded successfully! Check your accounts and transactions.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading demo data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loadingDemo = false;
         }
     }
 }
