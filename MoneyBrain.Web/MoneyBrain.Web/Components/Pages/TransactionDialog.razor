@@ -193,12 +193,30 @@
             _selectedAccountId = PreselectedAccountId.Value;
             // Set default status based on account type
             SetDefaultStatusForAccount(_selectedAccountId);
+            // Set default category to last used expense category
+            await SetDefaultExpenseCategoryAsync();
         }
         else if (_accounts.Any())
         {
             _selectedAccountId = _accounts.First().Id;
             // Set default status based on account type
             SetDefaultStatusForAccount(_selectedAccountId);
+            // Set default category to last used expense category
+            await SetDefaultExpenseCategoryAsync();
+        }
+    }
+
+    private async Task SetDefaultExpenseCategoryAsync()
+    {
+        // Get the most recent transaction for this user
+        var recentTransactions = await TransactionService.GetUserTransactionsAsync(UserId!, null, null);
+        var lastTransaction = recentTransactions
+            .Where(t => t.CategoryId.HasValue && t.Category?.CategoryGroup != null)
+            .FirstOrDefault();
+
+        if (lastTransaction?.Category?.CategoryGroup?.Type == CategoryType.Expense)
+        {
+            _selectedCategoryId = lastTransaction.CategoryId;
         }
     }
 
