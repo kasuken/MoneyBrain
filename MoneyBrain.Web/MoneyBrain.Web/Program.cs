@@ -5,6 +5,7 @@ using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
 using MoneyBrain.Web.Application.CreditCardBilling;
+using MoneyBrain.Web.Application.Licensing;
 using MoneyBrain.Web.Application.Reconciliation;
 using MoneyBrain.Web.Application.Settings;
 using MoneyBrain.Web.Application.Reporting.Cashflow;
@@ -87,6 +88,11 @@ builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryS
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<ICreditCardBillingService, CreditCardBillingService>();
 
+// Licensing services
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<LicensingSettings>(builder.Configuration.GetSection("Licensing"));
+builder.Services.AddScoped<ILicenseService, LicenseService>();
+
 // Background services
 builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.RecurringTransactionBackgroundService>();
 builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.CreditCardBillingBackgroundService>();
@@ -145,5 +151,27 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+// Stripe webhook endpoint for subscription lifecycle events
+app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService licenseService) =>
+{
+    var json = await new StreamReader(context.Request.Body).ReadToEndAsync();
+    var signature = context.Request.Headers["Stripe-Signature"].FirstOrDefault();
+    
+    if (string.IsNullOrEmpty(signature))
+    {
+        return Results.BadRequest("Missing Stripe-Signature header");
+    }
+
+    try
+    {
+        await licenseService.HandleWebhookAsync(json, signature);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+}).AllowAnonymous();
 
 app.Run();

@@ -1,0 +1,81 @@
+@using MudBlazor
+@using MoneyBrain.Web.Application.Licensing
+@using Microsoft.Extensions.Options
+
+@inject ILicenseService LicenseService
+@inject IOptions<LicensingSettings> LicensingSettings
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+@if (_loading)
+{
+    <MudContainer Class="d-flex justify-center align-center" Style="height: 100vh;">
+        <MudProgressCircular Indeterminate Size="Size.Large" />
+    </MudContainer>
+}
+else if (!_hasValidLicense)
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column align-center justify-center" Style="height: 80vh;">
+        <MudPaper Class="pa-8 text-center" Elevation="2">
+            <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" Class="mb-4" />
+            <MudText Typo="Typo.h5" Class="mb-2">License Required</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+                Your license has expired or is invalid. Please upgrade to continue using MoneyBrain.
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/license" Class="mb-2" FullWidth>
+                Manage License
+            </MudButton>
+            <MudButton Variant="Variant.Text" Color="Color.Default" Href="/pricing" FullWidth>
+                View Pricing
+            </MudButton>
+        </MudPaper>
+    </MudContainer>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _loading = true;
+    private bool _hasValidLicense;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckLicenseAsync();
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckLicenseAsync()
+    {
+        // If licensing is disabled, allow access
+        if (!LicensingSettings.Value.Enabled)
+        {
+            _hasValidLicense = true;
+            return;
+        }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            _hasValidLicense = true; // Let auth handle unauthenticated users
+            return;
+        }
+
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            _hasValidLicense = true;
+            return;
+        }
+
+        _hasValidLicense = await LicenseService.HasValidLicenseAsync(userId);
+    }
+}

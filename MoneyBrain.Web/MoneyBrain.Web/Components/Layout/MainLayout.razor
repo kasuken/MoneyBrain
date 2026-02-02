@@ -43,6 +43,7 @@
                     </ActivatorContent>
                     <ChildContent>
                         <MudMenuItem Href="/settings" Icon="@Icons.Material.Outlined.Settings">Settings</MudMenuItem>
+                        <MudMenuItem Href="/license" Icon="@Icons.Material.Outlined.CardMembership">License</MudMenuItem>
                         <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Outlined.Person">Profile</MudMenuItem>
                         <MudDivider />
                         <MudMenuItem>
@@ -73,7 +74,9 @@
         <AuthorizeView>
             <Authorized>
                 <SettingsEnforcer>
-                    @Body
+                    <LicenseEnforcer>
+                        @Body
+                    </LicenseEnforcer>
                 </SettingsEnforcer>
             </Authorized>
             <NotAuthorized>
