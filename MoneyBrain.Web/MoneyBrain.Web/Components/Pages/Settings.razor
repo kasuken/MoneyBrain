@@ -7,6 +7,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Settings | MoneyBrain</PageTitle>
 
@@ -284,6 +285,9 @@
             _currencyCode = "USD";
             _timeZoneId = TimeZoneInfo.Local.Id;
             _dateFormat = "yyyy-MM-dd";
+
+            // Redirect to homepage with full refresh to reset UI state
+            NavigationManager.NavigateTo("/", forceLoad: true);
         }
         catch (Exception ex)
         {

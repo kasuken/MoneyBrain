@@ -3,17 +3,19 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@inject NavigationManager NavigationManager
 
 <MudDialog Options="@(new DialogOptions { CloseButton = false, BackdropClick = false, MaxWidth = MaxWidth.Medium, FullWidth = true })">
     <DialogContent>
         <MudStepper @ref="_stepper" 
                     @bind-ActiveIndex="_activeStep"
                     Vertical="false"
-                    Class="mb-setup-wizard">
+                    Class="mb-setup-wizard"
+                    ActionContent="@(context => null)">
             
             <!-- Step 1: Welcome -->
-            <MudStep Title="Welcome" Icon="@Icons.Material.Filled.Celebration">
-                <div class="text-center pa-6">
+            <MudStep Title="Welcome" Icon="@Icons.Material.Filled.WavingHand">
+                <div class="pa-4">
                     <div class="mb-logo" style="justify-content: center; margin-bottom: 2rem;">
                         <div class="mb-logo-icon" style="width: 64px; height: 64px; font-size: 1.75rem;">M</div>
                     </div>
@@ -591,8 +593,8 @@
             // Save default settings to mark setup as complete
             await OnSaveSettings(UserId, "USD", TimeZoneInfo.Local.Id, "yyyy-MM-dd");
             
-            // Close the wizard
-            MudDialog.Close(DialogResult.Ok(true));
+            // Redirect to homepage with full refresh to show loaded data
+            NavigationManager.NavigateTo("/", forceLoad: true);
         }
         finally
         {
