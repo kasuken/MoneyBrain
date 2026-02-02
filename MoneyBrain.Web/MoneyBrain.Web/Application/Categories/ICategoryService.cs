@@ -1,4 +1,5 @@
 using MoneyBrain.Web.Domain.Entities;
+using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Application.Categories;
 
@@ -25,12 +26,12 @@ public interface ICategoryService
     /// <summary>
     /// Create a new category group
     /// </summary>
-    Task<CategoryGroup> CreateCategoryGroupAsync(string userId, string name, CancellationToken cancellationToken = default);
+    Task<CategoryGroup> CreateCategoryGroupAsync(string userId, string name, CategoryType type = CategoryType.Expense, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Update an existing category group
     /// </summary>
-    Task<bool> UpdateCategoryGroupAsync(int categoryGroupId, string userId, string name, CancellationToken cancellationToken = default);
+    Task<bool> UpdateCategoryGroupAsync(int categoryGroupId, string userId, string name, CategoryType type, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Delete a category group (soft delete - mark as inactive)

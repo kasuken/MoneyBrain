@@ -1,5 +1,6 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
 @inject ICategoryService CategoryService
 @inject ISnackbar SnackbarService
 
@@ -11,6 +12,35 @@
                       Required="true"
                       Immediate="true"
                       MaxLength="100" />
+
+        <MudSelect @bind-Value="_type" 
+                   Label="Category Type" 
+                   Variant="Variant.Outlined" 
+                   Required="true"
+                   Class="mt-4">
+            <MudSelectItem Value="@CategoryType.Expense">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Small" />
+                    <div>
+                        <div>Expense</div>
+                        <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
+                            For spending categories (housing, food, etc.)
+                        </MudText>
+                    </div>
+                </div>
+            </MudSelectItem>
+            <MudSelectItem Value="@CategoryType.Income">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Success" />
+                    <div>
+                        <div>Income</div>
+                        <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
+                            For income sources (salary, freelance, etc.)
+                        </MudText>
+                    </div>
+                </div>
+            </MudSelectItem>
+        </MudSelect>
 
         @if (!string.IsNullOrWhiteSpace(_errorMessage))
         {
@@ -40,6 +70,7 @@
     [Parameter] public bool IsNew { get; set; } = true;
 
     private string _name = string.Empty;
+    private CategoryType _type = CategoryType.Expense;
     private bool _isSubmitting;
     private string? _errorMessage;
 
@@ -48,6 +79,7 @@
         if (!IsNew && CategoryGroup != null)
         {
             _name = CategoryGroup.Name;
+            _type = CategoryGroup.Type;
         }
     }
 
@@ -72,12 +104,12 @@
         {
             if (IsNew)
             {
-                var group = await CategoryService.CreateCategoryGroupAsync(UserId, _name.Trim());
+                var group = await CategoryService.CreateCategoryGroupAsync(UserId, _name.Trim(), _type);
                 MudDialog.Close(DialogResult.Ok(group));
             }
             else if (CategoryGroup != null)
             {
-                var success = await CategoryService.UpdateCategoryGroupAsync(CategoryGroup.Id, UserId, _name.Trim());
+                var success = await CategoryService.UpdateCategoryGroupAsync(CategoryGroup.Id, UserId, _name.Trim(), _type);
                 if (success)
                 {
                     MudDialog.Close(DialogResult.Ok(true));

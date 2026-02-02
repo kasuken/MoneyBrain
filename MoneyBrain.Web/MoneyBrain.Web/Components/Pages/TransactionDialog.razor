@@ -42,7 +42,7 @@
 
             <MudNumericField @bind-Value="_amount" Label="Amount" Required="true" Format="F2"
                              Adornment="Adornment.Start" AdornmentText="$"
-                             HelperText="Positive for income, negative for expense" 
+                             HelperText="Enter the transaction amount (sign is automatic based on category type)" 
                              Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudAutocomplete T="string" @bind-Value="_payeeName" Label="Payee"

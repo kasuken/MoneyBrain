@@ -24,6 +24,31 @@ public class TransactionService : ITransactionService
         _ledgerService = ledgerService;
     }
 
+    /// <summary>
+    /// Normalizes the transaction amount based on the category's type (Income/Expense).
+    /// Income categories enforce positive amounts, Expense categories enforce negative amounts.
+    /// </summary>
+    private async Task<decimal> NormalizeAmountByCategoryTypeAsync(decimal amount, int? categoryId, CancellationToken cancellationToken = default)
+    {
+        // If no category, return amount as-is
+        if (!categoryId.HasValue)
+            return amount;
+
+        // Look up category and its group type
+        var category = await _context.Categories
+            .Include(c => c.CategoryGroup)
+            .FirstOrDefaultAsync(c => c.Id == categoryId.Value, cancellationToken);
+
+        if (category?.CategoryGroup == null)
+            return amount;
+
+        // Enforce sign based on category type
+        var absoluteAmount = Math.Abs(amount);
+        return category.CategoryGroup.Type == CategoryType.Income
+            ? absoluteAmount  // Income: always positive
+            : -absoluteAmount; // Expense: always negative
+    }
+
     public async Task<List<Transaction>> GetAccountTransactionsAsync(int accountId, string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Transactions
@@ -101,12 +126,15 @@ public class TransactionService : ITransactionService
         if (!accountExists)
             throw new InvalidOperationException("Account not found or does not belong to user");
 
+        // Normalize amount based on category type (Income = positive, Expense = negative)
+        var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(amount, categoryId, cancellationToken);
+
         var transaction = new Transaction
         {
             UserId = userId,
             AccountId = accountId,
             Date = date,
-            Amount = amount,
+            Amount = normalizedAmount,
             PayeeId = payeeId,
             CategoryId = categoryId,
             Memo = memo,
@@ -161,8 +189,11 @@ public class TransactionService : ITransactionService
         if (transaction.IsReconciled)
             throw new InvalidOperationException("Cannot modify reconciled transaction");
 
+        // Normalize amount based on category type (Income = positive, Expense = negative)
+        var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(amount, categoryId, cancellationToken);
+
         transaction.Date = date;
-        transaction.Amount = amount;
+        transaction.Amount = normalizedAmount;
         transaction.PayeeId = payeeId;
         transaction.CategoryId = categoryId;
         transaction.Memo = memo;
@@ -711,14 +742,17 @@ public class TransactionService : ITransactionService
         _context.Transactions.Add(transaction);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Create splits
+        // Create splits with normalized amounts based on category type
         foreach (var splitDto in splits)
         {
+            // Normalize split amount based on category type
+            var normalizedSplitAmount = await NormalizeAmountByCategoryTypeAsync(splitDto.Amount, splitDto.CategoryId, cancellationToken);
+
             var split = new TransactionSplit
             {
                 TransactionId = transaction.Id,
                 CategoryId = splitDto.CategoryId,
-                Amount = splitDto.Amount,
+                Amount = normalizedSplitAmount,
                 Memo = splitDto.Memo,
                 CreatedAt = DateTime.UtcNow
             };
@@ -789,14 +823,17 @@ public class TransactionService : ITransactionService
         // Remove existing splits
         _context.TransactionSplits.RemoveRange(transaction.Splits);
 
-        // Add new splits
+        // Add new splits with normalized amounts based on category type
         foreach (var splitDto in splits)
         {
+            // Normalize split amount based on category type
+            var normalizedSplitAmount = await NormalizeAmountByCategoryTypeAsync(splitDto.Amount, splitDto.CategoryId, cancellationToken);
+
             var split = new TransactionSplit
             {
                 TransactionId = transaction.Id,
                 CategoryId = splitDto.CategoryId,
-                Amount = splitDto.Amount,
+                Amount = normalizedSplitAmount,
                 Memo = splitDto.Memo,
                 CreatedAt = DateTime.UtcNow
             };

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
+using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Application.Categories;
 
@@ -54,7 +55,7 @@ public class CategoryService : ICategoryService
             .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
     }
 
-    public async Task<CategoryGroup> CreateCategoryGroupAsync(string userId, string name, CancellationToken cancellationToken = default)
+    public async Task<CategoryGroup> CreateCategoryGroupAsync(string userId, string name, CategoryType type = CategoryType.Expense, CancellationToken cancellationToken = default)
     {
         var maxSortOrder = await _context.CategoryGroups
             .Where(cg => cg.UserId == userId)
@@ -64,6 +65,7 @@ public class CategoryService : ICategoryService
         {
             UserId = userId,
             Name = name,
+            Type = type,
             SortOrder = maxSortOrder + 1
         };
 
@@ -80,7 +82,7 @@ public class CategoryService : ICategoryService
             .FirstOrDefaultAsync(cg => cg.Id == categoryGroupId && cg.UserId == userId, cancellationToken);
     }
 
-    public async Task<bool> UpdateCategoryGroupAsync(int categoryGroupId, string userId, string name, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateCategoryGroupAsync(int categoryGroupId, string userId, string name, CategoryType type, CancellationToken cancellationToken = default)
     {
         var group = await _context.CategoryGroups
             .FirstOrDefaultAsync(cg => cg.Id == categoryGroupId && cg.UserId == userId, cancellationToken);
@@ -89,6 +91,7 @@ public class CategoryService : ICategoryService
             return false;
 
         group.Name = name;
+        group.Type = type;
         group.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -214,26 +217,27 @@ public class CategoryService : ICategoryService
             return;
 
         // Create default category groups and categories
-        var defaults = new Dictionary<string, string[]>
+        var defaults = new Dictionary<string, (CategoryType Type, string[] Categories)>
         {
-            { "Income", new[] {  "Salary", "Freelance", "Investments", "Other Income" } },
-            { "Housing", new[] { "Rent/Mortgage", "Utilities", "Home Maintenance", "Home Insurance" } },
-            { "Transportation", new[] { "Gas/Fuel", "Public Transit", "Parking", "Car Payment", "Auto Maintenance" } },
-            { "Food", new[] { "Groceries", "Restaurants", "Coffee/Snacks" } },
-            { "Shopping", new[] { "Clothing", "Electronics", "Home Goods", "Other Shopping" } },
-            { "Entertainment", new[] { "Subscriptions", "Movies/Events", "Hobbies" } },
-            { "Health", new[] { "Medical", "Pharmacy", "Fitness", "Health Insurance" } },
-            { "Personal", new[] { "Personal Care", "Education", "Gifts" } },
-            { "Miscellaneous", new[] { "Fees/Charges", "Taxes", "Uncategorized" } }
+            { "Income", (CategoryType.Income, new[] {  "Salary", "Freelance", "Investments", "Other Income" }) },
+            { "Housing", (CategoryType.Expense, new[] { "Rent/Mortgage", "Utilities", "Home Maintenance", "Home Insurance" }) },
+            { "Transportation", (CategoryType.Expense, new[] { "Gas/Fuel", "Public Transit", "Parking", "Car Payment", "Auto Maintenance" }) },
+            { "Food", (CategoryType.Expense, new[] { "Groceries", "Restaurants", "Coffee/Snacks" }) },
+            { "Shopping", (CategoryType.Expense, new[] { "Clothing", "Electronics", "Home Goods", "Other Shopping" }) },
+            { "Entertainment", (CategoryType.Expense, new[] { "Subscriptions", "Movies/Events", "Hobbies" }) },
+            { "Health", (CategoryType.Expense, new[] { "Medical", "Pharmacy", "Fitness", "Health Insurance" }) },
+            { "Personal", (CategoryType.Expense, new[] { "Personal Care", "Education", "Gifts" }) },
+            { "Miscellaneous", (CategoryType.Expense, new[] { "Fees/Charges", "Taxes", "Uncategorized" }) }
         };
 
         int groupOrder = 1;
-        foreach (var (groupName, categories) in defaults)
+        foreach (var (groupName, (type, categories)) in defaults)
         {
             var group = new CategoryGroup
             {
                 UserId = userId,
                 Name = groupName,
+                Type = type,
                 SortOrder = groupOrder++
             };
             _context.CategoryGroups.Add(group);

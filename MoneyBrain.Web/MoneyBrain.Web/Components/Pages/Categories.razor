@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Domain.Enums
 @using System.Security.Claims
 
 @attribute [Authorize]
@@ -258,6 +259,20 @@
                         <div class="d-flex align-center gap-2">
                             <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Size="Size.Small" Color="Color.Default" />
                             <MudText Typo="Typo.h6">@group.Name</MudText>
+                            
+                            @if (group.Type == CategoryType.Income)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.TrendingUp">
+                                    Income
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Default" Icon="@Icons.Material.Filled.ShoppingCart">
+                                    Expense
+                                </MudChip>
+                            }
+                            
                             <MudChip T="string" Size="Size.Small" Color="Color.Info">
                                 @group.Categories.Count(c => c.IsActive) categor@(group.Categories.Count(c => c.IsActive) == 1 ? "y" : "ies")
                             </MudChip>

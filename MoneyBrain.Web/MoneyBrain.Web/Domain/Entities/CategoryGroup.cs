@@ -1,3 +1,5 @@
+using MoneyBrain.Web.Domain.Enums;
+
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
@@ -15,6 +17,11 @@ public class CategoryGroup
     /// Display order
     /// </summary>
     public int SortOrder { get; set; }
+    
+    /// <summary>
+    /// Defines whether categories in this group represent income or expenses
+    /// </summary>
+    public CategoryType Type { get; set; } = CategoryType.Expense;
     
     public bool IsActive { get; set; } = true;
     
