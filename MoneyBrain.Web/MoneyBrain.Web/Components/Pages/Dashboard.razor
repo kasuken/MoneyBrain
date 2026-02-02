@@ -51,14 +51,32 @@
             <div class="mb-card-stat info">
                 <div class="mb-label">Period Change</div>
                 <div class="mb-amount @GetBalanceClass(_periodChange)">@FormatCurrency(_periodChange)</div>
+                @if (_pendingPeriodChange != 0)
+                {
+                    <div class="mb-pending-amount @GetBalanceClass(_pendingPeriodChange)">
+                        <span class="pending-label">Pending:</span>@FormatCurrency(_pendingPeriodChange)<span class="separator">|</span>@FormatCurrency(_combinedPeriodChange)
+                    </div>
+                }
             </div>
             <div class="mb-card-stat expense">
                 <div class="mb-label">Total Expenses</div>
                 <div class="mb-amount negative">@FormatCurrency(_totalExpenses)</div>
+                @if (_pendingExpenses > 0)
+                {
+                    <div class="mb-pending-amount negative">
+                        <span class="pending-label">Pending:</span>@FormatCurrency(_pendingExpenses)<span class="separator">|</span>@FormatCurrency(_combinedExpenses)
+                    </div>
+                }
             </div>
             <div class="mb-card-stat income">
                 <div class="mb-label">Total Income</div>
                 <div class="mb-amount positive">@FormatCurrency(_totalIncome)</div>
+                @if (_pendingIncome > 0)
+                {
+                    <div class="mb-pending-amount positive">
+                        <span class="pending-label">Pending:</span>@FormatCurrency(_pendingIncome)<span class="separator">|</span>@FormatCurrency(_combinedIncome)
+                    </div>
+                }
             </div>
         </div>
         
@@ -299,6 +317,14 @@
     private decimal _totalExpenses;
     private decimal _totalIncome;
     
+    private decimal _pendingIncome;
+    private decimal _pendingExpenses;
+    private decimal _pendingPeriodChange;
+    
+    private decimal _combinedIncome;
+    private decimal _combinedExpenses;
+    private decimal _combinedPeriodChange;
+    
     // Chart data
     private List<ChartSeries> _incomeExpenseChartSeries = [];
     private string[] _incomeExpenseChartLabels = [];
@@ -350,6 +376,15 @@
         _totalIncome = cashflow.TotalIncome;
         _totalExpenses = cashflow.TotalExpenses;
         _periodChange = cashflow.NetCashflow;
+        
+        _pendingIncome = cashflow.PendingIncome;
+        _pendingExpenses = cashflow.PendingExpenses;
+        _pendingPeriodChange = cashflow.PendingNetCashflow;
+        
+        // Calculate combined totals (posted + pending)
+        _combinedExpenses = _totalExpenses + _pendingExpenses;
+        _combinedIncome = _totalIncome + _pendingIncome;
+        _combinedPeriodChange = _periodChange + _pendingPeriodChange;
         
         // Prepare chart data
         PrepareChartData(cashflow);

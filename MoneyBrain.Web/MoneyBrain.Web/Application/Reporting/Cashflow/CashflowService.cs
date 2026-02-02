@@ -27,8 +27,7 @@ public class CashflowService(ApplicationDbContext context) : ICashflowService
             .Where(le => le.UserId == userId &&
                          le.EntryDate >= start &&
                          le.EntryDate <= end &&
-                         le.CategoryId != null && // Only entries with categories (income/expense)
-                         le.Transaction.Status == Domain.Enums.TransactionStatus.Posted) // Only posted transactions
+                         le.CategoryId != null) // Only entries with categories (income/expense)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -93,8 +92,7 @@ public class CashflowService(ApplicationDbContext context) : ICashflowService
             .Where(le => le.UserId == userId &&
                          le.EntryDate >= startDate &&
                          le.EntryDate <= endDate &&
-                         le.CategoryId != null &&
-                         le.Transaction.Status == Domain.Enums.TransactionStatus.Posted)
+                         le.CategoryId != null)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -119,12 +117,20 @@ public class CashflowService(ApplicationDbContext context) : ICashflowService
             Month = month
         };
 
-        // Separate income (credits to categories) and expenses (debits to categories)
-        var incomeEntries = entries.Where(le => le.CreditAmount > 0).ToList();
-        var expenseEntries = entries.Where(le => le.DebitAmount > 0).ToList();
+        // Split entries into posted and pending
+        var postedEntries = entries.Where(le => le.Transaction.Status == Domain.Enums.TransactionStatus.Posted).ToList();
+        var pendingEntries = entries.Where(le => le.Transaction.Status == Domain.Enums.TransactionStatus.Pending).ToList();
+
+        // Separate posted income (credits to categories) and expenses (debits to categories)
+        var incomeEntries = postedEntries.Where(le => le.CreditAmount > 0).ToList();
+        var expenseEntries = postedEntries.Where(le => le.DebitAmount > 0).ToList();
 
         result.TotalIncome = incomeEntries.Sum(le => le.CreditAmount);
         result.TotalExpenses = expenseEntries.Sum(le => le.DebitAmount);
+
+        // Calculate pending amounts
+        result.PendingIncome = pendingEntries.Where(le => le.CreditAmount > 0).Sum(le => le.CreditAmount);
+        result.PendingExpenses = pendingEntries.Where(le => le.DebitAmount > 0).Sum(le => le.DebitAmount);
 
         // Get unique transaction IDs to count transactions
         result.TransactionCount = entries

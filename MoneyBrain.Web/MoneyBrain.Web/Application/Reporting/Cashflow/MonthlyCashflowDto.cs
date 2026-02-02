@@ -31,6 +31,21 @@ public class MonthlyCashflowDto
     public decimal NetCashflow => TotalIncome - TotalExpenses;
 
     /// <summary>
+    /// Total pending income (not yet posted).
+    /// </summary>
+    public decimal PendingIncome { get; set; }
+
+    /// <summary>
+    /// Total pending expenses (not yet posted).
+    /// </summary>
+    public decimal PendingExpenses { get; set; }
+
+    /// <summary>
+    /// Net pending cashflow (PendingIncome - PendingExpenses).
+    /// </summary>
+    public decimal PendingNetCashflow => PendingIncome - PendingExpenses;
+
+    /// <summary>
     /// Income broken down by category.
     /// </summary>
     public List<CategoryCashflowDto> IncomeByCategory { get; set; } = [];

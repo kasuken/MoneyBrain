@@ -58,3 +58,23 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.mb-pending-amount {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+    opacity: 0.8;
+}
+
+.pending-label {
+    color: var(--mud-palette-text-secondary, #757575);
+    font-weight: 500;
+    margin-right: 0.25rem;
+}
+
+.separator {
+    opacity: 0.6;
+    margin: 0 0.25rem;
+}
