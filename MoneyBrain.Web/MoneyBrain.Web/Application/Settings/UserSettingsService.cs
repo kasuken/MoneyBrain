@@ -237,7 +237,8 @@ public class UserSettingsService : IUserSettingsService
             Name = "Income",
             SortOrder = 1,
             IsActive = true,
-            CreatedAt = now
+            CreatedAt = now,
+            Type = CategoryType.Income
         };
         var essentialsGroup = new CategoryGroup
         {
@@ -245,7 +246,8 @@ public class UserSettingsService : IUserSettingsService
             Name = "Essentials",
             SortOrder = 2,
             IsActive = true,
-            CreatedAt = now
+            CreatedAt = now,
+            Type = CategoryType.Expense
         };
         var lifestyleGroup = new CategoryGroup
         {
@@ -253,7 +255,8 @@ public class UserSettingsService : IUserSettingsService
             Name = "Lifestyle",
             SortOrder = 3,
             IsActive = true,
-            CreatedAt = now
+            CreatedAt = now,
+            Type = CategoryType.Expense
         };
         var transportGroup = new CategoryGroup
         {
@@ -261,7 +264,8 @@ public class UserSettingsService : IUserSettingsService
             Name = "Transport",
             SortOrder = 4,
             IsActive = true,
-            CreatedAt = now
+            CreatedAt = now,
+            Type = CategoryType.Expense
         };
 
         _context.CategoryGroups.AddRange(incomeGroup, essentialsGroup, lifestyleGroup, transportGroup);

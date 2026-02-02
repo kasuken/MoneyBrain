@@ -193,10 +193,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasKey(us => us.Id);
 
             // Relationship: One user has one settings record
+            // Make the relationship optional to avoid FK constraint issues during setup
             entity.HasOne(us => us.User)
                 .WithOne(u => u.Settings)
                 .HasForeignKey<UserSettings>(us => us.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
 
             // Unique index on UserId (one settings per user)
             entity.HasIndex(us => us.UserId).IsUnique();

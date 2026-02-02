@@ -39,6 +39,25 @@
                             <MudText Typo="Typo.body2" Class="mt-2">Setup Categories</MudText>
                         </div>
                     </MudStack>
+                    
+                    <MudText Typo="Typo.body2" Class="mt-8 text-center" Style="color: var(--mb-text-muted);">
+                        or
+                    </MudText>
+                    
+                    <div class="text-center mt-3">
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Outlined.AutoAwesome"
+                                   OnClick="LoadDemoDataAndCompleteAsync"
+                                   Disabled="@_saving"
+                                   Size="Size.Medium">
+                            @if (_saving)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                            }
+                            Try with Demo Data
+                        </MudButton>
+                    </div>
                 </div>
             </MudStep>
 
@@ -357,6 +376,9 @@
     [Parameter]
     public Func<string, Task> OnSeedCategories { get; set; } = null!;
 
+    [Parameter]
+    public Func<string, Task> OnLoadDemoData { get; set; } = null!;
+
     private MudStepper? _stepper;
     private int _activeStep;
     private bool _saving;
@@ -377,6 +399,7 @@
     private decimal _openingBalance;
     private List<Account> _createdAccounts = new();
     private bool _addingAnother;
+    private bool _categoriesSeeded = false;
 
     private string GetNextButtonText()
     {
@@ -412,25 +435,36 @@
         }
 
         // Handle account creation on step 2
-        if (_activeStep == 2 && _createdAccounts.Count == 0)
+        if (_activeStep == 2)
         {
-            if (_accountForm != null)
+            // Save unsaved account data if form has data
+            if (!string.IsNullOrWhiteSpace(_accountName))
             {
-                await _accountForm.Validate();
-                if (!_accountValid) return;
+                await CreateAccountAsync();
             }
             
-            await CreateAccountAsync();
-            if (_createdAccounts.Count == 0) return;
+            // Validate at least one account exists before proceeding
+            if (_createdAccounts.Count == 0)
+            {
+                Console.WriteLine("ERROR: Please create at least one account before continuing.");
+                return;
+            }
         }
 
         // Seed categories when moving to step 4
-        if (_activeStep == 3)
+        if (_activeStep == 3 && !_categoriesSeeded)
         {
             _saving = true;
             try
             {
                 await OnSeedCategories(UserId);
+                _categoriesSeeded = true;
+                Console.WriteLine("Categories seeded successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error seeding categories: {ex.Message}");
+                throw;
             }
             finally
             {
@@ -460,9 +494,15 @@
 
             var created = await OnCreateAccount(account);
             _createdAccounts.Add(created);
+            Console.WriteLine($"Account created: {created.Name}");
             
             // Reset form for another account
             ResetAccountForm();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating account: {ex.Message}");
+            throw;
         }
         finally
         {
@@ -491,9 +531,21 @@
         _saving = true;
         try
         {
+            Console.WriteLine($"Completing setup for user {UserId}");
+            Console.WriteLine($"Accounts created: {_createdAccounts.Count}");
+            Console.WriteLine($"Settings: Currency={_currencyCode}, Timezone={_timeZoneId}, DateFormat={_dateFormat}");
+            
             // Save settings (this marks setup as complete)
             await OnSaveSettings(UserId, _currencyCode, _timeZoneId, _dateFormat);
+            
+            Console.WriteLine("Settings saved successfully, closing wizard");
             MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error completing setup: {ex.Message}");
+            // Re-throw to show error to user
+            throw;
         }
         finally
         {
@@ -526,5 +578,25 @@
             AccountSubType.Mortgage => Icons.Material.Outlined.Home,
             _ => Icons.Material.Outlined.AccountBalanceWallet
         };
+    }
+
+    private async Task LoadDemoDataAndCompleteAsync()
+    {
+        _saving = true;
+        try
+        {
+            // Load demo data (creates accounts, categories, transactions, etc.)
+            await OnLoadDemoData(UserId);
+            
+            // Save default settings to mark setup as complete
+            await OnSaveSettings(UserId, "USD", TimeZoneInfo.Local.Id, "yyyy-MM-dd");
+            
+            // Close the wizard
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        finally
+        {
+            _saving = false;
+        }
     }
 }

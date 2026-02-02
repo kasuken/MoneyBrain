@@ -68,7 +68,8 @@ else
             { x => x.TimeZones, SettingsService.GetAvailableTimeZones() },
             { x => x.OnSaveSettings, SaveSettingsAsync },
             { x => x.OnCreateAccount, CreateAccountAsync },
-            { x => x.OnSeedCategories, SeedCategoriesAsync }
+            { x => x.OnSeedCategories, SeedCategoriesAsync },
+            { x => x.OnLoadDemoData, LoadDemoDataAsync }
         };
 
         var options = new DialogOptions
@@ -95,5 +96,10 @@ else
     private async Task SeedCategoriesAsync(string userId)
     {
         await CategoryService.SeedDefaultCategoriesAsync(userId);
+    }
+
+    private async Task LoadDemoDataAsync(string userId)
+    {
+        await SettingsService.LoadDemoDataAsync(userId);
     }
 }
