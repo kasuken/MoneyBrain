@@ -250,15 +250,20 @@
 }
 
 .marketing-pricing-card ul li {
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
     color: var(--mb-text-secondary);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
+}
+
+.marketing-pricing-card ul li span {
+    flex: 1;
 }
 
 .marketing-pricing-card ul li .mud-icon-root {
     color: var(--mb-success);
+    flex-shrink: 0;
 }
 
 /* About */
