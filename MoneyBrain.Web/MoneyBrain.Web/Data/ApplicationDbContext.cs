@@ -96,9 +96,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // PostgreSQL requires 'jsonb' type for JSON columns; SQLite uses 'TEXT' which is set by default
         if (Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true)
         {
-            modelBuilder.Entity<IdentityUserPasskey<string>>()
-                .Property(p => p.Data)
-                .HasColumnType("jsonb");
+            var passkeyEntity = modelBuilder.Model.FindEntityType(typeof(IdentityUserPasskey<string>));
+            var dataProperty = passkeyEntity?.FindProperty("Data");
+            dataProperty?.SetColumnType("jsonb");
         }
 
         // Configure Account entity
