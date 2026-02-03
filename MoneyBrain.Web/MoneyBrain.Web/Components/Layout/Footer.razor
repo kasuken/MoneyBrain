@@ -6,5 +6,5 @@
 </footer>
 
 @code {
-    private string version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+    private string version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
 }
