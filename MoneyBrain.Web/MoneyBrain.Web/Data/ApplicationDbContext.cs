@@ -87,6 +87,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
 
+    /// <summary>
+    /// User licenses track subscription/license status with Stripe integration
+    /// </summary>
+    public DbSet<UserLicense> UserLicenses => Set<UserLicense>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -451,6 +456,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             // Decimal precision for money values
             entity.Property(le => le.DebitAmount).HasPrecision(18, 2);
             entity.Property(le => le.CreditAmount).HasPrecision(18, 2);
+        });
+
+        // Configure UserLicense entity
+        modelBuilder.Entity<UserLicense>(entity =>
+        {
+            entity.HasKey(ul => ul.Id);
+
+            // Relationship: One user has one license record
+            entity.HasOne(ul => ul.User)
+                .WithMany()
+                .HasForeignKey(ul => ul.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique index on UserId (one license per user)
+            entity.HasIndex(ul => ul.UserId).IsUnique();
+
+            // Indexes for common queries
+            entity.HasIndex(ul => ul.StripeCustomerId);
+            entity.HasIndex(ul => ul.StripeSubscriptionId);
+            entity.HasIndex(ul => ul.Status);
         });
     }
 }
