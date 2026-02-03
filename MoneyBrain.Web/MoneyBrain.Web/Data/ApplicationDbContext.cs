@@ -276,13 +276,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(t => t.TransferTransaction)
                 .WithMany()
                 .HasForeignKey(t => t.TransferTransactionId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Relationship: Credit card bill links to source credit card account
             entity.HasOne(t => t.CreditCardBillingSourceAccount)
                 .WithMany()
                 .HasForeignKey(t => t.CreditCardBillingSourceAccountId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Indexes for common queries
             entity.HasIndex(t => t.UserId);
