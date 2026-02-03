@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Domain.Entities;
@@ -90,6 +91,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure Identity Passkey JSON column for PostgreSQL compatibility
+        // PostgreSQL requires 'jsonb' type for JSON columns; SQLite uses 'TEXT' which is set by default
+        if (Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            modelBuilder.Entity<IdentityUserPasskey<string>>()
+                .Property(p => p.Data)
+                .HasColumnType("jsonb");
+        }
 
         // Configure Account entity
         modelBuilder.Entity<Account>(entity =>
