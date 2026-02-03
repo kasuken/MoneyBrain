@@ -111,7 +111,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(a => a.LinkedPaymentAccount)
                 .WithMany()
                 .HasForeignKey(a => a.LinkedPaymentAccountId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Indexes for common queries
             entity.HasIndex(a => a.UserId);
@@ -458,24 +458,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(le => le.CreditAmount).HasPrecision(18, 2);
         });
 
-        // Configure UserLicense entity
-        modelBuilder.Entity<UserLicense>(entity =>
+        // Configure Reconciliation entity
+        modelBuilder.Entity<Reconciliation>(entity =>
         {
-            entity.HasKey(ul => ul.Id);
+            entity.HasKey(r => r.Id);
 
-            // Relationship: One user has one license record
-            entity.HasOne(ul => ul.User)
-                .WithMany()
-                .HasForeignKey(ul => ul.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Unique index on UserId (one license per user)
-            entity.HasIndex(ul => ul.UserId).IsUnique();
-
-            // Indexes for common queries
-            entity.HasIndex(ul => ul.StripeCustomerId);
-            entity.HasIndex(ul => ul.StripeSubscriptionId);
-            entity.HasIndex(ul => ul.Status);
+            // Decimal precision for money values
+            entity.Property(r => r.OpeningBalance).HasPrecision(18, 2);
+            entity.Property(r => r.StatementBalance).HasPrecision(18, 2);
+            entity.Property(r => r.ReconciledBalance).HasPrecision(18, 2);
+            entity.Property(r => r.Difference).HasPrecision(18, 2);
         });
     }
 }
