@@ -242,6 +242,10 @@
     color: var(--mb-text-muted);
 }
 
+.marketing-pricing-card .pricing-description {
+    margin-bottom: 2rem;
+}
+
 .marketing-pricing-card ul {
     list-style: none;
     padding: 0;
@@ -250,15 +254,31 @@
 }
 
 .marketing-pricing-card ul li {
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
     color: var(--mb-text-secondary);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
+}
+
+.marketing-pricing-card ul li span {
+    flex: 1;
 }
 
 .marketing-pricing-card ul li .mud-icon-root {
     color: var(--mb-success);
+    flex-shrink: 0;
+}
+
+/* Pricing Info Note */
+.pricing-info-note {
+    text-align: center;
+    margin-top: 3rem;
+    color: var(--mb-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 /* About */
