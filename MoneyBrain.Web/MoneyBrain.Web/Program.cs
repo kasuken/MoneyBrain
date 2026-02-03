@@ -43,18 +43,10 @@ builder.Services.AddAuthentication(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
                        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-var databaseProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SQLite";
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    if (databaseProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
-    {
-        options.UseNpgsql(connectionString);
-    }
-    else
-    {
-        options.UseSqlite(connectionString);
-    }
+    options.UseSqlServer(connectionString);
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
