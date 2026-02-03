@@ -214,7 +214,7 @@ namespace MoneyBrain.Web.Migrations
                 {
                     CredentialId = table.Column<byte[]>(type: "BLOB", maxLength: 1024, nullable: false),
                     UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    Data = table.Column<string>(type: "TEXT", nullable: false)
+                    Data = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
