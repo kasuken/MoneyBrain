@@ -157,8 +157,7 @@ namespace MoneyBrain.Web.Migrations
                         name: "FK_Accounts_Accounts_LinkedPaymentAccountId",
                         column: x => x.LinkedPaymentAccountId,
                         principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Accounts_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -265,6 +264,36 @@ namespace MoneyBrain.Web.Migrations
                     table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
                     table.ForeignKey(
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserLicenses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StripeCustomerId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    StripeSubscriptionId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    PlanName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    TrialStartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    TrialEndsAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    SubscriptionStartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    SubscriptionEndsAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastValidatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserLicenses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserLicenses_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -407,10 +436,10 @@ namespace MoneyBrain.Web.Migrations
                     UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: false),
                     StatementDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    StatementBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    OpeningBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ReconciledBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Difference = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    StatementBalance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    OpeningBalance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    ReconciledBalance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Difference = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     IsCompleted = table.Column<bool>(type: "bit", nullable: false),
                     CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -555,8 +584,7 @@ namespace MoneyBrain.Web.Migrations
                         name: "FK_Transactions_Accounts_CreditCardBillingSourceAccountId",
                         column: x => x.CreditCardBillingSourceAccountId,
                         principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Transactions_Categories_CategoryId",
                         column: x => x.CategoryId,
@@ -583,8 +611,7 @@ namespace MoneyBrain.Web.Migrations
                         name: "FK_Transactions_Transactions_TransferTransactionId",
                         column: x => x.TransferTransactionId,
                         principalTable: "Transactions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1019,6 +1046,11 @@ namespace MoneyBrain.Web.Migrations
                 column: "TransactionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserLicenses_UserId",
+                table: "UserLicenses",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserSettings_UserId",
                 table: "UserSettings",
                 column: "UserId",
@@ -1069,6 +1101,9 @@ namespace MoneyBrain.Web.Migrations
 
             migrationBuilder.DropTable(
                 name: "TransactionSplits");
+
+            migrationBuilder.DropTable(
+                name: "UserLicenses");
 
             migrationBuilder.DropTable(
                 name: "UserSettings");
