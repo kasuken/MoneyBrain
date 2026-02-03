@@ -1,0 +1,10 @@
+<footer class="app-footer">
+    <div class="app-footer-content">
+        <p>&copy; @DateTime.Now.Year MoneyBrain. All rights reserved.</p>
+        <p class="app-footer-version">Version @version</p>
+    </div>
+</footer>
+
+@code {
+    private string version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+}
