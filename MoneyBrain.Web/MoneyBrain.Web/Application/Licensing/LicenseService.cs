@@ -38,7 +38,7 @@ public class LicenseService : ILicenseService
 
     public async Task<LicenseInfo?> GetLicenseAsync(string userId)
     {
-        // If licensing is disabled, return an active license
+        // If licensing is disabled, return an active license        
         if (!_licensingSettings.Enabled)
         {
             return new LicenseInfo
