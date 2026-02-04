@@ -11,7 +11,7 @@
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
 
-<MudDialog>
+<MudDialog @bind-IsVisible="_isVisible" Options="@(FullScreen ? _fullScreenOptions : _defaultOptions)">
     <DialogContent>
         @if (!IsNew && Transaction?.IsReconciled == true)
         {
@@ -121,6 +121,7 @@
     [Parameter] public Transaction? Transaction { get; set; }
     [Parameter] public bool IsNew { get; set; } = true;
     [Parameter] public int? PreselectedAccountId { get; set; }
+    [Parameter] public bool FullScreen { get; set; } = false;
 
     private MudForm _form = null!;
     private bool _isValid;
@@ -143,6 +144,10 @@
     private bool _isRecurring;
     private RecurrenceFrequency? _recurrenceFrequency;
     private DateTime? _recurrenceStartDate;
+    private bool _isVisible = true;
+    
+    private DialogOptions _fullScreenOptions = new() { FullScreen = true, CloseButton = true };
+    private DialogOptions _defaultOptions = new() { CloseButton = true };
 
     protected override async Task OnInitializedAsync()
     {

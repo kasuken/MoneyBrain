@@ -1,0 +1,105 @@
+@inherits LayoutComponentBase
+@using MoneyBrain.Web.Services
+@inject NavigationManager NavigationManager
+@inject IMobileDetectionService MobileDetection
+
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <!-- Mobile Bottom Navigation -->
+    <MudAppBar Bottom="true" Fixed="true" Elevation="3" Class="mobile-bottom-nav">
+        <MudStack Row="true" Justify="Justify.SpaceAround" AlignItems="AlignItems.Center" Style="width: 100%;">
+            <MudButton Href="/mobile/transactions" 
+                       Variant="Variant.Text" 
+                       Color="@(IsActive("/mobile/transactions") ? Color.Primary : Color.Default)"
+                       Class="mobile-nav-btn"
+                       Style="flex-direction: column; min-width: 80px; height: 56px;">
+                <MudIcon Icon="@Icons.Material.Filled.List" />
+                <MudText Typo="Typo.caption" Style="margin-top: 2px;">Transactions</MudText>
+            </MudButton>
+            
+            <MudButton Href="/mobile/overview" 
+                       Variant="Variant.Text" 
+                       Color="@(IsActive("/mobile/overview") ? Color.Primary : Color.Default)"
+                       Class="mobile-nav-btn"
+                       Style="flex-direction: column; min-width: 80px; height: 56px;">
+                <MudIcon Icon="@Icons.Material.Filled.Dashboard" />
+                <MudText Typo="Typo.caption" Style="margin-top: 2px;">Overview</MudText>
+            </MudButton>
+        </MudStack>
+    </MudAppBar>
+
+    <!-- Main Content with Bottom Padding for Nav -->
+    <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: 100vh; padding-bottom: 72px;">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private MudTheme _theme = new MudTheme
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#4F46E5",
+            Secondary = "#EC4899",
+            Success = "#10B981",
+            Info = "#3B82F6",
+            Warning = "#F59E0B",
+            Error = "#EF4444",
+            AppbarBackground = "#FFFFFF",
+            Background = "#F9FAFB",
+            Surface = "#FFFFFF"
+        }
+    };
+
+    private bool IsActive(string path)
+    {
+        return NavigationManager.Uri.Contains(path);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await MobileDetection.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .mobile-bottom-nav {
+        top: auto !important;
+        bottom: 0 !important;
+        background-color: white !important;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        padding: 0 !important;
+    }
+
+    .mobile-nav-btn {
+        padding: 8px 12px !important;
+        text-transform: none !important;
+        border-radius: 0 !important;
+    }
+
+    .mobile-nav-btn .mud-button-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    /* Safe area support for devices with notches */
+    .mobile-bottom-nav {
+        padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    /* Ensure touch targets are at least 44px */
+    .mobile-nav-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+</style>

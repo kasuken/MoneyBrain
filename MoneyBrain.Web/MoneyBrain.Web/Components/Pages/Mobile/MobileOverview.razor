@@ -1,0 +1,255 @@
+@page "/mobile/overview"
+@layout MobileLayout
+@using Microsoft.AspNetCore.Components.Authorization
+@using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Application.Budgets
+@using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Application.Reporting.Cashflow
+@using MoneyBrain.Web.Domain.Entities
+@using MudBlazor
+@inject ITransactionService TransactionService
+@inject IBudgetService BudgetService
+@inject IAccountService AccountService
+@inject ICategoryService CategoryService
+@inject ICashflowService CashflowService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<AuthorizeView>
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.False" Class="pa-4" Style="padding-bottom: 80px !important;">
+            <!-- Header -->
+            <MudText Typo="Typo.h5" Style="font-weight: 600;" Class="mb-4">Overview</MudText>
+
+            @if (_isLoading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+            }
+            else
+            {
+                <!-- Total Balance Card -->
+                <MudCard Class="mb-3" Elevation="2">
+                    <MudCardContent Class="pa-4">
+                        <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">Total Balance</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700; color: #4F46E5;">
+                            @_totalBalance.ToString("C2")
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+
+                <!-- Period Change Card -->
+                <MudCard Class="mb-3" Elevation="2">
+                    <MudCardContent Class="pa-4">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Color="Color.Default">This Month</MudText>
+                                <MudText Typo="Typo.h6" 
+                                         Style="@($"font-weight: 600; color: {(_periodChange >= 0 ? "#10B981" : "#EF4444")}")">
+                                    @_periodChange.ToString("C2")
+                                </MudText>
+                            </MudStack>
+                            <MudIcon Icon="@(_periodChange >= 0 ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)" 
+                                     Color="@(_periodChange >= 0 ? Color.Success : Color.Error)" 
+                                     Size="Size.Large" />
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+
+                <!-- Income & Expenses Row -->
+                <MudGrid Class="mb-3" Spacing="2">
+                    <!-- Total Income Card -->
+                    <MudItem xs="6">
+                        <MudCard Elevation="2" Style="height: 100%;">
+                            <MudCardContent Class="pa-4">
+                                <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">Income</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600; color: #10B981;">
+                                    @_totalIncome.ToString("C2")
+                                </MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" 
+                                         Color="Color.Success" 
+                                         Size="Size.Small" />
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    <!-- Total Expenses Card -->
+                    <MudItem xs="6">
+                        <MudCard Elevation="2" Style="height: 100%;">
+                            <MudCardContent Class="pa-4">
+                                <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">Expenses</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600; color: #EF4444;">
+                                    @_totalExpenses.ToString("C2")
+                                </MudText>
+                                <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" 
+                                         Color="Color.Error" 
+                                         Size="Size.Small" />
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+
+                <!-- Budget Summary Card -->
+                @if (_budgets.Any())
+                {
+                    <MudCard Elevation="2">
+                        <MudCardContent Class="pa-4">
+                            <MudText Typo="Typo.h6" Style="font-weight: 600;" Class="mb-3">Budget Summary</MudText>
+                            
+                            @foreach (var budget in _budgets.Take(5))
+                            {
+                                var spent = _categorySpending.ContainsKey(budget.CategoryId) 
+                                    ? Math.Abs(_categorySpending[budget.CategoryId]) 
+                                    : 0m;
+                                var remaining = budget.PlannedAmount - spent;
+                                var percentUsed = budget.PlannedAmount > 0 
+                                    ? (spent / budget.PlannedAmount) * 100 
+                                    : 0m;
+                                
+                                MudBlazor.Color color;
+                                if (percentUsed >= 100)
+                                    color = Color.Error;
+                                else if (percentUsed >= 80)
+                                    color = Color.Warning;
+                                else
+                                    color = Color.Success;
+
+                                <MudStack Spacing="1" Class="mb-3">
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 500;">
+                                            @budget.Category?.Name
+                                        </MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Default">
+                                            @spent.ToString("C0") / @budget.PlannedAmount.ToString("C0")
+                                        </MudText>
+                                    </MudStack>
+                                    <MudProgressLinear Value="@((double)percentUsed)" 
+                                                       Color="@color" 
+                                                       Size="Size.Small" 
+                                                       Rounded="true" />
+                                    <MudText Typo="Typo.caption" Color="@color">
+                                        @remaining.ToString("C2") remaining
+                                    </MudText>
+                                </MudStack>
+                            }
+
+                            @if (_budgets.Count > 5)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Default" Class="mt-2">
+                                    + @(_budgets.Count - 5) more categories
+                                </MudText>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                }
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="pa-4">
+            <MudPaper Class="pa-8" Style="text-align: center;">
+                <MudText Typo="Typo.h6">Please sign in to view overview</MudText>
+            </MudPaper>
+        </MudContainer>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _isLoading = true;
+    private string? _userId;
+    
+    private decimal _totalBalance;
+    private decimal _periodChange;
+    private decimal _totalIncome;
+    private decimal _totalExpenses;
+    private List<BudgetCategory> _budgets = new();
+    private Dictionary<int, decimal> _categorySpending = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (!string.IsNullOrEmpty(_userId))
+            {
+                await LoadDataAsync();
+            }
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Calculate total balance from all accounts
+            var accounts = (await AccountService.GetUserAccountsAsync(_userId!)).ToList();
+            _totalBalance = 0;
+            foreach (var account in accounts)
+            {
+                var balance = await AccountService.CalculateCurrentBalanceAsync(account.Id, _userId!);
+                _totalBalance += balance;
+            }
+
+            // Get current month cashflow
+            var currentMonth = await CashflowService.GetMonthCashflowAsync(
+                _userId!, 
+                DateTime.Now.Year, 
+                DateTime.Now.Month);
+
+            if (currentMonth != null)
+            {
+                _totalIncome = currentMonth.TotalIncome;
+                _totalExpenses = Math.Abs(currentMonth.TotalExpenses);
+                _periodChange = currentMonth.NetCashflow;
+            }
+
+            // Get budget data
+            var budgetList = await BudgetService.GetBudgetsForPeriodAsync(
+                _userId!, 
+                DateTime.Now.Year, 
+                DateTime.Now.Month);
+
+            if (budgetList.Any())
+            {
+                // Get the first budget (or default budget)
+                var budget = budgetList.FirstOrDefault(b => b.IsDefault) ?? budgetList.First();
+                
+                // Load budget categories
+                _budgets = budget.BudgetCategories?.ToList() ?? new();
+
+                // Calculate spending for each category
+                var transactions = await TransactionService.GetUserTransactionsAsync(
+                    _userId!,
+                    new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
+                    DateTime.Now);
+
+                _categorySpending = transactions
+                    .Where(t => t.CategoryId.HasValue)
+                    .GroupBy(t => t.CategoryId!.Value)
+                    .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    /* Card hover effect for mobile */
+    .mud-card {
+        transition: transform 0.2s;
+    }
+
+    .mud-card:active {
+        transform: scale(0.98);
+    }
+</style>
