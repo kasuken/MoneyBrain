@@ -82,6 +82,9 @@ builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<ICreditCardBillingService, CreditCardBillingService>();
 builder.Services.AddScoped<IInsightExplorerService, InsightExplorerService>();
 
+// Mobile detection service
+builder.Services.AddScoped<MoneyBrain.Web.Services.IMobileDetectionService, MoneyBrain.Web.Services.MobileDetectionService>();
+
 // Licensing services
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 builder.Services.Configure<LicensingSettings>(builder.Configuration.GetSection("Licensing"));
