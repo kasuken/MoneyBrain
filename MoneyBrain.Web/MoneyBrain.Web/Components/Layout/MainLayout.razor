@@ -1,6 +1,9 @@
 ﻿@inherits LayoutComponentBase
 @using MoneyBrain.Web.Components.Shared
+@using MoneyBrain.Web.Services
 @inject NavigationManager NavigationManager
+@inject IMobileDetectionService MobileDetection
+@implements IDisposable
 
 @* Required *@
 <MudThemeProvider Theme="_theme" />
@@ -129,5 +132,40 @@
         var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         return currentPath.StartsWith(path.TrimStart('/'), StringComparison.OrdinalIgnoreCase) ||
                (path == "/dashboard" && string.IsNullOrEmpty(currentPath));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await MobileDetection.InitializeAsync();
+            MobileDetection.OnViewportChanged += HandleViewportChange;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleViewportChange(bool isMobile)
+    {
+        var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        
+        // Redirect based on viewport size
+        if (isMobile && !currentPath.StartsWith("mobile/") && !currentPath.StartsWith("Account/"))
+        {
+            NavigationManager.NavigateTo("/mobile/overview");
+        }
+        else if (!isMobile && currentPath.StartsWith("mobile/"))
+        {
+            NavigationManager.NavigateTo("/dashboard");
+        }
+        
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        if (MobileDetection != null)
+        {
+            MobileDetection.OnViewportChanged -= HandleViewportChange;
+        }
     }
 }
