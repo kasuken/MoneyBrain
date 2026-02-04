@@ -18,6 +18,7 @@ using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Application.Transactions.RecurringTransactions;
+using MoneyBrain.Web.Application.InsightExplorer;
 using MoneyBrain.Web.Components;
 using MoneyBrain.Web.Components.Account;
 using MoneyBrain.Web.Data;
@@ -79,6 +80,7 @@ builder.Services.AddScoped<INetWorthService, NetWorthService>();
 builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryService>();
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<ICreditCardBillingService, CreditCardBillingService>();
+builder.Services.AddScoped<IInsightExplorerService, InsightExplorerService>();
 
 // Licensing services
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
