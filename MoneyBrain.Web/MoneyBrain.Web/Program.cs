@@ -5,6 +5,7 @@ using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
 using MoneyBrain.Web.Application.CreditCardBilling;
+using MoneyBrain.Web.Application.Legal;
 using MoneyBrain.Web.Application.Licensing;
 using MoneyBrain.Web.Application.Reconciliation;
 using MoneyBrain.Web.Application.Settings;
@@ -81,6 +82,7 @@ builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryS
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<ICreditCardBillingService, CreditCardBillingService>();
 builder.Services.AddScoped<IInsightExplorerService, InsightExplorerService>();
+builder.Services.AddScoped<ILegalService, LegalService>();
 
 // Mobile detection service
 builder.Services.AddScoped<MoneyBrain.Web.Services.IMobileDetectionService, MoneyBrain.Web.Services.MobileDetectionService>();

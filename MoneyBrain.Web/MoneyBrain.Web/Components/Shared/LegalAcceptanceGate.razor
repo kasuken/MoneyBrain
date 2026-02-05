@@ -1,0 +1,83 @@
+@using MoneyBrain.Web.Application.Legal
+@inject ILegalService LegalService
+@inject IDialogService DialogService
+@inject AuthenticationStateProvider AuthStateProvider
+
+@if (_loading)
+{
+    <MudContainer Class="d-flex justify-center align-center" Style="height: 100vh;">
+        <MudProgressCircular Indeterminate Size="Size.Large" />
+    </MudContainer>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _loading = true;
+    private bool _dialogShown;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckLegalAcceptanceAsync();
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckLegalAcceptanceAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity?.IsAuthenticated ?? true)
+        {
+            return;
+        }
+
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return;
+        }
+
+        var acceptanceStatus = await LegalService.CheckAcceptanceStatusAsync(userId);
+        
+        var needsAcceptance = acceptanceStatus.Any(kvp => !kvp.Value);
+        
+        if (needsAcceptance && !_dialogShown)
+        {
+            _dialogShown = true;
+            await ShowAcceptanceDialogAsync(userId, acceptanceStatus);
+        }
+    }
+
+    private async Task ShowAcceptanceDialogAsync(string userId, Dictionary<string, bool> acceptanceStatus)
+    {
+        var currentDocuments = await LegalService.GetCurrentDocumentsAsync();
+        
+        var parameters = new DialogParameters
+        {
+            { "UserId", userId },
+            { "AcceptanceStatus", acceptanceStatus },
+            { "CurrentDocuments", currentDocuments }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = false,
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<LegalAcceptanceDialog>("Legal Agreement Required", parameters, options);
+        await dialog.Result;
+        
+        StateHasChanged();
+    }
+}

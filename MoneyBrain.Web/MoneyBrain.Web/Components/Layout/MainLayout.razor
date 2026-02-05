@@ -76,11 +76,13 @@
     <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: calc(100vh - 64px);">
         <AuthorizeView>
             <Authorized>
-                <SettingsEnforcer>
-                    <LicenseEnforcer>
-                        @Body
-                    </LicenseEnforcer>
-                </SettingsEnforcer>
+                <LegalAcceptanceGate>
+                    <SettingsEnforcer>
+                        <LicenseEnforcer>
+                            @Body
+                        </LicenseEnforcer>
+                    </SettingsEnforcer>
+                </LegalAcceptanceGate>
             </Authorized>
             <NotAuthorized>
                 @Body

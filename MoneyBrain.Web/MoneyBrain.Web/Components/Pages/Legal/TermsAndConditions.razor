@@ -1,0 +1,41 @@
+@page "/legal/terms"
+@using MoneyBrain.Web.Application.Legal
+@inject ILegalService LegalService
+
+<PageTitle>Terms and Conditions - MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+        <MudPaper Class="pa-8">
+            @if (_loading)
+            {
+                <MudProgressCircular Indeterminate Size="Size.Medium" />
+            }
+            else if (_document != null)
+            {
+                <div style="max-width: 800px; margin: 0 auto;">
+                    @((MarkupString)Markdig.Markdown.ToHtml(_document.Content))
+                </div>
+            }
+            else
+            {
+                <MudText Color="Color.Error">Unable to load Terms and Conditions.</MudText>
+            }
+        </MudPaper>
+    </MudContainer>
+</div>
+
+@code {
+    private bool _loading = true;
+    private LegalDocumentDto? _document;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var documents = await LegalService.GetCurrentDocumentsAsync();
+        if (documents.TryGetValue("Terms", out var terms))
+        {
+            _document = terms;
+        }
+        _loading = false;
+    }
+}

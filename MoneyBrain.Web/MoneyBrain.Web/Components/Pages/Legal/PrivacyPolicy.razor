@@ -1,0 +1,41 @@
+@page "/legal/privacy"
+@using MoneyBrain.Web.Application.Legal
+@inject ILegalService LegalService
+
+<PageTitle>Privacy Policy - MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+        <MudPaper Class="pa-8">
+            @if (_loading)
+            {
+                <MudProgressCircular Indeterminate Size="Size.Medium" />
+            }
+            else if (_document != null)
+            {
+                <div style="max-width: 800px; margin: 0 auto;">
+                    @((MarkupString)Markdig.Markdown.ToHtml(_document.Content))
+                </div>
+            }
+            else
+            {
+                <MudText Color="Color.Error">Unable to load Privacy Policy.</MudText>
+            }
+        </MudPaper>
+    </MudContainer>
+</div>
+
+@code {
+    private bool _loading = true;
+    private LegalDocumentDto? _document;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var documents = await LegalService.GetCurrentDocumentsAsync();
+        if (documents.TryGetValue("Privacy", out var privacy))
+        {
+            _document = privacy;
+        }
+        _loading = false;
+    }
+}

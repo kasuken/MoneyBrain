@@ -6,11 +6,13 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using MoneyBrain.Web.Data
+@using MoneyBrain.Web.Application.Legal
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IEmailSender<ApplicationUser> EmailSender
+@inject ILegalService LegalService
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
@@ -47,6 +49,18 @@
                     <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password"/>
                     <label for="Input.ConfirmPassword">Confirm Password</label>
                     <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger"/>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <InputCheckbox @bind-Value="Input.AcceptLegalTerms" id="Input.AcceptLegalTerms" class="form-check-input"/>
+                        <label class="form-check-label" for="Input.AcceptLegalTerms" style="color: var(--mb-text-secondary); font-size: 0.875rem;">
+                            I accept the 
+                            <a href="/legal/terms" target="_blank" style="color: var(--mb-primary); text-decoration: none;">Terms of Service</a> 
+                            and 
+                            <a href="/legal/privacy" target="_blank" style="color: var(--mb-primary); text-decoration: none;">Privacy Policy</a>
+                        </label>
+                        <ValidationMessage For="() => Input.AcceptLegalTerms" class="text-danger"/>
+                    </div>
                 </div>
                 <button type="submit" class="w-100 btn btn-lg mb-btn-primary" style="border-radius: var(--mb-radius);">Register</button>
                 <hr style="margin: 1.5rem 0;"/>
@@ -91,6 +105,14 @@
         Logger.LogInformation("User created a new account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);
+        
+        // Record legal acceptance
+        var currentDocuments = await LegalService.GetCurrentDocumentsAsync();
+        foreach (var (docType, doc) in currentDocuments)
+        {
+            await LegalService.RecordAcceptanceAsync(userId, docType, doc.Version, "signup");
+        }
+        
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
@@ -152,6 +174,10 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Required(ErrorMessage = "You must accept the Terms of Service and Privacy Policy.")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the Terms of Service and Privacy Policy.")]
+        public bool AcceptLegalTerms { get; set; }
     }
 
 }

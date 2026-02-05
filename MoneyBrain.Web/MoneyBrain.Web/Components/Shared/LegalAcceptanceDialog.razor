@@ -1,0 +1,110 @@
+@using MoneyBrain.Web.Application.Legal
+@using MudBlazor
+@inject ILegalService LegalService
+@inject NavigationManager Navigation
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4">Please Review and Accept Our Legal Documents</MudText>
+        
+        <MudText Typo="Typo.body2" Class="mb-4">
+            To continue using MoneyBrain, you must review and accept our Terms of Service and Privacy Policy.
+        </MudText>
+
+        <MudStack Spacing="3">
+            @if (_acceptanceStatus != null && _currentDocuments != null)
+            {
+                @if (!_acceptanceStatus.GetValueOrDefault("Terms", false) && _currentDocuments.ContainsKey("Terms"))
+                {
+                    var termsDoc = _currentDocuments["Terms"];
+                    <MudPaper Class="pa-4" Outlined>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.Description" />
+                            <div style="flex: 1;">
+                                <MudText Typo="Typo.subtitle1">Terms of Service</MudText>
+                                <MudText Typo="Typo.caption">Version @termsDoc.Version</MudText>
+                            </div>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" 
+                                       Href="/legal/terms" Target="_blank">
+                                Review
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
+                }
+
+                @if (!_acceptanceStatus.GetValueOrDefault("Privacy", false) && _currentDocuments.ContainsKey("Privacy"))
+                {
+                    var privacyDoc = _currentDocuments["Privacy"];
+                    <MudPaper Class="pa-4" Outlined>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.PrivacyTip" />
+                            <div style="flex: 1;">
+                                <MudText Typo="Typo.subtitle1">Privacy Policy</MudText>
+                                <MudText Typo="Typo.caption">Version @privacyDoc.Version</MudText>
+                            </div>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" 
+                                       Href="/legal/privacy" Target="_blank">
+                                Review
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
+                }
+            }
+
+            <MudCheckBox @bind-Value="_termsAccepted" Color="Color.Primary" Class="mt-2">
+                I have read and agree to the Terms of Service
+            </MudCheckBox>
+
+            <MudCheckBox @bind-Value="_privacyAccepted" Color="Color.Primary">
+                I have read and agree to the Privacy Policy
+            </MudCheckBox>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                   OnClick="AcceptAndContinue" 
+                   Disabled="!(_termsAccepted && _privacyAccepted)">
+            Accept and Continue
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    [Parameter]
+    public Dictionary<string, bool>? AcceptanceStatus { get; set; }
+
+    [Parameter]
+    public Dictionary<string, LegalDocumentDto>? CurrentDocuments { get; set; }
+
+    private bool _termsAccepted;
+    private bool _privacyAccepted;
+    private Dictionary<string, bool>? _acceptanceStatus;
+    private Dictionary<string, LegalDocumentDto>? _currentDocuments;
+
+    protected override void OnInitialized()
+    {
+        _acceptanceStatus = AcceptanceStatus;
+        _currentDocuments = CurrentDocuments;
+    }
+
+    private async Task AcceptAndContinue()
+    {
+        if (_currentDocuments == null) return;
+
+        foreach (var (docType, doc) in _currentDocuments)
+        {
+            if (!_acceptanceStatus!.GetValueOrDefault(docType, false))
+            {
+                await LegalService.RecordAcceptanceAsync(UserId, docType, doc.Version, "re-acceptance");
+            }
+        }
+
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+}
