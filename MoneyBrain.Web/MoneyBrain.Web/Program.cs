@@ -38,7 +38,9 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddMudServices();
 
 // Localization
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+// Note: Do NOT use ResourcesPath since the marker class (SharedResource) is already in 
+// the MoneyBrain.Web.Resources namespace - the localizer uses the full namespace to find resources
+builder.Services.AddLocalization();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     var supportedCultures = new[] { "en", "it", "es" };
