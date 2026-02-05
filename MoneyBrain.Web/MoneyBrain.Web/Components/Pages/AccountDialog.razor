@@ -1,100 +1,103 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @inject IAccountService AccountService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
             <MudTextField @bind-Value="_model.Name"
-                          Label="Account Name"
+                          Label="@L["AcctDlg_AccountName"]"
                           Required="true"
-                          RequiredError="Account name is required"
+                          RequiredError="@L["AcctDlg_NameRequired"]"
                           MaxLength="100"
                           Variant="Variant.Outlined"
                           Class="mb-3" />
 
             <MudSelect @bind-Value="_model.Type"
-                       Label="Account Type"
+                       Label="@L["AcctDlg_AccountType"]"
                        Required="true"
                        Variant="Variant.Outlined"
                        Class="mb-3">
-                <MudSelectItem Value="@AccountType.Asset">Asset</MudSelectItem>
-                <MudSelectItem Value="@AccountType.Liability">Liability</MudSelectItem>
+                <MudSelectItem Value="@AccountType.Asset">@L["AcctDlg_Asset"]</MudSelectItem>
+                <MudSelectItem Value="@AccountType.Liability">@L["AcctDlg_Liability"]</MudSelectItem>
             </MudSelect>
 
             <MudSelect @bind-Value="_model.SubType"
-                       Label="Account Sub-Type"
+                       Label="@L["AcctDlg_AccountSubType"]"
                        Required="true"
                        Variant="Variant.Outlined"
                        Class="mb-3">
                 @if (_model.Type == AccountType.Asset)
                 {
-                    <MudSelectItem Value="@AccountSubType.Cash">Cash</MudSelectItem>
-                    <MudSelectItem Value="@AccountSubType.Checking">Checking</MudSelectItem>
-                    <MudSelectItem Value="@AccountSubType.Savings">Savings</MudSelectItem>
-                    <MudSelectItem Value="@AccountSubType.Investment">Investment</MudSelectItem>
-                    <MudSelectItem Value="@AccountSubType.OtherAsset">Other Asset</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Cash">@L["AcctDlg_Cash"]</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Checking">@L["AcctDlg_Checking"]</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Savings">@L["AcctDlg_Savings"]</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Investment">@L["AcctDlg_Investment"]</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.OtherAsset">@L["AcctDlg_OtherAsset"]</MudSelectItem>
                 }
                 else
                 {
-                    <MudSelectItem Value="@AccountSubType.CreditCard">Credit Card</MudSelectItem>
-                    <MudSelectItem Value="@AccountSubType.Loan">Loan</MudSelectItem>
-                    <MudSelectItem Value="@AccountSubType.Mortgage">Mortgage</MudSelectItem>
-                    <MudSelectItem Value="@AccountSubType.OtherLiability">Other Liability</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.CreditCard">@L["AcctDlg_CreditCard"]</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Loan">@L["AcctDlg_Loan"]</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.Mortgage">@L["AcctDlg_Mortgage"]</MudSelectItem>
+                    <MudSelectItem Value="@AccountSubType.OtherLiability">@L["AcctDlg_OtherLiability"]</MudSelectItem>
                 }
             </MudSelect>
 
             <MudTextField @bind-Value="_model.Group"
-                          Label="Group (optional)"
+                          Label="@L["AcctDlg_Group"]"
                           MaxLength="50"
                           Variant="Variant.Outlined"
                           Class="mb-3"
-                          HelperText="Organize accounts into groups (e.g., 'Personal', 'Business')" />
+                          HelperText="@L["AcctDlg_GroupHelper"]" />
 
             <MudNumericField @bind-Value="_model.OpeningBalance"
-                             Label="Opening Balance"
+                             Label="@L["AcctDlg_OpeningBalance"]"
                              Variant="Variant.Outlined"
                              Class="mb-3"
                              Format="C2"
                              Culture="@System.Globalization.CultureInfo.CurrentCulture"
-                             HelperText="Initial balance when creating this account" />
+                             HelperText="@L["AcctDlg_OpeningBalanceHelper"]" />
 
             <MudNumericField @bind-Value="_model.MonthlySpendingLimit"
-                             Label="Monthly Spending Limit (optional)"
+                             Label="@L["AcctDlg_MonthlySpendingLimit"]"
                              Variant="Variant.Outlined"
                              Class="mb-3"
                              Format="N2"
                              Min="0"
-                             HelperText="Set a monthly cap to track spending vs limit" />
+                             HelperText="@L["AcctDlg_MonthlySpendingLimitHelper"]" />
 
             @if (_model.SubType == AccountSubType.CreditCard)
             {
                 <MudDivider Class="my-4" />
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Credit Card Billing Cycle</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["AcctDlg_CreditCardBillingCycle"]</MudText>
                 <MudText Typo="Typo.caption" Class="mb-3" Style="color: var(--mb-text-muted);">
-                    Configure automatic billing cycle processing. On the billing day, pending transactions become posted and a bill is created in your payment account.
+                    @L["AcctDlg_BillingCycleDesc"]
                 </MudText>
 
                 <MudNumericField @bind-Value="_model.BillingCycleDay"
-                                 Label="Billing Cycle Day (1-31)"
+                                 Label="@L["AcctDlg_BillingCycleDay"]"
                                  Variant="Variant.Outlined"
                                  Class="mb-3"
                                  Required="true"
-                                 RequiredError="Billing cycle day is required for credit cards"
+                                 RequiredError="@L["AcctDlg_BillingCycleDayRequired"]"
                                  Min="1"
                                  Max="31"
-                                 HelperText="Required: Day of month when the billing cycle closes" />
+                                 HelperText="@L["AcctDlg_BillingCycleDayHelper"]" />
 
                 <MudSelect T="int?" @bind-Value="_model.LinkedPaymentAccountId"
-                           Label="Payment Account"
+                           Label="@L["AcctDlg_PaymentAccount"]"
                            Variant="Variant.Outlined"
                            Class="mb-3"
                            Required="true"
-                           RequiredError="Payment account is required for credit cards"
+                           RequiredError="@L["AcctDlg_PaymentAccountRequired"]"
                            Clearable="false"
-                           HelperText="Required: Account where the monthly bill will be created">
+                           HelperText="@L["AcctDlg_PaymentAccountHelper"]">
                     @foreach (var account in _assetAccounts)
                     {
                         <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
@@ -103,19 +106,19 @@
             }
 
             <MudTextField @bind-Value="_model.Notes"
-                          Label="Notes (optional)"
+                          Label="@L["AcctDlg_Notes"]"
                           Lines="3"
                           MaxLength="500"
                           Variant="Variant.Outlined"
                           Class="mb-3" />
 
             <MudCheckBox T="bool" @bind-Checked="_model.IsActive"
-                         Label="Active"
+                         Label="@L["AcctDlg_Active"]"
                          Color="Color.Primary" />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
                    OnClick="Save" 
@@ -126,7 +129,7 @@
             }
             else
             {
-                <text>Save</text>
+                <text>@L["Btn_Save"]</text>
             }
         </MudButton>
     </DialogActions>

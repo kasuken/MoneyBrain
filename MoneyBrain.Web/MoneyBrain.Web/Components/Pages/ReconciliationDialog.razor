@@ -1,22 +1,25 @@
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Reconciliation
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @using MudBlazor
 
 @attribute [Authorize]
 
 @inject IReconciliationService ReconciliationService
 @inject ISnackbar SnackbarService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isFormValid">
             <MudSelect T="int?" 
                        @bind-Value="_selectedAccountId" 
-                       Label="Account" 
+                       Label="@L["ReconcileDlg_Account"]" 
                        Variant="Variant.Outlined"
                        Required="true"
-                       RequiredError="Account is required"
+                       RequiredError="@L["ReconcileDlg_AccountRequired"]"
                        Class="mb-3">
                 @foreach (var account in Accounts)
                 {
@@ -24,27 +27,27 @@
                 }
             </MudSelect>
 
-            <MudDatePicker Label="Statement Date" 
+            <MudDatePicker Label="@L["ReconcileDlg_StatementDate"]" 
                           @bind-Date="_statementDate"
                           Variant="Variant.Outlined"
                           Required="true"
-                          RequiredError="Statement date is required"
+                          RequiredError="@L["ReconcileDlg_DateRequired"]"
                           DisableFuture="true"
                           Class="mb-3" />
 
             <MudNumericField T="decimal" 
                             @bind-Value="_statementBalance"
-                            Label="Statement Balance" 
+                            Label="@L["ReconcileDlg_StatementBalance"]" 
                             Variant="Variant.Outlined"
                             Required="true"
-                            RequiredError="Statement balance is required"
+                            RequiredError="@L["ReconcileDlg_BalanceRequired"]"
                             Format="N2"
                             Class="mb-3"
                             Adornment="Adornment.Start"
                             AdornmentText="$" />
 
             <MudTextField @bind-Value="_notes"
-                         Label="Notes (Optional)"
+                         Label="@L["ReconcileDlg_Notes"]"
                          Variant="Variant.Outlined"
                          Lines="3"
                          Class="mb-3" />
@@ -58,7 +61,7 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="MudBlazor.Color.Primary" 
                    Variant="Variant.Filled"
                    OnClick="StartReconciliation"
@@ -66,11 +69,11 @@
             @if (_isSaving)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                <span class="ms-2">Starting...</span>
+                <span class="ms-2">@L["ReconcileDlg_Starting"]</span>
             }
             else
             {
-                <span>Start Reconciliation</span>
+                <span>@L["ReconcileDlg_StartButton"]</span>
             }
         </MudButton>
     </DialogActions>
@@ -115,13 +118,13 @@
                 _statementBalance,
                 _notes);
 
-            SnackbarService.Add("Reconciliation started successfully", MudBlazor.Severity.Success);
+            SnackbarService.Add(L["ReconcileDlg_StartSuccess"], MudBlazor.Severity.Success);
             MudDialog.Close(DialogResult.Ok(reconciliation));
         }
         catch (Exception ex)
         {
             _errorMessage = ex.Message;
-            SnackbarService.Add($"Error starting reconciliation: {ex.Message}", MudBlazor.Severity.Error);
+            SnackbarService.Add(string.Format(L["ReconcileDlg_StartError"], ex.Message), MudBlazor.Severity.Error);
         }
         finally
         {

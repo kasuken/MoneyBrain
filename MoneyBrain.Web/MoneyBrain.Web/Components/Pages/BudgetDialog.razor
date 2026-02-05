@@ -1,32 +1,35 @@
 @using MoneyBrain.Web.Application.Budgets
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject IBudgetService BudgetService
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="3">
             <MudTextField @bind-Value="_name" 
-                          Label="Budget Name" 
+                          Label="@L["BudgetDlg_BudgetName"]" 
                           Variant="Variant.Outlined" 
                           Required="true"
                           MaxLength="200"
-                          Placeholder="e.g., January 2026 Budget" />
+                          Placeholder="@L["BudgetDlg_NamePlaceholder"]" />
 
             <MudTextField @bind-Value="_description" 
-                          Label="Description (Optional)" 
+                          Label="@L["BudgetDlg_Description"]" 
                           Variant="Variant.Outlined"
                           Lines="2"
                           MaxLength="500" />
 
             <MudSwitch @bind-Value="_isDefault" 
-                       Label="Default Budget (applies to all months)" 
+                       Label="@L["BudgetDlg_DefaultBudget"]" 
                        Color="Color.Primary">
                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
-                    Default budgets are reusable templates that can be applied to any month
+                    @L["BudgetDlg_DefaultBudgetDesc"]
                 </MudText>
             </MudSwitch>
 
@@ -34,7 +37,7 @@
             {
                 <div class="d-flex gap-2">
                     <MudSelect @bind-Value="_selectedMonth" 
-                               Label="Month" 
+                               Label="@L["BudgetDlg_Month"]" 
                                Variant="Variant.Outlined"
                                Required="true">
                         @for (int i = 1; i <= 12; i++)
@@ -46,7 +49,7 @@
                     </MudSelect>
 
                     <MudNumericField @bind-Value="_selectedYear" 
-                                     Label="Year" 
+                                     Label="@L["BudgetDlg_Year"]" 
                                      Variant="Variant.Outlined"
                                      Required="true"
                                      Min="2000"
@@ -56,18 +59,18 @@
                 @if (IsNew && _defaultBudgets.Count > 0)
                 {
                     <MudSwitch @bind-Value="_copyFromDefault" 
-                               Label="Copy from default budget" 
+                               Label="@L["BudgetDlg_CopyFromDefault"]" 
                                Color="Color.Primary"
                                T="bool">
                         <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
-                            Start with categories from an existing default budget
+                            @L["BudgetDlg_CopyFromDefaultDesc"]
                         </MudText>
                     </MudSwitch>
                     
                     @if (_copyFromDefault)
                     {
                         <MudSelect @bind-Value="_selectedDefaultBudgetId" 
-                                   Label="Select Default Budget" 
+                                   Label="@L["BudgetDlg_SelectDefaultBudget"]" 
                                    Variant="Variant.Outlined"
                                    Required="true">
                             @foreach (var defaultBudget in _defaultBudgets)
@@ -82,13 +85,13 @@
                                        StartIcon="@Icons.Material.Filled.ContentCopy"
                                        OnClick="@CopyFromDefaultBudget"
                                        Disabled="@(_budgetCategories.Count > 0)">
-                                Copy Categories
+                                @L["BudgetDlg_CopyCategories"]
                             </MudButton>
                             
                             @if (_budgetCategories.Count > 0)
                             {
                                 <MudAlert Severity="Severity.Info" Dense="true">
-                                    Categories copied. You can modify or remove them below.
+                                    @L["BudgetDlg_CategoriesCopied"]
                                 </MudAlert>
                             }
                         }
@@ -99,20 +102,20 @@
             <MudDivider Class="my-2" />
 
             <div class="d-flex justify-space-between align-center">
-                <MudText Typo="Typo.h6">Categories</MudText>
+                <MudText Typo="Typo.h6">@L["BudgetDlg_Categories"]</MudText>
                 <MudButton Variant="Variant.Outlined" 
                            Size="Size.Small"
                            StartIcon="@Icons.Material.Filled.Add"
                            OnClick="@OpenAddCategoryDialog"
                            Disabled="@(!IsNew && Budget == null)">
-                    Add Category
+                    @L["BudgetDlg_AddCategory"]
                 </MudButton>
             </div>
 
             @if (_budgetCategories.Count == 0)
             {
                 <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
-                    No categories added yet
+                    @L["BudgetDlg_NoCategoriesYet"]
                 </MudText>
             }
             else
@@ -121,11 +124,11 @@
                           Dense="true"
                           Hover="true">
                     <HeaderContent>
-                        <MudTh>Category</MudTh>
-                        <MudTh Style="text-align: right;">Amount</MudTh>
-                        <MudTh Style="text-align: center;">Rollover</MudTh>
-                        <MudTh>Notes</MudTh>
-                        <MudTh Style="text-align: right;">Actions</MudTh>
+                        <MudTh>@L["Col_Category"]</MudTh>
+                        <MudTh Style="text-align: right;">@L["BudgetDlg_Amount"]</MudTh>
+                        <MudTh Style="text-align: center;">@L["BudgetDlg_Rollover"]</MudTh>
+                        <MudTh>@L["Col_Notes"]</MudTh>
+                        <MudTh Style="text-align: right;">@L["Col_Actions"]</MudTh>
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd>@context.Category.Name</MudTd>
@@ -138,7 +141,7 @@
                         </MudTd>
                         <MudTd>
                             @{
-                                var notesText = string.IsNullOrWhiteSpace(context.Notes) ? "No notes" : context.Notes;
+                                var notesText = string.IsNullOrWhiteSpace(context.Notes) ? L["BudgetDlg_NoNotes"] : context.Notes;
                                 <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
                                     @notesText
                                 </MudText>
@@ -154,7 +157,7 @@
                 </MudTable>
 
                 <MudText Typo="Typo.body2" Class="mt-2">
-                    <strong>Total:</strong> @_budgetCategories.Sum(bc => bc.PlannedAmount).ToString("C2")
+                    <strong>@L["BudgetDlg_Total"]:</strong> @_budgetCategories.Sum(bc => bc.PlannedAmount).ToString("C2")
                 </MudText>
             }
         </MudStack>
@@ -165,7 +168,7 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
                    OnClick="Submit" 
@@ -174,7 +177,7 @@
             {
                 <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
             }
-            @(IsNew ? "Create Budget" : "Update Budget")
+            @(IsNew ? L["BudgetDlg_CreateBudget"] : L["BudgetDlg_UpdateBudget"])
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -241,7 +244,7 @@
 
         if (string.IsNullOrWhiteSpace(_name))
         {
-            _errorMessage = "Budget name is required";
+            _errorMessage = L["BudgetDlg_NameRequired"];
             return;
         }
 
@@ -272,7 +275,7 @@
             {
                 if (Budget == null)
                 {
-                    _errorMessage = "Budget not found";
+                    _errorMessage = L["BudgetDlg_NotFound"];
                     return;
                 }
                 
@@ -291,7 +294,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error: {ex.Message}";
+            _errorMessage = string.Format(L["Msg_Error"], ex.Message);
         }
         finally
         {
@@ -307,7 +310,7 @@
 
         if (availableCategories.Count == 0)
         {
-            SnackbarService.Add("All categories have been added", Severity.Info);
+            SnackbarService.Add(L["BudgetDlg_AllCategoriesAdded"], Severity.Info);
             return;
         }
 
@@ -320,7 +323,7 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<AddCategoryToBudgetDialog>("Add Categories", parameters, options);
+        var dialog = await DialogService.ShowAsync<AddCategoryToBudgetDialog>(L["BudgetDlg_AddCategoriesTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: List<BudgetCategory> categories })
@@ -338,7 +341,7 @@
             var success = await BudgetService.RemoveCategoryFromBudgetAsync(budgetCategory.Id, UserId);
             if (!success)
             {
-                SnackbarService.Add("Failed to remove category", Severity.Error);
+                SnackbarService.Add(L["BudgetDlg_RemoveFailed"], Severity.Error);
                 return;
             }
         }
@@ -357,7 +360,7 @@
             var defaultBudget = await BudgetService.GetBudgetByIdAsync(_selectedDefaultBudgetId, UserId);
             if (defaultBudget == null)
             {
-                SnackbarService.Add("Default budget not found", Severity.Error);
+                SnackbarService.Add(L["BudgetDlg_DefaultNotFound"], Severity.Error);
                 return;
             }
             
@@ -382,11 +385,11 @@
             }
             
             StateHasChanged();
-            SnackbarService.Add($"Copied {_budgetCategories.Count} categories from {defaultBudget.Name}", Severity.Success);
+            SnackbarService.Add(string.Format(L["BudgetDlg_CopiedCategories"], _budgetCategories.Count, defaultBudget.Name), Severity.Success);
         }
         catch (Exception ex)
         {
-            SnackbarService.Add($"Error copying categories: {ex.Message}", Severity.Error);
+            SnackbarService.Add(string.Format(L["BudgetDlg_CopyError"], ex.Message), Severity.Error);
         }
     }
 }

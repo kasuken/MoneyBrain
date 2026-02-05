@@ -4,102 +4,105 @@
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using Microsoft.AspNetCore.Components.Forms
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject ITransactionCsvImportService CsvImportService
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         @if (_currentStep == ImportStep.Upload)
         {
-            <MudText Typo="Typo.h6" Class="mb-4">Upload CSV File</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Import_UploadTitle"]</MudText>
             
             <MudFileUpload T="IBrowserFile" Accept=".csv" FilesChanged="OnFileSelected" MaximumFileCount="1">
                 <ActivatorContent>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
-                        Select CSV File
+                        @L["Import_SelectCsvFile"]
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
             
             @if (_selectedFile != null)
             {
-                <MudText Class="mt-2">Selected: @_selectedFile.Name (@(_selectedFile.Size / 1024) KB)</MudText>
+                <MudText Class="mt-2">@L["Import_Selected"] @_selectedFile.Name (@(_selectedFile.Size / 1024) KB)</MudText>
             }
         }
         else if (_currentStep == ImportStep.Mapping)
         {
-            <MudText Typo="Typo.h6" Class="mb-4">Map CSV Columns</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Import_MapColumnsTitle"]</MudText>
             
             @if (_csvRows.Count > 0)
             {
                 <MudGrid>
                     <MudItem xs="12">
-                        <MudCheckBox @bind-Value="_mapping.HasHeaderRow" Label="First row is header" Color="Color.Primary" />
+                        <MudCheckBox @bind-Value="_mapping.HasHeaderRow" Label="@L["Import_FirstRowIsHeader"]" Color="Color.Primary" />
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int?" @bind-Value="_mapping.DateColumn" Label="Date Column *" Variant="Variant.Outlined" Required>
-                            <MudSelectItem T="int?" Value="null">-- Select Column --</MudSelectItem>
+                        <MudSelect T="int?" @bind-Value="_mapping.DateColumn" Label="@(L["Import_DateColumn"] + " *")" Variant="Variant.Outlined" Required>
+                            <MudSelectItem T="int?" Value="null">@L["Import_SelectColumn"]</MudSelectItem>
                             @for (int i = 0; i < _csvRows[0].Count; i++)
                             {
-                                <MudSelectItem T="int?" Value="@i">Column @(i + 1): @GetSampleValue(i)</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@i">@L["Import_Column"] @(i + 1): @GetSampleValue(i)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int?" @bind-Value="_mapping.AmountColumn" Label="Amount Column *" Variant="Variant.Outlined" Required>
-                            <MudSelectItem T="int?" Value="null">-- Select Column --</MudSelectItem>
+                        <MudSelect T="int?" @bind-Value="_mapping.AmountColumn" Label="@(L["Import_AmountColumn"] + " *")" Variant="Variant.Outlined" Required>
+                            <MudSelectItem T="int?" Value="null">@L["Import_SelectColumn"]</MudSelectItem>
                             @for (int i = 0; i < _csvRows[0].Count; i++)
                             {
-                                <MudSelectItem T="int?" Value="@i">Column @(i + 1): @GetSampleValue(i)</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@i">@L["Import_Column"] @(i + 1): @GetSampleValue(i)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int?" @bind-Value="_mapping.PayeeColumn" Label="Payee Column" Variant="Variant.Outlined">
-                            <MudSelectItem T="int?" Value="null">-- None --</MudSelectItem>
+                        <MudSelect T="int?" @bind-Value="_mapping.PayeeColumn" Label="@L["Import_PayeeColumn"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="int?" Value="null">@L["Import_None"]</MudSelectItem>
                             @for (int i = 0; i < _csvRows[0].Count; i++)
                             {
-                                <MudSelectItem T="int?" Value="@i">Column @(i + 1): @GetSampleValue(i)</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@i">@L["Import_Column"] @(i + 1): @GetSampleValue(i)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int?" @bind-Value="_mapping.CategoryColumn" Label="Category Column" Variant="Variant.Outlined">
-                            <MudSelectItem T="int?" Value="null">-- None --</MudSelectItem>
+                        <MudSelect T="int?" @bind-Value="_mapping.CategoryColumn" Label="@L["Import_CategoryColumn"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="int?" Value="null">@L["Import_None"]</MudSelectItem>
                             @for (int i = 0; i < _csvRows[0].Count; i++)
                             {
-                                <MudSelectItem T="int?" Value="@i">Column @(i + 1): @GetSampleValue(i)</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@i">@L["Import_Column"] @(i + 1): @GetSampleValue(i)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int?" @bind-Value="_mapping.MemoColumn" Label="Memo Column" Variant="Variant.Outlined">
-                            <MudSelectItem T="int?" Value="null">-- None --</MudSelectItem>
+                        <MudSelect T="int?" @bind-Value="_mapping.MemoColumn" Label="@L["Import_MemoColumn"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="int?" Value="null">@L["Import_None"]</MudSelectItem>
                             @for (int i = 0; i < _csvRows[0].Count; i++)
                             {
-                                <MudSelectItem T="int?" Value="@i">Column @(i + 1): @GetSampleValue(i)</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@i">@L["Import_Column"] @(i + 1): @GetSampleValue(i)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int?" @bind-Value="_mapping.ReferenceNumberColumn" Label="Reference Number Column" Variant="Variant.Outlined">
-                            <MudSelectItem T="int?" Value="null">-- None --</MudSelectItem>
+                        <MudSelect T="int?" @bind-Value="_mapping.ReferenceNumberColumn" Label="@L["Import_ReferenceColumn"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="int?" Value="null">@L["Import_None"]</MudSelectItem>
                             @for (int i = 0; i < _csvRows[0].Count; i++)
                             {
-                                <MudSelectItem T="int?" Value="@i">Column @(i + 1): @GetSampleValue(i)</MudSelectItem>
+                                <MudSelectItem T="int?" Value="@i">@L["Import_Column"] @(i + 1): @GetSampleValue(i)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="int" @bind-Value="_mapping.AccountId" Label="Import to Account *" Variant="Variant.Outlined" Required>
+                        <MudSelect T="int" @bind-Value="_mapping.AccountId" Label="@(L["Import_TargetAccount"] + " *")" Variant="Variant.Outlined" Required>
                             @foreach (var account in _accounts)
                             {
                                 <MudSelectItem T="int" Value="@account.Id">@account.Name</MudSelectItem>
@@ -108,18 +111,18 @@
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_mapping.DateFormat" Label="Date Format" Variant="Variant.Outlined" 
-                                      HelperText="e.g., MM/dd/yyyy or yyyy-MM-dd" />
+                        <MudTextField @bind-Value="_mapping.DateFormat" Label="@L["Import_DateFormat"]" Variant="Variant.Outlined" 
+                                      HelperText="@L["Import_DateFormatHelper"]" />
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudCheckBox @bind-Value="_mapping.InvertAmounts" Label="Invert amounts (expenses as positive)" Color="Color.Primary" />
+                        <MudCheckBox @bind-Value="_mapping.InvertAmounts" Label="@L["Import_InvertAmounts"]" Color="Color.Primary" />
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
-                        <MudSelect T="TransactionStatus" @bind-Value="_mapping.DefaultStatus" Label="Default Status" Variant="Variant.Outlined">
-                            <MudSelectItem T="TransactionStatus" Value="TransactionStatus.Pending">Pending</MudSelectItem>
-                            <MudSelectItem T="TransactionStatus" Value="TransactionStatus.Posted">Posted</MudSelectItem>
+                        <MudSelect T="TransactionStatus" @bind-Value="_mapping.DefaultStatus" Label="@L["Import_DefaultStatus"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="TransactionStatus" Value="TransactionStatus.Pending">@L["Status_Pending"]</MudSelectItem>
+                            <MudSelectItem T="TransactionStatus" Value="TransactionStatus.Posted">@L["Status_Posted"]</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                 </MudGrid>
@@ -127,41 +130,41 @@
         }
         else if (_currentStep == ImportStep.Preview)
         {
-            <MudText Typo="Typo.h6" Class="mb-4">Preview Import</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Import_PreviewTitle"]</MudText>
             
             @if (_previewRows.Count > 0)
             {
-                <MudText Class="mb-2">Preview of first 10 rows:</MudText>
+                <MudText Class="mb-2">@L["Import_PreviewFirst10Rows"]</MudText>
                 
                 <MudTable Items="_previewRows.Take(10)" Dense Hover Bordered Striped>
                     <HeaderContent>
-                        <MudTh>Row</MudTh>
-                        <MudTh>Date</MudTh>
-                        <MudTh>Amount</MudTh>
-                        <MudTh>Payee</MudTh>
-                        <MudTh>Category</MudTh>
-                        <MudTh>Memo</MudTh>
-                        <MudTh>Status</MudTh>
+                        <MudTh>@L["Import_Row"]</MudTh>
+                        <MudTh>@L["Col_Date"]</MudTh>
+                        <MudTh>@L["Col_Amount"]</MudTh>
+                        <MudTh>@L["Col_Payee"]</MudTh>
+                        <MudTh>@L["Col_Category"]</MudTh>
+                        <MudTh>@L["Col_Memo"]</MudTh>
+                        <MudTh>@L["Col_Status"]</MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="Row">@context.RowNumber</MudTd>
-                        <MudTd DataLabel="Date" Style="@(context.HasErrors && !context.Date.HasValue ? "color: red;" : "")">
-                            @(context.Date?.ToString("MM/dd/yyyy") ?? "ERROR")
+                        <MudTd DataLabel="@L["Import_Row"]">@context.RowNumber</MudTd>
+                        <MudTd DataLabel="@L["Col_Date"]" Style="@(context.HasErrors && !context.Date.HasValue ? "color: red;" : "")">
+                            @(context.Date?.ToString("MM/dd/yyyy") ?? L["Import_ParseError"])
                         </MudTd>
-                        <MudTd DataLabel="Amount" Style="@(context.HasErrors && !context.Amount.HasValue ? "color: red;" : "")">
-                            @(context.Amount?.ToString("C") ?? "ERROR")
+                        <MudTd DataLabel="@L["Col_Amount"]" Style="@(context.HasErrors && !context.Amount.HasValue ? "color: red;" : "")">
+                            @(context.Amount?.ToString("C") ?? L["Import_ParseError"])
                         </MudTd>
-                        <MudTd DataLabel="Payee">@context.Payee</MudTd>
-                        <MudTd DataLabel="Category">@context.Category</MudTd>
-                        <MudTd DataLabel="Memo">@(context.Memo?.Substring(0, Math.Min(30, context.Memo.Length)) ?? "")</MudTd>
-                        <MudTd DataLabel="Status">
+                        <MudTd DataLabel="@L["Col_Payee"]">@context.Payee</MudTd>
+                        <MudTd DataLabel="@L["Col_Category"]">@context.Category</MudTd>
+                        <MudTd DataLabel="@L["Col_Memo"]">@(context.Memo?.Substring(0, Math.Min(30, context.Memo.Length)) ?? "")</MudTd>
+                        <MudTd DataLabel="@L["Col_Status"]">
                             @if (context.HasErrors)
                             {
-                                <MudChip T="string" Color="Color.Error" Size="Size.Small">Error</MudChip>
+                                <MudChip T="string" Color="Color.Error" Size="Size.Small">@L["Msg_Error"]</MudChip>
                             }
                             else
                             {
-                                <MudChip T="string" Color="Color.Success" Size="Size.Small">OK</MudChip>
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small">@L["Btn_Ok"]</MudChip>
                             }
                         </MudTd>
                     </RowTemplate>
@@ -170,36 +173,36 @@
                 @if (_previewRows.Any(r => r.HasErrors))
                 {
                     <MudAlert Severity="Severity.Warning" Class="mt-4">
-                        <MudText>Some rows have errors and will be skipped during import:</MudText>
+                        <MudText>@L["Import_SomeRowsHaveErrors"]</MudText>
                         <ul>
                             @foreach (var row in _previewRows.Where(r => r.HasErrors).Take(5))
                             {
-                                <li>Row @row.RowNumber: @string.Join(", ", row.Errors)</li>
+                                <li>@L["Import_Row"] @row.RowNumber: @string.Join(", ", row.Errors)</li>
                             }
                         </ul>
                     </MudAlert>
                 }
                 
                 <MudText Class="mt-4">
-                    Total rows: @_previewRows.Count | Valid: @_previewRows.Count(r => !r.HasErrors) | Errors: @_previewRows.Count(r => r.HasErrors)
+                    @L["Import_TotalRows"] @_previewRows.Count | @L["Import_Valid"] @_previewRows.Count(r => !r.HasErrors) | @L["Import_ErrorsSummary"] @_previewRows.Count(r => r.HasErrors)
                 </MudText>
             }
         }
         else if (_currentStep == ImportStep.Complete)
         {
-            <MudText Typo="Typo.h6" Class="mb-4">Import Complete</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Import_CompleteTitle"]</MudText>
             
             @if (_importResult != null)
             {
                 <MudAlert Severity="@(_importResult.Success ? Severity.Success : Severity.Warning)">
-                    <MudText><strong>Imported:</strong> @_importResult.ImportedCount transactions</MudText>
-                    <MudText><strong>Skipped:</strong> @_importResult.SkippedCount rows</MudText>
-                    <MudText><strong>Total:</strong> @_importResult.TotalRows rows processed</MudText>
+                    <MudText><strong>@L["Import_ImportedLabel"]</strong> @_importResult.ImportedCount @L["Import_TransactionsUnit"]</MudText>
+                    <MudText><strong>@L["Import_SkippedLabel"]</strong> @_importResult.SkippedCount @L["Import_RowsUnit"]</MudText>
+                    <MudText><strong>@L["Import_TotalLabel"]</strong> @_importResult.TotalRows @L["Import_RowsProcessed"]</MudText>
                 </MudAlert>
                 
                 @if (_importResult.Errors.Any())
                 {
-                    <MudText Class="mt-4"><strong>Errors:</strong></MudText>
+                    <MudText Class="mt-4"><strong>@L["Import_ErrorsLabel"]</strong></MudText>
                     <ul>
                         @foreach (var error in _importResult.Errors.Take(10))
                         {
@@ -213,34 +216,34 @@
     <DialogActions>
         @if (_currentStep == ImportStep.Upload)
         {
-            <MudButton OnClick="Cancel">Cancel</MudButton>
-            <MudButton Color="Color.Primary" OnClick="NextToMapping" Disabled="@(_selectedFile == null)">Next</MudButton>
+            <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
+            <MudButton Color="Color.Primary" OnClick="NextToMapping" Disabled="@(_selectedFile == null)">@L["Btn_Next"]</MudButton>
         }
         else if (_currentStep == ImportStep.Mapping)
         {
-            <MudButton OnClick="BackToUpload">Back</MudButton>
+            <MudButton OnClick="BackToUpload">@L["Btn_Back"]</MudButton>
             <MudButton Color="Color.Primary" OnClick="NextToPreview" Disabled="@(!_mapping.DateColumn.HasValue || !_mapping.AmountColumn.HasValue || _mapping.AccountId == 0)">
-                Preview
+                @L["Btn_Preview"]
             </MudButton>
         }
         else if (_currentStep == ImportStep.Preview)
         {
-            <MudButton OnClick="BackToMapping">Back</MudButton>
+            <MudButton OnClick="BackToMapping">@L["Btn_Back"]</MudButton>
             <MudButton Color="Color.Primary" OnClick="ImportTransactions" Disabled="_isImporting">
                 @if (_isImporting)
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate />
-                    <span class="ml-2">Importing...</span>
+                    <span class="ml-2">@L["Import_Importing"]</span>
                 }
                 else
                 {
-                    <span>Import @_previewRows.Count(r => !r.HasErrors) Transactions</span>
+                    <span>@string.Format(L["Import_ImportNTransactions"], _previewRows.Count(r => !r.HasErrors))</span>
                 }
             </MudButton>
         }
         else if (_currentStep == ImportStep.Complete)
         {
-            <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Close">@L["Btn_Close"]</MudButton>
         }
     </DialogActions>
 </MudDialog>
@@ -296,13 +299,13 @@
                 
                 if (_csvRows.Count == 0)
                 {
-                    Snackbar.Add("CSV file is empty", Severity.Warning);
+                    Snackbar.Add(L["Import_CsvFileEmpty"], Severity.Warning);
                     _selectedFile = null;
                 }
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error reading file: {ex.Message}", Severity.Error);
+                Snackbar.Add(string.Format(L["Import_ErrorReadingFile"], ex.Message), Severity.Error);
                 _selectedFile = null;
             }
         }
@@ -355,7 +358,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error generating preview: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["Import_ErrorGeneratingPreview"], ex.Message), Severity.Error);
         }
     }
 
@@ -374,19 +377,19 @@
             
             if (_importResult.Success || _importResult.ImportedCount > 0)
             {
-                Snackbar.Add($"Imported {_importResult.ImportedCount} transactions", Severity.Success);
+                Snackbar.Add(string.Format(L["Trans_ImportedCount"], _importResult.ImportedCount), Severity.Success);
             }
             
             if (_importResult.Errors.Any())
             {
-                Snackbar.Add($"{_importResult.SkippedCount} rows skipped due to errors", Severity.Warning);
+                Snackbar.Add(string.Format(L["Import_RowsSkippedDueToErrors"], _importResult.SkippedCount), Severity.Warning);
             }
             
             _currentStep = ImportStep.Complete;
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error importing transactions: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["Import_ErrorImporting"], ex.Message), Severity.Error);
         }
         finally
         {

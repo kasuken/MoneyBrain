@@ -4,30 +4,33 @@
 @using MoneyBrain.Web.Application.Reporting.CsvExport
 @using System.Globalization
 @using Microsoft.JSInterop
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @inject ICashflowService CashflowService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 @attribute [Authorize]
 
-<PageTitle>Monthly Cashflow - MoneyBrain</PageTitle>
+<PageTitle>@L["Cashflow_PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">
         <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="mr-2" />
-        Monthly Cashflow Summary
+        @L["Cashflow_Header"]
     </MudText>
 
     <MudPaper Class="pa-4 mb-4">
         <MudGrid>
             <MudItem xs="12" md="6">
-                <MudDatePicker Label="Start Date" 
+                <MudDatePicker Label="@L["Lbl_StartDate"]" 
                               @bind-Date="_startDate" 
                               MaxDate="DateTime.Today"
                               @bind-Date:after="LoadDataAsync" />
             </MudItem>
             <MudItem xs="12" md="6">
-                <MudDatePicker Label="End Date" 
+                <MudDatePicker Label="@L["Lbl_EndDate"]" 
                               @bind-Date="_endDate" 
                               MaxDate="DateTime.Today"
                               @bind-Date:after="LoadDataAsync" />
@@ -39,7 +42,7 @@
                            OnClick="ExportToCsv"
                            Disabled="@(_cashflowData == null || !_cashflowData.Any())"
                            FullWidth="true">
-                    Export to CSV
+                    @L["Cashflow_ExportToCsv"]
                 </MudButton>
             </MudItem>
         </MudGrid>
@@ -56,18 +59,18 @@
             <MudItem xs="12" md="4">
                 <MudCard>
                     <MudCardContent>
-                        <MudText Typo="Typo.h6" Color="Color.Success">Total Income</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Success">@L["Cashflow_TotalIncome"]</MudText>
                         <MudText Typo="Typo.h4">@_totalIncome.ToString("C")</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count months</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count @L["Cashflow_Months"]</MudText>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudCard>
                     <MudCardContent>
-                        <MudText Typo="Typo.h6" Color="Color.Error">Total Expenses</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Error">@L["Cashflow_TotalExpenses"]</MudText>
                         <MudText Typo="Typo.h4">@_totalExpenses.ToString("C")</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count months</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count @L["Cashflow_Months"]</MudText>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -75,13 +78,13 @@
                 <MudCard>
                     <MudCardContent>
                         <MudText Typo="Typo.h6" Color="@(_netCashflow >= 0 ? Color.Success : Color.Error)">
-                            Net Cashflow
+                            @L["Cashflow_NetCashflow"]
                         </MudText>
                         <MudText Typo="Typo.h4" Color="@(_netCashflow >= 0 ? Color.Success : Color.Error)">
                             @_netCashflow.ToString("C")
                         </MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
-                            @((_netCashflow >= 0 ? "Positive" : "Negative"))
+                            @((_netCashflow >= 0 ? L["Cashflow_Positive"] : L["Cashflow_Negative"]))
                         </MudText>
                     </MudCardContent>
                 </MudCard>
@@ -90,7 +93,7 @@
 
         <!-- Monthly Cashflow Chart -->
         <MudPaper Class="pa-4 mb-4">
-            <MudText Typo="Typo.h6" Class="mb-4">Monthly Trend</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Cashflow_MonthlyTrend"]</MudText>
             <MudChart ChartType="ChartType.Bar"
                      ChartSeries="@_chartSeries"
                      XAxisLabels="@_chartLabels"
@@ -101,32 +104,32 @@
 
         <!-- Detailed Monthly Table -->
         <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h6" Class="mb-4">Monthly Details</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Cashflow_MonthlyDetails"]</MudText>
             <MudTable Items="@_cashflowData" Hover="true" Dense="true" Striped="true">
                 <HeaderContent>
-                    <MudTh>Month</MudTh>
-                    <MudTh Style="text-align: right">Income</MudTh>
-                    <MudTh Style="text-align: right">Expenses</MudTh>
-                    <MudTh Style="text-align: right">Net Cashflow</MudTh>
-                    <MudTh Style="text-align: center">Transactions</MudTh>
+                    <MudTh>@L["Col_Month"]</MudTh>
+                    <MudTh Style="text-align: right">@L["Cashflow_Income"]</MudTh>
+                    <MudTh Style="text-align: right">@L["Cashflow_Expenses"]</MudTh>
+                    <MudTh Style="text-align: right">@L["Cashflow_NetCashflow"]</MudTh>
+                    <MudTh Style="text-align: center">@L["Col_Transactions"]</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Month">
+                    <MudTd DataLabel="@L["Col_Month"]">
                         @GetMonthName(context.Year, context.Month)
                     </MudTd>
-                    <MudTd DataLabel="Income" Style="text-align: right">
+                    <MudTd DataLabel="@L["Cashflow_Income"]" Style="text-align: right">
                         <MudText Color="Color.Success">@context.TotalIncome.ToString("C")</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Expenses" Style="text-align: right">
+                    <MudTd DataLabel="@L["Cashflow_Expenses"]" Style="text-align: right">
                         <MudText Color="Color.Error">@context.TotalExpenses.ToString("C")</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Net" Style="text-align: right">
+                    <MudTd DataLabel="@L["Cashflow_NetCashflow"]" Style="text-align: right">
                         <MudText Color="@(context.NetCashflow >= 0 ? Color.Success : Color.Error)">
                             @context.NetCashflow.ToString("C")
                         </MudText>
                     </MudTd>
-                    <MudTd DataLabel="Transactions" Style="text-align: center">
+                    <MudTd DataLabel="@L["Col_Transactions"]" Style="text-align: center">
                         @context.TransactionCount
                     </MudTd>
                     <MudTd>
@@ -146,7 +149,7 @@
                                         <!-- Income by Category -->
                                         <MudItem xs="12" md="6">
                                             <MudText Typo="Typo.subtitle1" Class="mb-2" Color="Color.Success">
-                                                <strong>Income by Category</strong>
+                                                <strong>@L["Cashflow_IncomeByCategory"]</strong>
                                             </MudText>
                                             @if (context.IncomeByCategory.Any())
                                             {
@@ -181,22 +184,22 @@
                                             }
                                             else
                                             {
-                                                <MudText Typo="Typo.body2" Color="Color.Secondary">No income this month</MudText>
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Cashflow_NoIncomeThisMonth"]</MudText>
                                             }
                                         </MudItem>
 
                                         <!-- Expenses by Category -->
                                         <MudItem xs="12" md="6">
                                             <MudText Typo="Typo.subtitle1" Class="mb-2" Color="Color.Error">
-                                                <strong>Expenses by Category</strong>
+                                                <strong>@L["Cashflow_ExpensesByCategory"]</strong>
                                             </MudText>
                                             @if (context.ExpensesByCategory.Any())
                                             {
                                                 <MudSimpleTable Dense="true" Hover="true" Style="max-height: 300px; overflow-y: auto;">
                                                     <thead>
                                                         <tr>
-                                                            <th>Category</th>
-                                                            <th style="text-align: right">Amount</th>
+                                                            <th>@L["Col_Category"]</th>
+                                                            <th style="text-align: right">@L["Col_Amount"]</th>
                                                             <th style="text-align: right">%</th>
                                                         </tr>
                                                     </thead>
@@ -223,7 +226,7 @@
                                             }
                                             else
                                             {
-                                                <MudText Typo="Typo.body2" Color="Color.Secondary">No expenses this month</MudText>
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Cashflow_NoExpensesThisMonth"]</MudText>
                                             }
                                         </MudItem>
                                     </MudGrid>
@@ -238,31 +241,31 @@
     else
     {
         <MudAlert Severity="Severity.Info">
-            No cashflow data found for the selected period. Create some transactions to see your cashflow summary.
+            @L["Cashflow_NoDataMessage"]
         </MudAlert>
     }
     
-    <HelpButton Title="Cashflow Report Help"
-                Description="View your monthly income and expenses over time. Understand how money flows in and out of your accounts."
+    <HelpButton Title="@L["Cashflow_HelpTitle"]"
+                Description="@L["Cashflow_HelpDescription"]"
                 Features="@(new[] { 
-                    "Monthly breakdown of income vs expenses",
-                    "Net cashflow calculation per period",
-                    "Visual chart showing trends over time",
-                    "Selectable date range for analysis",
-                    "Summary totals for the selected period"
+                    L["Cashflow_HelpFeature1"].Value,
+                    L["Cashflow_HelpFeature2"].Value,
+                    L["Cashflow_HelpFeature3"].Value,
+                    L["Cashflow_HelpFeature4"].Value,
+                    L["Cashflow_HelpFeature5"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Set the date range using the Start and End date pickers",
-                    "Click 'Load' to refresh the data",
-                    "Review the chart for visual trends",
-                    "Scroll down to see monthly details in the table",
-                    "Green values indicate income, red indicates expenses"
+                    L["Cashflow_HelpHowTo1"].Value,
+                    L["Cashflow_HelpHowTo2"].Value,
+                    L["Cashflow_HelpHowTo3"].Value,
+                    L["Cashflow_HelpHowTo4"].Value,
+                    L["Cashflow_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Positive net cashflow means you're saving money",
-                    "Transfers between your accounts are excluded from this report",
-                    "Only posted transactions are included",
-                    "Use this report to identify months with unusually high expenses"
+                    L["Cashflow_HelpTip1"].Value,
+                    L["Cashflow_HelpTip2"].Value,
+                    L["Cashflow_HelpTip3"].Value,
+                    L["Cashflow_HelpTip4"].Value
                 })" />
 </MudContainer>
 
@@ -336,17 +339,17 @@
         {
             new ChartSeries
             {
-                Name = "Income",
+                Name = L["Cashflow_Income"].Value,
                 Data = _cashflowData.Select(c => (double)c.TotalIncome).ToArray()
             },
             new ChartSeries
             {
-                Name = "Expenses",
+                Name = L["Cashflow_Expenses"].Value,
                 Data = _cashflowData.Select(c => (double)c.TotalExpenses).ToArray()
             },
             new ChartSeries
             {
-                Name = "Net Cashflow",
+                Name = L["Cashflow_NetCashflow"].Value,
                 Data = _cashflowData.Select(c => (double)c.NetCashflow).ToArray()
             }
         };

@@ -5,29 +5,32 @@
 @using MoneyBrain.Web.Domain.Entities
 @using InsightChartType = MoneyBrain.Web.Application.InsightExplorer.Models.ChartType
 @using InsightFilterOperator = MoneyBrain.Web.Application.InsightExplorer.Models.FilterOperator
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @attribute [Authorize]
 
 @inject IInsightExplorerService InsightExplorerService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Insight Explorer | MoneyBrain</PageTitle>
+<PageTitle>@L["Insight_PageTitle"]</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">Insight Explorer</h1>
-            <p class="mb-subtitle">Build custom queries and visualizations</p>
+            <h1 class="mb-title">@L["Insight_Header"]</h1>
+            <p class="mb-subtitle">@L["Insight_Subtitle"]</p>
         </div>
         <div class="d-flex gap-2">
             <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Save"
                        OnClick="OpenSaveDialog" Disabled="@(!_hasChanges)">
-                Save Query
+                @L["Insight_SaveQuery"]
             </MudButton>
             <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.FolderOpen"
                        OnClick="OpenLoadDialog">
-                Load Query
+                @L["Insight_LoadQuery"]
             </MudButton>
             <MudButton Variant="Variant.Filled" Class="mb-btn-primary"
                        StartIcon="@Icons.Material.Filled.PlayArrow"
@@ -36,7 +39,7 @@
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                 }
-                Run Query
+                @L["Insight_RunQuery"]
             </MudButton>
         </div>
     </div>
@@ -47,19 +50,19 @@
             <!-- Target Entity Selection -->
             <MudItem xs="12" md="4">
                 <MudSelect T="QueryTargetEntity" Value="_query.TargetEntity"
-                           Label="Query Target" Variant="Variant.Outlined"
+                           Label="@L["Insight_QueryTarget"]" Variant="Variant.Outlined"
                            ValueChanged="OnTargetEntityChanged">
-                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Transaction">Transactions</MudSelectItem>
-                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Account">Accounts</MudSelectItem>
-                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Category">Categories</MudSelectItem>
-                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Payee">Payees</MudSelectItem>
-                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Budget">Budgets</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Transaction">@L["Insight_TargetTransactions"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Account">@L["Insight_TargetAccounts"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Category">@L["Insight_TargetCategories"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Payee">@L["Insight_TargetPayees"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Budget">@L["Insight_TargetBudgets"]</MudSelectItem>
                 </MudSelect>
             </MudItem>
         </MudGrid>
 
         <!-- Filter Conditions -->
-        <MudText Typo="Typo.h6" Class="mt-4 mb-2">Filters</MudText>
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">@L["Insight_Filters"]</MudText>
         @for (var i = 0; i < _query.Filters.Count; i++)
         {
             var index = i;
@@ -68,7 +71,7 @@
                 <MudGrid>
                     <MudItem xs="12" md="3">
                         <MudSelect T="string" Value="filter.Property"
-                                   Label="Property" Variant="Variant.Outlined" Dense="true"
+                                   Label="@L["Insight_Property"]" Variant="Variant.Outlined" Dense="true"
                                    ValueChanged="@(v => OnPropertyChanged(index, v))">
                             @foreach (var prop in _availableProperties.Where(p => p.IsFilterable))
                             {
@@ -78,7 +81,7 @@
                     </MudItem>
                     <MudItem xs="12" md="3">
                         <MudSelect T="InsightFilterOperator" Value="filter.Operator"
-                                   Label="Operator" Variant="Variant.Outlined" Dense="true"
+                                   Label="@L["Insight_Operator"]" Variant="Variant.Outlined" Dense="true"
                                    ValueChanged="@(v => OnOperatorChanged(index, v))">
                             @foreach (var op in GetOperatorsForDataType(filter.DataType))
                             {
@@ -92,17 +95,17 @@
                             @if (filter.DataType == PropertyDataType.Boolean)
                             {
                                 <MudSelect T="string" Value="filter.Value"
-                                           Label="Value" Variant="Variant.Outlined" Dense="true"
+                                           Label="@L["Insight_Value"]" Variant="Variant.Outlined" Dense="true"
                                            ValueChanged="@(v => OnValueChanged(index, v))">
-                                    <MudSelectItem T="string" Value="@("true")">Yes</MudSelectItem>
-                                    <MudSelectItem T="string" Value="@("false")">No</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("true")">@L["Common_Yes"]</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("false")">@L["Common_No"]</MudSelectItem>
                                 </MudSelect>
                             }
                             else if (filter.DataType == PropertyDataType.Enum)
                             {
                                 var propMeta = _availableProperties.FirstOrDefault(p => p.Name == filter.Property);
                                 <MudSelect T="string" Value="filter.Value"
-                                           Label="Value" Variant="Variant.Outlined" Dense="true"
+                                           Label="@L["Insight_Value"]" Variant="Variant.Outlined" Dense="true"
                                            ValueChanged="@(v => OnValueChanged(index, v))">
                                     @if (propMeta?.EnumValues != null)
                                     {
@@ -115,14 +118,14 @@
                             }
                             else if (filter.DataType == PropertyDataType.DateTime)
                             {
-                                <MudDatePicker Date="@(_filterDates.GetValueOrDefault(index))" Label="Value"
+                                <MudDatePicker Date="@(_filterDates.GetValueOrDefault(index))" Label="@L["Insight_Value"]"
                                                Variant="Variant.Outlined" Dense="true"
                                                DateChanged="@(d => OnDateFilterChanged(index, d))" />
                             }
                             else
                             {
                                 <MudTextField T="string" Value="filter.Value"
-                                              Label="Value" Variant="Variant.Outlined" Dense="true"
+                                              Label="@L["Insight_Value"]" Variant="Variant.Outlined" Dense="true"
                                               ValueChanged="@(v => OnValueChanged(index, v))" />
                             }
 
@@ -130,14 +133,14 @@
                             {
                                 @if (filter.DataType == PropertyDataType.DateTime)
                                 {
-                                    <MudDatePicker Date="@(_filterSecondDates.GetValueOrDefault(index))" Label="To Value"
+                                    <MudDatePicker Date="@(_filterSecondDates.GetValueOrDefault(index))" Label="@L["Insight_ToValue"]"
                                                    Variant="Variant.Outlined" Dense="true" Class="mt-2"
                                                    DateChanged="@(d => OnSecondDateFilterChanged(index, d))" />
                                 }
                                 else
                                 {
                                     <MudTextField T="string" Value="filter.SecondValue"
-                                                  Label="To Value" Variant="Variant.Outlined" Dense="true" Class="mt-2"
+                                                  Label="@L["Insight_ToValue"]" Variant="Variant.Outlined" Dense="true" Class="mt-2"
                                                   ValueChanged="@(v => OnSecondValueChanged(index, v))" />
                                 }
                             }
@@ -152,33 +155,33 @@
         }
         <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add"
                    OnClick="AddFilter" Color="Color.Primary">
-            Add Filter
+            @L["Insight_AddFilter"]
         </MudButton>
 
         <!-- Aggregation (Optional) -->
         <MudExpansionPanels Class="mt-4">
-            <MudExpansionPanel Text="Aggregation (Optional)">
+            <MudExpansionPanel Text="@L["Insight_AggregationOptional"]">
                 <MudGrid>
                     <MudItem xs="12" md="4">
-                        <MudSwitch T="bool" Value="_useAggregation" Label="Enable Aggregation"
+                        <MudSwitch T="bool" Value="_useAggregation" Label="@L["Insight_EnableAggregation"]"
                                    Color="Color.Primary" ValueChanged="OnAggregationToggled" />
                     </MudItem>
                     @if (_useAggregation)
                     {
                         <MudItem xs="12" md="4">
                             <MudSelect T="AggregationFunction" Value="_aggregationFunction"
-                                       Label="Function" Variant="Variant.Outlined"
+                                       Label="@L["Insight_Function"]" Variant="Variant.Outlined"
                                        ValueChanged="OnAggregationFunctionChanged">
-                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Sum">Sum</MudSelectItem>
-                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Count">Count</MudSelectItem>
-                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Average">Average</MudSelectItem>
-                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Min">Min</MudSelectItem>
-                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Max">Max</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Sum">@L["Insight_FuncSum"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Count">@L["Insight_FuncCount"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Average">@L["Insight_FuncAverage"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Min">@L["Insight_FuncMin"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Max">@L["Insight_FuncMax"]</MudSelectItem>
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" md="4">
                             <MudSelect T="string" Value="_aggregationProperty"
-                                       Label="Aggregate Property" Variant="Variant.Outlined"
+                                       Label="@L["Insight_AggregateProperty"]" Variant="Variant.Outlined"
                                        ValueChanged="OnAggregationPropertyChanged">
                                 @foreach (var prop in _availableProperties.Where(p => p.IsAggregatable))
                                 {
@@ -188,9 +191,9 @@
                         </MudItem>
                         <MudItem xs="12" md="4">
                             <MudSelect T="string" Value="_groupByProperty"
-                                       Label="Group By" Variant="Variant.Outlined"
+                                       Label="@L["Lbl_Group"]" Variant="Variant.Outlined"
                                        ValueChanged="OnGroupByChanged">
-                                <MudSelectItem T="string" Value="@string.Empty">(None)</MudSelectItem>
+                                <MudSelectItem T="string" Value="@string.Empty">@L["Common_None"]</MudSelectItem>
                                 @foreach (var prop in _availableProperties.Where(p => p.IsGroupable))
                                 {
                                     <MudSelectItem T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
@@ -200,27 +203,27 @@
                     }
                 </MudGrid>
             </MudExpansionPanel>
-            <MudExpansionPanel Text="Chart Settings (Optional)">
+            <MudExpansionPanel Text="@L["Insight_ChartSettingsOptional"]">
                 <MudGrid>
                     <MudItem xs="12" md="4">
-                        <MudSwitch T="bool" Value="_useChart" Label="Enable Chart"
+                        <MudSwitch T="bool" Value="_useChart" Label="@L["Insight_EnableChart"]"
                                    Color="Color.Primary" ValueChanged="OnChartToggled" />
                     </MudItem>
                     @if (_useChart)
                     {
                         <MudItem xs="12" md="4">
                             <MudSelect T="InsightChartType" Value="_chartType"
-                                       Label="Chart Type" Variant="Variant.Outlined"
+                                       Label="@L["Insight_ChartType"]" Variant="Variant.Outlined"
                                        ValueChanged="OnChartTypeChanged">
-                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Bar">Bar</MudSelectItem>
-                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Line">Line</MudSelectItem>
-                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Pie">Pie</MudSelectItem>
-                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Donut">Donut</MudSelectItem>
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Bar">@L["Insight_ChartBar"]</MudSelectItem>
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Line">@L["Insight_ChartLine"]</MudSelectItem>
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Pie">@L["Insight_ChartPie"]</MudSelectItem>
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Donut">@L["Insight_ChartDonut"]</MudSelectItem>
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" md="4">
                             <MudTextField T="string" Value="_chartTitle"
-                                          Label="Chart Title" Variant="Variant.Outlined"
+                                          Label="@L["Insight_ChartTitle"]" Variant="Variant.Outlined"
                                           ValueChanged="OnChartTitleChanged" />
                         </MudItem>
                     }
@@ -231,7 +234,7 @@
 
     <!-- Results Section with Tabs -->
     <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
-        <MudTabPanel Text="Data Table" Icon="@Icons.Material.Filled.TableChart">
+        <MudTabPanel Text="@L["Insight_DataTable"]" Icon="@Icons.Material.Filled.TableChart">
             @if (_isLoading)
             {
                 <MudProgressLinear Indeterminate="true" />
@@ -253,7 +256,7 @@
                             }
                         </Columns>
                     </MudDataGrid>
-                    <MudText Typo="Typo.caption" Class="mt-2">Total rows: @_result.TotalCount</MudText>
+                    <MudText Typo="Typo.caption" Class="mt-2">@L["Insight_TotalRows"]: @_result.TotalCount</MudText>
                 }
                 else
                 {
@@ -270,19 +273,19 @@
                             }
                         </Columns>
                     </MudDataGrid>
-                    <MudText Typo="Typo.caption" Class="mt-2">Showing @_result.Rows.Count of @_result.TotalCount rows</MudText>
+                    <MudText Typo="Typo.caption" Class="mt-2">@L["Insight_ShowingRows", _result.Rows.Count, _result.TotalCount]</MudText>
                 }
             }
             else if (_hasExecuted)
             {
-                <MudAlert Severity="Severity.Info">No results found matching your query</MudAlert>
+                <MudAlert Severity="Severity.Info">@L["Insight_NoResultsFound"]</MudAlert>
             }
             else
             {
-                <MudAlert Severity="Severity.Info">Run a query to see results</MudAlert>
+                <MudAlert Severity="Severity.Info">@L["Insight_RunQueryToSeeResults"]</MudAlert>
             }
         </MudTabPanel>
-        <MudTabPanel Text="Chart" Icon="@Icons.Material.Filled.BarChart">
+        <MudTabPanel Text="@L["Insight_Chart"]" Icon="@Icons.Material.Filled.BarChart">
             @if (_result?.ChartData != null && _result.ChartData.Labels.Length > 0)
             {
                 @if (!string.IsNullOrEmpty(_chartTitle))
@@ -308,47 +311,47 @@
             }
             else if (_hasExecuted)
             {
-                <MudAlert Severity="Severity.Info">Configure aggregation with grouping and enable chart settings to see visualization</MudAlert>
+                <MudAlert Severity="Severity.Info">@L["Insight_ConfigureAggregationForChart"]</MudAlert>
             }
             else
             {
-                <MudAlert Severity="Severity.Info">Configure chart settings and run query to see visualization</MudAlert>
+                <MudAlert Severity="Severity.Info">@L["Insight_ConfigureChartAndRun"]</MudAlert>
             }
         </MudTabPanel>
     </MudTabs>
 
     @if (_loadedQueryName != null)
     {
-        <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Secondary">Loaded query: @_loadedQueryName</MudText>
+        <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Secondary">@L["Insight_LoadedQuery"]: @_loadedQueryName</MudText>
     }
 </div>
 
 <!-- Save Query Dialog -->
 <MudDialog @bind-Visible="_showSaveDialog">
     <TitleContent>
-        <MudText Typo="Typo.h6">Save Query</MudText>
+        <MudText Typo="Typo.h6">@L["Insight_SaveQueryTitle"]</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField T="string" @bind-Value="_saveQueryName" Label="Query Name"
+        <MudTextField T="string" @bind-Value="_saveQueryName" Label="@L["Insight_QueryName"]"
                       Variant="Variant.Outlined" Required="true" Class="mb-4" />
-        <MudTextField T="string" @bind-Value="_saveQueryDescription" Label="Description (optional)"
+        <MudTextField T="string" @bind-Value="_saveQueryDescription" Label="@L["Insight_DescriptionOptional"]"
                       Variant="Variant.Outlined" Lines="2" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="@(() => _showSaveDialog = false)">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="SaveQuery" Disabled="@string.IsNullOrWhiteSpace(_saveQueryName)">Save</MudButton>
+        <MudButton OnClick="@(() => _showSaveDialog = false)">@L["Btn_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SaveQuery" Disabled="@string.IsNullOrWhiteSpace(_saveQueryName)">@L["Btn_Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 <!-- Load Query Dialog -->
 <MudDialog @bind-Visible="_showLoadDialog">
     <TitleContent>
-        <MudText Typo="Typo.h6">Load Query</MudText>
+        <MudText Typo="Typo.h6">@L["Insight_LoadQueryTitle"]</MudText>
     </TitleContent>
     <DialogContent>
         @if (_savedQueries.Count == 0)
         {
-            <MudAlert Severity="Severity.Info">No saved queries found</MudAlert>
+            <MudAlert Severity="Severity.Info">@L["Insight_NoSavedQueries"]</MudAlert>
         }
         else
         {
@@ -363,13 +366,13 @@
                                 {
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">@sq.Description</MudText>
                                 }
-                                <MudText Typo="Typo.caption">Updated: @sq.UpdatedAt.ToString("g")</MudText>
+                                <MudText Typo="Typo.caption">@L["Insight_Updated"]: @sq.UpdatedAt.ToString("g")</MudText>
                             </div>
                             <div>
                                 <MudIconButton Icon="@Icons.Material.Filled.FileOpen" Color="Color.Primary"
-                                               OnClick="@(() => LoadQuery(sq))" Title="Load" />
+                                               OnClick="@(() => LoadQuery(sq))" Title="@L["Insight_Load"]" />
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
-                                               OnClick="@(() => DeleteSavedQuery(sq))" Title="Delete" />
+                                               OnClick="@(() => DeleteSavedQuery(sq))" Title="@L["Btn_Delete"]" />
                             </div>
                         </div>
                     </MudListItem>
@@ -378,7 +381,7 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="@(() => _showLoadDialog = false)">Close</MudButton>
+        <MudButton OnClick="@(() => _showLoadDialog = false)">@L["Btn_Close"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -786,10 +789,10 @@
             return;
 
         var confirmed = await DialogService.ShowMessageBox(
-            "Delete Query",
-            $"Are you sure you want to delete '{savedQuery.Name}'?",
-            yesText: "Delete",
-            cancelText: "Cancel");
+            L["Insight_DeleteQueryTitle"],
+            string.Format(L["Insight_DeleteQueryConfirm"], savedQuery.Name),
+            yesText: L["Btn_Delete"],
+            cancelText: L["Btn_Cancel"]);
 
         if (confirmed == true)
         {
@@ -868,19 +871,19 @@
     {
         return op switch
         {
-            InsightFilterOperator.Equals => "Equals",
-            InsightFilterOperator.NotEquals => "Not Equals",
-            InsightFilterOperator.Contains => "Contains",
-            InsightFilterOperator.StartsWith => "Starts With",
-            InsightFilterOperator.EndsWith => "Ends With",
-            InsightFilterOperator.GreaterThan => "Greater Than",
-            InsightFilterOperator.LessThan => "Less Than",
-            InsightFilterOperator.GreaterOrEqual => "Greater or Equal",
-            InsightFilterOperator.LessOrEqual => "Less or Equal",
-            InsightFilterOperator.Between => "Between",
-            InsightFilterOperator.IsNull => "Is Null",
-            InsightFilterOperator.IsNotNull => "Is Not Null",
-            InsightFilterOperator.InList => "In List",
+            InsightFilterOperator.Equals => "=",
+            InsightFilterOperator.NotEquals => "≠",
+            InsightFilterOperator.Contains => "∋",
+            InsightFilterOperator.StartsWith => "^",
+            InsightFilterOperator.EndsWith => "$",
+            InsightFilterOperator.GreaterThan => ">",
+            InsightFilterOperator.LessThan => "<",
+            InsightFilterOperator.GreaterOrEqual => ">=",
+            InsightFilterOperator.LessOrEqual => "<=",
+            InsightFilterOperator.Between => "↔",
+            InsightFilterOperator.IsNull => "∅",
+            InsightFilterOperator.IsNotNull => "!∅",
+            InsightFilterOperator.InList => "∈",
             _ => op.ToString()
         };
     }
@@ -903,7 +906,7 @@
             PropertyDataType.DateTime when value is DateTimeOffset dto => dto.ToString("g"),
             PropertyDataType.DateTime when value is DateTime dt => dt.ToString("g"),
             PropertyDataType.Decimal when value is decimal d => d.ToString("N2"),
-            PropertyDataType.Boolean when value is bool b => b ? "Yes" : "No",
+            PropertyDataType.Boolean when value is bool b => b ? "✓" : "✗",
             _ => value.ToString() ?? ""
         };
     }

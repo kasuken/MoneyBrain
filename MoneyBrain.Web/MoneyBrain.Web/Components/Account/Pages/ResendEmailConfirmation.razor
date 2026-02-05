@@ -6,16 +6,19 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using MoneyBrain.Web.Data
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Resend email confirmation</PageTitle>
+<PageTitle>@L["Auth_ResendConfirm_PageTitle"]</PageTitle>
 
-<h1>Resend email confirmation</h1>
-<h2>Enter your email.</h2>
+<h1>@L["Auth_ResendConfirm_Title"]</h1>
+<h2>@L["Auth_ResendConfirm_EnterEmail"]</h2>
 <hr/>
 <StatusMessage Message="@message"/>
 <div class="row">
@@ -25,10 +28,10 @@
             <ValidationSummary class="text-danger" role="alert"/>
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" aria-required="true" placeholder="name@example.com"/>
-                <label for="Input.Email" class="form-label">Email</label>
+                <label for="Input.Email" class="form-label">@L["Auth_Email"]</label>
                 <ValidationMessage For="() => Input.Email" class="text-danger"/>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Resend</button>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">@L["Auth_ResendConfirm_ResendButton"]</button>
         </EditForm>
     </div>
 </div>
@@ -60,7 +63,7 @@
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        message = "Verification email sent. Please check your email.";
+        message = L["Auth_ResendConfirm_Sent"];
     }
 
     private sealed class InputModel

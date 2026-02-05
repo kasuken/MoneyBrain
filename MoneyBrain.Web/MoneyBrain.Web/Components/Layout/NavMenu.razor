@@ -1,32 +1,33 @@
 ﻿@implements IDisposable
 
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> L
 
 <div class="mb-header-nav ms-6">
-    <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">Dashboard</a>
-    <a href="/transactions" class="mb-header-nav-link @(IsActive("/transactions") ? "active" : "")">Transactions</a>
-    <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">Budgets</a>
+    <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">@L["Nav_Dashboard"]</a>
+    <a href="/transactions" class="mb-header-nav-link @(IsActive("/transactions") ? "active" : "")">@L["Nav_Transactions"]</a>
+    <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">@L["Nav_Budgets"]</a>
  
-    <a href="/categories" class="mb-header-nav-link @(IsActive("/categories") ? "active" : "")">Categories</a>
-    <a href="/reconciliations" class="mb-header-nav-link @(IsActive("/reconciliations") ? "active" : "")">Reconciliations</a>
-    <a href="/payees" class="mb-header-nav-link @(IsActive("/payees") ? "active" : "")">Payees</a>
+    <a href="/categories" class="mb-header-nav-link @(IsActive("/categories") ? "active" : "")">@L["Nav_Categories"]</a>
+    <a href="/reconciliations" class="mb-header-nav-link @(IsActive("/reconciliations") ? "active" : "")">@L["Nav_Reconciliations"]</a>
+    <a href="/payees" class="mb-header-nav-link @(IsActive("/payees") ? "active" : "")">@L["Nav_Payees"]</a>
 
     <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" ActivationEvent="@MouseEvent.MouseOver">
         <ActivatorContent>
-            <span class="mb-header-nav-link @(IsActiveInReports() ? "active" : "")" style="cursor: pointer;">Reports</span>
+            <span class="mb-header-nav-link @(IsActiveInReports() ? "active" : "")" style="cursor: pointer;">@L["Nav_Reports"]</span>
         </ActivatorContent>
         <ChildContent>
-            <MudMenuItem Href="/cashflow">Monthly Cashflow</MudMenuItem>
-            <MudMenuItem Href="/category-spending">Category Spending</MudMenuItem>
-            <MudMenuItem Href="/budget-comparison">Budget vs Actual</MudMenuItem>
-            <MudMenuItem Href="/net-worth">Net Worth</MudMenuItem>
-            <MudMenuItem Href="/account-balance-history">Balance History</MudMenuItem>
+            <MudMenuItem Href="/cashflow">@L["Nav_Cashflow"]</MudMenuItem>
+            <MudMenuItem Href="/category-spending">@L["Nav_CategorySpending"]</MudMenuItem>
+            <MudMenuItem Href="/budget-comparison">@L["Nav_BudgetVsActual"]</MudMenuItem>
+            <MudMenuItem Href="/net-worth">@L["Nav_NetWorth"]</MudMenuItem>
+            <MudMenuItem Href="/account-balance-history">@L["Nav_BalanceHistory"]</MudMenuItem>
         </ChildContent>
     </MudMenu>
 
-    <a href="/insights" class="mb-header-nav-link @(IsActive("/insights") ? "active" : "")">Insights</a>
+    <a href="/insights" class="mb-header-nav-link @(IsActive("/insights") ? "active" : "")">@L["Nav_Insights"]</a>
 
-    <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">Accounts</a>
+    <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">@L["Nav_Accounts"]</a>
 </div>
 
 @code {

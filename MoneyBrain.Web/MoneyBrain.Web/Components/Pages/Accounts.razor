@@ -6,9 +6,12 @@
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 
 @attribute [Authorize]
 
+@inject IStringLocalizer<SharedResource> L
 @inject IAccountService AccountService
 @inject IUserSettingsService SettingsService
 @inject IDialogService DialogService
@@ -16,7 +19,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<PageTitle>Accounts | MoneyBrain</PageTitle>
+<PageTitle>@L["Nav_Accounts"] | @L["App_MoneyBrain"]</PageTitle>
 
 <style>
     .mb-grid-accounts .mud-paper {
@@ -84,14 +87,14 @@
     <!-- Header -->
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">Accounts</h1>
-            <p class="mb-subtitle">Manage your bank accounts, credit cards, and more</p>
+            <h1 class="mb-title">@L["Nav_Accounts"]</h1>
+            <p class="mb-subtitle">@L["Accounts_Subtitle"]</p>
         </div>
         <MudButton Variant="Variant.Filled" 
                    Class="mb-btn-primary"
                    StartIcon="@Icons.Material.Filled.Add"
                    OnClick="@OpenCreateAccountDialog">
-            Add Account
+            @L["Accounts_AddAccount"]
         </MudButton>
     </div>
 
@@ -103,13 +106,13 @@
     {
         <div class="mb-empty-state">
             <MudIcon Icon="@Icons.Material.Outlined.AccountBalanceWallet" Class="mb-empty-state-icon" />
-            <MudText Typo="Typo.h6" Class="mb-2">No accounts yet</MudText>
+            <MudText Typo="Typo.h6" Class="mb-2">@L["Accounts_NoAccountsYet"]</MudText>
             <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
-                Create your first account to start tracking your finances
+                @L["Accounts_CreateFirstDescription"]
             </MudText>
             <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateAccountDialog">
                 <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
-                Create Your First Account
+                @L["Accounts_CreateFirstAccount"]
             </MudButton>
         </div>
     }
@@ -118,15 +121,15 @@
         <!-- Summary Stats -->
         <div class="mb-grid-stats mb-6">
             <div class="mb-card-stat income">
-                <div class="mb-label">Total Assets</div>
+                <div class="mb-label">@L["Accounts_TotalAssets"]</div>
                 <div class="mb-amount positive">@FormatCurrency(_totalAssets)</div>
             </div>
             <div class="mb-card-stat expense">
-                <div class="mb-label">Total Liabilities</div>
+                <div class="mb-label">@L["Accounts_TotalLiabilities"]</div>
                 <div class="mb-amount negative">@FormatCurrency(_totalLiabilities)</div>
             </div>
             <div class="mb-card-stat info">
-                <div class="mb-label">Net Worth</div>
+                <div class="mb-label">@L["Nav_NetWorth"]</div>
                 <div class="mb-amount @GetBalanceClass(_netWorth)">@FormatCurrency(_netWorth)</div>
             </div>
         </div>
@@ -135,7 +138,7 @@
         @if (_accounts.Any(a => a.Type == AccountType.Asset))
         {
             <div class="mb-section-header mt-8 mb-4">
-                <h2 class="mb-section-title" style="font-size: 1.5rem; font-weight: 700; color: var(--mb-text-primary);">Assets</h2>
+                <h2 class="mb-section-title" style="font-size: 1.5rem; font-weight: 700; color: var(--mb-text-primary);">@L["Accounts_Assets"]</h2>
             </div>
             <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Asset))
@@ -164,7 +167,7 @@
                                         @if (account.SpendingSummary != null && account.SpendingSummary.Remaining.HasValue)
                                         {
                                             <div style="font-size: 0.75rem; color: var(--mb-text-muted);">
-                                                @FormatAmount(account.SpendingSummary.Remaining.Value) left
+                                                @FormatAmount(account.SpendingSummary.Remaining.Value) @L["Accounts_Left"]
                                             </div>
                                         }
                                     </div>
@@ -175,7 +178,7 @@
                                         <MudTooltip Text="@GetSpendingTooltip(account)">
                                             <div style="cursor: pointer;" @onclick="() => ViewMonthlyTransactions(account)">
                                                 <div class="d-flex justify-space-between align-center mb-1">
-                                                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--mb-text-secondary);">Monthly Spending</span>
+                                                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--mb-text-secondary);">@L["Accounts_MonthlySpending"]</span>
                                                     <span style="font-size: 0.75rem; font-weight: 600; color: @(account.SpendingSummary.IsOverLimit ? "var(--mud-palette-error)" : "var(--mb-text-secondary)");">
                                                         @($"{account.SpendingSummary.PercentUsed ?? 0:N0}%")
                                                     </span>
@@ -187,10 +190,10 @@
                                                                    Value="@GetSpendingProgress(account.SpendingSummary)" />
                                                 <div class="d-flex justify-space-between mt-1">
                                                     <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
-                                                        @FormatAmount(account.SpendingSummary.SpentAmount) spent
+                                                        @FormatAmount(account.SpendingSummary.SpentAmount) @L["Accounts_Spent"]
                                                     </span>
                                                     <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
-                                                        @FormatAmount(account.MonthlyLimit ?? 0) limit
+                                                        @FormatAmount(account.MonthlyLimit ?? 0) @L["Accounts_Limit"]
                                                     </span>
                                                 </div>
                                             </div>
@@ -220,7 +223,7 @@
         @if (_accounts.Any(a => a.Type == AccountType.Liability))
         {
             <div class="mb-section-header mt-8 mb-4">
-                <h2 class="mb-section-title" style="font-size: 1.5rem; font-weight: 700; color: var(--mb-text-primary);">Liabilities</h2>
+                <h2 class="mb-section-title" style="font-size: 1.5rem; font-weight: 700; color: var(--mb-text-primary);">@L["Accounts_Liabilities"]</h2>
             </div>
             <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Liability))
@@ -245,7 +248,7 @@
                                         {
                                             <div class="mt-2">
                                                 <MudChip T="string" Icon="@Icons.Material.Filled.CalendarMonth" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" Variant="Variant.Outlined" Style="height: 22px; font-size: 0.75rem;">
-                                                    Bills on day @account.Account.BillingCycleDay
+                                                    @L["Accounts_BillsOnDay"] @account.Account.BillingCycleDay
                                                 </MudChip>
                                             </div>
                                         }
@@ -257,7 +260,7 @@
                                         @if (account.SpendingSummary != null && account.SpendingSummary.Remaining.HasValue)
                                         {
                                             <div style="font-size: 0.75rem; color: var(--mb-text-muted);">
-                                                @FormatAmount(account.SpendingSummary.Remaining.Value) left
+                                                @FormatAmount(account.SpendingSummary.Remaining.Value) @L["Accounts_Left"]
                                             </div>
                                         }
                                     </div>
@@ -269,7 +272,7 @@
                                             <div style="cursor: pointer;" @onclick="() => ViewMonthlyTransactions(account)">
                                                 <div class="d-flex justify-space-between align-center mb-1">
                                                     <span style="font-size: 0.75rem; font-weight: 600; color: var(--mb-text-secondary);">
-                                                        @(account.SubType == AccountSubType.CreditCard ? "Unbilled Charges" : "Monthly Spending")
+                                                        @(account.SubType == AccountSubType.CreditCard ? L["Accounts_UnbilledCharges"] : L["Accounts_MonthlySpending"])
                                                     </span>
                                                     <span style="font-size: 0.75rem; font-weight: 600; color: @(account.SpendingSummary.IsOverLimit ? "var(--mud-palette-error)" : "var(--mb-text-secondary)");">
                                                         @($"{account.SpendingSummary.PercentUsed ?? 0:N0}%")
@@ -282,10 +285,10 @@
                                                                    Value="@GetSpendingProgress(account.SpendingSummary)" />
                                                 <div class="d-flex justify-space-between mt-1">
                                                     <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
-                                                        @FormatAmount(account.SpendingSummary.SpentAmount) @(account.SubType == AccountSubType.CreditCard ? "pending" : "spent")
+                                                        @FormatAmount(account.SpendingSummary.SpentAmount) @(account.SubType == AccountSubType.CreditCard ? L["Accounts_Pending"] : L["Accounts_Spent"])
                                                     </span>
                                                     <span style="font-size: 0.75rem; color: var(--mb-text-muted);">
-                                                        @FormatAmount(account.MonthlyLimit ?? 0) limit
+                                                        @FormatAmount(account.MonthlyLimit ?? 0) @L["Accounts_Limit"]
                                                     </span>
                                                 </div>
                                             </div>
@@ -312,27 +315,27 @@
         }
     }
     
-    <HelpButton Title="Accounts Help"
-                Description="Manage all your financial accounts in one place. Track bank accounts, credit cards, cash, investments, and loans to get a complete picture of your finances."
+    <HelpButton Title="@L["Accounts_HelpTitle"]"
+                Description="@L["Accounts_HelpDescription"]"
                 Features="@(new[] { 
-                    "Create and manage multiple account types (checking, savings, credit cards, etc.)",
-                    "Track opening balances and current balances",
-                    "Organize accounts into groups (Personal, Business, etc.)",
-                    "View net worth summary (total assets minus liabilities)",
-                    "Deactivate accounts without losing historical data"
+                    L["Accounts_HelpFeature1"].Value,
+                    L["Accounts_HelpFeature2"].Value,
+                    L["Accounts_HelpFeature3"].Value,
+                    L["Accounts_HelpFeature4"].Value,
+                    L["Accounts_HelpFeature5"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Click 'Add Account' to create a new account",
-                    "Select account type: Asset (things you own) or Liability (debts)",
-                    "Enter the opening balance (current balance when you start tracking)",
-                    "Click on any account to view its transactions",
-                    "Use edit/delete buttons to manage existing accounts"
+                    L["Accounts_HelpHowTo1"].Value,
+                    L["Accounts_HelpHowTo2"].Value,
+                    L["Accounts_HelpHowTo3"].Value,
+                    L["Accounts_HelpHowTo4"].Value,
+                    L["Accounts_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Asset accounts (checking, savings, cash) show positive balances",
-                    "Liability accounts (credit cards, loans) affect your net worth negatively",
-                    "Group related accounts together for better organization",
-                    "You can adjust opening balances later if needed from the account settings"
+                    L["Accounts_HelpTip1"].Value,
+                    L["Accounts_HelpTip2"].Value,
+                    L["Accounts_HelpTip3"].Value,
+                    L["Accounts_HelpTip4"].Value
                 })" />
 </div>
 
@@ -415,13 +418,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<AccountDialog>("Create Account", parameters, options);
+        var dialog = await DialogService.ShowAsync<AccountDialog>(L["Accounts_DialogCreateTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadAccounts();
-            SnackbarService.Add("Account created successfully", Severity.Success);
+            SnackbarService.Add(L["Accounts_CreatedSuccess"], Severity.Success);
         }
     }
 
@@ -435,23 +438,23 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<AccountDialog>("Edit Account", parameters, options);
+        var dialog = await DialogService.ShowAsync<AccountDialog>(L["Accounts_DialogEditTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadAccounts();
-            SnackbarService.Add("Account updated successfully", Severity.Success);
+            SnackbarService.Add(L["Accounts_UpdatedSuccess"], Severity.Success);
         }
     }
 
     private async Task DeleteAccount(Account account)
     {
         var result = await DialogService.ShowMessageBox(
-            "Delete Account",
-            $"Are you sure you want to delete '{account.Name}'? This action cannot be undone.",
-            yesText: "Delete",
-            cancelText: "Cancel");
+            L["Accounts_DialogDeleteTitle"],
+            string.Format(L["Accounts_ConfirmDeleteMessage"], account.Name),
+            yesText: L["Common_Delete"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result == true && _userId != null)
         {
@@ -459,11 +462,11 @@
             if (deleted)
             {
                 await LoadAccounts();
-                SnackbarService.Add("Account deleted successfully", Severity.Success);
+                SnackbarService.Add(L["Accounts_DeletedSuccess"], Severity.Success);
             }
             else
             {
-                SnackbarService.Add("Failed to delete account", Severity.Error);
+                SnackbarService.Add(L["Accounts_DeleteFailed"], Severity.Error);
             }
         }
     }

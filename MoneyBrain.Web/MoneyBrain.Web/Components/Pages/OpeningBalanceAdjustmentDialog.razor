@@ -1,36 +1,39 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
             <MudStack Spacing="3">
                 <MudAlert Severity="Severity.Info" Dense="true">
-                    Adjusting the opening balance will create an audit trail entry.
+                    @L["OpenBalAdjDlg_Description"]
                 </MudAlert>
 
                 <MudTextField @bind-Value="Account.Name"
-                              Label="Account"
+                              Label="@L["Col_Account"]"
                               ReadOnly="true"
                               Variant="Variant.Filled" />
 
                 <MudNumericField @bind-Value="Account.OpeningBalance"
-                                 Label="Current Opening Balance"
+                                 Label="@L["OpenBalAdjDlg_CurrentBalance"]"
                                  ReadOnly="true"
                                  Variant="Variant.Filled"
                                  Format="C2" />
 
                 <MudNumericField @bind-Value="_newBalance"
-                                 Label="New Opening Balance"
+                                 Label="@L["OpenBalAdjDlg_NewBalance"]"
                                  Required="true"
-                                 RequiredError="New balance is required"
+                                 RequiredError="@L["OpenBalAdjDlg_BalanceRequired"]"
                                  Variant="Variant.Outlined"
                                  Format="C2" />
 
                 <MudTextField Value="@_adjustmentAmount.ToString("C2")"
-                              Label="Adjustment Amount"
+                              Label="@L["OpenBalAdjDlg_AdjustmentAmount"]"
                               ReadOnly="true"
                               Variant="Variant.Filled"
                               HelperText="@_adjustmentHelperText"
@@ -39,15 +42,15 @@
                               AdornmentColor="@(_adjustmentAmount >= 0 ? Color.Success : Color.Error)" />
 
                 <MudTextField @bind-Value="_reason"
-                              Label="Reason (optional)"
+                              Label="@L["OpenBalAdjDlg_Reason"]"
                               Lines="3"
                               Variant="Variant.Outlined"
-                              HelperText="Optional explanation for this adjustment" />
+                              HelperText="@L["OpenBalAdjDlg_ReasonHelper"]" />
             </MudStack>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
                    OnClick="Submit" 
@@ -55,11 +58,11 @@
             @if (_isSaving)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                <MudText Class="ml-2">Saving...</MudText>
+                <MudText Class="ml-2">@L["Msg_Saving"]</MudText>
             }
             else
             {
-                <MudText>Save Adjustment</MudText>
+                <MudText>@L["OpenBalAdjDlg_SaveButton"]</MudText>
             }
         </MudButton>
     </DialogActions>
@@ -84,9 +87,9 @@
     private decimal _adjustmentAmount => _newBalance - Account.OpeningBalance;
     private string _adjustmentHelperText => _adjustmentAmount switch
     {
-        > 0 => $"Increase of {_adjustmentAmount:C2}",
-        < 0 => $"Decrease of {Math.Abs(_adjustmentAmount):C2}",
-        _ => "No change"
+        > 0 => string.Format(L["OpenBalAdjDlg_IncreaseOf"], _adjustmentAmount.ToString("C2")),
+        < 0 => string.Format(L["OpenBalAdjDlg_DecreaseOf"], Math.Abs(_adjustmentAmount).ToString("C2")),
+        _ => L["OpenBalAdjDlg_NoChange"]
     };
 
     protected override void OnInitialized()
@@ -116,7 +119,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error adjusting opening balance: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["OpenBalAdjDlg_SaveError"], ex.Message), Severity.Error);
         }
         finally
         {

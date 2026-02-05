@@ -1,8 +1,12 @@
 ﻿@page "/Account/AccessDenied"
 
-<PageTitle>Access denied</PageTitle>
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["Auth_AccessDenied_PageTitle"]</PageTitle>
 
 <header>
-    <h1 class="text-danger">Access denied</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
+    <h1 class="text-danger">@L["Auth_AccessDenied_Title"]</h1>
+    <p class="text-danger">@L["Auth_AccessDenied_Message"]</p>
 </header>

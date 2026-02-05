@@ -4,19 +4,22 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @using MudBlazor
 @inject ITransactionService TransactionService
 @inject ICategoryService CategoryService
 @inject ISnackbar SnackbarService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudText Typo="Typo.body1" Class="mb-4">
-            Update <strong>@SelectedTransactionIds.Count</strong> transaction@(SelectedTransactionIds.Count != 1 ? "s" : "")
+            @((MarkupString)string.Format(L["BulkEditDlg_UpdateCount"], $"<strong>{SelectedTransactionIds.Count}</strong>"))
             @if (_reconciledCount > 0)
             {
                 <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Warning" Class="ms-2">
-                    @_reconciledCount reconciled (will be skipped)
+                    @string.Format(L["BulkEditDlg_ReconciledSkipped"], _reconciledCount)
                 </MudChip>
             }
         </MudText>
@@ -24,13 +27,13 @@
         <MudStack Spacing="4">
             <!-- Category -->
             <MudStack Spacing="2">
-                <MudCheckBox @bind-Value="_updateCategory" Label="Update Category" Color="MudBlazor.Color.Primary" />
+                <MudCheckBox @bind-Value="_updateCategory" Label="@L["BulkEditDlg_UpdateCategory"]" Color="MudBlazor.Color.Primary" />
                 @if (_updateCategory)
                 {
                     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-                        <MudSelect T="int?" @bind-Value="_categoryId" Label="Category" Variant="Variant.Outlined" 
+                        <MudSelect T="int?" @bind-Value="_categoryId" Label="@L["Col_Category"]" Variant="Variant.Outlined" 
                                    Disabled="!_updateCategory || _clearCategory" FullWidth="true">
-                            <MudSelectItem T="int?" Value="null">-- Select Category --</MudSelectItem>
+                            <MudSelectItem T="int?" Value="null">@L["BulkEditDlg_SelectCategory"]</MudSelectItem>
                             @foreach (var group in _categoryGroups.OrderBy(g => g.Name))
                             {
                                 <MudSelectItem T="int?" Value="null" Disabled="true">
@@ -42,7 +45,7 @@
                                 }
                             }
                         </MudSelect>
-                        <MudCheckBox @bind-Value="_clearCategory" Label="Clear" Color="MudBlazor.Color.Secondary" 
+                        <MudCheckBox @bind-Value="_clearCategory" Label="@L["Btn_Clear"]" Color="MudBlazor.Color.Secondary" 
                                      Disabled="!_updateCategory" Dense="true" />
                     </MudStack>
                 }
@@ -50,19 +53,19 @@
 
             <!-- Payee -->
             <MudStack Spacing="2">
-                <MudCheckBox @bind-Value="_updatePayee" Label="Update Payee" Color="MudBlazor.Color.Primary" />
+                <MudCheckBox @bind-Value="_updatePayee" Label="@L["BulkEditDlg_UpdatePayee"]" Color="MudBlazor.Color.Primary" />
                 @if (_updatePayee)
                 {
                     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-                        <MudSelect T="int?" @bind-Value="_payeeId" Label="Payee" Variant="Variant.Outlined" 
+                        <MudSelect T="int?" @bind-Value="_payeeId" Label="@L["Col_Payee"]" Variant="Variant.Outlined" 
                                    Disabled="!_updatePayee || _clearPayee" FullWidth="true">
-                            <MudSelectItem T="int?" Value="null">-- Select Payee --</MudSelectItem>
+                            <MudSelectItem T="int?" Value="null">@L["BulkEditDlg_SelectPayee"]</MudSelectItem>
                             @foreach (var payee in _payees.OrderBy(p => p.Name))
                             {
                                 <MudSelectItem T="int?" Value="payee.Id">@payee.Name</MudSelectItem>
                             }
                         </MudSelect>
-                        <MudCheckBox @bind-Value="_clearPayee" Label="Clear" Color="MudBlazor.Color.Secondary" 
+                        <MudCheckBox @bind-Value="_clearPayee" Label="@L["Btn_Clear"]" Color="MudBlazor.Color.Secondary" 
                                      Disabled="!_updatePayee" Dense="true" />
                     </MudStack>
                 }
@@ -70,14 +73,14 @@
 
             <!-- Tags -->
             <MudStack Spacing="2">
-                <MudCheckBox @bind-Value="_updateTags" Label="Update Tags" Color="MudBlazor.Color.Primary" />
+                <MudCheckBox @bind-Value="_updateTags" Label="@L["BulkEditDlg_UpdateTags"]" Color="MudBlazor.Color.Primary" />
                 @if (_updateTags)
                 {
                     <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-                        <MudTextField @bind-Value="_tagsInput" Label="Tags (comma-separated)" Variant="Variant.Outlined"
+                        <MudTextField @bind-Value="_tagsInput" Label="@L["BulkEditDlg_Tags"]" Variant="Variant.Outlined"
                                       Disabled="!_updateTags || _clearTags" FullWidth="true"
-                                      HelperText="e.g., business, tax-deductible" />
-                        <MudCheckBox @bind-Value="_clearTags" Label="Clear" Color="MudBlazor.Color.Secondary" 
+                                      HelperText="@L["BulkEditDlg_TagsHelper"]" />
+                        <MudCheckBox @bind-Value="_clearTags" Label="@L["Btn_Clear"]" Color="MudBlazor.Color.Secondary" 
                                      Disabled="!_updateTags" Dense="true" />
                     </MudStack>
                 }
@@ -85,28 +88,28 @@
 
             <!-- Status -->
             <MudStack Spacing="2">
-                <MudCheckBox @bind-Value="_updateStatus" Label="Update Status" Color="MudBlazor.Color.Primary" />
+                <MudCheckBox @bind-Value="_updateStatus" Label="@L["BulkEditDlg_UpdateStatus"]" Color="MudBlazor.Color.Primary" />
                 @if (_updateStatus)
                 {
-                    <MudSelect T="TransactionStatus?" @bind-Value="_status" Label="Status" Variant="Variant.Outlined" 
+                    <MudSelect T="TransactionStatus?" @bind-Value="_status" Label="@L["Col_Status"]" Variant="Variant.Outlined" 
                                Disabled="!_updateStatus" FullWidth="true">
-                        <MudSelectItem T="TransactionStatus?" Value="TransactionStatus.Pending">Pending</MudSelectItem>
-                        <MudSelectItem T="TransactionStatus?" Value="TransactionStatus.Posted">Posted</MudSelectItem>
+                        <MudSelectItem T="TransactionStatus?" Value="TransactionStatus.Pending">@L["Status_Pending"]</MudSelectItem>
+                        <MudSelectItem T="TransactionStatus?" Value="TransactionStatus.Posted">@L["Status_Posted"]</MudSelectItem>
                     </MudSelect>
                 }
             </MudStack>
 
             <!-- Cleared Flag -->
             <MudStack Spacing="2">
-                <MudCheckBox @bind-Value="_updateCleared" Label="Update Cleared Flag" Color="MudBlazor.Color.Primary" />
+                <MudCheckBox @bind-Value="_updateCleared" Label="@L["BulkEditDlg_UpdateCleared"]" Color="MudBlazor.Color.Primary" />
                 @if (_updateCleared)
                 {
-                    <MudCheckBox @bind-Value="_isCleared" Label="Mark as Cleared" Color="MudBlazor.Color.Info" 
+                    <MudCheckBox @bind-Value="_isCleared" Label="@L["BulkEditDlg_MarkCleared"]" Color="MudBlazor.Color.Info" 
                                  Disabled="!_updateCleared" />
                     @if (_reconciledCount > 0)
                     {
                         <MudAlert Severity="MudBlazor.Severity.Info" Dense="true">
-                            Reconciled transactions will be skipped (cannot modify cleared flag on reconciled transactions).
+                            @L["BulkEditDlg_ReconciledClearedWarning"]
                         </MudAlert>
                     }
                 }
@@ -119,13 +122,13 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="MudBlazor.Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="_isSubmitting">
             @if (_isSubmitting)
             {
                 <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
             }
-            Update @SelectedTransactionIds.Count Transaction@(SelectedTransactionIds.Count != 1 ? "s" : "")
+            @string.Format(L["BulkEditDlg_UpdateButton"], SelectedTransactionIds.Count)
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -185,7 +188,7 @@
         // Validate at least one update is selected
         if (!_updateCategory && !_updatePayee && !_updateTags && !_updateStatus && !_updateCleared)
         {
-            _errorMessage = "Please select at least one field to update";
+            _errorMessage = L["BulkEditDlg_SelectOneField"];
             return;
         }
 
@@ -248,7 +251,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Failed to update transactions: {ex.Message}";
+            _errorMessage = string.Format(L["BulkEditDlg_UpdateFailed"], ex.Message);
         }
         finally
         {

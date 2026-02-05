@@ -4,6 +4,8 @@
 @using MoneyBrain.Web.Application.Licensing
 @using MoneyBrain.Web.Domain.Enums
 @using Microsoft.Extensions.Options
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 
 @attribute [Authorize]
 @inject ILicenseService LicenseService
@@ -12,14 +14,15 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>License | MoneyBrain</PageTitle>
+<PageTitle>@L["License_PageTitle"] | MoneyBrain</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">License</h1>
-            <p class="mb-subtitle">Manage your MoneyBrain subscription</p>
+            <h1 class="mb-title">@L["License_Title"]</h1>
+            <p class="mb-subtitle">@L["License_Subtitle"]</p>
         </div>
     </div>
 
@@ -33,14 +36,14 @@
             <div class="mb-card">
                 <MudAlert Severity="Severity.Success" Class="mb-4">
                     <MudText Typo="Typo.body1">
-                        <strong>Self-Hosted Mode</strong> — Licensing is disabled. You have full access to all features.
+                        <strong>@L["License_SelfHostedMode"]</strong> — @L["License_SelfHostedDescription"]
                     </MudText>
                 </MudAlert>
                 <div class="d-flex align-center gap-4">
                     <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
                     <div>
-                        <MudText Typo="Typo.h6">Self-Hosted License</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Free forever • All features included</MudText>
+                        <MudText Typo="Typo.h6">@L["License_SelfHosted"]</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["License_FreeForever"]</MudText>
                     </div>
                 </div>
             </div>
@@ -49,12 +52,12 @@
         {
             <div class="mb-card">
                 <MudAlert Severity="Severity.Warning" Class="mb-4">
-                    No active license found. Subscribe to access all features.
+                    @L["License_NoActiveLicense"]
                 </MudAlert>
                 
-                <MudText Typo="Typo.h6" Class="mb-4">Get Started</MudText>
+                <MudText Typo="Typo.h6" Class="mb-4">@L["License_GetStarted"]</MudText>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/pricing" FullWidth>
-                    View Plans & Pricing
+                    @L["License_ViewPlans"]
                 </MudButton>
             </div>
         }
@@ -78,23 +81,22 @@
                 @if (_licenseInfo.Status == LicenseStatus.Trial && _licenseInfo.DaysRemaining.HasValue)
                 {
                     <MudAlert Severity="Severity.Info" Class="mb-4">
-                        Your trial ends in <strong>@_licenseInfo.DaysRemaining days</strong>. 
-                        Upgrade now to keep your data and continue using MoneyBrain.
+                        @L["License_TrialEndsIn", _licenseInfo.DaysRemaining]
                     </MudAlert>
                 }
                 else if (_licenseInfo.Status == LicenseStatus.Expired)
                 {
                     <MudAlert Severity="Severity.Error" Class="mb-4">
-                        Your subscription has expired. Please renew to continue using MoneyBrain.
+                        @L["License_Expired"]
                     </MudAlert>
                 }
                 else if (_licenseInfo.Status == LicenseStatus.Cancelled)
                 {
                     <MudAlert Severity="Severity.Warning" Class="mb-4">
-                        Your subscription has been cancelled. 
+                        @L["License_Cancelled"]
                         @if (_licenseInfo.ExpiresAt.HasValue && _licenseInfo.ExpiresAt > DateTime.UtcNow)
                         {
-                            <text>You have access until @_licenseInfo.ExpiresAt.Value.ToString("MMMM d, yyyy").</text>
+                            <text> @L["License_AccessUntil", _licenseInfo.ExpiresAt.Value.ToString("MMMM d, yyyy")]</text>
                         }
                     </MudAlert>
                 }
@@ -105,27 +107,27 @@
                 <MudSimpleTable Dense Hover="false" Elevation="0" Class="mb-4">
                     <tbody>
                         <tr>
-                            <td style="width: 40%;"><MudText Typo="Typo.body2" Color="Color.Secondary">Status</MudText></td>
+                            <td style="width: 40%;"><MudText Typo="Typo.body2" Color="Color.Secondary">@L["License_Status"]</MudText></td>
                             <td><MudText Typo="Typo.body2">@GetStatusText()</MudText></td>
                         </tr>
                         @if (!string.IsNullOrEmpty(_licenseInfo.PlanName))
                         {
                             <tr>
-                                <td><MudText Typo="Typo.body2" Color="Color.Secondary">Plan</MudText></td>
+                                <td><MudText Typo="Typo.body2" Color="Color.Secondary">@L["License_Plan"]</MudText></td>
                                 <td><MudText Typo="Typo.body2">@_licenseInfo.PlanName</MudText></td>
                             </tr>
                         }
                         @if (_licenseInfo.ExpiresAt.HasValue)
                         {
                             <tr>
-                                <td><MudText Typo="Typo.body2" Color="Color.Secondary">@(_licenseInfo.Status == LicenseStatus.Active ? "Renews" : "Expires")</MudText></td>
+                                <td><MudText Typo="Typo.body2" Color="Color.Secondary">@(_licenseInfo.Status == LicenseStatus.Active ? L["License_Renews"] : L["License_Expires"])</MudText></td>
                                 <td><MudText Typo="Typo.body2">@_licenseInfo.ExpiresAt.Value.ToString("MMMM d, yyyy")</MudText></td>
                             </tr>
                         }
                         @if (_licenseInfo.TrialEndsAt.HasValue && _licenseInfo.IsTrialing)
                         {
                             <tr>
-                                <td><MudText Typo="Typo.body2" Color="Color.Secondary">Trial Ends</MudText></td>
+                                <td><MudText Typo="Typo.body2" Color="Color.Secondary">@L["License_TrialEnds"]</MudText></td>
                                 <td><MudText Typo="Typo.body2">@_licenseInfo.TrialEndsAt.Value.ToString("MMMM d, yyyy")</MudText></td>
                             </tr>
                         }
@@ -142,7 +144,7 @@
                             {
                                 <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
                             }
-                            Manage Subscription
+                            @L["License_ManageSubscription"]
                         </MudButton>
                     }
                     
@@ -151,11 +153,11 @@
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/pricing" FullWidth>
                             @if (_licenseInfo.Status == LicenseStatus.Trial)
                             {
-                                <text>Upgrade Now</text>
+                                <text>@L["License_UpgradeNow"]</text>
                             }
                             else
                             {
-                                <text>Subscribe</text>
+                                <text>@L["License_Subscribe"]</text>
                             }
                         </MudButton>
                     }
@@ -165,12 +167,12 @@
 
         @* Help Section *@
         <div class="mb-card mt-4">
-            <MudText Typo="Typo.subtitle1" Class="mb-2">Need Help?</MudText>
+            <MudText Typo="Typo.subtitle1" Class="mb-2">@L["License_NeedHelp"]</MudText>
             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
-                Having trouble with your license? Contact our support team.
+                @L["License_NeedHelpDescription"]
             </MudText>
             <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Email">
-                Contact Support
+                @L["License_ContactSupport"]
             </MudButton>
         </div>
     </div>
@@ -215,12 +217,12 @@
 
     private string GetStatusText() => _licenseInfo?.Status switch
     {
-        LicenseStatus.Active => "Active",
-        LicenseStatus.Trial => "Trial",
-        LicenseStatus.Expired => "Expired",
-        LicenseStatus.Cancelled => "Cancelled",
-        LicenseStatus.None => "No License",
-        _ => "Unknown"
+        LicenseStatus.Active => L["License_StatusActive"],
+        LicenseStatus.Trial => L["License_StatusTrial"],
+        LicenseStatus.Expired => L["License_StatusExpired"],
+        LicenseStatus.Cancelled => L["License_StatusCancelled"],
+        LicenseStatus.None => L["License_StatusNoLicense"],
+        _ => L["License_StatusUnknown"]
     };
 
     private async Task ManageSubscription()
@@ -241,7 +243,7 @@
             }
             else
             {
-                Snackbar.Add("Unable to open subscription management. Please try again.", Severity.Error);
+                Snackbar.Add(L["License_UnableToOpenPortal"], Severity.Error);
             }
         }
         catch (Exception ex)

@@ -1,7 +1,10 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
@@ -14,7 +17,7 @@
         else if (!_adjustments.Any())
         {
             <MudAlert Severity="Severity.Info">
-                No adjustment history found for this account. The current opening balance is the original value.
+                @L["OpenBalHistDlg_NoHistory"]
             </MudAlert>
         }
         else
@@ -41,10 +44,10 @@
                                     </div>
                                     <div class="d-flex gap-4 mb-1">
                                         <MudText Typo="Typo.caption">
-                                            From: <strong>@adjustment.PreviousBalance.ToString("C2")</strong>
+                                            @L["OpenBalHistDlg_From"]: <strong>@adjustment.PreviousBalance.ToString("C2")</strong>
                                         </MudText>
                                         <MudText Typo="Typo.caption">
-                                            To: <strong>@adjustment.NewBalance.ToString("C2")</strong>
+                                            @L["OpenBalHistDlg_To"]: <strong>@adjustment.NewBalance.ToString("C2")</strong>
                                         </MudText>
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(adjustment.Reason))
@@ -62,7 +65,7 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Close" Color="Color.Primary">Close</MudButton>
+        <MudButton OnClick="Close" Color="Color.Primary">@L["Btn_Close"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -89,7 +92,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading adjustment history: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["OpenBalHistDlg_LoadError"], ex.Message), Severity.Error);
         }
         finally
         {
@@ -125,8 +128,8 @@
 
     private string GetAdjustmentText(decimal amount) => amount switch
     {
-        > 0 => $"Increased by {amount:C2}",
-        < 0 => $"Decreased by {Math.Abs(amount):C2}",
-        _ => "No change"
+        > 0 => string.Format(L["OpenBalHistDlg_IncreasedBy"], amount.ToString("C2")),
+        < 0 => string.Format(L["OpenBalHistDlg_DecreasedBy"], Math.Abs(amount).ToString("C2")),
+        _ => L["OpenBalHistDlg_NoChange"]
     };
 }

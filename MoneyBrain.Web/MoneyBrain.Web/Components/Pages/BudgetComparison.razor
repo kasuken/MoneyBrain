@@ -4,28 +4,31 @@
 @using MoneyBrain.Web.Application.Reporting.CsvExport
 @using Microsoft.JSInterop
 @using MudBlazor
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @attribute [Authorize]
 @inject IBudgetComparisonService BudgetComparisonService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Budget vs Actual</PageTitle>
+<PageTitle>@L["BudgetVsActual_PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">Budget vs Actual Comparison</MudText>
+    <MudText Typo="Typo.h4" Class="mb-4">@L["BudgetVsActual_Header"]</MudText>
 
     <MudPaper Class="pa-4 mb-4">
         <MudGrid>
             <MudItem xs="12" sm="6" md="3">
-                <MudDatePicker Label="Start Date" 
+                <MudDatePicker Label="@L["Lbl_StartDate"]" 
                                @bind-Date="_startDate" 
                                @bind-Date:after="LoadDataAsync"
                                PickerVariant="PickerVariant.Dialog"
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudDatePicker Label="End Date" 
+                <MudDatePicker Label="@L["Lbl_EndDate"]" 
                                @bind-Date="_endDate"
                                @bind-Date:after="LoadDataAsync"
                                PickerVariant="PickerVariant.Dialog"
@@ -38,7 +41,7 @@
                            OnClick="ExportToCsv"
                            Disabled="@(_summary == null)"
                            FullWidth="true">
-                    Export to CSV
+                    @L["BudgetVsActual_ExportToCsv"]
                 </MudButton>
             </MudItem>
         </MudGrid>
@@ -54,19 +57,19 @@
         <MudGrid Class="mb-4">
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Total Budgeted</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BudgetVsActual_TotalBudgeted"]</MudText>
                     <MudText Typo="Typo.h5" Color="Color.Primary">@_summary.TotalBudgeted.ToString("C2")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Total Actual</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BudgetVsActual_TotalActual"]</MudText>
                     <MudText Typo="Typo.h5" Color="Color.Secondary">@_summary.TotalActual.ToString("C2")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Remaining</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BudgetVsActual_Remaining"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_summary.TotalRemaining >= 0 ? Color.Success : Color.Error)">
                         @_summary.TotalRemaining.ToString("C2")
                     </MudText>
@@ -74,7 +77,7 @@
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Budget Used</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BudgetVsActual_BudgetUsed"]</MudText>
                     <MudText Typo="Typo.h5">
                         @_summary.OverallPercentageUsed.ToString("F1")%
                         <MudChip T="string" Size="Size.Small" Color="@GetPercentageColor(_summary.OverallPercentageUsed)">
@@ -89,7 +92,7 @@
         @if (_chartData.Any())
         {
             <MudPaper Class="pa-4 mb-4" Elevation="2">
-                <MudText Typo="Typo.h6" Class="mb-4">Monthly Budget Usage</MudText>
+                <MudText Typo="Typo.h6" Class="mb-4">@L["BudgetVsActual_MonthlyBudgetUsage"]</MudText>
                 <MudChart ChartType="ChartType.Bar" 
                           ChartSeries="_chartSeries" 
                           XAxisLabels="_chartData.Select(d => d.MonthName).ToArray()"
@@ -101,37 +104,37 @@
 
         <!-- Monthly Breakdown Table -->
         <MudPaper Class="pa-4" Elevation="2">
-            <MudText Typo="Typo.h6" Class="mb-4">Monthly Breakdown</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["BudgetVsActual_MonthlyBreakdown"]</MudText>
             <MudTable Items="_summary.MonthlyComparisons" 
                       Hover="true" 
                       Dense="true"
                       FixedHeader="true"
                       Height="600px">
                 <HeaderContent>
-                    <MudTh>Month</MudTh>
-                    <MudTh Style="text-align: right;">Budgeted</MudTh>
-                    <MudTh Style="text-align: right;">Actual</MudTh>
-                    <MudTh Style="text-align: right;">Remaining</MudTh>
-                    <MudTh Style="text-align: right;">% Used</MudTh>
-                    <MudTh>Status</MudTh>
-                    <MudTh Style="text-align: center;">Details</MudTh>
+                    <MudTh>@L["Col_Month"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["BudgetVsActual_Budgeted"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["BudgetVsActual_Actual"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["BudgetVsActual_Remaining"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["BudgetVsActual_PercentUsed"]</MudTh>
+                    <MudTh>@L["Col_Status"]</MudTh>
+                    <MudTh Style="text-align: center;">@L["Lbl_Details"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Month">@context.MonthName</MudTd>
-                    <MudTd DataLabel="Budgeted" Style="text-align: right;">@context.TotalBudgeted.ToString("C2")</MudTd>
-                    <MudTd DataLabel="Actual" Style="text-align: right;">@context.TotalActual.ToString("C2")</MudTd>
-                    <MudTd DataLabel="Remaining" Style="text-align: right;">
+                    <MudTd DataLabel="@L["Col_Month"]">@context.MonthName</MudTd>
+                    <MudTd DataLabel="@L["BudgetVsActual_Budgeted"]" Style="text-align: right;">@context.TotalBudgeted.ToString("C2")</MudTd>
+                    <MudTd DataLabel="@L["BudgetVsActual_Actual"]" Style="text-align: right;">@context.TotalActual.ToString("C2")</MudTd>
+                    <MudTd DataLabel="@L["BudgetVsActual_Remaining"]" Style="text-align: right;">
                         <span style="color: @(context.Remaining >= 0 ? "green" : "red")">
                             @context.Remaining.ToString("C2")
                         </span>
                     </MudTd>
-                    <MudTd DataLabel="% Used" Style="text-align: right;">@context.PercentageUsed.ToString("F1")%</MudTd>
-                    <MudTd DataLabel="Status">
+                    <MudTd DataLabel="@L["BudgetVsActual_PercentUsed"]" Style="text-align: right;">@context.PercentageUsed.ToString("F1")%</MudTd>
+                    <MudTd DataLabel="@L["Col_Status"]">
                         <MudChip T="string" Size="Size.Small" Color="@GetPercentageColor(context.PercentageUsed)">
                             @GetPercentageStatus(context.PercentageUsed)
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Details" Style="text-align: center;">
+                    <MudTd DataLabel="@L["Lbl_Details"]" Style="text-align: center;">
                         <MudIconButton Icon="@(_expandedMonths.Contains(context) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" 
                                        OnClick="@(() => ToggleMonthExpansion(context))"
                                        Size="Size.Small" />
@@ -145,7 +148,7 @@
                                 <MudCard Elevation="0" Class="my-2">
                                     <MudCardContent>
                                         <MudText Typo="Typo.subtitle2" Class="mb-2">
-                                            Category Breakdown - @context.MonthName
+                                            @L["BudgetVsActual_CategoryBreakdown"] - @context.MonthName
                                         </MudText>
                                         
                                         @if (context.Categories.Any())
@@ -155,30 +158,30 @@
                                                       Dense="true"
                                                       Elevation="0">
                                                 <HeaderContent>
-                                                    <MudTh>Category</MudTh>
-                                                    <MudTh>Group</MudTh>
-                                                    <MudTh Style="text-align: right;">Budgeted</MudTh>
-                                                    <MudTh Style="text-align: right;">Actual</MudTh>
-                                                    <MudTh Style="text-align: right;">Remaining</MudTh>
-                                                    <MudTh Style="text-align: right;">% Used</MudTh>
-                                                    <MudTh Style="text-align: center;">Transactions</MudTh>
+                                                    <MudTh>@L["Col_Category"]</MudTh>
+                                                    <MudTh>@L["Lbl_Group"]</MudTh>
+                                                    <MudTh Style="text-align: right;">@L["BudgetVsActual_Budgeted"]</MudTh>
+                                                    <MudTh Style="text-align: right;">@L["BudgetVsActual_Actual"]</MudTh>
+                                                    <MudTh Style="text-align: right;">@L["BudgetVsActual_Remaining"]</MudTh>
+                                                    <MudTh Style="text-align: right;">@L["BudgetVsActual_PercentUsed"]</MudTh>
+                                                    <MudTh Style="text-align: center;">@L["Col_Transactions"]</MudTh>
                                                 </HeaderContent>
                                                 <RowTemplate Context="category">
-                                                    <MudTd DataLabel="Category">
+                                                    <MudTd DataLabel="@L["Col_Category"]">
                                                         <strong>@category.CategoryName</strong>
                                                     </MudTd>
-                                                    <MudTd DataLabel="Group">@(category.CategoryGroupName ?? "-")</MudTd>
-                                                    <MudTd DataLabel="Budgeted" Style="text-align: right;">@category.Budgeted.ToString("C2")</MudTd>
-                                                    <MudTd DataLabel="Actual" Style="text-align: right;">@category.Actual.ToString("C2")</MudTd>
-                                                    <MudTd DataLabel="Remaining" Style="text-align: right;">
+                                                    <MudTd DataLabel="@L["Lbl_Group"]">@(category.CategoryGroupName ?? "-")</MudTd>
+                                                    <MudTd DataLabel="@L["BudgetVsActual_Budgeted"]" Style="text-align: right;">@category.Budgeted.ToString("C2")</MudTd>
+                                                    <MudTd DataLabel="@L["BudgetVsActual_Actual"]" Style="text-align: right;">@category.Actual.ToString("C2")</MudTd>
+                                                    <MudTd DataLabel="@L["BudgetVsActual_Remaining"]" Style="text-align: right;">
                                                         <span style="color: @(category.Remaining >= 0 ? "green" : "red")">
                                                             @category.Remaining.ToString("C2")
                                                         </span>
                                                     </MudTd>
-                                                    <MudTd DataLabel="% Used" Style="text-align: right;">
+                                                    <MudTd DataLabel="@L["BudgetVsActual_PercentUsed"]" Style="text-align: right;">
                                                         @category.PercentageUsed.ToString("F1")%
                                                     </MudTd>
-                                                    <MudTd DataLabel="Transactions" Style="text-align: center;">
+                                                    <MudTd DataLabel="@L["Col_Transactions"]" Style="text-align: center;">
                                                         <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@category.TransactionCount</MudChip>
                                                     </MudTd>
                                                 </RowTemplate>
@@ -187,7 +190,7 @@
                                         else
                                         {
                                             <MudAlert Severity="Severity.Info" Dense="true">
-                                                No budgeted categories for this month.
+                                                @L["BudgetVsActual_NoBudgetedCategories"]
                                             </MudAlert>
                                         }
                                     </MudCardContent>
@@ -202,31 +205,31 @@
     else
     {
         <MudAlert Severity="Severity.Info">
-            Select a date range to view budget comparison.
+            @L["BudgetVsActual_SelectDateRange"]
         </MudAlert>
     }
     
-    <HelpButton Title="Budget Comparison Help"
-                Description="Compare your planned budget amounts against actual spending across multiple months. Identify patterns and areas for improvement."
+    <HelpButton Title="@L["BudgetVsActual_HelpTitle"]"
+                Description="@L["BudgetVsActual_HelpDescription"]"
                 Features="@(new[] { 
-                    "Side-by-side comparison of budget vs actual",
-                    "Monthly breakdown by category",
-                    "Variance calculation (over/under budget)",
-                    "Visual progress indicators",
-                    "Expandable category groups"
+                    L["BudgetVsActual_HelpFeature1"].Value,
+                    L["BudgetVsActual_HelpFeature2"].Value,
+                    L["BudgetVsActual_HelpFeature3"].Value,
+                    L["BudgetVsActual_HelpFeature4"].Value,
+                    L["BudgetVsActual_HelpFeature5"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Select the date range covering the months you want to compare",
-                    "Click 'Load' to generate the comparison",
-                    "Click on a category group row to expand details",
-                    "Review the 'Variance' column to see where you're over or under",
-                    "Use this to adjust future budget allocations"
+                    L["BudgetVsActual_HelpHowTo1"].Value,
+                    L["BudgetVsActual_HelpHowTo2"].Value,
+                    L["BudgetVsActual_HelpHowTo3"].Value,
+                    L["BudgetVsActual_HelpHowTo4"].Value,
+                    L["BudgetVsActual_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Consistent overspending in a category may indicate unrealistic budgets",
-                    "Underspending might mean you can reallocate funds elsewhere",
-                    "This report helps you refine your budgets over time",
-                    "Only posted transactions are counted as actual spending"
+                    L["BudgetVsActual_HelpTip1"].Value,
+                    L["BudgetVsActual_HelpTip2"].Value,
+                    L["BudgetVsActual_HelpTip3"].Value,
+                    L["BudgetVsActual_HelpTip4"].Value
                 })" />
 </MudContainer>
 
@@ -294,12 +297,12 @@
         [
             new ChartSeries
             {
-                Name = "Budgeted",
+                Name = L["BudgetVsActual_Budgeted"].Value,
                 Data = _chartData.Select(d => (double)d.TotalBudgeted).ToArray()
             },
             new ChartSeries
             {
-                Name = "Actual",
+                Name = L["BudgetVsActual_Actual"].Value,
                 Data = _chartData.Select(d => (double)d.TotalActual).ToArray()
             }
         ];
@@ -328,10 +331,10 @@
     {
         return percentage switch
         {
-            <= 75 => "On Track",
-            <= 90 => "Good",
-            <= 100 => "Near Limit",
-            _ => "Over Budget"
+            <= 75 => L["BudgetVsActual_StatusOnTrack"],
+            <= 90 => L["BudgetVsActual_StatusGood"],
+            <= 100 => L["BudgetVsActual_StatusNearLimit"],
+            _ => L["BudgetVsActual_StatusOverBudget"]
         };
     }
 

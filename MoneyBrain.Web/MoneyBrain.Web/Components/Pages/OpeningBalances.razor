@@ -4,17 +4,20 @@
 @using MoneyBrain.Web.Domain.Enums
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @attribute [Authorize]
 @inject IAccountService AccountService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Opening Balances - MoneyBrain</PageTitle>
+<PageTitle>@L["OpenBal_PageTitle"] - MoneyBrain</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
-    <MudText Typo="Typo.h4" GutterBottom="true">Opening Balances</MudText>
+    <MudText Typo="Typo.h4" GutterBottom="true">@L["OpenBal_Title"]</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-        Manage account opening balances with full audit trail. All adjustments are tracked.
+        @L["OpenBal_Subtitle"]
     </MudText>
 
     @if (_isLoading)
@@ -29,12 +32,12 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.h6" Class="mb-4">
                         <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mr-2" />
-                        Asset Accounts
+                        @L["OpenBal_AssetAccounts"]
                     </MudText>
 
                     @if (!_assetAccounts.Any())
                     {
-                        <MudText Color="Color.Secondary" Class="my-4">No asset accounts yet.</MudText>
+                        <MudText Color="Color.Secondary" Class="my-4">@L["OpenBal_NoAssetAccounts"]</MudText>
                     }
                     else
                     {
@@ -48,7 +51,7 @@
                                             <MudChip T="string" Size="Size.Small" Color="Color.Info">@account.SubType</MudChip>
                                         </div>
                                         <div class="d-flex justify-space-between align-center">
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance:</MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["OpenBal_OpeningBalance"]:</MudText>
                                             <MudText Typo="Typo.subtitle1" Color="@(account.OpeningBalance >= 0 ? Color.Success : Color.Error)">
                                                 @account.OpeningBalance.ToString("C2")
                                             </MudText>
@@ -58,12 +61,12 @@
                                         <MudButton Size="Size.Small" 
                                                    Color="Color.Primary" 
                                                    OnClick="@(() => AdjustOpeningBalance(account))">
-                                            Adjust
+                                            @L["Btn_Adjust"]
                                         </MudButton>
                                         <MudButton Size="Size.Small" 
                                                    Color="Color.Secondary" 
                                                    OnClick="@(() => ViewAdjustmentHistory(account))">
-                                            History
+                                            @L["Btn_History"]
                                         </MudButton>
                                     </MudCardActions>
                                 </MudCard>
@@ -78,12 +81,12 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.h6" Class="mb-4">
                         <MudIcon Icon="@Icons.Material.Filled.CreditCard" Class="mr-2" />
-                        Liability Accounts
+                        @L["OpenBal_LiabilityAccounts"]
                     </MudText>
 
                     @if (!_liabilityAccounts.Any())
                     {
-                        <MudText Color="Color.Secondary" Class="my-4">No liability accounts yet.</MudText>
+                        <MudText Color="Color.Secondary" Class="my-4">@L["OpenBal_NoLiabilityAccounts"]</MudText>
                     }
                     else
                     {
@@ -97,7 +100,7 @@
                                             <MudChip T="string" Size="Size.Small" Color="Color.Warning">@account.SubType</MudChip>
                                         </div>
                                         <div class="d-flex justify-space-between align-center">
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance:</MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["OpenBal_OpeningBalance"]:</MudText>
                                             <MudText Typo="Typo.subtitle1" Color="@(account.OpeningBalance >= 0 ? Color.Success : Color.Error)">
                                                 @account.OpeningBalance.ToString("C2")
                                             </MudText>
@@ -107,12 +110,12 @@
                                         <MudButton Size="Size.Small" 
                                                    Color="Color.Primary" 
                                                    OnClick="@(() => AdjustOpeningBalance(account))">
-                                            Adjust
+                                            @L["Btn_Adjust"]
                                         </MudButton>
                                         <MudButton Size="Size.Small" 
                                                    Color="Color.Secondary" 
                                                    OnClick="@(() => ViewAdjustmentHistory(account))">
-                                            History
+                                            @L["Btn_History"]
                                         </MudButton>
                                     </MudCardActions>
                                 </MudCard>
@@ -155,7 +158,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorLoadingAccounts", ex.Message], Severity.Error);
         }
         finally
         {
@@ -172,13 +175,13 @@
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<OpeningBalanceAdjustmentDialog>("Adjust Opening Balance", parameters, options);
+        var dialog = await DialogService.ShowAsync<OpeningBalanceAdjustmentDialog>(L["OpenBal_AdjustDialogTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadAccounts();
-            Snackbar.Add($"Opening balance adjusted for {account.Name}", Severity.Success);
+            Snackbar.Add(L["OpenBal_BalanceAdjusted", account.Name], Severity.Success);
         }
     }
 
@@ -191,6 +194,6 @@
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-        await DialogService.ShowAsync<OpeningBalanceHistoryDialog>($"Adjustment History: {account.Name}", parameters, options);
+        await DialogService.ShowAsync<OpeningBalanceHistoryDialog>(L["OpenBal_HistoryDialogTitle", account.Name], parameters, options);
     }
 }

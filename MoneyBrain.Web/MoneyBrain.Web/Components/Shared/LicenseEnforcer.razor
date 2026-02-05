@@ -1,11 +1,14 @@
 @using MudBlazor
 @using MoneyBrain.Web.Application.Licensing
 @using Microsoft.Extensions.Options
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 
 @inject ILicenseService LicenseService
 @inject IOptions<LicensingSettings> LicensingSettings
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> L
 
 @if (_loading)
 {
@@ -18,15 +21,15 @@ else if (!_hasValidLicense)
     <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column align-center justify-center" Style="height: 80vh;">
         <MudPaper Class="pa-8 text-center" Elevation="2">
             <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" Class="mb-4" />
-            <MudText Typo="Typo.h5" Class="mb-2">License Required</MudText>
+            <MudText Typo="Typo.h5" Class="mb-2">@L["LicEnf_LicenseRequired"]</MudText>
             <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
-                Your license has expired or is invalid. Please upgrade to continue using MoneyBrain.
+                @L["LicEnf_LicenseExpired"]
             </MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/license" Class="mb-2" FullWidth>
-                Manage License
+                @L["LicEnf_ManageLicense"]
             </MudButton>
             <MudButton Variant="Variant.Text" Color="Color.Default" Href="/pricing" FullWidth>
-                View Pricing
+                @L["LicEnf_ViewPricing"]
             </MudButton>
         </MudPaper>
     </MudContainer>

@@ -4,7 +4,10 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using System.Buffers.Text
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
+@inject IStringLocalizer<SharedResource> L
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
@@ -12,21 +15,21 @@
     <DataAnnotationsValidator/>
     @if (passkey?.Name is { } name)
     {
-        <h4>Enter a new name for your "@name" passkey</h4>
+        <h4>@string.Format(L["Manage_RenamePasskey_TitleWithName"].Value, name)</h4>
     }
     else
     {
-        <h4>Enter a name for your passkey</h4>
+        <h4>@L["Manage_RenamePasskey_Title"]</h4>
     }
     <hr/>
     <ValidationSummary class="text-danger" role="alert"/>
     <div class="form-floating mb-3">
-        <InputText @bind-Value="Input.Name" id="Input.Name" class="form-control" aria-required="true" placeholder="My passkey"/>
-        <label for="Input.Name" class="form-label">Passkey name</label>
+        <InputText @bind-Value="Input.Name" id="Input.Name" class="form-control" aria-required="true" placeholder="@L["Manage_RenamePasskey_Placeholder"]"/>
+        <label for="Input.Name" class="form-label">@L["Manage_RenamePasskey_Label"]</label>
         <ValidationMessage For="() => Input.Name" class="text-danger"/>
     </div>
     <div>
-        <button type="submit" class="w-100 btn btn-lg btn-primary">Continue</button>
+        <button type="submit" class="w-100 btn btn-lg btn-primary">@L["Common_Continue"]</button>
     </div>
 </EditForm>
 
