@@ -4,14 +4,17 @@
 @using Microsoft.AspNetCore.Identity
 @using System.ComponentModel.DataAnnotations
 @using System.Buffers.Text
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Manage your passkeys</PageTitle>
+<PageTitle>@L["Manage_Passkeys_PageTitle"]</PageTitle>
 
-<h3>Manage your passkeys</h3>
+<h3>@L["Manage_Passkeys_Title"]</h3>
 
 <StatusMessage/>
 
@@ -22,7 +25,7 @@
         @foreach (var passkey in currentPasskeys)
         {
             <tr>
-                <td>@(passkey.Name ?? "Unnamed passkey")</td>
+                <td>@(passkey.Name ?? L["Manage_Passkeys_Unnamed"])</td>
                 <td>
                     @{
                         var credentialId = Base64Url.EncodeToString(passkey.CredentialId);
@@ -31,8 +34,8 @@
                         <AntiforgeryToken/>
                         <div>
                             <input type="hidden" name="CredentialId" value="@credentialId"/>
-                            <button type="submit" name="Action" value="rename" class="btn btn-primary" title="Rename this passkey">Rename</button>
-                            <button type="submit" name="Action" value="delete" class="btn btn-danger" title="Remove this passkey from your account">Delete</button>
+                            <button type="submit" name="Action" value="rename" class="btn btn-primary" title="@L["Manage_Passkeys_RenameTooltip"]">@L["Common_Rename"]</button>
+                            <button type="submit" name="Action" value="delete" class="btn btn-danger" title="@L["Manage_Passkeys_RemoveTooltip"]">@L["Common_Delete"]</button>
                         </div>
                     </form>
                 </td>
@@ -43,18 +46,18 @@
 }
 else
 {
-    <p>No passkeys are registered.</p>
+    <p>@L["Manage_Passkeys_NoPasskeys"]</p>
 }
 
 <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
     <AntiforgeryToken/>
     @if (currentPasskeys is { Count: >= MaxPasskeyCount })
     {
-        <p class="text-danger">You have reached the maximum number of allowed passkeys. Please delete one before adding a new one.</p>
+        <p class="text-danger">@L["Manage_Passkeys_MaxReached"]</p>
     }
     else
     {
-        <PasskeySubmit Operation="PasskeyOperation.Create" Name="Input" class="btn btn-primary">Add a new passkey</PasskeySubmit>
+        <PasskeySubmit Operation="PasskeyOperation.Create" Name="Input" class="btn btn-primary">@L["Manage_Passkeys_AddNew"]</PasskeySubmit>
     }
 
 </form>
@@ -175,7 +178,7 @@ else
             return;
         }
 
-        RedirectManager.RedirectToCurrentPageWithStatus("Passkey deleted successfully.", HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus(L["Manage_Passkeys_Deleted"], HttpContext);
     }
 
 }

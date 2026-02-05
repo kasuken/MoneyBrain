@@ -4,17 +4,20 @@
 @using MoneyBrain.Web.Domain.Enums
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @attribute [Authorize]
 @inject IAccountService AccountService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Manual Adjustments - MoneyBrain</PageTitle>
+<PageTitle>@L["ManAdj_PageTitle"] - MoneyBrain</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
-    <MudText Typo="Typo.h4" GutterBottom="true">Manual Balance Adjustments</MudText>
+    <MudText Typo="Typo.h4" GutterBottom="true">@L["ManAdj_Title"]</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-        Explicit, auditable adjustments to account balances (bank fees, interest, corrections).
+        @L["ManAdj_Subtitle"]
     </MudText>
 
     @if (_isLoading)
@@ -31,7 +34,7 @@
                         <MudItem xs="12" md="4">
                             <MudSelect T="Account" 
                                        @bind-Value="_selectedAccount" 
-                                       Label="Select Account" 
+                                       Label="@L["Lbl_SelectAccount"]" 
                                        Variant="Variant.Outlined"
                                        AnchorOrigin="Origin.BottomCenter"
                                        ToStringFunc="@(a => a?.Name ?? string.Empty)">
@@ -45,13 +48,13 @@
                         </MudItem>
                         <MudItem xs="12" md="3">
                             <MudDatePicker @bind-Date="_startDate" 
-                                          Label="Start Date" 
+                                          Label="@L["Lbl_StartDate"]" 
                                           Variant="Variant.Outlined"
                                           Clearable="true" />
                         </MudItem>
                         <MudItem xs="12" md="3">
                             <MudDatePicker @bind-Date="_endDate" 
-                                          Label="End Date" 
+                                          Label="@L["Lbl_EndDate"]" 
                                           Variant="Variant.Outlined"
                                           Clearable="true" />
                         </MudItem>
@@ -62,7 +65,7 @@
                                           OnClick="LoadAdjustments"
                                           Disabled="@(_selectedAccount == null)"
                                           FullWidth="true">
-                                    Load
+                                    @L["Btn_Load"]
                                 </MudButton>
                             </MudStack>
                         </MudItem>
@@ -77,17 +80,17 @@
                     <MudPaper Class="pa-4 mb-4">
                         <MudGrid>
                             <MudItem xs="12" md="3">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Opening Balance</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["ManAdj_OpeningBalance"]</MudText>
                                 <MudText Typo="Typo.h6">@_selectedAccount.OpeningBalance.ToString("C2")</MudText>
                             </MudItem>
                             <MudItem xs="12" md="3">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Total Adjustments</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["ManAdj_TotalAdjustments"]</MudText>
                                 <MudText Typo="Typo.h6" Color="@(_totalAdjustments >= 0 ? Color.Success : Color.Error)">
                                     @_totalAdjustments.ToString("C2")
                                 </MudText>
                             </MudItem>
                             <MudItem xs="12" md="3">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Current Balance</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["ManAdj_CurrentBalance"]</MudText>
                                 <MudText Typo="Typo.h6" Color="Color.Primary">@_currentBalance.ToString("C2")</MudText>
                             </MudItem>
                             <MudItem xs="12" md="3" Class="d-flex align-end justify-end">
@@ -95,7 +98,7 @@
                                           Color="Color.Primary" 
                                           StartIcon="@Icons.Material.Filled.Add"
                                           OnClick="CreateAdjustment">
-                                    New Adjustment
+                                    @L["ManAdj_NewAdjustment"]
                                 </MudButton>
                             </MudItem>
                         </MudGrid>
@@ -105,7 +108,7 @@
                 <!-- Adjustments Table -->
                 <MudItem xs="12">
                     <MudPaper Class="pa-4">
-                        <MudText Typo="Typo.h6" Class="mb-4">Adjustment History (@_adjustments.Count)</MudText>
+                        <MudText Typo="Typo.h6" Class="mb-4">@L["ManAdj_AdjustmentHistory"] (@_adjustments.Count)</MudText>
                         
                         @if (_isLoadingAdjustments)
                         {
@@ -114,7 +117,7 @@
                         else if (!_adjustments.Any())
                         {
                             <MudAlert Severity="Severity.Info">
-                                No manual adjustments found for this account. Create your first adjustment to track explicit balance changes.
+                                @L["ManAdj_NoAdjustments"]
                             </MudAlert>
                         }
                         else
@@ -124,45 +127,45 @@
                                       Hover="true" 
                                       Breakpoint="Breakpoint.Sm">
                                 <HeaderContent>
-                                    <MudTh>Date</MudTh>
-                                    <MudTh>Amount</MudTh>
-                                    <MudTh>Category</MudTh>
-                                    <MudTh>Description</MudTh>
-                                    <MudTh>Status</MudTh>
-                                    <MudTh>Actions</MudTh>
+                                    <MudTh>@L["Col_Date"]</MudTh>
+                                    <MudTh>@L["Col_Amount"]</MudTh>
+                                    <MudTh>@L["Col_Category"]</MudTh>
+                                    <MudTh>@L["Lbl_Description"]</MudTh>
+                                    <MudTh>@L["Col_Status"]</MudTh>
+                                    <MudTh>@L["Col_Actions"]</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
-                                    <MudTd DataLabel="Date">
+                                    <MudTd DataLabel="@L["Col_Date"]">
                                         @context.AdjustmentDate.ToLocalTime().ToString("MMM dd, yyyy")
                                     </MudTd>
-                                    <MudTd DataLabel="Amount">
+                                    <MudTd DataLabel="@L["Col_Amount"]">
                                         <MudChip T="string" 
                                                 Size="Size.Small" 
                                                 Color="@(context.Amount >= 0 ? Color.Success : Color.Error)">
                                             @(context.Amount >= 0 ? "+" : "")@context.Amount.ToString("C2")
                                         </MudChip>
                                     </MudTd>
-                                    <MudTd DataLabel="Category">
+                                    <MudTd DataLabel="@L["Col_Category"]">
                                         @(context.Category ?? "-")
                                     </MudTd>
-                                    <MudTd DataLabel="Description">
+                                    <MudTd DataLabel="@L["Lbl_Description"]">
                                         <MudText Typo="Typo.body2">@context.Description</MudText>
                                     </MudTd>
-                                    <MudTd DataLabel="Status">
+                                    <MudTd DataLabel="@L["Col_Status"]">
                                         @if (context.IsReconciled)
                                         {
                                             <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.Lock">
-                                                Reconciled
+                                                @L["Status_Reconciled"]
                                             </MudChip>
                                         }
                                         else
                                         {
                                             <MudChip T="string" Size="Size.Small" Color="Color.Default">
-                                                Unreconciled
+                                                @L["Status_Unreconciled"]
                                             </MudChip>
                                         }
                                     </MudTd>
-                                    <MudTd DataLabel="Actions">
+                                    <MudTd DataLabel="@L["Col_Actions"]">
                                         @if (!context.IsReconciled)
                                         {
                                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
@@ -216,7 +219,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorLoadingAccounts", ex.Message], Severity.Error);
         }
         finally
         {
@@ -242,7 +245,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading adjustments: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorLoadingAdjustments", ex.Message], Severity.Error);
         }
         finally
         {
@@ -261,23 +264,23 @@
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ManualAdjustmentDialog>("Create Manual Adjustment", parameters, options);
+        var dialog = await DialogService.ShowAsync<ManualAdjustmentDialog>(L["ManAdj_CreateDialogTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadAdjustments();
-            Snackbar.Add($"Adjustment created for {_selectedAccount.Name}", Severity.Success);
+            Snackbar.Add(L["ManAdj_AdjustmentCreated", _selectedAccount.Name], Severity.Success);
         }
     }
 
     private async Task DeleteAdjustment(ManualBalanceAdjustment adjustment)
     {
         var result = await DialogService.ShowMessageBox(
-            "Delete Adjustment",
-            $"Are you sure you want to delete this {adjustment.Amount:C2} adjustment? This action cannot be undone.",
-            yesText: "Delete",
-            cancelText: "Cancel");
+            L["ManAdj_DeleteDialogTitle"],
+            L["ManAdj_DeleteDialogMessage", adjustment.Amount.ToString("C2")],
+            yesText: L["Btn_Delete"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result == true)
         {
@@ -287,11 +290,11 @@
                 if (deleted)
                 {
                     await LoadAdjustments();
-                    Snackbar.Add("Adjustment deleted successfully", Severity.Success);
+                    Snackbar.Add(L["ManAdj_DeletedSuccess"], Severity.Success);
                 }
                 else
                 {
-                    Snackbar.Add("Failed to delete adjustment", Severity.Error);
+                    Snackbar.Add(L["ManAdj_DeleteFailed"], Severity.Error);
                 }
             }
             catch (InvalidOperationException ex)
@@ -300,7 +303,7 @@
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Error deleting adjustment: {ex.Message}", Severity.Error);
+                Snackbar.Add(L["Msg_ErrorDeletingAdjustment", ex.Message], Severity.Error);
             }
         }
     }

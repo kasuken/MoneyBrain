@@ -1,0 +1,4096 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Navigation -->
+  <data name="Nav_Dashboard" xml:space="preserve">
+    <value>Pannello</value>
+  </data>
+  <data name="Nav_Accounts" xml:space="preserve">
+    <value>Conti</value>
+  </data>
+  <data name="Nav_Transactions" xml:space="preserve">
+    <value>Transazioni</value>
+  </data>
+  <data name="Nav_Categories" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="Nav_Budgets" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="Nav_Import" xml:space="preserve">
+    <value>Importa</value>
+  </data>
+  <data name="Nav_Reconcile" xml:space="preserve">
+    <value>Riconcilia</value>
+  </data>
+  <data name="Nav_Reconciliations" xml:space="preserve">
+    <value>Riconciliazioni</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Nav_Reports" xml:space="preserve">
+    <value>Report</value>
+  </data>
+  <data name="Nav_Payees" xml:space="preserve">
+    <value>Beneficiari</value>
+  </data>
+  <data name="Nav_Insights" xml:space="preserve">
+    <value>Analisi</value>
+  </data>
+  <!-- Report Submenu -->
+  <data name="Nav_CategorySpending" xml:space="preserve">
+    <value>Spese per Categoria</value>
+  </data>
+  <data name="Nav_BudgetVsActual" xml:space="preserve">
+    <value>Budget vs Effettivo</value>
+  </data>
+  <data name="Nav_Cashflow" xml:space="preserve">
+    <value>Flusso di Cassa Mensile</value>
+  </data>
+  <data name="Nav_NetWorth" xml:space="preserve">
+    <value>Patrimonio Netto</value>
+  </data>
+  <data name="Nav_InsightExplorer" xml:space="preserve">
+    <value>Esplora Analisi</value>
+  </data>
+  <data name="Nav_BalanceHistory" xml:space="preserve">
+    <value>Storico Saldi</value>
+  </data>
+  <!-- Common Actions -->
+  <data name="Common_Save" xml:space="preserve">
+    <value>Salva</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Chiudi</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Elimina</value>
+  </data>
+  <data name="Common_Edit" xml:space="preserve">
+    <value>Modifica</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Aggiungi</value>
+  </data>
+  <data name="Common_Search" xml:space="preserve">
+    <value>Cerca</value>
+  </data>
+  <data name="Common_Filter" xml:space="preserve">
+    <value>Filtra</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Pulisci</value>
+  </data>
+  <data name="Common_Apply" xml:space="preserve">
+    <value>Applica</value>
+  </data>
+  <data name="Common_Confirm" xml:space="preserve">
+    <value>Conferma</value>
+  </data>
+  <!-- Messages -->
+  <data name="Msg_Saving" xml:space="preserve">
+    <value>Salvataggio...</value>
+  </data>
+  <data name="Msg_Loading" xml:space="preserve">
+    <value>Caricamento...</value>
+  </data>
+  <data name="Msg_Success" xml:space="preserve">
+    <value>Successo</value>
+  </data>
+  <data name="Msg_Error" xml:space="preserve">
+    <value>Errore</value>
+  </data>
+  <data name="Msg_Warning" xml:space="preserve">
+    <value>Avviso</value>
+  </data>
+  <data name="Msg_ConfirmDelete" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questo elemento?</value>
+  </data>
+  <!-- Layout -->
+  <data name="App_MoneyBrain" xml:space="preserve">
+    <value>MoneyBrain</value>
+  </data>
+  <data name="Auth_Logout" xml:space="preserve">
+    <value>Esci</value>
+  </data>
+  <data name="Auth_Login" xml:space="preserve">
+    <value>Accedi</value>
+  </data>
+  <data name="Auth_Register" xml:space="preserve">
+    <value>Inizia</value>
+  </data>
+  <data name="UserMenu_Settings" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="UserMenu_License" xml:space="preserve">
+    <value>Licenza</value>
+  </data>
+  <data name="UserMenu_Profile" xml:space="preserve">
+    <value>Profilo</value>
+  </data>
+  <!-- Labels -->
+  <data name="Lbl_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Lbl_Description" xml:space="preserve">
+    <value>Descrizione</value>
+  </data>
+  <data name="Lbl_Amount" xml:space="preserve">
+    <value>Importo</value>
+  </data>
+  <data name="Lbl_Date" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Lbl_Category" xml:space="preserve">
+    <value>Categoria</value>
+  </data>
+  <data name="Lbl_Account" xml:space="preserve">
+    <value>Conto</value>
+  </data>
+  <data name="Lbl_Payee" xml:space="preserve">
+    <value>Beneficiario</value>
+  </data>
+  <data name="Lbl_Notes" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="Lbl_Memo" xml:space="preserve">
+    <value>Promemoria</value>
+  </data>
+  <data name="Lbl_Status" xml:space="preserve">
+    <value>Stato</value>
+  </data>
+  <data name="Lbl_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Lbl_Balance" xml:space="preserve">
+    <value>Saldo</value>
+  </data>
+  <data name="Lbl_Tags" xml:space="preserve">
+    <value>Etichette</value>
+  </data>
+  <data name="Lbl_Total" xml:space="preserve">
+    <value>Totale</value>
+  </data>
+  <data name="Lbl_Actions" xml:space="preserve">
+    <value>Azioni</value>
+  </data>
+  <data name="Lbl_Details" xml:space="preserve">
+    <value>Dettagli</value>
+  </data>
+  <data name="Lbl_Period" xml:space="preserve">
+    <value>Periodo</value>
+  </data>
+  <data name="Lbl_StartDate" xml:space="preserve">
+    <value>Data Inizio</value>
+  </data>
+  <data name="Lbl_EndDate" xml:space="preserve">
+    <value>Data Fine</value>
+  </data>
+  <data name="Lbl_Currency" xml:space="preserve">
+    <value>Valuta</value>
+  </data>
+  <data name="Lbl_Group" xml:space="preserve">
+    <value>Gruppo</value>
+  </data>
+  <data name="Lbl_Priority" xml:space="preserve">
+    <value>Priorità</value>
+  </data>
+  <data name="Lbl_Active" xml:space="preserve">
+    <value>Attivo</value>
+  </data>
+  <data name="Lbl_Inactive" xml:space="preserve">
+    <value>Inattivo</value>
+  </data>
+  <data name="Lbl_All" xml:space="preserve">
+    <value>Tutti</value>
+  </data>
+  <data name="Lbl_None" xml:space="preserve">
+    <value>Nessuno</value>
+  </data>
+  <data name="Lbl_Select" xml:space="preserve">
+    <value>Seleziona</value>
+  </data>
+  <data name="Lbl_Search" xml:space="preserve">
+    <value>Cerca</value>
+  </data>
+  <data name="Lbl_Filter" xml:space="preserve">
+    <value>Filtra</value>
+  </data>
+  <data name="Lbl_Sort" xml:space="preserve">
+    <value>Ordina</value>
+  </data>
+  <data name="Lbl_Options" xml:space="preserve">
+    <value>Opzioni</value>
+  </data>
+  <data name="Lbl_Settings" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Lbl_Count" xml:space="preserve">
+    <value>Conteggio</value>
+  </data>
+  <data name="Lbl_CreatedDate" xml:space="preserve">
+    <value>Data Creazione</value>
+  </data>
+  <data name="Lbl_ModifiedDate" xml:space="preserve">
+    <value>Data Modifica</value>
+  </data>
+  <data name="Lbl_Transfers" xml:space="preserve">
+    <value>Trasferimenti</value>
+  </data>
+  <!-- Buttons -->
+  <data name="Btn_Add" xml:space="preserve">
+    <value>Aggiungi</value>
+  </data>
+  <data name="Btn_Edit" xml:space="preserve">
+    <value>Modifica</value>
+  </data>
+  <data name="Btn_Delete" xml:space="preserve">
+    <value>Elimina</value>
+  </data>
+  <data name="Btn_Save" xml:space="preserve">
+    <value>Salva</value>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="Btn_Close" xml:space="preserve">
+    <value>Chiudi</value>
+  </data>
+  <data name="Btn_Apply" xml:space="preserve">
+    <value>Applica</value>
+  </data>
+  <data name="Btn_Clear" xml:space="preserve">
+    <value>Pulisci</value>
+  </data>
+  <data name="Btn_Confirm" xml:space="preserve">
+    <value>Conferma</value>
+  </data>
+  <data name="Btn_Submit" xml:space="preserve">
+    <value>Invia</value>
+  </data>
+  <data name="Btn_Reset" xml:space="preserve">
+    <value>Reimposta</value>
+  </data>
+  <data name="Btn_Refresh" xml:space="preserve">
+    <value>Aggiorna</value>
+  </data>
+  <data name="Btn_Export" xml:space="preserve">
+    <value>Esporta</value>
+  </data>
+  <data name="Btn_Import" xml:space="preserve">
+    <value>Importa</value>
+  </data>
+  <data name="Btn_Preview" xml:space="preserve">
+    <value>Anteprima</value>
+  </data>
+  <data name="Btn_Download" xml:space="preserve">
+    <value>Scarica</value>
+  </data>
+  <data name="Btn_Upload" xml:space="preserve">
+    <value>Carica</value>
+  </data>
+  <data name="Btn_Next" xml:space="preserve">
+    <value>Avanti</value>
+  </data>
+  <data name="Btn_Previous" xml:space="preserve">
+    <value>Indietro</value>
+  </data>
+  <data name="Btn_Back" xml:space="preserve">
+    <value>Indietro</value>
+  </data>
+  <data name="Btn_Continue" xml:space="preserve">
+    <value>Continua</value>
+  </data>
+  <data name="Btn_Finish" xml:space="preserve">
+    <value>Fine</value>
+  </data>
+  <data name="Btn_Start" xml:space="preserve">
+    <value>Avvia</value>
+  </data>
+  <data name="Btn_Stop" xml:space="preserve">
+    <value>Ferma</value>
+  </data>
+  <data name="Btn_Pause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
+  <data name="Btn_Resume" xml:space="preserve">
+    <value>Riprendi</value>
+  </data>
+  <data name="Btn_Retry" xml:space="preserve">
+    <value>Riprova</value>
+  </data>
+  <data name="Btn_Skip" xml:space="preserve">
+    <value>Salta</value>
+  </data>
+  <data name="Btn_Undo" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="Btn_Redo" xml:space="preserve">
+    <value>Ripeti</value>
+  </data>
+  <data name="Btn_Copy" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="Btn_Paste" xml:space="preserve">
+    <value>Incolla</value>
+  </data>
+  <data name="Btn_SelectAll" xml:space="preserve">
+    <value>Seleziona Tutto</value>
+  </data>
+  <data name="Btn_DeselectAll" xml:space="preserve">
+    <value>Deseleziona Tutto</value>
+  </data>
+  <data name="Btn_Expand" xml:space="preserve">
+    <value>Espandi</value>
+  </data>
+  <data name="Btn_Collapse" xml:space="preserve">
+    <value>Comprimi</value>
+  </data>
+  <data name="Btn_ViewAll" xml:space="preserve">
+    <value>Visualizza Tutto</value>
+  </data>
+  <data name="Btn_HideAll" xml:space="preserve">
+    <value>Nascondi Tutto</value>
+  </data>
+  <data name="Btn_Yes" xml:space="preserve">
+    <value>Sì</value>
+  </data>
+  <data name="Btn_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Btn_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Btn_CreateNew" xml:space="preserve">
+    <value>Crea Nuovo</value>
+  </data>
+  <data name="Btn_AddNew" xml:space="preserve">
+    <value>Aggiungi Nuovo</value>
+  </data>
+  <!-- Table Columns -->
+  <data name="Col_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="Col_Description" xml:space="preserve">
+    <value>Descrizione</value>
+  </data>
+  <data name="Col_Amount" xml:space="preserve">
+    <value>Importo</value>
+  </data>
+  <data name="Col_Date" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Col_Category" xml:space="preserve">
+    <value>Categoria</value>
+  </data>
+  <data name="Col_Account" xml:space="preserve">
+    <value>Conto</value>
+  </data>
+  <data name="Col_Payee" xml:space="preserve">
+    <value>Beneficiario</value>
+  </data>
+  <data name="Col_Memo" xml:space="preserve">
+    <value>Promemoria</value>
+  </data>
+  <data name="Col_Status" xml:space="preserve">
+    <value>Stato</value>
+  </data>
+  <data name="Col_Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Col_Balance" xml:space="preserve">
+    <value>Saldo</value>
+  </data>
+  <data name="Col_Tags" xml:space="preserve">
+    <value>Etichette</value>
+  </data>
+  <data name="Col_Actions" xml:space="preserve">
+    <value>Azioni</value>
+  </data>
+  <data name="Col_Total" xml:space="preserve">
+    <value>Totale</value>
+  </data>
+  <data name="Col_Inflow" xml:space="preserve">
+    <value>Entrate</value>
+  </data>
+  <data name="Col_Outflow" xml:space="preserve">
+    <value>Uscite</value>
+  </data>
+  <data name="Col_Net" xml:space="preserve">
+    <value>Netto</value>
+  </data>
+  <data name="Col_Cleared" xml:space="preserve">
+    <value>Compensato</value>
+  </data>
+  <data name="Col_Reconciled" xml:space="preserve">
+    <value>Riconciliato</value>
+  </data>
+  <data name="Col_Pending" xml:space="preserve">
+    <value>In Sospeso</value>
+  </data>
+  <data name="Col_Posted" xml:space="preserve">
+    <value>Registrato</value>
+  </data>
+  <!-- Additional Messages -->
+  <data name="Msg_Deleting" xml:space="preserve">
+    <value>Eliminazione...</value>
+  </data>
+  <data name="Msg_Processing" xml:space="preserve">
+    <value>Elaborazione...</value>
+  </data>
+  <data name="Msg_Uploading" xml:space="preserve">
+    <value>Caricamento...</value>
+  </data>
+  <data name="Msg_Downloading" xml:space="preserve">
+    <value>Scaricamento...</value>
+  </data>
+  <data name="Msg_Info" xml:space="preserve">
+    <value>Informazione</value>
+  </data>
+  <data name="Msg_Confirm" xml:space="preserve">
+    <value>Conferma</value>
+  </data>
+  <data name="Msg_ConfirmCancel" xml:space="preserve">
+    <value>Sei sicuro di voler annullare? Tutte le modifiche non salvate andranno perse.</value>
+  </data>
+  <data name="Msg_NoData" xml:space="preserve">
+    <value>Nessun dato disponibile</value>
+  </data>
+  <data name="Msg_NoResults" xml:space="preserve">
+    <value>Nessun risultato trovato</value>
+  </data>
+  <data name="Msg_NoItems" xml:space="preserve">
+    <value>Nessun elemento da visualizzare</value>
+  </data>
+  <data name="Msg_SelectItem" xml:space="preserve">
+    <value>Seleziona un elemento</value>
+  </data>
+  <data name="Msg_Required" xml:space="preserve">
+    <value>Questo campo è obbligatorio</value>
+  </data>
+  <data name="Msg_InvalidFormat" xml:space="preserve">
+    <value>Formato non valido</value>
+  </data>
+  <data name="Msg_InvalidDate" xml:space="preserve">
+    <value>Data non valida</value>
+  </data>
+  <data name="Msg_InvalidAmount" xml:space="preserve">
+    <value>Importo non valido</value>
+  </data>
+  <data name="Msg_TooLong" xml:space="preserve">
+    <value>Valore troppo lungo</value>
+  </data>
+  <data name="Msg_TooShort" xml:space="preserve">
+    <value>Valore troppo corto</value>
+  </data>
+  <data name="Msg_AlreadyExists" xml:space="preserve">
+    <value>Questo elemento esiste già</value>
+  </data>
+  <data name="Msg_NotFound" xml:space="preserve">
+    <value>Elemento non trovato</value>
+  </data>
+  <data name="Msg_AccessDenied" xml:space="preserve">
+    <value>Accesso negato</value>
+  </data>
+  <data name="Msg_Unauthorized" xml:space="preserve">
+    <value>Accesso non autorizzato</value>
+  </data>
+  <data name="Msg_SessionExpired" xml:space="preserve">
+    <value>La sessione è scaduta. Effettua nuovamente l'accesso.</value>
+  </data>
+  <data name="Msg_NetworkError" xml:space="preserve">
+    <value>Errore di rete. Controlla la connessione.</value>
+  </data>
+  <data name="Msg_UnexpectedError" xml:space="preserve">
+    <value>Si è verificato un errore imprevisto. Riprova.</value>
+  </data>
+  <data name="Msg_SaveSuccess" xml:space="preserve">
+    <value>Salvato con successo</value>
+  </data>
+  <data name="Msg_SaveFailed" xml:space="preserve">
+    <value>Salvataggio non riuscito</value>
+  </data>
+  <data name="Msg_DeleteSuccess" xml:space="preserve">
+    <value>Eliminato con successo</value>
+  </data>
+  <data name="Msg_DeleteFailed" xml:space="preserve">
+    <value>Eliminazione non riuscita</value>
+  </data>
+  <data name="Msg_UnsavedChanges" xml:space="preserve">
+    <value>Hai modifiche non salvate. Vuoi salvare prima di uscire?</value>
+  </data>
+  <!-- Tooltips -->
+  <data name="Tip_Edit" xml:space="preserve">
+    <value>Modifica questo elemento</value>
+  </data>
+  <data name="Tip_Delete" xml:space="preserve">
+    <value>Elimina questo elemento</value>
+  </data>
+  <data name="Tip_View" xml:space="preserve">
+    <value>Visualizza dettagli</value>
+  </data>
+  <data name="Tip_Add" xml:space="preserve">
+    <value>Aggiungi nuovo elemento</value>
+  </data>
+  <data name="Tip_Refresh" xml:space="preserve">
+    <value>Aggiorna dati</value>
+  </data>
+  <data name="Tip_Export" xml:space="preserve">
+    <value>Esporta dati</value>
+  </data>
+  <data name="Tip_Import" xml:space="preserve">
+    <value>Importa dati</value>
+  </data>
+  <data name="Tip_Filter" xml:space="preserve">
+    <value>Filtra risultati</value>
+  </data>
+  <data name="Tip_Sort" xml:space="preserve">
+    <value>Ordina risultati</value>
+  </data>
+  <data name="Tip_Settings" xml:space="preserve">
+    <value>Apri impostazioni</value>
+  </data>
+  <data name="Tip_Help" xml:space="preserve">
+    <value>Ottieni aiuto</value>
+  </data>
+  <data name="Tip_Close" xml:space="preserve">
+    <value>Chiudi</value>
+  </data>
+  <data name="Tip_Expand" xml:space="preserve">
+    <value>Espandi</value>
+  </data>
+  <data name="Tip_Collapse" xml:space="preserve">
+    <value>Comprimi</value>
+  </data>
+  <!-- Status -->
+  <data name="Status_Active" xml:space="preserve">
+    <value>Attivo</value>
+  </data>
+  <data name="Status_Inactive" xml:space="preserve">
+    <value>Inattivo</value>
+  </data>
+  <data name="Status_Pending" xml:space="preserve">
+    <value>In Sospeso</value>
+  </data>
+  <data name="Status_Completed" xml:space="preserve">
+    <value>Completato</value>
+  </data>
+  <data name="Status_Failed" xml:space="preserve">
+    <value>Non Riuscito</value>
+  </data>
+  <data name="Status_Cancelled" xml:space="preserve">
+    <value>Annullato</value>
+  </data>
+  <data name="Status_Draft" xml:space="preserve">
+    <value>Bozza</value>
+  </data>
+  <data name="Status_Published" xml:space="preserve">
+    <value>Pubblicato</value>
+  </data>
+  <data name="Status_Archived" xml:space="preserve">
+    <value>Archiviato</value>
+  </data>
+  <data name="Status_Cleared" xml:space="preserve">
+    <value>Compensato</value>
+  </data>
+  <data name="Status_Reconciled" xml:space="preserve">
+    <value>Riconciliato</value>
+  </data>
+  <data name="Status_Posted" xml:space="preserve">
+    <value>Registrato</value>
+  </data>
+  <data name="Status_Uncleared" xml:space="preserve">
+    <value>Non Compensato</value>
+  </data>
+  <!-- Time -->
+  <data name="Time_Today" xml:space="preserve">
+    <value>Oggi</value>
+  </data>
+  <data name="Time_Yesterday" xml:space="preserve">
+    <value>Ieri</value>
+  </data>
+  <data name="Time_Tomorrow" xml:space="preserve">
+    <value>Domani</value>
+  </data>
+  <data name="Time_ThisWeek" xml:space="preserve">
+    <value>Questa Settimana</value>
+  </data>
+  <data name="Time_LastWeek" xml:space="preserve">
+    <value>Settimana Scorsa</value>
+  </data>
+  <data name="Time_ThisMonth" xml:space="preserve">
+    <value>Questo Mese</value>
+  </data>
+  <data name="Time_LastMonth" xml:space="preserve">
+    <value>Mese Scorso</value>
+  </data>
+  <data name="Time_ThisYear" xml:space="preserve">
+    <value>Quest'Anno</value>
+  </data>
+  <data name="Time_LastYear" xml:space="preserve">
+    <value>Anno Scorso</value>
+  </data>
+  <data name="Time_AllTime" xml:space="preserve">
+    <value>Tutto il Periodo</value>
+  </data>
+  <data name="Time_Custom" xml:space="preserve">
+    <value>Personalizzato</value>
+  </data>
+  <data name="Time_DateRange" xml:space="preserve">
+    <value>Intervallo di Date</value>
+  </data>
+  <!-- Dashboard Page -->
+  <data name="Dashboard_Overview" xml:space="preserve">
+    <value>Panoramica</value>
+  </data>
+  <data name="Dashboard_TotalBalance" xml:space="preserve">
+    <value>Saldo Totale</value>
+  </data>
+  <data name="Dashboard_PeriodChange" xml:space="preserve">
+    <value>Variazione del Periodo</value>
+  </data>
+  <data name="Dashboard_Pending" xml:space="preserve">
+    <value>In Sospeso</value>
+  </data>
+  <data name="Dashboard_TotalExpenses" xml:space="preserve">
+    <value>Spese Totali</value>
+  </data>
+  <data name="Dashboard_TotalIncome" xml:space="preserve">
+    <value>Entrate Totali</value>
+  </data>
+  <data name="Dashboard_BudgetSummary" xml:space="preserve">
+    <value>Riepilogo Budget</value>
+  </data>
+  <data name="Dashboard_ViewAllBudgets" xml:space="preserve">
+    <value>Visualizza Tutti i Budget</value>
+  </data>
+  <data name="Dashboard_ActiveBudgetsFor" xml:space="preserve">
+    <value>Budget Attivi per</value>
+  </data>
+  <data name="Dashboard_BudgetedThisMonth" xml:space="preserve">
+    <value>Budget Questo Mese</value>
+  </data>
+  <data name="Dashboard_ActualSpending" xml:space="preserve">
+    <value>Spesa Effettiva</value>
+  </data>
+  <data name="Dashboard_Remaining" xml:space="preserve">
+    <value>Rimanente</value>
+  </data>
+  <data name="Dashboard_BudgetUsed" xml:space="preserve">
+    <value>Budget Utilizzato</value>
+  </data>
+  <data name="Dashboard_TopBudgetCategories" xml:space="preserve">
+    <value>Principali Categorie di Budget</value>
+  </data>
+  <data name="Dashboard_OverBudget" xml:space="preserve">
+    <value>oltre budget</value>
+  </data>
+  <data name="Dashboard_IncomeVsExpenses" xml:space="preserve">
+    <value>Entrate vs Spese</value>
+  </data>
+  <data name="Dashboard_NoTransactionsThisMonth" xml:space="preserve">
+    <value>Nessuna transazione questo mese</value>
+  </data>
+  <data name="Dashboard_TopExpenseCategories" xml:space="preserve">
+    <value>Principali Categorie di Spesa</value>
+  </data>
+  <data name="Dashboard_NoExpensesThisMonth" xml:space="preserve">
+    <value>Nessuna spesa questo mese</value>
+  </data>
+  <data name="Dashboard_NoExpenses" xml:space="preserve">
+    <value>Nessuna spesa</value>
+  </data>
+  <data name="Dashboard_TrendsLast6Months" xml:space="preserve">
+    <value>Tendenze (Ultimi 6 Mesi)</value>
+  </data>
+  <data name="Dashboard_NetWorthTrend" xml:space="preserve">
+    <value>Tendenza Patrimonio Netto</value>
+  </data>
+  <data name="Dashboard_FinancialHealthOverTime" xml:space="preserve">
+    <value>Salute finanziaria nel tempo</value>
+  </data>
+  <data name="Dashboard_NotEnoughDataYet" xml:space="preserve">
+    <value>Dati insufficienti</value>
+  </data>
+  <data name="Dashboard_MonthlyCashflow" xml:space="preserve">
+    <value>Flusso di Cassa Mensile</value>
+  </data>
+  <data name="Dashboard_IncomeVsExpensesOverTime" xml:space="preserve">
+    <value>Entrate vs Spese nel tempo</value>
+  </data>
+  <data name="Dashboard_Income" xml:space="preserve">
+    <value>Entrate</value>
+  </data>
+  <data name="Dashboard_Expenses" xml:space="preserve">
+    <value>Spese</value>
+  </data>
+  <data name="Dashboard_HelpTitle" xml:space="preserve">
+    <value>Guida al Pannello</value>
+  </data>
+  <data name="Dashboard_HelpDescription" xml:space="preserve">
+    <value>Il Pannello è il tuo centro di controllo finanziario. Ottieni una panoramica rapida dei tuoi budget, patrimonio netto e attività finanziaria recente.</value>
+  </data>
+  <data name="Dashboard_HelpFeature1" xml:space="preserve">
+    <value>Visualizza i budget attivi per il mese corrente</value>
+  </data>
+  <data name="Dashboard_HelpFeature2" xml:space="preserve">
+    <value>Monitora il tuo patrimonio netto totale (attività meno passività)</value>
+  </data>
+  <data name="Dashboard_HelpFeature3" xml:space="preserve">
+    <value>Confronta budget vs spesa effettiva</value>
+  </data>
+  <data name="Dashboard_HelpFeature4" xml:space="preserve">
+    <value>Visualizza le principali categorie di spesa con barre di avanzamento</value>
+  </data>
+  <data name="Dashboard_HelpFeature5" xml:space="preserve">
+    <value>Esamina il riepilogo mensile entrate vs spese</value>
+  </data>
+  <data name="Dashboard_HelpHowTo1" xml:space="preserve">
+    <value>Controlla il Riepilogo Budget per vedere lo stato generale del budget</value>
+  </data>
+  <data name="Dashboard_HelpHowTo2" xml:space="preserve">
+    <value>Esamina i budget attivi per vedere quali si applicano questo mese</value>
+  </data>
+  <data name="Dashboard_HelpHowTo3" xml:space="preserve">
+    <value>Usa le barre di avanzamento per identificare categorie oltre budget</value>
+  </data>
+  <data name="Dashboard_HelpHowTo4" xml:space="preserve">
+    <value>Monitora il grafico del flusso di cassa per individuare pattern di spesa</value>
+  </data>
+  <data name="Dashboard_HelpTip1" xml:space="preserve">
+    <value>Le barre verdi indicano spesa entro il budget</value>
+  </data>
+  <data name="Dashboard_HelpTip2" xml:space="preserve">
+    <value>Le barre rosse indicano categorie oltre budget</value>
+  </data>
+  <data name="Dashboard_HelpTip3" xml:space="preserve">
+    <value>Il pannello si aggiorna automaticamente quando aggiungi transazioni</value>
+  </data>
+  <data name="Dashboard_HelpTip4" xml:space="preserve">
+    <value>Naviga tra i mesi per vedere le tendenze del budget nel tempo</value>
+  </data>
+  <!-- Accounts Page -->
+  <data name="Accounts_Subtitle" xml:space="preserve">
+    <value>Gestisci i tuoi conti bancari, carte di credito e altro</value>
+  </data>
+  <data name="Accounts_AddAccount" xml:space="preserve">
+    <value>Aggiungi Conto</value>
+  </data>
+  <data name="Accounts_NoAccountsYet" xml:space="preserve">
+    <value>Nessun conto ancora</value>
+  </data>
+  <data name="Accounts_CreateFirstDescription" xml:space="preserve">
+    <value>Crea il tuo primo conto per iniziare a monitorare le tue finanze</value>
+  </data>
+  <data name="Accounts_CreateFirstAccount" xml:space="preserve">
+    <value>Crea Il Tuo Primo Conto</value>
+  </data>
+  <data name="Accounts_TotalAssets" xml:space="preserve">
+    <value>Totale Attività</value>
+  </data>
+  <data name="Accounts_TotalLiabilities" xml:space="preserve">
+    <value>Totale Passività</value>
+  </data>
+  <data name="Accounts_Assets" xml:space="preserve">
+    <value>Attività</value>
+  </data>
+  <data name="Accounts_Liabilities" xml:space="preserve">
+    <value>Passività</value>
+  </data>
+  <data name="Accounts_Left" xml:space="preserve">
+    <value>rimanente</value>
+  </data>
+  <data name="Accounts_MonthlySpending" xml:space="preserve">
+    <value>Spese Mensili</value>
+  </data>
+  <data name="Accounts_UnbilledCharges" xml:space="preserve">
+    <value>Addebiti Non Fatturati</value>
+  </data>
+  <data name="Accounts_Spent" xml:space="preserve">
+    <value>speso</value>
+  </data>
+  <data name="Accounts_Pending" xml:space="preserve">
+    <value>in sospeso</value>
+  </data>
+  <data name="Accounts_Limit" xml:space="preserve">
+    <value>limite</value>
+  </data>
+  <data name="Accounts_BillsOnDay" xml:space="preserve">
+    <value>Fattura il giorno</value>
+  </data>
+  <data name="Accounts_DialogCreateTitle" xml:space="preserve">
+    <value>Crea Conto</value>
+  </data>
+  <data name="Accounts_DialogEditTitle" xml:space="preserve">
+    <value>Modifica Conto</value>
+  </data>
+  <data name="Accounts_DialogDeleteTitle" xml:space="preserve">
+    <value>Elimina Conto</value>
+  </data>
+  <data name="Accounts_ConfirmDeleteMessage" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare '{0}'? Questa azione non può essere annullata.</value>
+  </data>
+  <data name="Accounts_CreatedSuccess" xml:space="preserve">
+    <value>Conto creato con successo</value>
+  </data>
+  <data name="Accounts_UpdatedSuccess" xml:space="preserve">
+    <value>Conto aggiornato con successo</value>
+  </data>
+  <data name="Accounts_DeletedSuccess" xml:space="preserve">
+    <value>Conto eliminato con successo</value>
+  </data>
+  <data name="Accounts_DeleteFailed" xml:space="preserve">
+    <value>Impossibile eliminare il conto</value>
+  </data>
+  <data name="Accounts_HelpTitle" xml:space="preserve">
+    <value>Guida ai Conti</value>
+  </data>
+  <data name="Accounts_HelpDescription" xml:space="preserve">
+    <value>Gestisci tutti i tuoi conti finanziari in un unico posto. Monitora conti bancari, carte di credito, contanti, investimenti e prestiti per avere un quadro completo delle tue finanze.</value>
+  </data>
+  <data name="Accounts_HelpFeature1" xml:space="preserve">
+    <value>Crea e gestisci più tipi di conto (corrente, risparmio, carte di credito, ecc.)</value>
+  </data>
+  <data name="Accounts_HelpFeature2" xml:space="preserve">
+    <value>Monitora i saldi iniziali e i saldi attuali</value>
+  </data>
+  <data name="Accounts_HelpFeature3" xml:space="preserve">
+    <value>Organizza i conti in gruppi (Personale, Lavoro, ecc.)</value>
+  </data>
+  <data name="Accounts_HelpFeature4" xml:space="preserve">
+    <value>Visualizza il riepilogo del patrimonio netto (attività totali meno passività)</value>
+  </data>
+  <data name="Accounts_HelpFeature5" xml:space="preserve">
+    <value>Disattiva i conti senza perdere i dati storici</value>
+  </data>
+  <data name="Accounts_HelpHowTo1" xml:space="preserve">
+    <value>Clicca su 'Aggiungi Conto' per creare un nuovo conto</value>
+  </data>
+  <data name="Accounts_HelpHowTo2" xml:space="preserve">
+    <value>Seleziona il tipo di conto: Attività (cose che possiedi) o Passività (debiti)</value>
+  </data>
+  <data name="Accounts_HelpHowTo3" xml:space="preserve">
+    <value>Inserisci il saldo iniziale (saldo attuale quando inizi a monitorare)</value>
+  </data>
+  <data name="Accounts_HelpHowTo4" xml:space="preserve">
+    <value>Clicca su qualsiasi conto per visualizzare le sue transazioni</value>
+  </data>
+  <data name="Accounts_HelpHowTo5" xml:space="preserve">
+    <value>Usa i pulsanti modifica/elimina per gestire i conti esistenti</value>
+  </data>
+  <data name="Accounts_HelpTip1" xml:space="preserve">
+    <value>I conti attività (corrente, risparmio, contanti) mostrano saldi positivi</value>
+  </data>
+  <data name="Accounts_HelpTip2" xml:space="preserve">
+    <value>I conti passività (carte di credito, prestiti) influenzano negativamente il tuo patrimonio netto</value>
+  </data>
+  <data name="Accounts_HelpTip3" xml:space="preserve">
+    <value>Raggruppa i conti correlati per una migliore organizzazione</value>
+  </data>
+  <data name="Accounts_HelpTip4" xml:space="preserve">
+    <value>Puoi regolare i saldi iniziali in seguito se necessario dalle impostazioni del conto</value>
+  </data>
+  <!-- Transactions Page -->
+  <data name="Trans_Subtitle" xml:space="preserve">
+    <value>Monitora entrate e spese</value>
+  </data>
+  <data name="Trans_BulkEdit" xml:space="preserve">
+    <value>Modifica Multipla</value>
+  </data>
+  <data name="Trans_ClearSelection" xml:space="preserve">
+    <value>Cancella Selezione</value>
+  </data>
+  <data name="Trans_PostAllPending" xml:space="preserve">
+    <value>Registra Tutti i Sospesi</value>
+  </data>
+  <data name="Trans_Unreconciled" xml:space="preserve">
+    <value>Non Riconciliato</value>
+  </data>
+  <data name="Trans_ShowFilters" xml:space="preserve">
+    <value>Mostra Filtri</value>
+  </data>
+  <data name="Trans_HideFilters" xml:space="preserve">
+    <value>Nascondi Filtri</value>
+  </data>
+  <data name="Trans_ImportCSV" xml:space="preserve">
+    <value>Importa CSV</value>
+  </data>
+  <data name="Trans_Transfer" xml:space="preserve">
+    <value>Trasferimento</value>
+  </data>
+  <data name="Trans_AddTransaction" xml:space="preserve">
+    <value>Aggiungi Transazione</value>
+  </data>
+  <data name="Trans_SearchPlaceholder" xml:space="preserve">
+    <value>Beneficiario, promemoria, categoria...</value>
+  </data>
+  <data name="Trans_TransactionType" xml:space="preserve">
+    <value>Tipo Transazione</value>
+  </data>
+  <data name="Trans_TypeIncome" xml:space="preserve">
+    <value>Entrata</value>
+  </data>
+  <data name="Trans_TypeExpense" xml:space="preserve">
+    <value>Spesa</value>
+  </data>
+  <data name="Trans_TypeTransfer" xml:space="preserve">
+    <value>Trasferimento</value>
+  </data>
+  <data name="Trans_MinAmount" xml:space="preserve">
+    <value>Importo Minimo</value>
+  </data>
+  <data name="Trans_MaxAmount" xml:space="preserve">
+    <value>Importo Massimo</value>
+  </data>
+  <data name="Trans_ClearedOnly" xml:space="preserve">
+    <value>Solo Compensate</value>
+  </data>
+  <data name="Trans_ReconciledOnly" xml:space="preserve">
+    <value>Solo Riconciliate</value>
+  </data>
+  <data name="Trans_ApplyFilters" xml:space="preserve">
+    <value>Applica Filtri</value>
+  </data>
+  <data name="Trans_ClearAll" xml:space="preserve">
+    <value>Cancella Tutto</value>
+  </data>
+  <data name="Trans_FiltersActive" xml:space="preserve">
+    <value>{0} filtro/i attivo/i</value>
+  </data>
+  <data name="Trans_NoTransactionsYet" xml:space="preserve">
+    <value>Nessuna transazione ancora</value>
+  </data>
+  <data name="Trans_StartTracking" xml:space="preserve">
+    <value>Inizia a monitorare le tue entrate e spese</value>
+  </data>
+  <data name="Trans_AddFirstTransaction" xml:space="preserve">
+    <value>Aggiungi La Tua Prima Transazione</value>
+  </data>
+  <data name="Trans_RecurringTransaction" xml:space="preserve">
+    <value>Transazione Ricorrente</value>
+  </data>
+  <data name="Trans_Split" xml:space="preserve">
+    <value>Suddivisa</value>
+  </data>
+  <data name="Trans_EditTransfer" xml:space="preserve">
+    <value>Modifica Trasferimento</value>
+  </data>
+  <data name="Trans_DeleteTransfer" xml:space="preserve">
+    <value>Elimina Trasferimento</value>
+  </data>
+  <data name="Trans_ReconciledLocked" xml:space="preserve">
+    <value>Transazione riconciliata (bloccata)</value>
+  </data>
+  <data name="Trans_ToggleCleared" xml:space="preserve">
+    <value>Cambia stato compensazione</value>
+  </data>
+  <data name="Trans_CannotClearReconciled" xml:space="preserve">
+    <value>Impossibile compensare/decompensare transazione riconciliata</value>
+  </data>
+  <data name="Trans_EditTransaction" xml:space="preserve">
+    <value>Modifica transazione</value>
+  </data>
+  <data name="Trans_CannotEditReconciled" xml:space="preserve">
+    <value>Impossibile modificare transazione riconciliata</value>
+  </data>
+  <data name="Trans_DeleteTransaction" xml:space="preserve">
+    <value>Elimina transazione</value>
+  </data>
+  <data name="Trans_CannotDeleteReconciled" xml:space="preserve">
+    <value>Impossibile eliminare transazione riconciliata</value>
+  </data>
+  <data name="Trans_DialogAddTitle" xml:space="preserve">
+    <value>Aggiungi Transazione</value>
+  </data>
+  <data name="Trans_DialogEditTitle" xml:space="preserve">
+    <value>Modifica Transazione</value>
+  </data>
+  <data name="Trans_DialogImportTitle" xml:space="preserve">
+    <value>Importa Transazioni da CSV</value>
+  </data>
+  <data name="Trans_DialogBulkEditTitle" xml:space="preserve">
+    <value>Modifica Multipla Transazioni</value>
+  </data>
+  <data name="Trans_DialogDeleteTitle" xml:space="preserve">
+    <value>Elimina Transazione</value>
+  </data>
+  <data name="Trans_DialogCreateTransferTitle" xml:space="preserve">
+    <value>Crea Trasferimento</value>
+  </data>
+  <data name="Trans_DialogEditTransferTitle" xml:space="preserve">
+    <value>Modifica Trasferimento</value>
+  </data>
+  <data name="Trans_DialogDeleteTransferTitle" xml:space="preserve">
+    <value>Elimina Trasferimento</value>
+  </data>
+  <data name="Trans_DialogPostAllTitle" xml:space="preserve">
+    <value>Registra Tutte le Transazioni in Sospeso</value>
+  </data>
+  <data name="Trans_ConfirmDeleteMessage" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questa transazione? Questa azione non può essere annullata.</value>
+  </data>
+  <data name="Trans_ConfirmDeleteTransferMessage" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questo trasferimento di {0} da {1} a {2}? Verranno eliminate entrambe le transazioni collegate e l'azione non può essere annullata.</value>
+  </data>
+  <data name="Trans_ConfirmPostAllMessage" xml:space="preserve">
+    <value>Sei sicuro di voler registrare tutte le {0} transazioni in sospeso? Verranno incluse nei calcoli del budget.</value>
+  </data>
+  <data name="Trans_CreatedSuccess" xml:space="preserve">
+    <value>Transazione creata con successo</value>
+  </data>
+  <data name="Trans_UpdatedSuccess" xml:space="preserve">
+    <value>Transazione aggiornata con successo</value>
+  </data>
+  <data name="Trans_DeletedSuccess" xml:space="preserve">
+    <value>Transazione eliminata con successo</value>
+  </data>
+  <data name="Trans_DeleteFailed" xml:space="preserve">
+    <value>Impossibile eliminare la transazione</value>
+  </data>
+  <data name="Trans_CannotDeleteReconciledError" xml:space="preserve">
+    <value>Impossibile eliminare transazione riconciliata</value>
+  </data>
+  <data name="Trans_TransferCreatedSuccess" xml:space="preserve">
+    <value>Trasferimento creato con successo</value>
+  </data>
+  <data name="Trans_TransferUpdatedSuccess" xml:space="preserve">
+    <value>Trasferimento aggiornato con successo</value>
+  </data>
+  <data name="Trans_TransferDeletedSuccess" xml:space="preserve">
+    <value>Trasferimento eliminato con successo</value>
+  </data>
+  <data name="Trans_TransferDeleteFailed" xml:space="preserve">
+    <value>Impossibile eliminare il trasferimento</value>
+  </data>
+  <data name="Trans_TransferNotFound" xml:space="preserve">
+    <value>Trasferimento non trovato</value>
+  </data>
+  <data name="Trans_ImportedCount" xml:space="preserve">
+    <value>Importate {0} transazioni</value>
+  </data>
+  <data name="Trans_UpdatedCount" xml:space="preserve">
+    <value>Aggiornate {0} transazione/i</value>
+  </data>
+  <data name="Trans_SkippedCount" xml:space="preserve">
+    <value>({0} saltate: {1})</value>
+  </data>
+  <data name="Trans_AllSkipped" xml:space="preserve">
+    <value>Tutte le transazioni saltate: {0}</value>
+  </data>
+  <data name="Trans_PostedCount" xml:space="preserve">
+    <value>Registrate {0} transazione/i</value>
+  </data>
+  <data name="Trans_NoTransactionsPosted" xml:space="preserve">
+    <value>Nessuna transazione registrata</value>
+  </data>
+  <data name="Trans_ErrorPosting" xml:space="preserve">
+    <value>Errore durante la registrazione delle transazioni: {0}</value>
+  </data>
+  <data name="Trans_MarkedCleared" xml:space="preserve">
+    <value>Transazione contrassegnata come compensata</value>
+  </data>
+  <data name="Trans_MarkedUncleared" xml:space="preserve">
+    <value>Transazione contrassegnata come non compensata</value>
+  </data>
+  <data name="Trans_FailedToUpdate" xml:space="preserve">
+    <value>Impossibile aggiornare la transazione</value>
+  </data>
+  <data name="Trans_PostAll" xml:space="preserve">
+    <value>Registra Tutti</value>
+  </data>
+  <data name="Trans_HelpTitle" xml:space="preserve">
+    <value>Guida alle Transazioni</value>
+  </data>
+  <data name="Trans_HelpDescription" xml:space="preserve">
+    <value>Visualizza, aggiungi e gestisci tutte le tue transazioni finanziarie. Qui puoi monitorare ogni entrata, spesa e trasferimento su tutti i tuoi conti.</value>
+  </data>
+  <data name="Trans_HelpFeature1" xml:space="preserve">
+    <value>Aggiungi transazioni di entrata e spesa manualmente</value>
+  </data>
+  <data name="Trans_HelpFeature2" xml:space="preserve">
+    <value>Importa transazioni da file CSV</value>
+  </data>
+  <data name="Trans_HelpFeature3" xml:space="preserve">
+    <value>Filtra per data, conto, categoria, beneficiario e stato</value>
+  </data>
+  <data name="Trans_HelpFeature4" xml:space="preserve">
+    <value>Modifica più transazioni contemporaneamente</value>
+  </data>
+  <data name="Trans_HelpFeature5" xml:space="preserve">
+    <value>Suddividi transazioni su più categorie</value>
+  </data>
+  <data name="Trans_HelpFeature6" xml:space="preserve">
+    <value>Crea trasferimenti tra conti</value>
+  </data>
+  <data name="Trans_HelpFeature7" xml:space="preserve">
+    <value>Contrassegna transazioni come compensate o riconciliate</value>
+  </data>
+  <data name="Trans_HelpHowTo1" xml:space="preserve">
+    <value>Clicca 'Aggiungi Transazione' o 'Aggiungi Trasferimento' per creare nuove voci</value>
+  </data>
+  <data name="Trans_HelpHowTo2" xml:space="preserve">
+    <value>Usa 'Importa CSV' per importare in blocco dagli estratti bancari</value>
+  </data>
+  <data name="Trans_HelpHowTo3" xml:space="preserve">
+    <value>Clicca su una riga di transazione per modificarne i dettagli</value>
+  </data>
+  <data name="Trans_HelpHowTo4" xml:space="preserve">
+    <value>Usa il pannello filtri per trovare transazioni specifiche</value>
+  </data>
+  <data name="Trans_HelpHowTo5" xml:space="preserve">
+    <value>Seleziona più righe e usa 'Modifica Multipla' per aggiornamenti di massa</value>
+  </data>
+  <data name="Trans_HelpTip1" xml:space="preserve">
+    <value>Gli importi positivi sono entrate, gli importi negativi sono spese</value>
+  </data>
+  <data name="Trans_HelpTip2" xml:space="preserve">
+    <value>Usa lo stato 'Registrato' per transazioni confermate, 'In Sospeso' per quelle future</value>
+  </data>
+  <data name="Trans_HelpTip3" xml:space="preserve">
+    <value>Le transazioni riconciliate sono bloccate e non possono essere modificate</value>
+  </data>
+  <data name="Trans_HelpTip4" xml:space="preserve">
+    <value>I trasferimenti non contano come entrate o spese nei report</value>
+  </data>
+  <data name="Trans_HelpTip5" xml:space="preserve">
+    <value>Usa la colonna Contrassegno per segnare transazioni importanti da seguire</value>
+  </data>
+  <!-- Categories Page -->
+  <data name="Cat_Subtitle" xml:space="preserve">
+    <value>Organizza le tue transazioni con gruppi di categorie</value>
+  </data>
+  <data name="Cat_NewGroup" xml:space="preserve">
+    <value>Nuovo Gruppo</value>
+  </data>
+  <data name="Cat_NewCategory" xml:space="preserve">
+    <value>Nuova Categoria</value>
+  </data>
+  <data name="Cat_DefaultMonthlyBudgets" xml:space="preserve">
+    <value>Budget Mensili Predefiniti</value>
+  </data>
+  <data name="Cat_MonthBudgets" xml:space="preserve">
+    <value>Budget di {0} {1}</value>
+  </data>
+  <data name="Cat_ViewingDefaults" xml:space="preserve">
+    <value>Visualizzazione Predefiniti</value>
+  </data>
+  <data name="Cat_ViewDefaults" xml:space="preserve">
+    <value>Visualizza Predefiniti</value>
+  </data>
+  <data name="Cat_NoCategoriesYet" xml:space="preserve">
+    <value>Nessuna categoria ancora</value>
+  </data>
+  <data name="Cat_CreateCategoriesFirstForBudgets" xml:space="preserve">
+    <value>Crea prima le categorie per impostare i budget</value>
+  </data>
+  <data name="Cat_Budgeted" xml:space="preserve">
+    <value>Preventivato</value>
+  </data>
+  <data name="Cat_Actual" xml:space="preserve">
+    <value>Effettivo</value>
+  </data>
+  <data name="Cat_MonthSpecificOverride" xml:space="preserve">
+    <value>Modifica specifica del mese</value>
+  </data>
+  <data name="Cat_RolloverEnabled" xml:space="preserve">
+    <value>Riporto abilitato</value>
+  </data>
+  <data name="Cat_OverspentTooltip" xml:space="preserve">
+    <value>Sforato di {0:C2} ({1:F0}% del budget)</value>
+  </data>
+  <data name="Cat_BudgetUsedTooltip" xml:space="preserve">
+    <value>{0:F0}% del budget utilizzato</value>
+  </data>
+  <data name="Cat_NoCategoriesInGroup" xml:space="preserve">
+    <value>Nessuna categoria in questo gruppo</value>
+  </data>
+  <data name="Cat_NoCategoryGroupsYet" xml:space="preserve">
+    <value>Nessun gruppo di categorie ancora</value>
+  </data>
+  <data name="Cat_CreateGroupsDescription" xml:space="preserve">
+    <value>Crea gruppi per organizzare le tue categorie</value>
+  </data>
+  <data name="Cat_CreateFirstGroup" xml:space="preserve">
+    <value>Crea Il Tuo Primo Gruppo</value>
+  </data>
+  <data name="Cat_Income" xml:space="preserve">
+    <value>Entrata</value>
+  </data>
+  <data name="Cat_Expense" xml:space="preserve">
+    <value>Spesa</value>
+  </data>
+  <data name="Cat_CategoryCount" xml:space="preserve">
+    <value>{0} categoria/e</value>
+  </data>
+  <data name="Cat_NoCategoriesClickToAdd" xml:space="preserve">
+    <value>Nessuna categoria in questo gruppo. Clicca + per aggiungerne una.</value>
+  </data>
+  <data name="Cat_ViewUsageHistory" xml:space="preserve">
+    <value>Visualizza Storico Utilizzo</value>
+  </data>
+  <data name="Cat_Rename" xml:space="preserve">
+    <value>Rinomina</value>
+  </data>
+  <data name="Cat_MergeIntoAnother" xml:space="preserve">
+    <value>Unisci con un'altra categoria</value>
+  </data>
+  <data name="Cat_NewCategoryGroupTitle" xml:space="preserve">
+    <value>Nuovo Gruppo di Categorie</value>
+  </data>
+  <data name="Cat_EditCategoryGroupTitle" xml:space="preserve">
+    <value>Modifica Gruppo di Categorie</value>
+  </data>
+  <data name="Cat_DeleteCategoryGroupTitle" xml:space="preserve">
+    <value>Elimina Gruppo di Categorie</value>
+  </data>
+  <data name="Cat_NewCategoryTitle" xml:space="preserve">
+    <value>Nuova Categoria</value>
+  </data>
+  <data name="Cat_EditCategoryTitle" xml:space="preserve">
+    <value>Modifica Categoria</value>
+  </data>
+  <data name="Cat_DeleteCategoryTitle" xml:space="preserve">
+    <value>Elimina Categoria</value>
+  </data>
+  <data name="Cat_RenameCategoryTitle" xml:space="preserve">
+    <value>Rinomina Categoria</value>
+  </data>
+  <data name="Cat_MergeCategoryTitle" xml:space="preserve">
+    <value>Unisci Categoria</value>
+  </data>
+  <data name="Cat_UsageHistoryTitle" xml:space="preserve">
+    <value>{0} - Storico Utilizzo</value>
+  </data>
+  <data name="Cat_GroupCreatedSuccess" xml:space="preserve">
+    <value>Gruppo di categorie creato con successo</value>
+  </data>
+  <data name="Cat_GroupUpdatedSuccess" xml:space="preserve">
+    <value>Gruppo di categorie aggiornato con successo</value>
+  </data>
+  <data name="Cat_GroupDeletedSuccess" xml:space="preserve">
+    <value>Gruppo di categorie eliminato con successo</value>
+  </data>
+  <data name="Cat_GroupDeleteFailed" xml:space="preserve">
+    <value>Impossibile eliminare il gruppo di categorie</value>
+  </data>
+  <data name="Cat_CategoryCreatedSuccess" xml:space="preserve">
+    <value>Categoria creata con successo</value>
+  </data>
+  <data name="Cat_CategoryUpdatedSuccess" xml:space="preserve">
+    <value>Categoria aggiornata con successo</value>
+  </data>
+  <data name="Cat_CategoryDeletedSuccess" xml:space="preserve">
+    <value>Categoria eliminata con successo</value>
+  </data>
+  <data name="Cat_CategoryDeleteFailed" xml:space="preserve">
+    <value>Impossibile eliminare la categoria</value>
+  </data>
+  <data name="Cat_CategoryRenamedSuccess" xml:space="preserve">
+    <value>Categoria rinominata con successo</value>
+  </data>
+  <data name="Cat_CategoryMergedSuccess" xml:space="preserve">
+    <value>Categoria '{0}' unita con successo</value>
+  </data>
+  <data name="Cat_BudgetUpdatedSuccess" xml:space="preserve">
+    <value>Budget aggiornato con successo</value>
+  </data>
+  <data name="Cat_GroupHasActiveCategories" xml:space="preserve">
+    <value>Questo gruppo contiene {0} categoria/e attiva/e. Devi prima spostarle o eliminarle.</value>
+  </data>
+  <data name="Cat_ConfirmDeleteGroup" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questo gruppo di categorie? Questa azione non può essere annullata.</value>
+  </data>
+  <data name="Cat_ConfirmDeleteCategory" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare '{0}'? Questo non influenzerà le transazioni esistenti che usano questa categoria.</value>
+  </data>
+  <data name="Cat_SetDefaultBudget" xml:space="preserve">
+    <value>Imposta Budget Predefinito</value>
+  </data>
+  <data name="Cat_SetBudgetForMonth" xml:space="preserve">
+    <value>Imposta Budget per {0} {1}</value>
+  </data>
+  <data name="Cat_HelpTitle" xml:space="preserve">
+    <value>Guida alle Categorie</value>
+  </data>
+  <data name="Cat_HelpDescription" xml:space="preserve">
+    <value>Organizza le tue transazioni con categorie e gruppi. Le categorie ti aiutano a capire dove vanno i tuoi soldi e sono essenziali per budget e report.</value>
+  </data>
+  <data name="Cat_HelpFeature1" xml:space="preserve">
+    <value>Crea categorie personalizzate organizzate in gruppi</value>
+  </data>
+  <data name="Cat_HelpFeature2" xml:space="preserve">
+    <value>Le categorie predefinite vengono configurate automaticamente per i nuovi utenti</value>
+  </data>
+  <data name="Cat_HelpFeature3" xml:space="preserve">
+    <value>Rinomina categorie preservando lo storico delle transazioni</value>
+  </data>
+  <data name="Cat_HelpFeature4" xml:space="preserve">
+    <value>Unisci categorie duplicate</value>
+  </data>
+  <data name="Cat_HelpFeature5" xml:space="preserve">
+    <value>Visualizza statistiche di utilizzo delle categorie</value>
+  </data>
+  <data name="Cat_HelpFeature6" xml:space="preserve">
+    <value>Riordina categorie e gruppi con il drag-and-drop</value>
+  </data>
+  <data name="Cat_HelpHowTo1" xml:space="preserve">
+    <value>Clicca 'Aggiungi Gruppo' per creare un nuovo gruppo di categorie (es. 'Cibo', 'Casa')</value>
+  </data>
+  <data name="Cat_HelpHowTo2" xml:space="preserve">
+    <value>Clicca il pulsante + su un gruppo per aggiungere categorie al suo interno</value>
+  </data>
+  <data name="Cat_HelpHowTo3" xml:space="preserve">
+    <value>Clicca sul nome di una categoria per rinominarla</value>
+  </data>
+  <data name="Cat_HelpHowTo4" xml:space="preserve">
+    <value>Usa il menu (⋮) per unire, vedere l'utilizzo o eliminare</value>
+  </data>
+  <data name="Cat_HelpHowTo5" xml:space="preserve">
+    <value>Trascina categorie tra gruppi per riorganizzare</value>
+  </data>
+  <data name="Cat_HelpTip1" xml:space="preserve">
+    <value>Raggruppa categorie correlate (es. 'Spesa' e 'Ristoranti' sotto 'Cibo')</value>
+  </data>
+  <data name="Cat_HelpTip2" xml:space="preserve">
+    <value>Mantieni i nomi delle categorie brevi e chiari</value>
+  </data>
+  <data name="Cat_HelpTip3" xml:space="preserve">
+    <value>Usa 'Unisci' per combinare categorie duplicate senza perdere dati</value>
+  </data>
+  <data name="Cat_HelpTip4" xml:space="preserve">
+    <value>Eliminare una categoria rimuoverà la categoria dalle transazioni, non le eliminerà</value>
+  </data>
+  <data name="Cat_HelpTip5" xml:space="preserve">
+    <value>Le categorie con transazioni non possono essere eliminate permanentemente, solo disattivate</value>
+  </data>
+  <!-- Budgets Page -->
+  <data name="Budget_Subtitle" xml:space="preserve">
+    <value>Crea e gestisci budget nominati per periodi diversi</value>
+  </data>
+  <data name="Budget_AllBudgets" xml:space="preserve">
+    <value>Tutti i Budget</value>
+  </data>
+  <data name="Budget_DefaultsOnly" xml:space="preserve">
+    <value>Solo Predefiniti</value>
+  </data>
+  <data name="Budget_NewBudget" xml:space="preserve">
+    <value>Nuovo Budget</value>
+  </data>
+  <data name="Budget_NoBudgetsYet" xml:space="preserve">
+    <value>Nessun budget ancora</value>
+  </data>
+  <data name="Budget_CreateFirstDescription" xml:space="preserve">
+    <value>Crea il tuo primo budget per iniziare a pianificare le tue spese</value>
+  </data>
+  <data name="Budget_CreateFirstBudget" xml:space="preserve">
+    <value>Crea Il Tuo Primo Budget</value>
+  </data>
+  <data name="Budget_DefaultAllMonths" xml:space="preserve">
+    <value>Predefinito (Tutti i Mesi)</value>
+  </data>
+  <data name="Budget_Default" xml:space="preserve">
+    <value>Predefinito</value>
+  </data>
+  <data name="Budget_CategoryCount" xml:space="preserve">
+    <value>categoria/e</value>
+  </data>
+  <data name="Budget_TotalBudgeted" xml:space="preserve">
+    <value>totale preventivato</value>
+  </data>
+  <data name="Budget_Rollover" xml:space="preserve">
+    <value>Riporto</value>
+  </data>
+  <data name="Budget_OverspentTooltip" xml:space="preserve">
+    <value>Sforato di {0:C2} ({1:F0}% del budget)</value>
+  </data>
+  <data name="Budget_BudgetUsedTooltip" xml:space="preserve">
+    <value>{0:F0}% del budget utilizzato</value>
+  </data>
+  <data name="Budget_NoCategoriesAssigned" xml:space="preserve">
+    <value>Nessuna categoria assegnata. Clicca modifica per aggiungere categorie.</value>
+  </data>
+  <data name="Budget_HelpTitle" xml:space="preserve">
+    <value>Guida ai Budget</value>
+  </data>
+  <data name="Budget_HelpDescription" xml:space="preserve">
+    <value>Crea e gestisci budget mensili usando il metodo delle buste. Assegna importi pianificati alle categorie e monitora le spese rispetto agli obiettivi.</value>
+  </data>
+  <data name="Budget_HelpFeature1" xml:space="preserve">
+    <value>Crea budget per mesi specifici o usa modelli predefiniti</value>
+  </data>
+  <data name="Budget_HelpFeature2" xml:space="preserve">
+    <value>Assegna limiti di spesa alle singole categorie</value>
+  </data>
+  <data name="Budget_HelpFeature3" xml:space="preserve">
+    <value>Monitora spesa effettiva vs importi pianificati</value>
+  </data>
+  <data name="Budget_HelpFeature4" xml:space="preserve">
+    <value>Indicatori visivi di avanzamento mostrano la salute del budget</value>
+  </data>
+  <data name="Budget_HelpFeature5" xml:space="preserve">
+    <value>Copia budget in nuovi mesi velocemente</value>
+  </data>
+  <data name="Budget_HelpFeature6" xml:space="preserve">
+    <value>Supporto per il riporto degli importi non utilizzati (opzionale)</value>
+  </data>
+  <data name="Budget_HelpHowTo1" xml:space="preserve">
+    <value>Clicca 'Aggiungi Budget' per creare un nuovo budget mensile</value>
+  </data>
+  <data name="Budget_HelpHowTo2" xml:space="preserve">
+    <value>Imposta importi pianificati per ogni categoria da monitorare</value>
+  </data>
+  <data name="Budget_HelpHowTo3" xml:space="preserve">
+    <value>Visualizza la colonna 'Rimanente' per vedere i fondi disponibili</value>
+  </data>
+  <data name="Budget_HelpHowTo4" xml:space="preserve">
+    <value>Verde = in linea, Giallo = attenzione, Rosso = oltre budget</value>
+  </data>
+  <data name="Budget_HelpHowTo5" xml:space="preserve">
+    <value>Usa 'Copia nel Mese' per duplicare un budget come punto di partenza</value>
+  </data>
+  <data name="Budget_HelpHowTo6" xml:space="preserve">
+    <value>Modifica qualsiasi budget per regolare gli importi a metà mese</value>
+  </data>
+  <data name="Budget_HelpTip1" xml:space="preserve">
+    <value>Inizia con le spese fisse (affitto, utenze) prima delle spese discrezionali</value>
+  </data>
+  <data name="Budget_HelpTip2" xml:space="preserve">
+    <value>Crea un budget 'Predefinito' da usare come modello per i nuovi mesi</value>
+  </data>
+  <data name="Budget_HelpTip3" xml:space="preserve">
+    <value>Rivedi regolarmente le spese effettive per regolare i budget futuri</value>
+  </data>
+  <data name="Budget_HelpTip4" xml:space="preserve">
+    <value>Solo le transazioni registrate contano per la spesa del budget</value>
+  </data>
+  <data name="Budget_HelpTip5" xml:space="preserve">
+    <value>I trasferimenti sono esclusi dai calcoli del budget</value>
+  </data>
+  <data name="Budget_DialogCreateTitle" xml:space="preserve">
+    <value>Crea Budget</value>
+  </data>
+  <data name="Budget_DialogEditTitle" xml:space="preserve">
+    <value>Modifica Budget</value>
+  </data>
+  <data name="Budget_DialogDeleteTitle" xml:space="preserve">
+    <value>Elimina Budget</value>
+  </data>
+  <data name="Budget_CreatedSuccess" xml:space="preserve">
+    <value>Budget creato con successo</value>
+  </data>
+  <data name="Budget_UpdatedSuccess" xml:space="preserve">
+    <value>Budget aggiornato con successo</value>
+  </data>
+  <data name="Budget_DeletedSuccess" xml:space="preserve">
+    <value>Budget eliminato con successo</value>
+  </data>
+  <data name="Budget_DeleteFailed" xml:space="preserve">
+    <value>Impossibile eliminare il budget</value>
+  </data>
+  <data name="Budget_ConfirmDeleteWithCategories" xml:space="preserve">
+    <value>Questo budget contiene {0} categoria/e. Sei sicuro di volerlo eliminare?</value>
+  </data>
+  <data name="Budget_ConfirmDelete" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questo budget?</value>
+  </data>
+  <!-- Import Page -->
+  <data name="Import_UploadTitle" xml:space="preserve">
+    <value>Carica File CSV</value>
+  </data>
+  <data name="Import_SelectCsvFile" xml:space="preserve">
+    <value>Seleziona File CSV</value>
+  </data>
+  <data name="Import_Selected" xml:space="preserve">
+    <value>Selezionato:</value>
+  </data>
+  <data name="Import_MapColumnsTitle" xml:space="preserve">
+    <value>Mappa Colonne CSV</value>
+  </data>
+  <data name="Import_FirstRowIsHeader" xml:space="preserve">
+    <value>La prima riga è l'intestazione</value>
+  </data>
+  <data name="Import_DateColumn" xml:space="preserve">
+    <value>Colonna Data</value>
+  </data>
+  <data name="Import_AmountColumn" xml:space="preserve">
+    <value>Colonna Importo</value>
+  </data>
+  <data name="Import_PayeeColumn" xml:space="preserve">
+    <value>Colonna Beneficiario</value>
+  </data>
+  <data name="Import_CategoryColumn" xml:space="preserve">
+    <value>Colonna Categoria</value>
+  </data>
+  <data name="Import_MemoColumn" xml:space="preserve">
+    <value>Colonna Promemoria</value>
+  </data>
+  <data name="Import_ReferenceColumn" xml:space="preserve">
+    <value>Colonna Numero di Riferimento</value>
+  </data>
+  <data name="Import_TargetAccount" xml:space="preserve">
+    <value>Importa nel Conto</value>
+  </data>
+  <data name="Import_DateFormat" xml:space="preserve">
+    <value>Formato Data</value>
+  </data>
+  <data name="Import_DateFormatHelper" xml:space="preserve">
+    <value>es. GG/MM/AAAA o AAAA-MM-GG</value>
+  </data>
+  <data name="Import_InvertAmounts" xml:space="preserve">
+    <value>Inverti importi (spese come positivi)</value>
+  </data>
+  <data name="Import_DefaultStatus" xml:space="preserve">
+    <value>Stato Predefinito</value>
+  </data>
+  <data name="Import_SelectColumn" xml:space="preserve">
+    <value>-- Seleziona Colonna --</value>
+  </data>
+  <data name="Import_Column" xml:space="preserve">
+    <value>Colonna</value>
+  </data>
+  <data name="Import_None" xml:space="preserve">
+    <value>-- Nessuna --</value>
+  </data>
+  <data name="Import_PreviewTitle" xml:space="preserve">
+    <value>Anteprima Importazione</value>
+  </data>
+  <data name="Import_PreviewFirst10Rows" xml:space="preserve">
+    <value>Anteprima delle prime 10 righe:</value>
+  </data>
+  <data name="Import_Row" xml:space="preserve">
+    <value>Riga</value>
+  </data>
+  <data name="Import_ParseError" xml:space="preserve">
+    <value>ERRORE</value>
+  </data>
+  <data name="Import_SomeRowsHaveErrors" xml:space="preserve">
+    <value>Alcune righe hanno errori e verranno saltate durante l'importazione:</value>
+  </data>
+  <data name="Import_TotalRows" xml:space="preserve">
+    <value>Righe totali:</value>
+  </data>
+  <data name="Import_Valid" xml:space="preserve">
+    <value>Valide:</value>
+  </data>
+  <data name="Import_ErrorsSummary" xml:space="preserve">
+    <value>Errori:</value>
+  </data>
+  <data name="Import_CompleteTitle" xml:space="preserve">
+    <value>Importazione Completata</value>
+  </data>
+  <data name="Import_ImportedLabel" xml:space="preserve">
+    <value>Importate:</value>
+  </data>
+  <data name="Import_SkippedLabel" xml:space="preserve">
+    <value>Saltate:</value>
+  </data>
+  <data name="Import_TotalLabel" xml:space="preserve">
+    <value>Totale:</value>
+  </data>
+  <data name="Import_TransactionsUnit" xml:space="preserve">
+    <value>transazioni</value>
+  </data>
+  <data name="Import_RowsUnit" xml:space="preserve">
+    <value>righe</value>
+  </data>
+  <data name="Import_RowsProcessed" xml:space="preserve">
+    <value>righe elaborate</value>
+  </data>
+  <data name="Import_ErrorsLabel" xml:space="preserve">
+    <value>Errori:</value>
+  </data>
+  <data name="Import_Importing" xml:space="preserve">
+    <value>Importazione...</value>
+  </data>
+  <data name="Import_ImportNTransactions" xml:space="preserve">
+    <value>Importa {0} Transazioni</value>
+  </data>
+  <data name="Import_CsvFileEmpty" xml:space="preserve">
+    <value>Il file CSV è vuoto</value>
+  </data>
+  <data name="Import_ErrorReadingFile" xml:space="preserve">
+    <value>Errore durante la lettura del file: {0}</value>
+  </data>
+  <data name="Import_ErrorGeneratingPreview" xml:space="preserve">
+    <value>Errore durante la generazione dell'anteprima: {0}</value>
+  </data>
+  <data name="Import_RowsSkippedDueToErrors" xml:space="preserve">
+    <value>{0} righe saltate per errori</value>
+  </data>
+  <data name="Import_ErrorImporting" xml:space="preserve">
+    <value>Errore durante l'importazione delle transazioni: {0}</value>
+  </data>
+  <!-- Additional Buttons -->
+  <data name="Btn_Create" xml:space="preserve">
+    <value>Crea</value>
+  </data>
+  <data name="Btn_Update" xml:space="preserve">
+    <value>Aggiorna</value>
+  </data>
+  <data name="Btn_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Btn_Merge" xml:space="preserve">
+    <value>Unisci</value>
+  </data>
+  <!-- ManualAdjustmentDialog -->
+  <data name="AdjustDlg_Description" xml:space="preserve">
+    <value>Le rettifiche manuali influiscono direttamente sul saldo del conto. Tutte le rettifiche sono completamente tracciabili.</value>
+  </data>
+  <data name="AdjustDlg_CurrentBalance" xml:space="preserve">
+    <value>Saldo Attuale</value>
+  </data>
+  <data name="AdjustDlg_AdjustmentAmount" xml:space="preserve">
+    <value>Importo Rettifica</value>
+  </data>
+  <data name="AdjustDlg_AmountRequired" xml:space="preserve">
+    <value>L'importo è obbligatorio</value>
+  </data>
+  <data name="AdjustDlg_AmountHelper" xml:space="preserve">
+    <value>Positivo = aumenta saldo, Negativo = diminuisce saldo</value>
+  </data>
+  <data name="AdjustDlg_AdjustmentDate" xml:space="preserve">
+    <value>Data Rettifica</value>
+  </data>
+  <data name="AdjustDlg_DateRequired" xml:space="preserve">
+    <value>La data è obbligatoria</value>
+  </data>
+  <data name="AdjustDlg_DateHelper" xml:space="preserve">
+    <value>Quando la rettifica avrà effetto</value>
+  </data>
+  <data name="AdjustDlg_Category" xml:space="preserve">
+    <value>Categoria (opzionale)</value>
+  </data>
+  <data name="AdjustDlg_BankFee" xml:space="preserve">
+    <value>Commissione Bancaria</value>
+  </data>
+  <data name="AdjustDlg_Interest" xml:space="preserve">
+    <value>Interessi</value>
+  </data>
+  <data name="AdjustDlg_Correction" xml:space="preserve">
+    <value>Correzione</value>
+  </data>
+  <data name="AdjustDlg_ServiceCharge" xml:space="preserve">
+    <value>Costo del Servizio</value>
+  </data>
+  <data name="AdjustDlg_ATMFee" xml:space="preserve">
+    <value>Commissione ATM</value>
+  </data>
+  <data name="AdjustDlg_OverdraftFee" xml:space="preserve">
+    <value>Commissione Scoperto</value>
+  </data>
+  <data name="AdjustDlg_Other" xml:space="preserve">
+    <value>Altro</value>
+  </data>
+  <data name="AdjustDlg_DescriptionLabel" xml:space="preserve">
+    <value>Descrizione</value>
+  </data>
+  <data name="AdjustDlg_DescriptionRequired" xml:space="preserve">
+    <value>La descrizione è obbligatoria</value>
+  </data>
+  <data name="AdjustDlg_DescriptionHelper" xml:space="preserve">
+    <value>Spiega il motivo di questa rettifica</value>
+  </data>
+  <data name="AdjustDlg_NewBalance" xml:space="preserve">
+    <value>Nuovo Saldo</value>
+  </data>
+  <data name="AdjustDlg_Creating" xml:space="preserve">
+    <value>Creazione...</value>
+  </data>
+  <data name="AdjustDlg_CreateButton" xml:space="preserve">
+    <value>Crea Rettifica</value>
+  </data>
+  <data name="AdjustDlg_BalanceError" xml:space="preserve">
+    <value>Errore nel calcolo del saldo: {0}</value>
+  </data>
+  <data name="AdjustDlg_DescriptionRequiredSnack" xml:space="preserve">
+    <value>La descrizione è obbligatoria</value>
+  </data>
+  <data name="AdjustDlg_CreateError" xml:space="preserve">
+    <value>Errore durante la creazione della rettifica: {0}</value>
+  </data>
+  <!-- OpeningBalanceHistoryDialog -->
+  <data name="OpenBalHistDlg_NoHistory" xml:space="preserve">
+    <value>Nessuno storico rettifiche trovato per questo conto. Il saldo iniziale attuale è il valore originale.</value>
+  </data>
+  <data name="OpenBalHistDlg_From" xml:space="preserve">
+    <value>Da</value>
+  </data>
+  <data name="OpenBalHistDlg_To" xml:space="preserve">
+    <value>A</value>
+  </data>
+  <data name="OpenBalHistDlg_IncreasedBy" xml:space="preserve">
+    <value>Aumentato di {0}</value>
+  </data>
+  <data name="OpenBalHistDlg_DecreasedBy" xml:space="preserve">
+    <value>Diminuito di {0}</value>
+  </data>
+  <data name="OpenBalHistDlg_NoChange" xml:space="preserve">
+    <value>Nessuna variazione</value>
+  </data>
+  <data name="OpenBalHistDlg_LoadError" xml:space="preserve">
+    <value>Errore nel caricamento dello storico rettifiche: {0}</value>
+  </data>
+  <!-- OpeningBalanceAdjustmentDialog -->
+  <data name="OpenBalAdjDlg_Description" xml:space="preserve">
+    <value>La modifica del saldo iniziale creerà una voce nel registro di controllo.</value>
+  </data>
+  <data name="OpenBalAdjDlg_CurrentBalance" xml:space="preserve">
+    <value>Saldo Iniziale Attuale</value>
+  </data>
+  <data name="OpenBalAdjDlg_NewBalance" xml:space="preserve">
+    <value>Nuovo Saldo Iniziale</value>
+  </data>
+  <data name="OpenBalAdjDlg_BalanceRequired" xml:space="preserve">
+    <value>Il nuovo saldo è obbligatorio</value>
+  </data>
+  <data name="OpenBalAdjDlg_AdjustmentAmount" xml:space="preserve">
+    <value>Importo Rettifica</value>
+  </data>
+  <data name="OpenBalAdjDlg_Reason" xml:space="preserve">
+    <value>Motivo (opzionale)</value>
+  </data>
+  <data name="OpenBalAdjDlg_ReasonHelper" xml:space="preserve">
+    <value>Spiegazione opzionale per questa rettifica</value>
+  </data>
+  <data name="OpenBalAdjDlg_SaveButton" xml:space="preserve">
+    <value>Salva Rettifica</value>
+  </data>
+  <data name="OpenBalAdjDlg_IncreaseOf" xml:space="preserve">
+    <value>Aumento di {0}</value>
+  </data>
+  <data name="OpenBalAdjDlg_DecreaseOf" xml:space="preserve">
+    <value>Diminuzione di {0}</value>
+  </data>
+  <data name="OpenBalAdjDlg_NoChange" xml:space="preserve">
+    <value>Nessuna variazione</value>
+  </data>
+  <data name="OpenBalAdjDlg_SaveError" xml:space="preserve">
+    <value>Errore nella modifica del saldo iniziale: {0}</value>
+  </data>
+  <!-- TransferDialog -->
+  <data name="TransferDlg_Description" xml:space="preserve">
+    <value>Trasferisci denaro tra i tuoi conti. Questo crea due transazioni collegate.</value>
+  </data>
+  <data name="TransferDlg_FromAccount" xml:space="preserve">
+    <value>Dal Conto</value>
+  </data>
+  <data name="TransferDlg_FromAccountHelper" xml:space="preserve">
+    <value>Conto da cui trasferire il denaro</value>
+  </data>
+  <data name="TransferDlg_ToAccount" xml:space="preserve">
+    <value>Al Conto</value>
+  </data>
+  <data name="TransferDlg_ToAccountHelper" xml:space="preserve">
+    <value>Conto verso cui trasferire il denaro</value>
+  </data>
+  <data name="TransferDlg_AmountHelper" xml:space="preserve">
+    <value>Importo da trasferire (sempre positivo)</value>
+  </data>
+  <data name="TransferDlg_MemoHelper" xml:space="preserve">
+    <value>Nota opzionale su questo trasferimento</value>
+  </data>
+  <data name="TransferDlg_Reference" xml:space="preserve">
+    <value>Riferimento#</value>
+  </data>
+  <data name="TransferDlg_ReferenceHelper" xml:space="preserve">
+    <value>Numero di conferma, ecc.</value>
+  </data>
+  <data name="TransferDlg_MarkCleared" xml:space="preserve">
+    <value>Segna come Compensato</value>
+  </data>
+  <data name="TransferDlg_CreateButton" xml:space="preserve">
+    <value>Crea Trasferimento</value>
+  </data>
+  <data name="TransferDlg_UpdateButton" xml:space="preserve">
+    <value>Aggiorna Trasferimento</value>
+  </data>
+  <data name="TransferDlg_SameAccountError" xml:space="preserve">
+    <value>Non è possibile trasferire allo stesso conto</value>
+  </data>
+  <data name="TransferDlg_AmountPositiveError" xml:space="preserve">
+    <value>L'importo deve essere maggiore di zero</value>
+  </data>
+  <data name="TransferDlg_UpdateFailed" xml:space="preserve">
+    <value>Impossibile aggiornare il trasferimento</value>
+  </data>
+  <!-- TransactionDialog -->
+  <data name="TxnDlg_ReconciledWarningTitle" xml:space="preserve">
+    <value>Questa transazione è riconciliata e non può essere modificata.</value>
+  </data>
+  <data name="TxnDlg_ReconciledWarningDetails" xml:space="preserve">
+    <value>Le transazioni riconciliate sono bloccate per mantenere l'accuratezza finanziaria. Per modificare questa transazione, devi prima annullare la riconciliazione dalla pagina Riconciliazione.</value>
+  </data>
+  <data name="TxnDlg_CreditCardTitle" xml:space="preserve">
+    <value>Transazione Carta di Credito</value>
+  </data>
+  <data name="TxnDlg_CreditCardInfo" xml:space="preserve">
+    <value>Questa transazione sarà contrassegnata come &lt;strong&gt;In sospeso&lt;/strong&gt; e verrà automaticamente registrata nel giorno del ciclo di fatturazione della tua carta di credito.</value>
+  </data>
+  <data name="TxnDlg_AmountHelper" xml:space="preserve">
+    <value>Inserisci l'importo della transazione (il segno è automatico in base al tipo di categoria)</value>
+  </data>
+  <data name="TxnDlg_SplitCategories" xml:space="preserve">
+    <value>Dividi tra Categorie</value>
+  </data>
+  <data name="TxnDlg_Reference" xml:space="preserve">
+    <value>Riferimento#</value>
+  </data>
+  <data name="TxnDlg_ReferenceHelper" xml:space="preserve">
+    <value>Numero assegno, conferma, ecc.</value>
+  </data>
+  <data name="TxnDlg_MakeRecurring" xml:space="preserve">
+    <value>Rendi questa una transazione ricorrente</value>
+  </data>
+  <data name="TxnDlg_RepeatEvery" xml:space="preserve">
+    <value>Ripeti Ogni</value>
+  </data>
+  <data name="TxnDlg_Weekly" xml:space="preserve">
+    <value>Settimanale</value>
+  </data>
+  <data name="TxnDlg_Monthly" xml:space="preserve">
+    <value>Mensile</value>
+  </data>
+  <data name="TxnDlg_Quarterly" xml:space="preserve">
+    <value>Trimestrale (3 mesi)</value>
+  </data>
+  <data name="TxnDlg_SemiAnnually" xml:space="preserve">
+    <value>Semestrale (6 mesi)</value>
+  </data>
+  <data name="TxnDlg_Yearly" xml:space="preserve">
+    <value>Annuale</value>
+  </data>
+  <data name="TxnDlg_FirstOccurrence" xml:space="preserve">
+    <value>Data Prima Occorrenza</value>
+  </data>
+  <data name="TxnDlg_FirstOccurrenceHelper" xml:space="preserve">
+    <value>Quando dovrebbe apparire per la prima volta questa transazione ricorrente?</value>
+  </data>
+  <data name="TxnDlg_CannotModifyTitle" xml:space="preserve">
+    <value>Impossibile Modificare la Transazione</value>
+  </data>
+  <!-- Additional Column Keys -->
+  <data name="Col_Month" xml:space="preserve">
+    <value>Mese</value>
+  </data>
+  <data name="Col_Transactions" xml:space="preserve">
+    <value>Transazioni</value>
+  </data>
+  <!-- Common Values -->
+  <data name="Common_Yes" xml:space="preserve">
+    <value>Sì</value>
+  </data>
+  <data name="Common_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Common_None" xml:space="preserve">
+    <value>Nessuno</value>
+  </data>
+  <!-- Cashflow Report -->
+  <data name="Cashflow_PageTitle" xml:space="preserve">
+    <value>Flusso di Cassa</value>
+  </data>
+  <data name="Cashflow_Header" xml:space="preserve">
+    <value>Flusso di Cassa</value>
+  </data>
+  <data name="Cashflow_TotalIncome" xml:space="preserve">
+    <value>Entrate Totali</value>
+  </data>
+  <data name="Cashflow_TotalExpenses" xml:space="preserve">
+    <value>Spese Totali</value>
+  </data>
+  <data name="Cashflow_NetCashflow" xml:space="preserve">
+    <value>Flusso Netto</value>
+  </data>
+  <data name="Cashflow_Months" xml:space="preserve">
+    <value>Mesi</value>
+  </data>
+  <data name="Cashflow_Positive" xml:space="preserve">
+    <value>Positivo</value>
+  </data>
+  <data name="Cashflow_Negative" xml:space="preserve">
+    <value>Negativo</value>
+  </data>
+  <data name="Cashflow_MonthlyTrend" xml:space="preserve">
+    <value>Tendenza Mensile</value>
+  </data>
+  <data name="Cashflow_MonthlyDetails" xml:space="preserve">
+    <value>Dettagli Mensili</value>
+  </data>
+  <data name="Cashflow_Income" xml:space="preserve">
+    <value>Entrate</value>
+  </data>
+  <data name="Cashflow_Expenses" xml:space="preserve">
+    <value>Spese</value>
+  </data>
+  <data name="Cashflow_IncomeByCategory" xml:space="preserve">
+    <value>Entrate per Categoria</value>
+  </data>
+  <data name="Cashflow_ExpensesByCategory" xml:space="preserve">
+    <value>Spese per Categoria</value>
+  </data>
+  <data name="Cashflow_NoIncomeThisMonth" xml:space="preserve">
+    <value>Nessuna entrata questo mese</value>
+  </data>
+  <data name="Cashflow_NoExpensesThisMonth" xml:space="preserve">
+    <value>Nessuna spesa questo mese</value>
+  </data>
+  <data name="Cashflow_NoDataMessage" xml:space="preserve">
+    <value>Nessun dato disponibile per il periodo selezionato</value>
+  </data>
+  <data name="Cashflow_ExportToCsv" xml:space="preserve">
+    <value>Esporta in CSV</value>
+  </data>
+  <data name="Cashflow_HelpTitle" xml:space="preserve">
+    <value>Guida al Flusso di Cassa</value>
+  </data>
+  <data name="Cashflow_HelpDescription" xml:space="preserve">
+    <value>Monitora entrate e uscite nel tempo per capire il tuo flusso di cassa.</value>
+  </data>
+  <data name="Cashflow_HelpFeature1" xml:space="preserve">
+    <value>Visualizza entrate e spese totali per periodo</value>
+  </data>
+  <data name="Cashflow_HelpFeature2" xml:space="preserve">
+    <value>Grafici delle tendenze mensili</value>
+  </data>
+  <data name="Cashflow_HelpFeature3" xml:space="preserve">
+    <value>Analisi per categoria</value>
+  </data>
+  <data name="Cashflow_HelpFeature4" xml:space="preserve">
+    <value>Esportazione dati in CSV</value>
+  </data>
+  <data name="Cashflow_HelpFeature5" xml:space="preserve">
+    <value>Filtri per intervallo date personalizzato</value>
+  </data>
+  <data name="Cashflow_HelpHowTo1" xml:space="preserve">
+    <value>Seleziona un intervallo di date per filtrare i dati</value>
+  </data>
+  <data name="Cashflow_HelpHowTo2" xml:space="preserve">
+    <value>Esamina il grafico delle tendenze per pattern stagionali</value>
+  </data>
+  <data name="Cashflow_HelpHowTo3" xml:space="preserve">
+    <value>Clicca sulle categorie per vedere i dettagli</value>
+  </data>
+  <data name="Cashflow_HelpHowTo4" xml:space="preserve">
+    <value>Usa l'esportazione CSV per analisi esterne</value>
+  </data>
+  <data name="Cashflow_HelpHowTo5" xml:space="preserve">
+    <value>Confronta mesi diversi per identificare tendenze</value>
+  </data>
+  <data name="Cashflow_HelpTip1" xml:space="preserve">
+    <value>Un flusso netto positivo indica che stai risparmiando</value>
+  </data>
+  <data name="Cashflow_HelpTip2" xml:space="preserve">
+    <value>Monitora le spese impreviste per migliorare il budget</value>
+  </data>
+  <data name="Cashflow_HelpTip3" xml:space="preserve">
+    <value>Usa le categorie per identificare aree di risparmio</value>
+  </data>
+  <data name="Cashflow_HelpTip4" xml:space="preserve">
+    <value>I trasferimenti non sono inclusi nei calcoli del flusso</value>
+  </data>
+  <!-- Category Spending Report -->
+  <data name="CatSpend_PageTitle" xml:space="preserve">
+    <value>Spese per Categoria</value>
+  </data>
+  <data name="CatSpend_Header" xml:space="preserve">
+    <value>Spese per Categoria</value>
+  </data>
+  <data name="CatSpend_TotalSpending" xml:space="preserve">
+    <value>Spesa Totale</value>
+  </data>
+  <data name="CatSpend_Categories" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="CatSpend_WithSpending" xml:space="preserve">
+    <value>con spese</value>
+  </data>
+  <data name="CatSpend_Transactions" xml:space="preserve">
+    <value>Transazioni</value>
+  </data>
+  <data name="CatSpend_Avg" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="CatSpend_TopCategories" xml:space="preserve">
+    <value>Categorie Principali</value>
+  </data>
+  <data name="CatSpend_AllCategories" xml:space="preserve">
+    <value>Tutte le Categorie</value>
+  </data>
+  <data name="CatSpend_PercentOfTotal" xml:space="preserve">
+    <value>% del Totale</value>
+  </data>
+  <data name="CatSpend_AvgPerTransaction" xml:space="preserve">
+    <value>Media per Transazione</value>
+  </data>
+  <data name="CatSpend_Average" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="CatSpend_MonthlySpendingTrend" xml:space="preserve">
+    <value>Tendenza Spese Mensili</value>
+  </data>
+  <data name="CatSpend_NoMonthlyBreakdown" xml:space="preserve">
+    <value>Nessuna ripartizione mensile disponibile</value>
+  </data>
+  <data name="CatSpend_NoDataMessage" xml:space="preserve">
+    <value>Nessun dato di spesa disponibile per il periodo selezionato</value>
+  </data>
+  <data name="CatSpend_ExportToCsv" xml:space="preserve">
+    <value>Esporta in CSV</value>
+  </data>
+  <data name="CatSpend_HelpTitle" xml:space="preserve">
+    <value>Guida alle Spese per Categoria</value>
+  </data>
+  <data name="CatSpend_HelpDescription" xml:space="preserve">
+    <value>Analizza come distribuisci le tue spese tra le diverse categorie.</value>
+  </data>
+  <data name="CatSpend_HelpFeature1" xml:space="preserve">
+    <value>Visualizza la distribuzione delle spese per categoria</value>
+  </data>
+  <data name="CatSpend_HelpFeature2" xml:space="preserve">
+    <value>Grafici a torta e tabelle dettagliate</value>
+  </data>
+  <data name="CatSpend_HelpFeature3" xml:space="preserve">
+    <value>Tendenze mensili per categoria</value>
+  </data>
+  <data name="CatSpend_HelpFeature4" xml:space="preserve">
+    <value>Esportazione dati in CSV</value>
+  </data>
+  <data name="CatSpend_HelpFeature5" xml:space="preserve">
+    <value>Filtri per intervallo date</value>
+  </data>
+  <data name="CatSpend_HelpHowTo1" xml:space="preserve">
+    <value>Seleziona un intervallo di date per analizzare</value>
+  </data>
+  <data name="CatSpend_HelpHowTo2" xml:space="preserve">
+    <value>Esamina il grafico a torta per la distribuzione</value>
+  </data>
+  <data name="CatSpend_HelpHowTo3" xml:space="preserve">
+    <value>Usa la tabella per dettagli specifici</value>
+  </data>
+  <data name="CatSpend_HelpHowTo4" xml:space="preserve">
+    <value>Confronta le tendenze mensili</value>
+  </data>
+  <data name="CatSpend_HelpHowTo5" xml:space="preserve">
+    <value>Esporta i dati per analisi esterne</value>
+  </data>
+  <data name="CatSpend_HelpTip1" xml:space="preserve">
+    <value>Le categorie principali mostrano dove vai la maggior parte del denaro</value>
+  </data>
+  <data name="CatSpend_HelpTip2" xml:space="preserve">
+    <value>Usa questi dati per definire i budget</value>
+  </data>
+  <data name="CatSpend_HelpTip3" xml:space="preserve">
+    <value>Monitora le variazioni mensili per individuare anomalie</value>
+  </data>
+  <data name="CatSpend_HelpTip4" xml:space="preserve">
+    <value>Solo le transazioni registrate sono incluse</value>
+  </data>
+  <!-- Budget vs Actual Report -->
+  <data name="BudgetVsActual_PageTitle" xml:space="preserve">
+    <value>Budget vs Effettivo</value>
+  </data>
+  <data name="BudgetVsActual_Header" xml:space="preserve">
+    <value>Budget vs Effettivo</value>
+  </data>
+  <data name="BudgetVsActual_TotalBudgeted" xml:space="preserve">
+    <value>Totale Preventivato</value>
+  </data>
+  <data name="BudgetVsActual_TotalActual" xml:space="preserve">
+    <value>Totale Effettivo</value>
+  </data>
+  <data name="BudgetVsActual_Remaining" xml:space="preserve">
+    <value>Rimanente</value>
+  </data>
+  <data name="BudgetVsActual_BudgetUsed" xml:space="preserve">
+    <value>Budget Utilizzato</value>
+  </data>
+  <data name="BudgetVsActual_MonthlyBudgetUsage" xml:space="preserve">
+    <value>Utilizzo Budget Mensile</value>
+  </data>
+  <data name="BudgetVsActual_MonthlyBreakdown" xml:space="preserve">
+    <value>Ripartizione Mensile</value>
+  </data>
+  <data name="BudgetVsActual_Budgeted" xml:space="preserve">
+    <value>Preventivato</value>
+  </data>
+  <data name="BudgetVsActual_Actual" xml:space="preserve">
+    <value>Effettivo</value>
+  </data>
+  <data name="BudgetVsActual_PercentUsed" xml:space="preserve">
+    <value>% Utilizzato</value>
+  </data>
+  <data name="BudgetVsActual_CategoryBreakdown" xml:space="preserve">
+    <value>Ripartizione per Categoria</value>
+  </data>
+  <data name="BudgetVsActual_NoBudgetedCategories" xml:space="preserve">
+    <value>Nessuna categoria con budget definito</value>
+  </data>
+  <data name="BudgetVsActual_SelectDateRange" xml:space="preserve">
+    <value>Seleziona un intervallo di date per vedere i dati</value>
+  </data>
+  <data name="BudgetVsActual_ExportToCsv" xml:space="preserve">
+    <value>Esporta in CSV</value>
+  </data>
+  <data name="BudgetVsActual_StatusOnTrack" xml:space="preserve">
+    <value>In Linea</value>
+  </data>
+  <data name="BudgetVsActual_StatusGood" xml:space="preserve">
+    <value>Buono</value>
+  </data>
+  <data name="BudgetVsActual_StatusNearLimit" xml:space="preserve">
+    <value>Vicino al Limite</value>
+  </data>
+  <data name="BudgetVsActual_StatusOverBudget" xml:space="preserve">
+    <value>Oltre Budget</value>
+  </data>
+  <data name="BudgetVsActual_HelpTitle" xml:space="preserve">
+    <value>Guida Budget vs Effettivo</value>
+  </data>
+  <data name="BudgetVsActual_HelpDescription" xml:space="preserve">
+    <value>Confronta le spese pianificate con quelle effettive per monitorare i budget.</value>
+  </data>
+  <data name="BudgetVsActual_HelpFeature1" xml:space="preserve">
+    <value>Confronto visivo budget vs spesa effettiva</value>
+  </data>
+  <data name="BudgetVsActual_HelpFeature2" xml:space="preserve">
+    <value>Indicatori di stato per ogni categoria</value>
+  </data>
+  <data name="BudgetVsActual_HelpFeature3" xml:space="preserve">
+    <value>Ripartizione mensile dettagliata</value>
+  </data>
+  <data name="BudgetVsActual_HelpFeature4" xml:space="preserve">
+    <value>Esportazione dati in CSV</value>
+  </data>
+  <data name="BudgetVsActual_HelpFeature5" xml:space="preserve">
+    <value>Filtri per intervallo date</value>
+  </data>
+  <data name="BudgetVsActual_HelpHowTo1" xml:space="preserve">
+    <value>Seleziona un intervallo di date che copra i budget attivi</value>
+  </data>
+  <data name="BudgetVsActual_HelpHowTo2" xml:space="preserve">
+    <value>Esamina gli indicatori di stato per ogni categoria</value>
+  </data>
+  <data name="BudgetVsActual_HelpHowTo3" xml:space="preserve">
+    <value>Usa la ripartizione mensile per tendenze</value>
+  </data>
+  <data name="BudgetVsActual_HelpHowTo4" xml:space="preserve">
+    <value>Identifica categorie oltre budget</value>
+  </data>
+  <data name="BudgetVsActual_HelpHowTo5" xml:space="preserve">
+    <value>Esporta i dati per analisi dettagliate</value>
+  </data>
+  <data name="BudgetVsActual_HelpTip1" xml:space="preserve">
+    <value>Verde = in linea, Giallo = attenzione, Rosso = oltre budget</value>
+  </data>
+  <data name="BudgetVsActual_HelpTip2" xml:space="preserve">
+    <value>Rivedi regolarmente per mantenere il controllo</value>
+  </data>
+  <data name="BudgetVsActual_HelpTip3" xml:space="preserve">
+    <value>Solo le transazioni registrate sono incluse</value>
+  </data>
+  <data name="BudgetVsActual_HelpTip4" xml:space="preserve">
+    <value>I trasferimenti sono esclusi dai calcoli</value>
+  </data>
+  <!-- Net Worth Report -->
+  <data name="NetWorth_PageTitle" xml:space="preserve">
+    <value>Patrimonio Netto</value>
+  </data>
+  <data name="NetWorth_Header" xml:space="preserve">
+    <value>Patrimonio Netto</value>
+  </data>
+  <data name="NetWorth_IntervalDays" xml:space="preserve">
+    <value>Intervallo</value>
+  </data>
+  <data name="NetWorth_ExportToCsv" xml:space="preserve">
+    <value>Esporta in CSV</value>
+  </data>
+  <data name="NetWorth_CurrentNetWorth" xml:space="preserve">
+    <value>Patrimonio Netto Attuale</value>
+  </data>
+  <data name="NetWorth_TotalAssets" xml:space="preserve">
+    <value>Totale Attività</value>
+  </data>
+  <data name="NetWorth_TotalLiabilities" xml:space="preserve">
+    <value>Totale Passività</value>
+  </data>
+  <data name="NetWorth_ChangeOverPeriod" xml:space="preserve">
+    <value>Variazione nel Periodo</value>
+  </data>
+  <data name="NetWorth_PeakNetWorth" xml:space="preserve">
+    <value>Patrimonio Massimo</value>
+  </data>
+  <data name="NetWorth_LowestNetWorth" xml:space="preserve">
+    <value>Patrimonio Minimo</value>
+  </data>
+  <data name="NetWorth_TrendChart" xml:space="preserve">
+    <value>Grafico Tendenza</value>
+  </data>
+  <data name="NetWorth_SnapshotDetails" xml:space="preserve">
+    <value>Dettagli Snapshot</value>
+  </data>
+  <data name="NetWorth_Assets" xml:space="preserve">
+    <value>Attività</value>
+  </data>
+  <data name="NetWorth_Liabilities" xml:space="preserve">
+    <value>Passività</value>
+  </data>
+  <data name="NetWorth_NetWorth" xml:space="preserve">
+    <value>Patrimonio Netto</value>
+  </data>
+  <data name="NetWorth_Change" xml:space="preserve">
+    <value>Variazione</value>
+  </data>
+  <data name="NetWorth_AccountBalances" xml:space="preserve">
+    <value>Saldi dei Conti</value>
+  </data>
+  <data name="NetWorth_NoAccountsFound" xml:space="preserve">
+    <value>Nessun conto trovato</value>
+  </data>
+  <data name="NetWorth_SelectDateRange" xml:space="preserve">
+    <value>Seleziona un intervallo di date per vedere i dati</value>
+  </data>
+  <data name="NetWorth_HelpTitle" xml:space="preserve">
+    <value>Guida al Patrimonio Netto</value>
+  </data>
+  <data name="NetWorth_HelpDescription" xml:space="preserve">
+    <value>Monitora il tuo patrimonio netto (attività meno passività) nel tempo.</value>
+  </data>
+  <data name="NetWorth_HelpFeature1" xml:space="preserve">
+    <value>Calcolo automatico del patrimonio netto</value>
+  </data>
+  <data name="NetWorth_HelpFeature2" xml:space="preserve">
+    <value>Grafico delle tendenze nel tempo</value>
+  </data>
+  <data name="NetWorth_HelpFeature3" xml:space="preserve">
+    <value>Dettaglio per singolo conto</value>
+  </data>
+  <data name="NetWorth_HelpFeature4" xml:space="preserve">
+    <value>Esportazione dati in CSV</value>
+  </data>
+  <data name="NetWorth_HelpFeature5" xml:space="preserve">
+    <value>Intervalli di snapshot configurabili</value>
+  </data>
+  <data name="NetWorth_HelpHowTo1" xml:space="preserve">
+    <value>Seleziona un intervallo di date per il report</value>
+  </data>
+  <data name="NetWorth_HelpHowTo2" xml:space="preserve">
+    <value>Imposta l'intervallo tra gli snapshot (giorni)</value>
+  </data>
+  <data name="NetWorth_HelpHowTo3" xml:space="preserve">
+    <value>Esamina il grafico per le tendenze</value>
+  </data>
+  <data name="NetWorth_HelpHowTo4" xml:space="preserve">
+    <value>Visualizza i dettagli dei saldi per conto</value>
+  </data>
+  <data name="NetWorth_HelpHowTo5" xml:space="preserve">
+    <value>Esporta i dati per analisi esterne</value>
+  </data>
+  <data name="NetWorth_HelpTip1" xml:space="preserve">
+    <value>Monitora regolarmente per obiettivi finanziari</value>
+  </data>
+  <data name="NetWorth_HelpTip2" xml:space="preserve">
+    <value>Un patrimonio in crescita indica buona salute finanziaria</value>
+  </data>
+  <data name="NetWorth_HelpTip3" xml:space="preserve">
+    <value>I conti inattivi sono contrassegnati ma inclusi</value>
+  </data>
+  <data name="NetWorth_HelpTip4" xml:space="preserve">
+    <value>Le passività riducono il patrimonio netto</value>
+  </data>
+  <!-- Account Balance History Report -->
+  <data name="BalHistory_PageTitle" xml:space="preserve">
+    <value>Storico Saldi</value>
+  </data>
+  <data name="BalHistory_Header" xml:space="preserve">
+    <value>Storico Saldi Conti</value>
+  </data>
+  <data name="BalHistory_AllAccounts" xml:space="preserve">
+    <value>Tutti i Conti</value>
+  </data>
+  <data name="BalHistory_IntervalDays" xml:space="preserve">
+    <value>Intervallo</value>
+  </data>
+  <data name="BalHistory_ExportToCsv" xml:space="preserve">
+    <value>Esporta in CSV</value>
+  </data>
+  <data name="BalHistory_CurrentBalance" xml:space="preserve">
+    <value>Saldo Attuale</value>
+  </data>
+  <data name="BalHistory_OpeningBalance" xml:space="preserve">
+    <value>Saldo Iniziale</value>
+  </data>
+  <data name="BalHistory_Change" xml:space="preserve">
+    <value>Variazione</value>
+  </data>
+  <data name="BalHistory_PercentChange" xml:space="preserve">
+    <value>% Variazione</value>
+  </data>
+  <data name="BalHistory_AverageBalance" xml:space="preserve">
+    <value>Saldo Medio</value>
+  </data>
+  <data name="BalHistory_PeakBalance" xml:space="preserve">
+    <value>Saldo Massimo</value>
+  </data>
+  <data name="BalHistory_LowestBalance" xml:space="preserve">
+    <value>Saldo Minimo</value>
+  </data>
+  <data name="BalHistory_BalanceTrend" xml:space="preserve">
+    <value>Tendenza Saldo</value>
+  </data>
+  <data name="BalHistory_BalanceSnapshots" xml:space="preserve">
+    <value>Snapshot Saldi</value>
+  </data>
+  <data name="BalHistory_TotalCurrentBalance" xml:space="preserve">
+    <value>Saldo Attuale Totale</value>
+  </data>
+  <data name="BalHistory_TotalOpeningBalance" xml:space="preserve">
+    <value>Saldo Iniziale Totale</value>
+  </data>
+  <data name="BalHistory_TotalChange" xml:space="preserve">
+    <value>Variazione Totale</value>
+  </data>
+  <data name="BalHistory_AccountBalancesOverTime" xml:space="preserve">
+    <value>Saldi Conti nel Tempo</value>
+  </data>
+  <data name="BalHistory_AccountSummaries" xml:space="preserve">
+    <value>Riepilogo Conti</value>
+  </data>
+  <data name="BalHistory_Current" xml:space="preserve">
+    <value>Attuale</value>
+  </data>
+  <data name="BalHistory_Peak" xml:space="preserve">
+    <value>Massimo</value>
+  </data>
+  <data name="BalHistory_Average" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="BalHistory_ViewDetails" xml:space="preserve">
+    <value>Vedi Dettagli</value>
+  </data>
+  <data name="BalHistory_SelectDateRange" xml:space="preserve">
+    <value>Seleziona un intervallo di date per vedere i dati</value>
+  </data>
+  <!-- Insight Explorer Report -->
+  <data name="Insight_PageTitle" xml:space="preserve">
+    <value>Esplora Dati</value>
+  </data>
+  <data name="Insight_Header" xml:space="preserve">
+    <value>Esplora Dati</value>
+  </data>
+  <data name="Insight_Subtitle" xml:space="preserve">
+    <value>Costruisci query personalizzate per esplorare i tuoi dati</value>
+  </data>
+  <data name="Insight_SaveQuery" xml:space="preserve">
+    <value>Salva Query</value>
+  </data>
+  <data name="Insight_LoadQuery" xml:space="preserve">
+    <value>Carica Query</value>
+  </data>
+  <data name="Insight_RunQuery" xml:space="preserve">
+    <value>Esegui Query</value>
+  </data>
+  <data name="Insight_QueryTarget" xml:space="preserve">
+    <value>Oggetto Query</value>
+  </data>
+  <data name="Insight_TargetTransactions" xml:space="preserve">
+    <value>Transazioni</value>
+  </data>
+  <data name="Insight_TargetAccounts" xml:space="preserve">
+    <value>Conti</value>
+  </data>
+  <data name="Insight_TargetCategories" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="Insight_TargetPayees" xml:space="preserve">
+    <value>Beneficiari</value>
+  </data>
+  <data name="Insight_TargetBudgets" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="Insight_Filters" xml:space="preserve">
+    <value>Filtri</value>
+  </data>
+  <data name="Insight_Property" xml:space="preserve">
+    <value>Proprietà</value>
+  </data>
+  <data name="Insight_Operator" xml:space="preserve">
+    <value>Operatore</value>
+  </data>
+  <data name="Insight_Value" xml:space="preserve">
+    <value>Valore</value>
+  </data>
+  <data name="Insight_ToValue" xml:space="preserve">
+    <value>A Valore</value>
+  </data>
+  <data name="Insight_AddFilter" xml:space="preserve">
+    <value>Aggiungi Filtro</value>
+  </data>
+  <data name="Insight_AggregationOptional" xml:space="preserve">
+    <value>Aggregazione (Opzionale)</value>
+  </data>
+  <data name="Insight_EnableAggregation" xml:space="preserve">
+    <value>Abilita Aggregazione</value>
+  </data>
+  <data name="Insight_Function" xml:space="preserve">
+    <value>Funzione</value>
+  </data>
+  <data name="Insight_FuncSum" xml:space="preserve">
+    <value>Somma</value>
+  </data>
+  <data name="Insight_FuncCount" xml:space="preserve">
+    <value>Conteggio</value>
+  </data>
+  <data name="Insight_FuncAverage" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="Insight_FuncMin" xml:space="preserve">
+    <value>Minimo</value>
+  </data>
+  <data name="Insight_FuncMax" xml:space="preserve">
+    <value>Massimo</value>
+  </data>
+  <data name="Insight_AggregateProperty" xml:space="preserve">
+    <value>Proprietà da Aggregare</value>
+  </data>
+  <data name="Insight_ChartSettingsOptional" xml:space="preserve">
+    <value>Impostazioni Grafico (Opzionale)</value>
+  </data>
+  <data name="Insight_EnableChart" xml:space="preserve">
+    <value>Abilita Grafico</value>
+  </data>
+  <data name="Insight_ChartType" xml:space="preserve">
+    <value>Tipo Grafico</value>
+  </data>
+  <data name="Insight_ChartBar" xml:space="preserve">
+    <value>Barre</value>
+  </data>
+  <data name="Insight_ChartLine" xml:space="preserve">
+    <value>Linee</value>
+  </data>
+  <data name="Insight_ChartPie" xml:space="preserve">
+    <value>Torta</value>
+  </data>
+  <data name="Insight_ChartDonut" xml:space="preserve">
+    <value>Ciambella</value>
+  </data>
+  <data name="Insight_ChartTitle" xml:space="preserve">
+    <value>Titolo Grafico</value>
+  </data>
+  <data name="Insight_DataTable" xml:space="preserve">
+    <value>Tabella Dati</value>
+  </data>
+  <data name="Insight_TotalRows" xml:space="preserve">
+    <value>Righe Totali</value>
+  </data>
+  <data name="Insight_ShowingRows" xml:space="preserve">
+    <value>Visualizzate</value>
+  </data>
+  <data name="Insight_NoResultsFound" xml:space="preserve">
+    <value>Nessun risultato trovato</value>
+  </data>
+  <data name="Insight_RunQueryToSeeResults" xml:space="preserve">
+    <value>Esegui una query per vedere i risultati</value>
+  </data>
+  <data name="Insight_Chart" xml:space="preserve">
+    <value>Grafico</value>
+  </data>
+  <data name="Insight_ConfigureAggregationForChart" xml:space="preserve">
+    <value>Configura l'aggregazione per visualizzare i grafici</value>
+  </data>
+  <data name="Insight_ConfigureChartAndRun" xml:space="preserve">
+    <value>Configura le impostazioni del grafico ed esegui la query</value>
+  </data>
+  <data name="Insight_LoadedQuery" xml:space="preserve">
+    <value>Query Caricata</value>
+  </data>
+  <data name="Insight_SaveQueryTitle" xml:space="preserve">
+    <value>Salva Query</value>
+  </data>
+  <data name="Insight_QueryName" xml:space="preserve">
+    <value>Nome Query</value>
+  </data>
+  <data name="Insight_DescriptionOptional" xml:space="preserve">
+    <value>Descrizione (Opzionale)</value>
+  </data>
+  <data name="Insight_LoadQueryTitle" xml:space="preserve">
+    <value>Carica Query</value>
+  </data>
+  <data name="Insight_NoSavedQueries" xml:space="preserve">
+    <value>Nessuna query salvata</value>
+  </data>
+  <data name="Insight_Updated" xml:space="preserve">
+    <value>Aggiornata</value>
+  </data>
+  <data name="Insight_Load" xml:space="preserve">
+    <value>Carica</value>
+  </data>
+  <data name="Insight_DeleteQueryTitle" xml:space="preserve">
+    <value>Elimina Query</value>
+  </data>
+  <data name="Insight_DeleteQueryConfirm" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questa query salvata?</value>
+  </data>
+  <!-- Common Additional -->
+  <data name="Common_Continue" xml:space="preserve">
+    <value>Continua</value>
+  </data>
+  <data name="Common_Verify" xml:space="preserve">
+    <value>Verifica</value>
+  </data>
+  <data name="Common_Never" xml:space="preserve">
+    <value>Mai</value>
+  </data>
+  <data name="Common_Actions" xml:space="preserve">
+    <value>Azioni</value>
+  </data>
+  <!-- Language Selector -->
+  <data name="Lang_SelectLanguage" xml:space="preserve">
+    <value>Seleziona Lingua</value>
+  </data>
+  <!-- Help Button -->
+  <data name="Help_AriaLabel" xml:space="preserve">
+    <value>Apri aiuto</value>
+  </data>
+  <!-- Navigation Additional -->
+  <data name="Nav_License" xml:space="preserve">
+    <value>Licenza</value>
+  </data>
+  <data name="Nav_Profile" xml:space="preserve">
+    <value>Profilo</value>
+  </data>
+  <data name="Nav_SignOut" xml:space="preserve">
+    <value>Esci</value>
+  </data>
+  <data name="Nav_SignIn" xml:space="preserve">
+    <value>Accedi</value>
+  </data>
+  <data name="Nav_GetStarted" xml:space="preserve">
+    <value>Inizia</value>
+  </data>
+  <!-- Error Pages -->
+  <data name="Error_PageTitle" xml:space="preserve">
+    <value>Errore</value>
+  </data>
+  <data name="Error_Title" xml:space="preserve">
+    <value>Si è verificato un errore</value>
+  </data>
+  <data name="Error_Message" xml:space="preserve">
+    <value>Si è verificato un errore durante l'elaborazione della richiesta.</value>
+  </data>
+  <data name="Error_RequestId" xml:space="preserve">
+    <value>ID Richiesta</value>
+  </data>
+  <data name="Error_DevModeTitle" xml:space="preserve">
+    <value>Modalità Sviluppo</value>
+  </data>
+  <data name="Error_DevModeInfo" xml:space="preserve">
+    <value>Passando all'ambiente di sviluppo vengono visualizzate informazioni dettagliate sull'errore.</value>
+  </data>
+  <data name="Error_DevModeWarning" xml:space="preserve">
+    <value>L'ambiente di sviluppo non dovrebbe essere abilitato per le applicazioni distribuite. Può mostrare informazioni sensibili agli utenti finali.</value>
+  </data>
+  <data name="Error_NotFound_Title" xml:space="preserve">
+    <value>Pagina Non Trovata</value>
+  </data>
+  <data name="Error_NotFound_Message" xml:space="preserve">
+    <value>Spiacenti, la pagina che stai cercando non esiste.</value>
+  </data>
+  <!-- Auth - Login -->
+  <data name="Auth_Login_PageTitle" xml:space="preserve">
+    <value>Accedi</value>
+  </data>
+  <data name="Auth_Login_WelcomeBack" xml:space="preserve">
+    <value>Bentornato</value>
+  </data>
+  <data name="Auth_Login_SignInToContinue" xml:space="preserve">
+    <value>Accedi per continuare al tuo account</value>
+  </data>
+  <data name="Auth_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Auth_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Auth_Login_RememberMe" xml:space="preserve">
+    <value>Ricordami</value>
+  </data>
+  <data name="Auth_Login_LoginButton" xml:space="preserve">
+    <value>Accedi</value>
+  </data>
+  <data name="Auth_Or" xml:space="preserve">
+    <value>Oppure</value>
+  </data>
+  <data name="Auth_Login_WithPasskey" xml:space="preserve">
+    <value>Accedi con una passkey</value>
+  </data>
+  <data name="Auth_Login_ForgotPassword" xml:space="preserve">
+    <value>Password dimenticata?</value>
+  </data>
+  <data name="Auth_Login_RegisterNewUser" xml:space="preserve">
+    <value>Registrati come nuovo utente</value>
+  </data>
+  <data name="Auth_Login_ResendConfirmation" xml:space="preserve">
+    <value>Reinvia email di conferma</value>
+  </data>
+  <data name="Auth_Login_InvalidAttempt" xml:space="preserve">
+    <value>Tentativo di accesso non valido.</value>
+  </data>
+  <!-- Auth - Register -->
+  <data name="Auth_Register_PageTitle" xml:space="preserve">
+    <value>Crea Account</value>
+  </data>
+  <data name="Auth_Register_CreateAccount" xml:space="preserve">
+    <value>Crea il tuo account</value>
+  </data>
+  <data name="Auth_Register_StartManaging" xml:space="preserve">
+    <value>Inizia a gestire le tue finanze oggi</value>
+  </data>
+  <data name="Auth_ConfirmPassword" xml:space="preserve">
+    <value>Conferma Password</value>
+  </data>
+  <data name="Auth_Register_RegisterButton" xml:space="preserve">
+    <value>Crea account</value>
+  </data>
+  <data name="Auth_Register_AlreadyHaveAccount" xml:space="preserve">
+    <value>Hai già un account?</value>
+  </data>
+  <data name="Auth_Register_SignIn" xml:space="preserve">
+    <value>Accedi</value>
+  </data>
+  <!-- Auth - Forgot Password -->
+  <data name="Auth_ForgotPwd_PageTitle" xml:space="preserve">
+    <value>Password Dimenticata</value>
+  </data>
+  <data name="Auth_ForgotPwd_Title" xml:space="preserve">
+    <value>Password dimenticata?</value>
+  </data>
+  <data name="Auth_ForgotPwd_EnterEmail" xml:space="preserve">
+    <value>Inserisci il tuo indirizzo email per reimpostare la password</value>
+  </data>
+  <data name="Auth_ForgotPwd_ResetButton" xml:space="preserve">
+    <value>Reimposta Password</value>
+  </data>
+  <!-- Auth - Forgot Password Confirmation -->
+  <data name="Auth_ForgotPwdConfirm_PageTitle" xml:space="preserve">
+    <value>Conferma Password Dimenticata</value>
+  </data>
+  <data name="Auth_ForgotPwdConfirm_Title" xml:space="preserve">
+    <value>Controlla la tua email</value>
+  </data>
+  <data name="Auth_ForgotPwdConfirm_Message" xml:space="preserve">
+    <value>Controlla la tua email per reimpostare la password.</value>
+  </data>
+  <!-- Auth - Lockout -->
+  <data name="Auth_Lockout_PageTitle" xml:space="preserve">
+    <value>Account Bloccato</value>
+  </data>
+  <data name="Auth_Lockout_Title" xml:space="preserve">
+    <value>Account Bloccato</value>
+  </data>
+  <data name="Auth_Lockout_Message" xml:space="preserve">
+    <value>Questo account è stato bloccato. Riprova più tardi.</value>
+  </data>
+  <!-- Auth - Reset Password -->
+  <data name="Auth_ResetPwd_PageTitle" xml:space="preserve">
+    <value>Reimposta Password</value>
+  </data>
+  <data name="Auth_ResetPwd_Title" xml:space="preserve">
+    <value>Reimposta la tua password</value>
+  </data>
+  <data name="Auth_ResetPwd_Subtitle" xml:space="preserve">
+    <value>Inserisci la tua nuova password qui sotto</value>
+  </data>
+  <data name="Auth_ResetPwd_ResetButton" xml:space="preserve">
+    <value>Reimposta</value>
+  </data>
+  <!-- Auth - Reset Password Confirmation -->
+  <data name="Auth_ResetPwdConfirm_PageTitle" xml:space="preserve">
+    <value>Conferma Reimpostazione Password</value>
+  </data>
+  <data name="Auth_ResetPwdConfirm_Title" xml:space="preserve">
+    <value>Password Reimpostata</value>
+  </data>
+  <data name="Auth_ResetPwdConfirm_Message" xml:space="preserve">
+    <value>La tua password è stata reimpostata con successo.</value>
+  </data>
+  <data name="Auth_ResetPwdConfirm_ClickToLogin" xml:space="preserve">
+    <value>Clicca qui per accedere</value>
+  </data>
+  <!-- Auth - Resend Email Confirmation -->
+  <data name="Auth_ResendConfirm_PageTitle" xml:space="preserve">
+    <value>Reinvia Conferma Email</value>
+  </data>
+  <data name="Auth_ResendConfirm_Title" xml:space="preserve">
+    <value>Reinvia conferma email</value>
+  </data>
+  <data name="Auth_ResendConfirm_EnterEmail" xml:space="preserve">
+    <value>Inserisci la tua email</value>
+  </data>
+  <data name="Auth_ResendConfirm_ResendButton" xml:space="preserve">
+    <value>Reinvia</value>
+  </data>
+  <data name="Auth_ResendConfirm_Sent" xml:space="preserve">
+    <value>Email di verifica inviata. Controlla la tua email.</value>
+  </data>
+  <!-- Auth - Register Confirmation -->
+  <data name="Auth_RegisterConfirm_PageTitle" xml:space="preserve">
+    <value>Conferma Registrazione</value>
+  </data>
+  <data name="Auth_RegisterConfirm_Title" xml:space="preserve">
+    <value>Conferma Registrazione</value>
+  </data>
+  <data name="Auth_RegisterConfirm_NoEmailSenderNotice" xml:space="preserve">
+    <value>Questa app non ha attualmente un mittente email configurato, vedi</value>
+  </data>
+  <data name="Auth_RegisterConfirm_TheseDocsLink" xml:space="preserve">
+    <value>questa documentazione</value>
+  </data>
+  <data name="Auth_RegisterConfirm_NormallyEmailed" xml:space="preserve">
+    <value>per come configurare un mittente email. Normalmente questo verrebbe inviato via email:</value>
+  </data>
+  <data name="Auth_RegisterConfirm_ClickToConfirm" xml:space="preserve">
+    <value>Clicca qui per confermare il tuo account</value>
+  </data>
+  <data name="Auth_RegisterConfirm_CheckEmail" xml:space="preserve">
+    <value>Controlla la tua email per confermare il tuo account.</value>
+  </data>
+  <!-- Auth - Confirm Email -->
+  <data name="Auth_ConfirmEmail_PageTitle" xml:space="preserve">
+    <value>Conferma Email</value>
+  </data>
+  <data name="Auth_ConfirmEmail_Title" xml:space="preserve">
+    <value>Conferma Email</value>
+  </data>
+  <data name="Auth_ConfirmEmail_ThankYou" xml:space="preserve">
+    <value>Grazie per aver confermato la tua email.</value>
+  </data>
+  <data name="Auth_ConfirmEmail_Error" xml:space="preserve">
+    <value>Errore nella conferma della tua email.</value>
+  </data>
+  <!-- Auth - Confirm Email Change -->
+  <data name="Auth_ConfirmEmailChange_PageTitle" xml:space="preserve">
+    <value>Conferma Cambio Email</value>
+  </data>
+  <data name="Auth_ConfirmEmailChange_Title" xml:space="preserve">
+    <value>Conferma Cambio Email</value>
+  </data>
+  <data name="Auth_ConfirmEmailChange_InvalidLink" xml:space="preserve">
+    <value>Link di conferma cambio email non valido.</value>
+  </data>
+  <data name="Auth_ConfirmEmailChange_UserNotFound" xml:space="preserve">
+    <value>Impossibile trovare l'utente.</value>
+  </data>
+  <data name="Auth_ConfirmEmailChange_Error" xml:space="preserve">
+    <value>Errore nel cambio email.</value>
+  </data>
+  <data name="Auth_ConfirmEmailChange_UsernameError" xml:space="preserve">
+    <value>Errore nell'aggiornamento del nome utente.</value>
+  </data>
+  <data name="Auth_ConfirmEmailChange_Success" xml:space="preserve">
+    <value>Grazie per aver confermato il cambio della tua email.</value>
+  </data>
+  <!-- Auth - Access Denied -->
+  <data name="Auth_AccessDenied_PageTitle" xml:space="preserve">
+    <value>Accesso Negato</value>
+  </data>
+  <data name="Auth_AccessDenied_Title" xml:space="preserve">
+    <value>Accesso Negato</value>
+  </data>
+  <data name="Auth_AccessDenied_Message" xml:space="preserve">
+    <value>Non hai accesso a questa risorsa.</value>
+  </data>
+  <!-- Auth - Invalid Password Reset -->
+  <data name="Auth_InvalidPwdReset_PageTitle" xml:space="preserve">
+    <value>Reset Password Non Valido</value>
+  </data>
+  <data name="Auth_InvalidPwdReset_Title" xml:space="preserve">
+    <value>Link di reset password non valido</value>
+  </data>
+  <data name="Auth_InvalidPwdReset_Message" xml:space="preserve">
+    <value>Il link di reset password non è valido. Richiedi un nuovo reset password.</value>
+  </data>
+  <!-- Auth - Invalid User -->
+  <data name="Auth_InvalidUser_PageTitle" xml:space="preserve">
+    <value>Utente Non Valido</value>
+  </data>
+  <data name="Auth_InvalidUser_Title" xml:space="preserve">
+    <value>Impossibile caricare l'utente.</value>
+  </data>
+  <!-- Auth - 2FA Login -->
+  <data name="Auth_2FA_PageTitle" xml:space="preserve">
+    <value>Autenticazione a Due Fattori</value>
+  </data>
+  <data name="Auth_2FA_Title" xml:space="preserve">
+    <value>Autenticazione a due fattori</value>
+  </data>
+  <data name="Auth_2FA_Description" xml:space="preserve">
+    <value>Il tuo accesso è protetto da un'app di autenticazione. Inserisci il codice dell'autenticatore qui sotto.</value>
+  </data>
+  <data name="Auth_2FA_AuthenticatorCode" xml:space="preserve">
+    <value>Codice autenticatore</value>
+  </data>
+  <data name="Auth_2FA_RememberMachine" xml:space="preserve">
+    <value>Ricorda questo dispositivo</value>
+  </data>
+  <data name="Auth_2FA_NoDevice" xml:space="preserve">
+    <value>Non hai accesso al tuo dispositivo autenticatore?</value>
+  </data>
+  <data name="Auth_2FA_LoginWithRecoveryCode" xml:space="preserve">
+    <value>accedi con un codice di recupero</value>
+  </data>
+  <data name="Auth_2FA_InvalidCode" xml:space="preserve">
+    <value>Codice autenticatore non valido.</value>
+  </data>
+  <!-- Auth - Recovery Code Login -->
+  <data name="Auth_Recovery_PageTitle" xml:space="preserve">
+    <value>Verifica Codice di Recupero</value>
+  </data>
+  <data name="Auth_Recovery_Title" xml:space="preserve">
+    <value>Verifica codice di recupero</value>
+  </data>
+  <data name="Auth_Recovery_Description" xml:space="preserve">
+    <value>Hai richiesto di accedere con un codice di recupero. Questo accesso non verrà ricordato finché non fornirai un codice dell'app autenticatore al login o disabiliterai la 2FA e accederai di nuovo.</value>
+  </data>
+  <data name="Auth_Recovery_RecoveryCode" xml:space="preserve">
+    <value>Codice di Recupero</value>
+  </data>
+  <data name="Auth_Recovery_InvalidCode" xml:space="preserve">
+    <value>Codice di recupero inserito non valido.</value>
+  </data>
+  <!-- Auth - External Login -->
+  <data name="Auth_ExtLogin_PageTitle" xml:space="preserve">
+    <value>Registrati</value>
+  </data>
+  <data name="Auth_ExtLogin_Title" xml:space="preserve">
+    <value>Registrati</value>
+  </data>
+  <data name="Auth_ExtLogin_AssociateAccount" xml:space="preserve">
+    <value>Associa il tuo account {0}.</value>
+  </data>
+  <data name="Auth_ExtLogin_SuccessMessage" xml:space="preserve">
+    <value>Ti sei autenticato con successo con &lt;strong&gt;{0}&lt;/strong&gt;. Inserisci un indirizzo email per questo sito e clicca Registrati per completare l'accesso.</value>
+  </data>
+  <data name="Auth_ExtLogin_EmailPlaceholder" xml:space="preserve">
+    <value>Inserisci la tua email.</value>
+  </data>
+  <!-- Manage - Profile -->
+  <data name="Manage_Profile_PageTitle" xml:space="preserve">
+    <value>Profilo</value>
+  </data>
+  <data name="Manage_Profile_Title" xml:space="preserve">
+    <value>Profilo</value>
+  </data>
+  <data name="Manage_Profile_Username" xml:space="preserve">
+    <value>Nome utente</value>
+  </data>
+  <data name="Manage_Profile_PhoneNumber" xml:space="preserve">
+    <value>Numero di telefono</value>
+  </data>
+  <data name="Manage_Profile_PhoneError" xml:space="preserve">
+    <value>Si è verificato un errore nel salvataggio del numero di telefono.</value>
+  </data>
+  <data name="Manage_Profile_Updated" xml:space="preserve">
+    <value>Il tuo profilo è stato aggiornato</value>
+  </data>
+  <!-- Manage - Change Password -->
+  <data name="Manage_ChangePwd_PageTitle" xml:space="preserve">
+    <value>Cambia Password</value>
+  </data>
+  <data name="Manage_ChangePwd_Title" xml:space="preserve">
+    <value>Cambia password</value>
+  </data>
+  <data name="Manage_ChangePwd_OldPassword" xml:space="preserve">
+    <value>Vecchia password</value>
+  </data>
+  <data name="Manage_ChangePwd_NewPassword" xml:space="preserve">
+    <value>Nuova password</value>
+  </data>
+  <data name="Manage_ChangePwd_ConfirmPassword" xml:space="preserve">
+    <value>Conferma nuova password</value>
+  </data>
+  <data name="Manage_ChangePwd_UpdateButton" xml:space="preserve">
+    <value>Aggiorna password</value>
+  </data>
+  <data name="Manage_ChangePwd_Success" xml:space="preserve">
+    <value>La tua password è stata modificata.</value>
+  </data>
+  <!-- Manage - Email -->
+  <data name="Manage_Email_PageTitle" xml:space="preserve">
+    <value>Gestisci Email</value>
+  </data>
+  <data name="Manage_Email_Title" xml:space="preserve">
+    <value>Gestisci email</value>
+  </data>
+  <data name="Manage_Email_SendVerification" xml:space="preserve">
+    <value>Invia email di verifica</value>
+  </data>
+  <data name="Manage_Email_NewEmail" xml:space="preserve">
+    <value>Nuova email</value>
+  </data>
+  <data name="Manage_Email_ChangeButton" xml:space="preserve">
+    <value>Cambia email</value>
+  </data>
+  <data name="Manage_Email_Unchanged" xml:space="preserve">
+    <value>La tua email non è cambiata.</value>
+  </data>
+  <data name="Manage_Email_ConfirmationSent" xml:space="preserve">
+    <value>Link di conferma per cambio email inviato. Controlla la tua email.</value>
+  </data>
+  <data name="Manage_Email_VerificationSent" xml:space="preserve">
+    <value>Email di verifica inviata. Controlla la tua email.</value>
+  </data>
+  <!-- Manage - Delete Personal Data -->
+  <data name="Manage_DeleteData_PageTitle" xml:space="preserve">
+    <value>Elimina Dati Personali</value>
+  </data>
+  <data name="Manage_DeleteData_Title" xml:space="preserve">
+    <value>Elimina Dati Personali</value>
+  </data>
+  <data name="Manage_DeleteData_Warning" xml:space="preserve">
+    <value>L'eliminazione di questi dati rimuoverà permanentemente il tuo account e non potrà essere recuperato.</value>
+  </data>
+  <data name="Manage_DeleteData_DeleteButton" xml:space="preserve">
+    <value>Elimina dati e chiudi il mio account</value>
+  </data>
+  <data name="Manage_DeleteData_IncorrectPassword" xml:space="preserve">
+    <value>Password errata.</value>
+  </data>
+  <!-- Manage - Personal Data -->
+  <data name="Manage_PersonalData_PageTitle" xml:space="preserve">
+    <value>Dati Personali</value>
+  </data>
+  <data name="Manage_PersonalData_Title" xml:space="preserve">
+    <value>Dati Personali</value>
+  </data>
+  <data name="Manage_PersonalData_Description" xml:space="preserve">
+    <value>Il tuo account contiene dati personali che ci hai fornito. Questa pagina ti permette di scaricare o eliminare quei dati.</value>
+  </data>
+  <data name="Manage_PersonalData_Download" xml:space="preserve">
+    <value>Scarica</value>
+  </data>
+  <!-- Manage - Set Password -->
+  <data name="Manage_SetPwd_PageTitle" xml:space="preserve">
+    <value>Imposta Password</value>
+  </data>
+  <data name="Manage_SetPwd_Title" xml:space="preserve">
+    <value>Imposta la tua password</value>
+  </data>
+  <data name="Manage_SetPwd_Description" xml:space="preserve">
+    <value>Non hai un nome utente/password locale per questo sito. Aggiungi un account locale per accedere senza login esterno.</value>
+  </data>
+  <data name="Manage_SetPwd_SetButton" xml:space="preserve">
+    <value>Imposta password</value>
+  </data>
+  <data name="Manage_SetPwd_Success" xml:space="preserve">
+    <value>La tua password è stata impostata.</value>
+  </data>
+  <!-- Manage - 2FA -->
+  <data name="Manage_2FA_PageTitle" xml:space="preserve">
+    <value>Autenticazione a Due Fattori</value>
+  </data>
+  <data name="Manage_2FA_Title" xml:space="preserve">
+    <value>Autenticazione a due fattori (2FA)</value>
+  </data>
+  <data name="Manage_2FA_NoRecoveryCodes" xml:space="preserve">
+    <value>Non hai più codici di recupero.</value>
+  </data>
+  <data name="Manage_2FA_GenerateCodesLink1" xml:space="preserve">
+    <value>Devi</value>
+  </data>
+  <data name="Manage_2FA_GenerateCodesLink2" xml:space="preserve">
+    <value>generare un nuovo set di codici di recupero</value>
+  </data>
+  <data name="Manage_2FA_GenerateCodesLinkText" xml:space="preserve">
+    <value>prima di poter accedere con un codice di recupero.</value>
+  </data>
+  <data name="Manage_2FA_OneRecoveryCode" xml:space="preserve">
+    <value>Hai 1 codice di recupero rimasto.</value>
+  </data>
+  <data name="Manage_2FA_FewRecoveryCodes" xml:space="preserve">
+    <value>Hai {0} codici di recupero rimasti.</value>
+  </data>
+  <data name="Manage_2FA_YouCan" xml:space="preserve">
+    <value>Puoi</value>
+  </data>
+  <data name="Manage_2FA_YouShould" xml:space="preserve">
+    <value>Dovresti</value>
+  </data>
+  <data name="Manage_2FA_ForgetBrowser" xml:space="preserve">
+    <value>Dimentica questo browser</value>
+  </data>
+  <data name="Manage_2FA_Disable" xml:space="preserve">
+    <value>Disabilita 2FA</value>
+  </data>
+  <data name="Manage_2FA_ResetCodes" xml:space="preserve">
+    <value>Reimposta codici di recupero</value>
+  </data>
+  <data name="Manage_2FA_AuthenticatorApp" xml:space="preserve">
+    <value>App autenticatore</value>
+  </data>
+  <data name="Manage_2FA_AddAuthenticator" xml:space="preserve">
+    <value>Aggiungi app autenticatore</value>
+  </data>
+  <data name="Manage_2FA_SetupAuthenticator" xml:space="preserve">
+    <value>Configura app autenticatore</value>
+  </data>
+  <data name="Manage_2FA_ResetAuthenticator" xml:space="preserve">
+    <value>Reimposta app autenticatore</value>
+  </data>
+  <data name="Manage_2FA_PolicyNotAccepted" xml:space="preserve">
+    <value>Privacy e policy cookie non accettate</value>
+  </data>
+  <data name="Manage_2FA_PolicyNotAcceptedMessage" xml:space="preserve">
+    <value>Devi accettare la policy prima di poter abilitare l'autenticazione a due fattori.</value>
+  </data>
+  <data name="Manage_2FA_BrowserForgotten" xml:space="preserve">
+    <value>Il browser corrente è stato dimenticato. Quando accederai di nuovo da questo browser ti verrà chiesto il codice 2FA.</value>
+  </data>
+  <!-- Manage - Disable 2FA -->
+  <data name="Manage_Disable2FA_PageTitle" xml:space="preserve">
+    <value>Disabilita Autenticazione a Due Fattori</value>
+  </data>
+  <data name="Manage_Disable2FA_Title" xml:space="preserve">
+    <value>Disabilita autenticazione a due fattori (2FA)</value>
+  </data>
+  <data name="Manage_Disable2FA_WarningTitle" xml:space="preserve">
+    <value>Questa azione disabilita solo la 2FA.</value>
+  </data>
+  <data name="Manage_Disable2FA_WarningMessage" xml:space="preserve">
+    <value>Disabilitare la 2FA non cambia le chiavi usate nelle app autenticatore. Se desideri cambiare la chiave usata in un'app autenticatore dovresti reimpostare le chiavi dell'autenticatore.</value>
+  </data>
+  <data name="Manage_Disable2FA_Success" xml:space="preserve">
+    <value>La 2FA è stata disabilitata. Puoi riabilitare la 2FA quando configuri un'app autenticatore</value>
+  </data>
+  <!-- Manage - Generate Recovery Codes -->
+  <data name="Manage_GenCodes_PageTitle" xml:space="preserve">
+    <value>Genera Codici di Recupero</value>
+  </data>
+  <data name="Manage_GenCodes_Title" xml:space="preserve">
+    <value>Genera codici di recupero per l'autenticazione a due fattori (2FA)</value>
+  </data>
+  <data name="Manage_GenCodes_PutSafePlace" xml:space="preserve">
+    <value>Metti questi codici in un posto sicuro.</value>
+  </data>
+  <data name="Manage_GenCodes_LoseAccessWarning" xml:space="preserve">
+    <value>Se perdi il tuo dispositivo e non hai i codici di recupero perderai l'accesso al tuo account.</value>
+  </data>
+  <data name="Manage_GenCodes_NoKeyChange" xml:space="preserve">
+    <value>Generare nuovi codici di recupero non cambia le chiavi usate nelle app autenticatore. Se desideri cambiare la chiave usata in un'app autenticatore dovresti reimpostare le chiavi dell'autenticatore.</value>
+  </data>
+  <data name="Manage_GenCodes_GenerateButton" xml:space="preserve">
+    <value>Genera Codici di Recupero</value>
+  </data>
+  <data name="Manage_GenCodes_Success" xml:space="preserve">
+    <value>Hai generato nuovi codici di recupero.</value>
+  </data>
+  <!-- Manage - Reset Authenticator -->
+  <data name="Manage_ResetAuth_PageTitle" xml:space="preserve">
+    <value>Reimposta Chiave Autenticatore</value>
+  </data>
+  <data name="Manage_ResetAuth_Title" xml:space="preserve">
+    <value>Reimposta chiave autenticatore</value>
+  </data>
+  <data name="Manage_ResetAuth_WarningTitle" xml:space="preserve">
+    <value>Se reimposti la chiave dell'autenticatore la tua app autenticatore non funzionerà finché non la riconfiguri.</value>
+  </data>
+  <data name="Manage_ResetAuth_WarningMessage" xml:space="preserve">
+    <value>Questo processo disabilita la 2FA finché non verifichi la tua app autenticatore. Se non completi la configurazione dell'app autenticatore potresti perdere l'accesso al tuo account.</value>
+  </data>
+  <data name="Manage_ResetAuth_ResetButton" xml:space="preserve">
+    <value>Reimposta chiave autenticatore</value>
+  </data>
+  <data name="Manage_ResetAuth_Success" xml:space="preserve">
+    <value>La chiave della tua app autenticatore è stata reimpostata, dovrai configurare la tua app autenticatore usando la nuova chiave.</value>
+  </data>
+  <!-- Manage - External Logins -->
+  <data name="Manage_ExtLogins_PageTitle" xml:space="preserve">
+    <value>Gestisci Login Esterni</value>
+  </data>
+  <data name="Manage_ExtLogins_RegisteredLogins" xml:space="preserve">
+    <value>Login Registrati</value>
+  </data>
+  <data name="Manage_ExtLogins_RemoveTooltip" xml:space="preserve">
+    <value>Rimuovi questo login</value>
+  </data>
+  <data name="Manage_ExtLogins_AddService" xml:space="preserve">
+    <value>Aggiungi un altro servizio per accedere.</value>
+  </data>
+  <data name="Manage_ExtLogins_LoginWith" xml:space="preserve">
+    <value>Accedi con {0}</value>
+  </data>
+  <data name="Manage_ExtLogins_RemoveError" xml:space="preserve">
+    <value>Errore nella rimozione del login esterno</value>
+  </data>
+  <data name="Manage_ExtLogins_Removed" xml:space="preserve">
+    <value>Il login esterno è stato rimosso.</value>
+  </data>
+  <data name="Manage_ExtLogins_LoadError" xml:space="preserve">
+    <value>Errore: Impossibile caricare i login esterni</value>
+  </data>
+  <data name="Manage_ExtLogins_Added" xml:space="preserve">
+    <value>Il login esterno è stato aggiunto.</value>
+  </data>
+  <data name="Manage_ExtLogins_AddError" xml:space="preserve">
+    <value>Errore nell'aggiunta del login esterno</value>
+  </data>
+  <!-- Manage - Passkeys -->
+  <data name="Manage_Passkeys_PageTitle" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
+  <data name="Manage_Passkeys_Title" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
+  <data name="Manage_Passkeys_Unnamed" xml:space="preserve">
+    <value>Passkey senza nome</value>
+  </data>
+  <data name="Manage_Passkeys_RenameTooltip" xml:space="preserve">
+    <value>Rinomina passkey</value>
+  </data>
+  <data name="Manage_Passkeys_RemoveTooltip" xml:space="preserve">
+    <value>Rimuovi passkey</value>
+  </data>
+  <data name="Manage_Passkeys_NoPasskeys" xml:space="preserve">
+    <value>Nessuna passkey registrata</value>
+  </data>
+  <data name="Manage_Passkeys_MaxReached" xml:space="preserve">
+    <value>Numero massimo di passkey (10) raggiunto</value>
+  </data>
+  <data name="Manage_Passkeys_AddNew" xml:space="preserve">
+    <value>Aggiungi una nuova passkey</value>
+  </data>
+  <data name="Manage_Passkeys_Deleted" xml:space="preserve">
+    <value>Passkey eliminata con successo</value>
+  </data>
+  <!-- Manage - Rename Passkey -->
+  <data name="Manage_RenamePasskey_TitleWithName" xml:space="preserve">
+    <value>Inserisci un nuovo nome per la tua passkey "{0}"</value>
+  </data>
+  <data name="Manage_RenamePasskey_Title" xml:space="preserve">
+    <value>Inserisci un nome per la tua passkey</value>
+  </data>
+  <data name="Manage_RenamePasskey_Placeholder" xml:space="preserve">
+    <value>La mia passkey</value>
+  </data>
+  <data name="Manage_RenamePasskey_Label" xml:space="preserve">
+    <value>Nome passkey</value>
+  </data>
+  <!-- Manage - Enable Authenticator -->
+  <data name="Manage_EnableAuth_PageTitle" xml:space="preserve">
+    <value>Configura app autenticatore</value>
+  </data>
+  <data name="Manage_EnableAuth_Title" xml:space="preserve">
+    <value>Configura app autenticatore</value>
+  </data>
+  <data name="Manage_EnableAuth_Intro" xml:space="preserve">
+    <value>Per usare un'app autenticatore segui questi passaggi:</value>
+  </data>
+  <data name="Manage_EnableAuth_Step1" xml:space="preserve">
+    <value>Scarica un'app autenticatore a due fattori come Microsoft Authenticator per Android e iOS o Google Authenticator per Android e iOS.</value>
+  </data>
+  <data name="Manage_EnableAuth_Step2" xml:space="preserve">
+    <value>Scansiona il codice QR o inserisci questa chiave {0} nella tua app autenticatore. Spazi e maiuscole/minuscole non contano.</value>
+  </data>
+  <data name="Manage_EnableAuth_QRCodeHelp" xml:space="preserve">
+    <value>Scopri come abilitare la generazione del codice QR.</value>
+  </data>
+  <data name="Manage_EnableAuth_Step3" xml:space="preserve">
+    <value>Una volta scansionato il codice QR o inserita la chiave sopra, la tua app autenticatore ti fornirà un codice univoco. Inserisci il codice nel box di conferma qui sotto.</value>
+  </data>
+  <data name="Manage_EnableAuth_CodePlaceholder" xml:space="preserve">
+    <value>Inserisci il codice</value>
+  </data>
+  <data name="Manage_EnableAuth_CodeLabel" xml:space="preserve">
+    <value>Codice di Verifica</value>
+  </data>
+  <!-- Payee Management -->
+  <data name="Payee_PageTitle" xml:space="preserve">
+    <value>Gestione Beneficiari</value>
+  </data>
+  <data name="Payee_Title" xml:space="preserve">
+    <value>Gestione Beneficiari</value>
+  </data>
+  <data name="Payee_Subtitle" xml:space="preserve">
+    <value>Gestisci e normalizza i nomi dei beneficiari</value>
+  </data>
+  <data name="Payee_FindDuplicates" xml:space="preserve">
+    <value>Trova Duplicati</value>
+  </data>
+  <data name="Payee_CleanUpUnused" xml:space="preserve">
+    <value>Rimuovi Non Usati</value>
+  </data>
+  <data name="Payee_DuplicatesFound" xml:space="preserve">
+    <value>Trovati {0} gruppi potenziali di duplicati che riguardano {1} beneficiari</value>
+  </data>
+  <data name="Payee_PotentialDuplicates" xml:space="preserve">
+    <value>Potenziali Duplicati</value>
+  </data>
+  <data name="Payee_SuggestedMerge" xml:space="preserve">
+    <value>Unione suggerita: {0} (mantieni questo)</value>
+  </data>
+  <data name="Payee_Primary" xml:space="preserve">
+    <value>Principale</value>
+  </data>
+  <data name="Payee_TransactionCount" xml:space="preserve">
+    <value>{0} transazione/i</value>
+  </data>
+  <data name="Payee_LastUsed" xml:space="preserve">
+    <value>Ultimo utilizzo</value>
+  </data>
+  <data name="Payee_MergeAll" xml:space="preserve">
+    <value>Unisci Tutti → {0}</value>
+  </data>
+  <data name="Payee_AllPayees" xml:space="preserve">
+    <value>Tutti i Beneficiari ({0})</value>
+  </data>
+  <data name="Payee_Col_PayeeName" xml:space="preserve">
+    <value>Nome Beneficiario</value>
+  </data>
+  <data name="Payee_Col_Transactions" xml:space="preserve">
+    <value>Transazioni</value>
+  </data>
+  <data name="Payee_Col_LastUsed" xml:space="preserve">
+    <value>Ultimo Utilizzo</value>
+  </data>
+  <data name="Payee_NoPayees" xml:space="preserve">
+    <value>Nessun beneficiario</value>
+  </data>
+  <data name="Payee_NoPayeesHint" xml:space="preserve">
+    <value>I beneficiari appariranno quando aggiungi transazioni</value>
+  </data>
+  <data name="Payee_Msg_NoDuplicates" xml:space="preserve">
+    <value>Nessun beneficiario duplicato trovato</value>
+  </data>
+  <data name="Payee_Msg_FoundDuplicates" xml:space="preserve">
+    <value>Trovati {0} gruppi potenziali di duplicati</value>
+  </data>
+  <data name="Payee_Dlg_MergePayees" xml:space="preserve">
+    <value>Unisci Beneficiari</value>
+  </data>
+  <data name="Payee_Msg_MergeSuccess" xml:space="preserve">
+    <value>Beneficiari uniti con successo</value>
+  </data>
+  <data name="Payee_Msg_MergeFailed" xml:space="preserve">
+    <value>Impossibile unire i beneficiari</value>
+  </data>
+  <data name="Payee_Dlg_RenamePayee" xml:space="preserve">
+    <value>Rinomina Beneficiario</value>
+  </data>
+  <data name="Payee_Msg_RenameSuccess" xml:space="preserve">
+    <value>Beneficiario rinominato con successo</value>
+  </data>
+  <data name="Payee_Msg_RenameFailed" xml:space="preserve">
+    <value>Impossibile rinominare il beneficiario</value>
+  </data>
+  <data name="Payee_Dlg_DeleteUnused" xml:space="preserve">
+    <value>Elimina Beneficiari Non Usati</value>
+  </data>
+  <data name="Payee_Dlg_DeleteUnusedConfirm" xml:space="preserve">
+    <value>Questo eliminerà permanentemente tutti i beneficiari senza transazioni. Continuare?</value>
+  </data>
+  <data name="Payee_Msg_DeletedCount" xml:space="preserve">
+    <value>Eliminati {0} beneficiari non usati</value>
+  </data>
+  <!-- Reconciliation Dialog -->
+  <data name="ReconcileDlg_Account" xml:space="preserve">
+    <value>Conto</value>
+  </data>
+  <data name="ReconcileDlg_AccountRequired" xml:space="preserve">
+    <value>Il conto è obbligatorio</value>
+  </data>
+  <data name="ReconcileDlg_StatementDate" xml:space="preserve">
+    <value>Data Estratto</value>
+  </data>
+  <data name="ReconcileDlg_DateRequired" xml:space="preserve">
+    <value>La data dell'estratto è obbligatoria</value>
+  </data>
+  <data name="ReconcileDlg_StatementBalance" xml:space="preserve">
+    <value>Saldo Estratto</value>
+  </data>
+  <data name="ReconcileDlg_BalanceRequired" xml:space="preserve">
+    <value>Il saldo dell'estratto è obbligatorio</value>
+  </data>
+  <data name="ReconcileDlg_Notes" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="ReconcileDlg_Starting" xml:space="preserve">
+    <value>Avvio in corso...</value>
+  </data>
+  <data name="ReconcileDlg_StartButton" xml:space="preserve">
+    <value>Avvia Riconciliazione</value>
+  </data>
+  <data name="ReconcileDlg_StartSuccess" xml:space="preserve">
+    <value>Riconciliazione avviata con successo</value>
+  </data>
+  <data name="ReconcileDlg_StartError" xml:space="preserve">
+    <value>Errore nell'avvio della riconciliazione: {0}</value>
+  </data>
+  <!-- Reconciliations Page -->
+  <data name="Reconcile_PageTitle" xml:space="preserve">
+    <value>Riconciliazioni</value>
+  </data>
+  <data name="Reconcile_Title" xml:space="preserve">
+    <value>Riconciliazioni</value>
+  </data>
+  <data name="Reconcile_Subtitle" xml:space="preserve">
+    <value>Confronta i tuoi conti con gli estratti conto bancari</value>
+  </data>
+  <data name="Reconcile_StartBtn" xml:space="preserve">
+    <value>Avvia Riconciliazione</value>
+  </data>
+  <data name="Reconcile_NoAccounts" xml:space="preserve">
+    <value>Nessun conto disponibile</value>
+  </data>
+  <data name="Reconcile_NoAccountsHint" xml:space="preserve">
+    <value>Crea prima un conto per iniziare a riconciliare</value>
+  </data>
+  <data name="Reconcile_GoToAccounts" xml:space="preserve">
+    <value>Vai ai Conti</value>
+  </data>
+  <data name="Reconcile_NoReconciliations" xml:space="preserve">
+    <value>Nessuna riconciliazione</value>
+  </data>
+  <data name="Reconcile_NoReconciliationsHint" xml:space="preserve">
+    <value>Avvia la tua prima riconciliazione per confrontare le transazioni con il tuo estratto conto</value>
+  </data>
+  <data name="Reconcile_StartFirstBtn" xml:space="preserve">
+    <value>Avvia la Prima Riconciliazione</value>
+  </data>
+  <data name="Reconcile_FilterByAccount" xml:space="preserve">
+    <value>Filtra per Conto</value>
+  </data>
+  <data name="Reconcile_StatementDate" xml:space="preserve">
+    <value>Data Estratto</value>
+  </data>
+  <data name="Reconcile_StatementBalance" xml:space="preserve">
+    <value>Saldo Estratto</value>
+  </data>
+  <data name="Reconcile_ReconciledBalance" xml:space="preserve">
+    <value>Saldo Riconciliato</value>
+  </data>
+  <data name="Reconcile_Difference" xml:space="preserve">
+    <value>Differenza</value>
+  </data>
+  <data name="Reconcile_Completed" xml:space="preserve">
+    <value>Completata</value>
+  </data>
+  <data name="Reconcile_Balanced" xml:space="preserve">
+    <value>Bilanciato</value>
+  </data>
+  <data name="Reconcile_StatusCompleted" xml:space="preserve">
+    <value>Completata</value>
+  </data>
+  <data name="Reconcile_StatusInProgress" xml:space="preserve">
+    <value>In Corso</value>
+  </data>
+  <data name="Reconcile_StartDialogTitle" xml:space="preserve">
+    <value>Avvia Riconciliazione</value>
+  </data>
+  <data name="Reconcile_DeleteDialogTitle" xml:space="preserve">
+    <value>Elimina Riconciliazione</value>
+  </data>
+  <data name="Reconcile_DeleteConfirmMessage" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questa riconciliazione? Questo annullerà la riconciliazione di tutte le transazioni associate.</value>
+  </data>
+  <data name="Reconcile_DeleteSuccess" xml:space="preserve">
+    <value>Riconciliazione eliminata con successo</value>
+  </data>
+  <data name="Reconcile_DeleteError" xml:space="preserve">
+    <value>Errore nell'eliminazione della riconciliazione: {0}</value>
+  </data>
+  <!-- Reconciliation Workspace Page -->
+  <data name="ReconcileWs_PageTitle" xml:space="preserve">
+    <value>Riconciliazione</value>
+  </data>
+  <data name="ReconcileWs_NotFound" xml:space="preserve">
+    <value>Riconciliazione non trovata</value>
+  </data>
+  <data name="ReconcileWs_BackToList" xml:space="preserve">
+    <value>Torna alle Riconciliazioni</value>
+  </data>
+  <data name="ReconcileWs_ReconcileAccount" xml:space="preserve">
+    <value>Riconcilia {0}</value>
+  </data>
+  <data name="ReconcileWs_StatementDateLabel" xml:space="preserve">
+    <value>Data Estratto: {0}</value>
+  </data>
+  <data name="ReconcileWs_CompleteBtn" xml:space="preserve">
+    <value>Completa Riconciliazione</value>
+  </data>
+  <data name="ReconcileWs_OpeningBalance" xml:space="preserve">
+    <value>Saldo Iniziale</value>
+  </data>
+  <data name="ReconcileWs_ReconciledBalance" xml:space="preserve">
+    <value>Saldo Riconciliato</value>
+  </data>
+  <data name="ReconcileWs_StatementBalance" xml:space="preserve">
+    <value>Saldo Estratto</value>
+  </data>
+  <data name="ReconcileWs_Difference" xml:space="preserve">
+    <value>Differenza</value>
+  </data>
+  <data name="ReconcileWs_Balanced" xml:space="preserve">
+    <value>Bilanciato</value>
+  </data>
+  <data name="ReconcileWs_CompletedAlert" xml:space="preserve">
+    <value>Questa riconciliazione è stata completata il {0}. Le transazioni riconciliate sono ora bloccate e non possono essere modificate.</value>
+  </data>
+  <data name="ReconcileWs_InstructionsAlert" xml:space="preserve">
+    <value>Seleziona le transazioni che appaiono sul tuo estratto conto bancario. Quando il saldo riconciliato corrisponde al saldo dell'estratto, puoi completare la riconciliazione.</value>
+  </data>
+  <data name="ReconcileWs_NotesLabel" xml:space="preserve">
+    <value>Note:</value>
+  </data>
+  <data name="ReconcileWs_TransactionCount" xml:space="preserve">
+    <value>{0} di {1} transazioni riconciliate</value>
+  </data>
+  <data name="ReconcileWs_NoTransactions" xml:space="preserve">
+    <value>Nessuna transazione registrata trovata per questo conto fino alla data dell'estratto.</value>
+  </data>
+  <data name="ReconcileWs_CompleteDialogTitle" xml:space="preserve">
+    <value>Completa Riconciliazione</value>
+  </data>
+  <data name="ReconcileWs_CompleteDialogMessage" xml:space="preserve">
+    <value>Sei sicuro di voler completare questa riconciliazione? Le transazioni riconciliate saranno bloccate e non potranno essere modificate.</value>
+  </data>
+  <data name="ReconcileWs_CompleteDialogYes" xml:space="preserve">
+    <value>Completa</value>
+  </data>
+  <data name="ReconcileWs_CompleteSuccess" xml:space="preserve">
+    <value>Riconciliazione completata con successo</value>
+  </data>
+  <data name="ReconcileWs_CompleteError" xml:space="preserve">
+    <value>Errore nel completamento della riconciliazione: {0}</value>
+  </data>
+  <data name="ReconcileWs_LoadError" xml:space="preserve">
+    <value>Errore nel caricamento della riconciliazione: {0}</value>
+  </data>
+  <data name="ReconcileWs_UpdateError" xml:space="preserve">
+    <value>Errore nell'aggiornamento della transazione: {0}</value>
+  </data>
+  <!-- Balance History Page -->
+  <data name="BalHist_PageTitle" xml:space="preserve">
+    <value>Storico Saldi</value>
+  </data>
+  <data name="BalHist_Title" xml:space="preserve">
+    <value>Storico Saldi</value>
+  </data>
+  <data name="BalHist_Subtitle" xml:space="preserve">
+    <value>Monitora i saldi dei conti nel tempo con istantanee</value>
+  </data>
+  <data name="BalHist_LoadHistory" xml:space="preserve">
+    <value>Carica Storico</value>
+  </data>
+  <data name="BalHist_CreateSnapshot" xml:space="preserve">
+    <value>Crea Istantanea</value>
+  </data>
+  <data name="BalHist_BalanceTrend" xml:space="preserve">
+    <value>Tendenza del Saldo</value>
+  </data>
+  <data name="BalHist_ChartComingSoon" xml:space="preserve">
+    <value>Grafico in arrivo...</value>
+  </data>
+  <data name="BalHist_SnapshotHistory" xml:space="preserve">
+    <value>Storico Istantanee</value>
+  </data>
+  <data name="BalHist_Change" xml:space="preserve">
+    <value>Variazione</value>
+  </data>
+  <data name="BalHist_NoSnapshots" xml:space="preserve">
+    <value>Nessuna istantanea ancora. Crea la tua prima istantanea per iniziare a monitorare lo storico.</value>
+  </data>
+  <data name="BalHist_HelpTitle" xml:space="preserve">
+    <value>Aiuto Storico Saldi</value>
+  </data>
+  <data name="BalHist_HelpDescription" xml:space="preserve">
+    <value>Monitora come cambiano i saldi dei tuoi conti nel tempo creando istantanee.</value>
+  </data>
+  <data name="BalHist_HelpFeature1" xml:space="preserve">
+    <value>Crea istantanee dei saldi in qualsiasi momento</value>
+  </data>
+  <data name="BalHist_HelpFeature2" xml:space="preserve">
+    <value>Visualizza le tendenze storiche dei saldi</value>
+  </data>
+  <data name="BalHist_HelpFeature3" xml:space="preserve">
+    <value>Monitora le variazioni tra le istantanee</value>
+  </data>
+  <data name="BalHist_HelpFeature4" xml:space="preserve">
+    <value>Confronta le performance dei conti nel tempo</value>
+  </data>
+  <data name="BalHist_HelpFeature5" xml:space="preserve">
+    <value>Monitora i pattern di crescita patrimoniale</value>
+  </data>
+  <data name="BalHist_HelpHowTo1" xml:space="preserve">
+    <value>Seleziona un conto dal menu a discesa</value>
+  </data>
+  <data name="BalHist_HelpHowTo2" xml:space="preserve">
+    <value>Imposta l'intervallo di date per lo storico</value>
+  </data>
+  <data name="BalHist_HelpHowTo3" xml:space="preserve">
+    <value>Clicca Carica Storico per visualizzare le istantanee</value>
+  </data>
+  <data name="BalHist_HelpHowTo4" xml:space="preserve">
+    <value>Crea nuove istantanee per catturare il saldo attuale</value>
+  </data>
+  <data name="BalHist_HelpHowTo5" xml:space="preserve">
+    <value>Controlla la colonna variazione per vedere il movimento del saldo</value>
+  </data>
+  <data name="BalHist_HelpTip1" xml:space="preserve">
+    <value>Crea istantanee settimanali o mensili per un migliore monitoraggio</value>
+  </data>
+  <data name="BalHist_HelpTip2" xml:space="preserve">
+    <value>Le istantanee sono utili per monitorare il patrimonio netto nel tempo</value>
+  </data>
+  <data name="BalHist_HelpTip3" xml:space="preserve">
+    <value>Le variazioni positive appaiono in verde, quelle negative in rosso</value>
+  </data>
+  <!-- Settings Page -->
+  <data name="Settings_PageTitle" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Settings_Subtitle" xml:space="preserve">
+    <value>Personalizza la tua esperienza MoneyBrain</value>
+  </data>
+  <data name="Settings_DisplayPreferences" xml:space="preserve">
+    <value>Preferenze di Visualizzazione</value>
+  </data>
+  <data name="Settings_Currency" xml:space="preserve">
+    <value>Valuta</value>
+  </data>
+  <data name="Settings_CurrencyHelper" xml:space="preserve">
+    <value>Seleziona la tua valuta preferita per la visualizzazione</value>
+  </data>
+  <data name="Settings_Timezone" xml:space="preserve">
+    <value>Fuso Orario</value>
+  </data>
+  <data name="Settings_TimezoneHelper" xml:space="preserve">
+    <value>Seleziona il tuo fuso orario per i calcoli delle date</value>
+  </data>
+  <data name="Settings_DateFormat" xml:space="preserve">
+    <value>Formato Data</value>
+  </data>
+  <data name="Settings_DateFormatHelper" xml:space="preserve">
+    <value>Scegli come vengono visualizzate le date</value>
+  </data>
+  <data name="Settings_SaveChanges" xml:space="preserve">
+    <value>Salva Modifiche</value>
+  </data>
+  <data name="Settings_DataManagement" xml:space="preserve">
+    <value>Gestione Dati</value>
+  </data>
+  <data name="Settings_EraseWarning" xml:space="preserve">
+    <value>Attenzione: Questo eliminerà permanentemente tutti i tuoi dati inclusi conti, transazioni, categorie e impostazioni. Questa azione non può essere annullata.</value>
+  </data>
+  <data name="Settings_EraseAllData" xml:space="preserve">
+    <value>Cancella Tutti i Dati</value>
+  </data>
+  <data name="Settings_DemoDataInfo" xml:space="preserve">
+    <value>Carica dati di esempio per esplorare le funzionalità di MoneyBrain. Questo creerà conti, transazioni e categorie dimostrative.</value>
+  </data>
+  <data name="Settings_LoadDemoData" xml:space="preserve">
+    <value>Carica Dati Demo</value>
+  </data>
+  <data name="Settings_HelpTitle" xml:space="preserve">
+    <value>Aiuto Impostazioni</value>
+  </data>
+  <data name="Settings_HelpDescription" xml:space="preserve">
+    <value>Configura le tue preferenze MoneyBrain e gestisci i tuoi dati.</value>
+  </data>
+  <data name="Settings_HelpFeature1" xml:space="preserve">
+    <value>Personalizza il formato di visualizzazione della valuta</value>
+  </data>
+  <data name="Settings_HelpFeature2" xml:space="preserve">
+    <value>Imposta il tuo fuso orario preferito</value>
+  </data>
+  <data name="Settings_HelpFeature3" xml:space="preserve">
+    <value>Scegli il formato di visualizzazione delle date</value>
+  </data>
+  <data name="Settings_HelpFeature4" xml:space="preserve">
+    <value>Gestisci i tuoi dati (cancella o carica demo)</value>
+  </data>
+  <data name="Settings_HelpHowTo1" xml:space="preserve">
+    <value>Seleziona la tua valuta dal menu a discesa</value>
+  </data>
+  <data name="Settings_HelpHowTo2" xml:space="preserve">
+    <value>Scegli il tuo fuso orario per una gestione accurata delle date</value>
+  </data>
+  <data name="Settings_HelpHowTo3" xml:space="preserve">
+    <value>Clicca Salva Modifiche per applicare le tue preferenze</value>
+  </data>
+  <data name="Settings_HelpTip1" xml:space="preserve">
+    <value>La valuta influenza come vengono mostrati gli importi, non i valori memorizzati</value>
+  </data>
+  <data name="Settings_HelpTip2" xml:space="preserve">
+    <value>Usa i dati demo per esplorare le funzionalità prima di aggiungere dati reali</value>
+  </data>
+  <data name="Settings_HelpTip3" xml:space="preserve">
+    <value>Fai sempre un backup dei tuoi dati prima di cancellarli</value>
+  </data>
+  <!-- Manual Adjustments Page -->
+  <data name="ManAdj_PageTitle" xml:space="preserve">
+    <value>Rettifiche Manuali</value>
+  </data>
+  <data name="ManAdj_Title" xml:space="preserve">
+    <value>Rettifiche Manuali</value>
+  </data>
+  <data name="ManAdj_Subtitle" xml:space="preserve">
+    <value>Effettua correzioni una tantum ai saldi dei tuoi conti</value>
+  </data>
+  <data name="ManAdj_OpeningBalance" xml:space="preserve">
+    <value>Saldo Iniziale</value>
+  </data>
+  <data name="ManAdj_TotalAdjustments" xml:space="preserve">
+    <value>Totale Rettifiche</value>
+  </data>
+  <data name="ManAdj_CurrentBalance" xml:space="preserve">
+    <value>Saldo Attuale</value>
+  </data>
+  <data name="ManAdj_NewAdjustment" xml:space="preserve">
+    <value>Nuova Rettifica</value>
+  </data>
+  <data name="ManAdj_AdjustmentHistory" xml:space="preserve">
+    <value>Storico Rettifiche</value>
+  </data>
+  <data name="ManAdj_NoAdjustments" xml:space="preserve">
+    <value>Nessuna rettifica per questo conto ancora.</value>
+  </data>
+  <data name="ManAdj_CreateDialogTitle" xml:space="preserve">
+    <value>Crea Rettifica Manuale</value>
+  </data>
+  <data name="ManAdj_AdjustmentCreated" xml:space="preserve">
+    <value>Rettifica creata per {0}</value>
+  </data>
+  <data name="ManAdj_DeleteDialogTitle" xml:space="preserve">
+    <value>Elimina Rettifica</value>
+  </data>
+  <data name="ManAdj_DeleteDialogMessage" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare questa rettifica di {0}?</value>
+  </data>
+  <data name="ManAdj_DeletedSuccess" xml:space="preserve">
+    <value>Rettifica eliminata con successo</value>
+  </data>
+  <data name="ManAdj_DeleteFailed" xml:space="preserve">
+    <value>Impossibile eliminare la rettifica</value>
+  </data>
+  <!-- Opening Balances Page -->
+  <data name="OpenBal_PageTitle" xml:space="preserve">
+    <value>Saldi Iniziali</value>
+  </data>
+  <data name="OpenBal_Title" xml:space="preserve">
+    <value>Saldi Iniziali</value>
+  </data>
+  <data name="OpenBal_Subtitle" xml:space="preserve">
+    <value>Imposta e gestisci i saldi iniziali per i tuoi conti</value>
+  </data>
+  <data name="OpenBal_AssetAccounts" xml:space="preserve">
+    <value>Conti Attivi</value>
+  </data>
+  <data name="OpenBal_NoAssetAccounts" xml:space="preserve">
+    <value>Nessun conto attivo ancora.</value>
+  </data>
+  <data name="OpenBal_OpeningBalance" xml:space="preserve">
+    <value>Saldo Iniziale</value>
+  </data>
+  <data name="OpenBal_LiabilityAccounts" xml:space="preserve">
+    <value>Conti Passivi</value>
+  </data>
+  <data name="OpenBal_NoLiabilityAccounts" xml:space="preserve">
+    <value>Nessun conto passivo ancora.</value>
+  </data>
+  <data name="OpenBal_AdjustDialogTitle" xml:space="preserve">
+    <value>Modifica Saldo Iniziale</value>
+  </data>
+  <data name="OpenBal_BalanceAdjusted" xml:space="preserve">
+    <value>Saldo iniziale modificato per {0}</value>
+  </data>
+  <data name="OpenBal_HistoryDialogTitle" xml:space="preserve">
+    <value>Storico Saldi - {0}</value>
+  </data>
+  <!-- License Page -->
+  <data name="License_PageTitle" xml:space="preserve">
+    <value>Licenza</value>
+  </data>
+  <data name="License_Title" xml:space="preserve">
+    <value>Licenza</value>
+  </data>
+  <data name="License_Subtitle" xml:space="preserve">
+    <value>Gestisci la tua licenza MoneyBrain</value>
+  </data>
+  <data name="License_SelfHostedMode" xml:space="preserve">
+    <value>Modalità Self-Hosted</value>
+  </data>
+  <data name="License_SelfHostedDescription" xml:space="preserve">
+    <value>Stai eseguendo MoneyBrain localmente con accesso completo a tutte le funzionalità.</value>
+  </data>
+  <data name="License_SelfHosted" xml:space="preserve">
+    <value>Self-Hosted</value>
+  </data>
+  <data name="License_FreeForever" xml:space="preserve">
+    <value>Gratuito per sempre quando self-hosted</value>
+  </data>
+  <data name="License_NoActiveLicense" xml:space="preserve">
+    <value>Nessuna licenza attiva</value>
+  </data>
+  <data name="License_GetStarted" xml:space="preserve">
+    <value>Inizia con MoneyBrain</value>
+  </data>
+  <data name="License_ViewPlans" xml:space="preserve">
+    <value>Vedi Piani</value>
+  </data>
+  <data name="License_TrialEndsIn" xml:space="preserve">
+    <value>La prova termina tra {0} giorni</value>
+  </data>
+  <data name="License_Expired" xml:space="preserve">
+    <value>Scaduta</value>
+  </data>
+  <data name="License_Cancelled" xml:space="preserve">
+    <value>Annullata</value>
+  </data>
+  <data name="License_AccessUntil" xml:space="preserve">
+    <value>Accesso fino a {0}</value>
+  </data>
+  <data name="License_Status" xml:space="preserve">
+    <value>Stato</value>
+  </data>
+  <data name="License_Plan" xml:space="preserve">
+    <value>Piano</value>
+  </data>
+  <data name="License_Renews" xml:space="preserve">
+    <value>Rinnova</value>
+  </data>
+  <data name="License_Expires" xml:space="preserve">
+    <value>Scade</value>
+  </data>
+  <data name="License_TrialEnds" xml:space="preserve">
+    <value>Fine Prova</value>
+  </data>
+  <data name="License_ManageSubscription" xml:space="preserve">
+    <value>Gestisci Abbonamento</value>
+  </data>
+  <data name="License_UpgradeNow" xml:space="preserve">
+    <value>Aggiorna Ora</value>
+  </data>
+  <!-- Transaction Split Editor -->
+  <data name="Split_Title" xml:space="preserve">
+    <value>Dividi Transazione</value>
+  </data>
+  <data name="Split_AddSplit" xml:space="preserve">
+    <value>Aggiungi Divisione</value>
+  </data>
+  <data name="Split_AutoBalance" xml:space="preserve">
+    <value>Auto Bilancia</value>
+  </data>
+  <data name="Split_Balanced" xml:space="preserve">
+    <value>Bilanciato</value>
+  </data>
+  <data name="Split_Remaining" xml:space="preserve">
+    <value>{0} rimanente</value>
+  </data>
+  <!-- Mobile Pages -->
+  <data name="Mobile_Overview" xml:space="preserve">
+    <value>Panoramica</value>
+  </data>
+  <data name="Mobile_TotalBalance" xml:space="preserve">
+    <value>Saldo Totale</value>
+  </data>
+  <data name="Mobile_ThisMonth" xml:space="preserve">
+    <value>Questo Mese</value>
+  </data>
+  <data name="Mobile_Income" xml:space="preserve">
+    <value>Entrate</value>
+  </data>
+  <data name="Mobile_Expenses" xml:space="preserve">
+    <value>Spese</value>
+  </data>
+  <data name="Mobile_BudgetSummary" xml:space="preserve">
+    <value>Riepilogo Budget</value>
+  </data>
+  <data name="Mobile_Remaining" xml:space="preserve">
+    <value>{0} rimanente</value>
+  </data>
+  <data name="Mobile_MoreCategories" xml:space="preserve">
+    <value>+{0} altre categorie</value>
+  </data>
+  <data name="Mobile_PleaseSignIn" xml:space="preserve">
+    <value>Accedi per visualizzare le tue finanze</value>
+  </data>
+  <data name="Mobile_Transactions" xml:space="preserve">
+    <value>Transazioni</value>
+  </data>
+  <data name="Mobile_PleaseSignInTransactions" xml:space="preserve">
+    <value>Accedi per visualizzare le transazioni</value>
+  </data>
+  <!-- PWA Install Prompt -->
+  <data name="Pwa_InstallMoneyBrain" xml:space="preserve">
+    <value>Installa MoneyBrain</value>
+  </data>
+  <data name="Pwa_QuickAccess" xml:space="preserve">
+    <value>Ottieni accesso rapido dalla schermata iniziale</value>
+  </data>
+  <data name="Pwa_NotNow" xml:space="preserve">
+    <value>Non Ora</value>
+  </data>
+  <data name="Pwa_Install" xml:space="preserve">
+    <value>Installa</value>
+  </data>
+  <!-- License Enforcer -->
+  <data name="LicEnf_LicenseRequired" xml:space="preserve">
+    <value>Licenza Richiesta</value>
+  </data>
+  <data name="LicEnf_LicenseExpired" xml:space="preserve">
+    <value>La tua licenza è scaduta. Rinnovala per continuare a usare MoneyBrain.</value>
+  </data>
+  <data name="LicEnf_ManageLicense" xml:space="preserve">
+    <value>Gestisci Licenza</value>
+  </data>
+  <data name="LicEnf_ViewPricing" xml:space="preserve">
+    <value>Vedi Prezzi</value>
+  </data>
+  <!-- Setup Wizard -->
+  <data name="Setup_StepWelcome" xml:space="preserve">
+    <value>Benvenuto</value>
+  </data>
+  <data name="Setup_Welcome" xml:space="preserve">
+    <value>Benvenuto in MoneyBrain!</value>
+  </data>
+  <data name="Setup_WelcomeDescription" xml:space="preserve">
+    <value>Ti configureremo in pochi minuti.</value>
+  </data>
+  <data name="Setup_ConfigureSettings" xml:space="preserve">
+    <value>Configura le tue impostazioni</value>
+  </data>
+  <data name="Setup_AddAccount" xml:space="preserve">
+    <value>Aggiungi il tuo primo conto</value>
+  </data>
+  <data name="Setup_SetupCategories" xml:space="preserve">
+    <value>Configura le categorie</value>
+  </data>
+  <data name="Setup_Or" xml:space="preserve">
+    <value>— oppure —</value>
+  </data>
+  <data name="Setup_TryDemoData" xml:space="preserve">
+    <value>Prova Dati Demo</value>
+  </data>
+  <data name="Setup_StepSettings" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Setup_ConfigurePreferences" xml:space="preserve">
+    <value>Configura le Tue Preferenze</value>
+  </data>
+  <data name="Setup_ConfigurePreferencesDescription" xml:space="preserve">
+    <value>Imposta la tua valuta, fuso orario e formato data.</value>
+  </data>
+  <data name="Setup_StepFirstAccount" xml:space="preserve">
+    <value>Primo Conto</value>
+  </data>
+  <data name="Setup_CreateFirstAccount" xml:space="preserve">
+    <value>Crea il Tuo Primo Conto</value>
+  </data>
+  <data name="Setup_CreateFirstAccountDescription" xml:space="preserve">
+    <value>Aggiungi un conto corrente, conto risparmio o carta di credito per iniziare.</value>
+  </data>
+  <data name="Setup_AccountNamePlaceholder" xml:space="preserve">
+    <value>es., Conto Corrente Intesa</value>
+  </data>
+  <data name="Setup_BalanceHelperText" xml:space="preserve">
+    <value>Saldo attuale in questo conto</value>
+  </data>
+  <data name="Setup_AccountsAdded" xml:space="preserve">
+    <value>Conti Aggiunti</value>
+  </data>
+  <data name="Setup_AddAnotherAccount" xml:space="preserve">
+    <value>Aggiungi Un Altro Conto</value>
+  </data>
+  <data name="Setup_StepCategories" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="Setup_CategoriesDescription" xml:space="preserve">
+    <value>Configureremo alcune categorie predefinite per aiutarti a organizzare le tue transazioni.</value>
+  </data>
+  <data name="Setup_DefaultCategories" xml:space="preserve">
+    <value>Categorie Predefinite</value>
+  </data>
+  <data name="Setup_DefaultCategoriesDescription" xml:space="preserve">
+    <value>Queste categorie saranno create per te:</value>
+  </data>
+  <data name="Setup_PlusMore" xml:space="preserve">
+    <value>+ Altro</value>
+  </data>
+  <data name="Setup_CategoriesCustomizeHint" xml:space="preserve">
+    <value>Puoi personalizzare le categorie in qualsiasi momento dalla pagina Categorie.</value>
+  </data>
+  <data name="Setup_StepComplete" xml:space="preserve">
+    <value>Completato</value>
+  </data>
+  <data name="Setup_AllSet" xml:space="preserve">
+    <value>Tutto pronto!</value>
+  </data>
+  <data name="Setup_Summary" xml:space="preserve">
+    <value>Ecco cosa abbiamo configurato per te:</value>
+  </data>
+  <data name="Setup_AccountsCreated" xml:space="preserve">
+    <value>{0} conto/i creato/i</value>
+  </data>
+  <data name="Setup_CategoriesReady" xml:space="preserve">
+    <value>Categorie predefinite pronte</value>
+  </data>
+  <data name="Setup_GetStarted" xml:space="preserve">
+    <value>Inizia</value>
+  </data>
+  <data name="Setup_LetsGo" xml:space="preserve">
+    <value>Andiamo!</value>
+  </data>
+  <data name="Setup_CreateAccount" xml:space="preserve">
+    <value>Crea Conto</value>
+  </data>
+  <data name="Setup_FinishSetup" xml:space="preserve">
+    <value>Completa Configurazione</value>
+  </data>
+  <!-- Labels - Additional -->
+  <data name="Lbl_AccountName" xml:space="preserve">
+    <value>Nome Conto</value>
+  </data>
+  <data name="Lbl_AccountType" xml:space="preserve">
+    <value>Tipo Conto</value>
+  </data>
+  <data name="Lbl_SubType" xml:space="preserve">
+    <value>Sottotipo</value>
+  </data>
+  <data name="Lbl_CurrentBalance" xml:space="preserve">
+    <value>Saldo Attuale</value>
+  </data>
+  <data name="Lbl_SelectAccount" xml:space="preserve">
+    <value>Seleziona Conto</value>
+  </data>
+  <!-- Account Types -->
+  <data name="AccountType_Asset" xml:space="preserve">
+    <value>Attivo</value>
+  </data>
+  <data name="AccountType_Liability" xml:space="preserve">
+    <value>Passivo</value>
+  </data>
+  <!-- Account Sub Types -->
+  <data name="SubType_Checking" xml:space="preserve">
+    <value>Conto Corrente</value>
+  </data>
+  <data name="SubType_Savings" xml:space="preserve">
+    <value>Conto Risparmio</value>
+  </data>
+  <data name="SubType_Cash" xml:space="preserve">
+    <value>Contanti</value>
+  </data>
+  <data name="SubType_Investment" xml:space="preserve">
+    <value>Investimento</value>
+  </data>
+  <data name="SubType_OtherAsset" xml:space="preserve">
+    <value>Altro Attivo</value>
+  </data>
+  <data name="SubType_CreditCard" xml:space="preserve">
+    <value>Carta di Credito</value>
+  </data>
+  <data name="SubType_Loan" xml:space="preserve">
+    <value>Prestito</value>
+  </data>
+  <data name="SubType_Mortgage" xml:space="preserve">
+    <value>Mutuo</value>
+  </data>
+  <data name="SubType_OtherLiability" xml:space="preserve">
+    <value>Altro Passivo</value>
+  </data>
+  <!-- Category Names for Setup -->
+  <data name="Cat_Housing" xml:space="preserve">
+    <value>Abitazione</value>
+  </data>
+  <data name="Cat_Transportation" xml:space="preserve">
+    <value>Trasporti</value>
+  </data>
+  <data name="Cat_FoodDining" xml:space="preserve">
+    <value>Cibo e Ristoranti</value>
+  </data>
+  <data name="Cat_Utilities" xml:space="preserve">
+    <value>Utenze</value>
+  </data>
+  <data name="Cat_Shopping" xml:space="preserve">
+    <value>Shopping</value>
+  </data>
+  <data name="Cat_Entertainment" xml:space="preserve">
+    <value>Intrattenimento</value>
+  </data>
+  <!-- Transaction Dialog Keys (used in Mobile) -->
+  <data name="Trans_NoTransactionsFound" xml:space="preserve">
+    <value>Nessuna transazione trovata</value>
+  </data>
+  <data name="Trans_NoPayee" xml:space="preserve">
+    <value>Nessun beneficiario</value>
+  </data>
+  <data name="Trans_NewTransaction" xml:space="preserve">
+    <value>Nuova Transazione</value>
+  </data>
+  <data name="Trans_EditTransaction" xml:space="preserve">
+    <value>Modifica Transazione</value>
+  </data>
+</root>

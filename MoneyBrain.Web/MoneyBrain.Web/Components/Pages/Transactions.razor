@@ -9,9 +9,12 @@
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 
 @attribute [Authorize]
 
+@inject IStringLocalizer<SharedResource> L
 @inject ITransactionService TransactionService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
@@ -20,14 +23,14 @@
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Transactions | MoneyBrain</PageTitle>
+<PageTitle>@L["Nav_Transactions"] | @L["App_MoneyBrain"]</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <!-- Header -->
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">Transactions</h1>
-            <p class="mb-subtitle">Track income and expenses</p>
+            <h1 class="mb-title">@L["Nav_Transactions"]</h1>
+            <p class="mb-subtitle">@L["Trans_Subtitle"]</p>
         </div>
         <div class="d-flex gap-2">
             @if (_selectedTransactions.Count > 0)
@@ -36,13 +39,13 @@
                            Color="Color.Info"
                            StartIcon="@Icons.Material.Filled.Edit"
                            OnClick="@OpenBulkEditDialog">
-                    Bulk Edit (@_selectedTransactions.Count)
+                    @L["Trans_BulkEdit"] (@_selectedTransactions.Count)
                 </MudButton>
                 <MudButton Variant="Variant.Outlined" 
                            Color="Color.Default"
                            StartIcon="@Icons.Material.Filled.Clear"
                            OnClick="@ClearSelection">
-                    Clear Selection
+                    @L["Trans_ClearSelection"]
                 </MudButton>
             }
             else
@@ -53,13 +56,13 @@
                                Color="Color.Warning"
                                StartIcon="@Icons.Material.Filled.Schedule"
                                OnClick="@ShowPendingTransactions">
-                        @_pendingTransactionCount Pending
+                        @_pendingTransactionCount @L["Status_Pending"]
                     </MudButton>
                     <MudButton Variant="Variant.Filled" 
                                Color="Color.Success"
                                StartIcon="@Icons.Material.Filled.CheckCircle"
                                OnClick="@PostAllPendingTransactions">
-                        Post All Pending
+                        @L["Trans_PostAllPending"]
                     </MudButton>
                 }
                 @if (_unreconciledTransactionCount > 0)
@@ -68,32 +71,32 @@
                                Color="Color.Info"
                                StartIcon="@Icons.Material.Outlined.LockOpen"
                                OnClick="@ShowUnreconciledTransactions">
-                        @_unreconciledTransactionCount Unreconciled
+                        @_unreconciledTransactionCount @L["Trans_Unreconciled"]
                     </MudButton>
                 }
                 <MudButton Variant="Variant.Outlined" 
                            Color="Color.Primary"
                            StartIcon="@(_showFilters ? Icons.Material.Filled.FilterAltOff : Icons.Material.Filled.FilterAlt)"
                            OnClick="@(() => _showFilters = !_showFilters)">
-                    @(_showFilters ? "Hide Filters" : "Show Filters")
+                    @(_showFilters ? L["Trans_HideFilters"] : L["Trans_ShowFilters"])
                 </MudButton>
                 <MudButton Variant="Variant.Outlined" 
                            Color="Color.Primary"
                            StartIcon="@Icons.Material.Filled.Upload"
                            OnClick="@OpenCsvImportDialog">
-                    Import CSV
+                    @L["Trans_ImportCSV"]
                 </MudButton>
                 <MudButton Variant="Variant.Outlined" 
                            Color="Color.Secondary"
                            StartIcon="@Icons.Material.Filled.SwapHoriz"
                            OnClick="@OpenCreateTransferDialog">
-                    Transfer
+                    @L["Trans_Transfer"]
                 </MudButton>
                 <MudButton Variant="Variant.Filled" 
                            Class="mb-btn-primary"
                            StartIcon="@Icons.Material.Filled.Add"
                            OnClick="@OpenCreateTransactionDialog">
-                    Add Transaction
+                    @L["Trans_AddTransaction"]
                 </MudButton>
             }
         </div>
@@ -104,7 +107,7 @@
         <MudPaper Class="mb-4 pa-4">
             <MudGrid>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudSelect T="int?" @bind-Value="@_filter.AccountId" Label="Account" Variant="Variant.Outlined" Clearable OnClearButtonClick="ApplyFilters">
+                    <MudSelect T="int?" @bind-Value="@_filter.AccountId" Label="@L["Lbl_Account"]" Variant="Variant.Outlined" Clearable OnClearButtonClick="ApplyFilters">
                         @foreach (var account in _accounts)
                         {
                             <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
@@ -112,48 +115,48 @@
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudTextField @bind-Value="@_filter.SearchText" Label="Search" Variant="Variant.Outlined" 
-                                  Placeholder="Payee, memo, category..."
+                    <MudTextField @bind-Value="@_filter.SearchText" Label="@L["Lbl_Search"]" Variant="Variant.Outlined" 
+                                  Placeholder="@L["Trans_SearchPlaceholder"]"
                                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudSelect T="TransactionType?" @bind-Value="@_filter.TransactionType" Label="Transaction Type" Variant="Variant.Outlined" Clearable>
-                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Income">Income</MudSelectItem>
-                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Expense">Expense</MudSelectItem>
-                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Transfer">Transfer</MudSelectItem>
+                    <MudSelect T="TransactionType?" @bind-Value="@_filter.TransactionType" Label="@L["Trans_TransactionType"]" Variant="Variant.Outlined" Clearable>
+                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Income">@L["Trans_TypeIncome"]</MudSelectItem>
+                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Expense">@L["Trans_TypeExpense"]</MudSelectItem>
+                        <MudSelectItem T="TransactionType?" Value="@TransactionType.Transfer">@L["Trans_TypeTransfer"]</MudSelectItem>
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudDatePicker @bind-Date="@_filter.StartDate" Label="Start Date" Variant="Variant.Outlined" Clearable />
+                    <MudDatePicker @bind-Date="@_filter.StartDate" Label="@L["Lbl_StartDate"]" Variant="Variant.Outlined" Clearable />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudDatePicker @bind-Date="@_filter.EndDate" Label="End Date" Variant="Variant.Outlined" Clearable />
+                    <MudDatePicker @bind-Date="@_filter.EndDate" Label="@L["Lbl_EndDate"]" Variant="Variant.Outlined" Clearable />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudSelect T="TransactionStatus?" @bind-Value="@_filter.Status" Label="Status" Variant="Variant.Outlined" Clearable>
-                        <MudSelectItem T="TransactionStatus?" Value="@TransactionStatus.Pending">Pending</MudSelectItem>
-                        <MudSelectItem T="TransactionStatus?" Value="@TransactionStatus.Posted">Posted</MudSelectItem>
+                    <MudSelect T="TransactionStatus?" @bind-Value="@_filter.Status" Label="@L["Lbl_Status"]" Variant="Variant.Outlined" Clearable>
+                        <MudSelectItem T="TransactionStatus?" Value="@TransactionStatus.Pending">@L["Status_Pending"]</MudSelectItem>
+                        <MudSelectItem T="TransactionStatus?" Value="@TransactionStatus.Posted">@L["Status_Posted"]</MudSelectItem>
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudNumericField @bind-Value="@_filter.MinAmount" Label="Min Amount" Variant="Variant.Outlined" Format="N2" />
+                    <MudNumericField @bind-Value="@_filter.MinAmount" Label="@L["Trans_MinAmount"]" Variant="Variant.Outlined" Format="N2" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudNumericField @bind-Value="@_filter.MaxAmount" Label="Max Amount" Variant="Variant.Outlined" Format="N2" />
+                    <MudNumericField @bind-Value="@_filter.MaxAmount" Label="@L["Trans_MaxAmount"]" Variant="Variant.Outlined" Format="N2" />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCheckBox @bind-Value="@_filter.IsCleared" Label="Cleared Only" Color="Color.Primary" TriState />
+                    <MudCheckBox @bind-Value="@_filter.IsCleared" Label="@L["Trans_ClearedOnly"]" Color="Color.Primary" TriState />
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCheckBox @bind-Value="@_filter.IsReconciled" Label="Reconciled Only" Color="Color.Primary" TriState />
+                    <MudCheckBox @bind-Value="@_filter.IsReconciled" Label="@L["Trans_ReconciledOnly"]" Color="Color.Primary" TriState />
                 </MudItem>
             </MudGrid>
             <div class="d-flex gap-2 mt-4">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyFilters">Apply Filters</MudButton>
-                <MudButton Variant="Variant.Outlined" OnClick="ClearFilters">Clear All</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyFilters">@L["Trans_ApplyFilters"]</MudButton>
+                <MudButton Variant="Variant.Outlined" OnClick="ClearFilters">@L["Trans_ClearAll"]</MudButton>
                 @if (_filter.HasActiveFilters)
                 {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@GetActiveFilterCount() filter(s) active</MudChip>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@string.Format(L["Trans_FiltersActive"], GetActiveFilterCount())</MudChip>
                 }
             </div>
         </MudPaper>
@@ -167,13 +170,13 @@
     {
         <div class="mb-empty-state">
             <MudIcon Icon="@Icons.Material.Outlined.Receipt" Class="mb-empty-state-icon" />
-            <MudText Typo="Typo.h6" Class="mb-2">No transactions yet</MudText>
+            <MudText Typo="Typo.h6" Class="mb-2">@L["Trans_NoTransactionsYet"]</MudText>
             <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
-                Start tracking your income and expenses
+                @L["Trans_StartTracking"]
             </MudText>
             <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateTransactionDialog">
                 <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
-                Add Your First Transaction
+                @L["Trans_AddFirstTransaction"]
             </MudButton>
         </div>
     }
@@ -188,25 +191,25 @@
                      PageSize="100">
             <Columns>
                 <SelectColumn T="Transaction" />
-                <PropertyColumn Property="t => t.Date" Title="Date" Format="yyyy-MM-dd" Grouping>
+                <PropertyColumn Property="t => t.Date" Title="@L["Col_Date"]" Format="yyyy-MM-dd" Grouping>
                     <GroupTemplate>
                         <span style="font-weight: bold">@GetGroupDateHeader(context)</span>
                     </GroupTemplate>
                 </PropertyColumn>
-                <PropertyColumn Property="t => t.Account.Name" Title="Account" />
-                <TemplateColumn Title="Payee">
+                <PropertyColumn Property="t => t.Account.Name" Title="@L["Col_Account"]" />
+                <TemplateColumn Title="@L["Col_Payee"]">
                     <CellTemplate>
                         <div class="d-flex align-center gap-2">
                             @if (context.Item.IsRecurring)
                             {
-                                <MudTooltip Text="Recurring Transaction">
+                                <MudTooltip Text="@L["Trans_RecurringTransaction"]">
                                     <MudIcon Icon="@Icons.Material.Filled.Loop" Size="Size.Small" Color="Color.Info" />
                                 </MudTooltip>
                             }
                             @if (context.Item.TransferTransactionId.HasValue)
                             {
                                 <MudIcon Icon="@Icons.Material.Filled.SwapHoriz" Size="Size.Small" Color="Color.Secondary" />
-                                <span>Transfer</span>
+                                <span>@L["Trans_TypeTransfer"]</span>
                             }
                             else
                             {
@@ -215,15 +218,15 @@
                         </div>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Category">
+                <TemplateColumn Title="@L["Col_Category"]">
                     <CellTemplate>
                         @if (context.Item.TransferTransactionId.HasValue)
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Transfer</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary">@L["Trans_TypeTransfer"]</MudChip>
                         }
                         else if (context.Item.Splits?.Any() == true)
                         {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Info">Split (@context.Item.Splits.Count)</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info">@L["Trans_Split"] (@context.Item.Splits.Count)</MudChip>
                         }
                         else
                         {
@@ -231,35 +234,35 @@
                         }
                     </CellTemplate>
                 </TemplateColumn>
-                <PropertyColumn Property="t => t.Memo" Title="Memo" />
-                <TemplateColumn Title="Amount" SortBy="t => t.Amount">
+                <PropertyColumn Property="t => t.Memo" Title="@L["Col_Memo"]" />
+                <TemplateColumn Title="@L["Col_Amount"]" SortBy="t => t.Amount">
                     <CellTemplate>
                         <span class="mb-amount @GetAmountClass(context.Item.Amount)">
                             @FormatCurrency(context.Item.Amount)
                         </span>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Status">
+                <TemplateColumn Title="@L["Col_Status"]">
                     <CellTemplate>
                         @if (context.Item.IsReconciled)
                         {
-                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Success">Reconciled</MudChip>
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Success">@L["Status_Reconciled"]</MudChip>
                         }
                         else if (context.Item.IsCleared)
                         {
-                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info">Cleared</MudChip>
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info">@L["Status_Cleared"]</MudChip>
                         }
                         else if (context.Item.Status == TransactionStatus.Posted)
                         {
-                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default">Posted</MudChip>
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Default">@L["Status_Posted"]</MudChip>
                         }
                         else
                         {
-                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Warning">Pending</MudChip>
+                            <MudChip Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Warning">@L["Status_Pending"]</MudChip>
                         }
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Actions" Sortable="false">
+                <TemplateColumn Title="@L["Col_Actions"]" Sortable="false">
                     <CellTemplate>
                         @if (context.Item.TransferTransactionId.HasValue)
                         {
@@ -267,19 +270,19 @@
                                            Size="MudBlazor.Size.Small"
                                            OnClick="@(() => OpenEditTransferDialog(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="Edit Transfer" />
+                                           Title="@L["Trans_EditTransfer"]" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Size="MudBlazor.Size.Small"
                                            Color="MudBlazor.Color.Error"
                                            OnClick="@(() => DeleteTransfer(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="Delete Transfer" />
+                                           Title="@L["Trans_DeleteTransfer"]" />
                         }
                         else
                         {
                             @if (context.Item.IsReconciled)
                             {
-                                <MudTooltip Text="Reconciled transaction (locked)">
+                                <MudTooltip Text="@L["Trans_ReconciledLocked"]">
                                     <MudIcon Icon="@Icons.Material.Filled.Lock" 
                                             Size="MudBlazor.Size.Small"
                                             Color="MudBlazor.Color.Success" />
@@ -290,18 +293,18 @@
                                            Color="@(context.Item.IsCleared ? MudBlazor.Color.Info : MudBlazor.Color.Default)"
                                            OnClick="@(() => ToggleCleared(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@(context.Item.IsReconciled ? "Cannot clear/unclear reconciled transaction" : "Toggle cleared")" />
+                                           Title="@(context.Item.IsReconciled ? L["Trans_CannotClearReconciled"] : L["Trans_ToggleCleared"])" />
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                            Size="MudBlazor.Size.Small"
                                            OnClick="@(() => OpenEditTransactionDialog(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@(context.Item.IsReconciled ? "Cannot edit reconciled transaction" : "Edit transaction")" />
+                                           Title="@(context.Item.IsReconciled ? L["Trans_CannotEditReconciled"] : L["Trans_EditTransaction"])" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Size="MudBlazor.Size.Small"
                                            Color="MudBlazor.Color.Error"
                                            OnClick="@(() => DeleteTransaction(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@(context.Item.IsReconciled ? "Cannot delete reconciled transaction" : "Delete transaction")" />
+                                           Title="@(context.Item.IsReconciled ? L["Trans_CannotDeleteReconciled"] : L["Trans_DeleteTransaction"])" />
                         }
                     </CellTemplate>
                 </TemplateColumn>
@@ -313,30 +316,30 @@
         </MudDataGrid>
     }
     
-    <HelpButton Title="Transactions Help"
-                Description="View, add, and manage all your financial transactions. This is where you track every income, expense, and transfer across all your accounts."
+    <HelpButton Title="@L["Trans_HelpTitle"]"
+                Description="@L["Trans_HelpDescription"]"
                 Features="@(new[] { 
-                    "Add income and expense transactions manually",
-                    "Import transactions from CSV files",
-                    "Filter by date, account, category, payee, and status",
-                    "Bulk edit multiple transactions at once",
-                    "Split transactions across multiple categories",
-                    "Create transfers between accounts",
-                    "Mark transactions as cleared or reconciled"
+                    L["Trans_HelpFeature1"].Value,
+                    L["Trans_HelpFeature2"].Value,
+                    L["Trans_HelpFeature3"].Value,
+                    L["Trans_HelpFeature4"].Value,
+                    L["Trans_HelpFeature5"].Value,
+                    L["Trans_HelpFeature6"].Value,
+                    L["Trans_HelpFeature7"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Click 'Add Transaction' or 'Add Transfer' to create new entries",
-                    "Use 'Import CSV' to bulk import from bank exports",
-                    "Click on a transaction row to edit its details",
-                    "Use the filter panel to find specific transactions",
-                    "Select multiple rows and use 'Bulk Edit' for mass updates"
+                    L["Trans_HelpHowTo1"].Value,
+                    L["Trans_HelpHowTo2"].Value,
+                    L["Trans_HelpHowTo3"].Value,
+                    L["Trans_HelpHowTo4"].Value,
+                    L["Trans_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Positive amounts are income, negative amounts are expenses",
-                    "Use 'Posted' status for confirmed transactions, 'Pending' for future ones",
-                    "Reconciled transactions are locked and cannot be edited",
-                    "Transfers don't count as income or expense in reports",
-                    "Use the Flag column to mark important transactions for follow-up"
+                    L["Trans_HelpTip1"].Value,
+                    L["Trans_HelpTip2"].Value,
+                    L["Trans_HelpTip3"].Value,
+                    L["Trans_HelpTip4"].Value,
+                    L["Trans_HelpTip5"].Value
                 })" />
 </div>
 
@@ -520,13 +523,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<TransactionDialog>("Add Transaction", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransactionDialog>(L["Trans_DialogAddTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadTransactions();
-            SnackbarService.Add("Transaction created successfully", Severity.Success);
+            SnackbarService.Add(L["Trans_CreatedSuccess"], Severity.Success);
         }
     }
 
@@ -538,7 +541,7 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<TransactionCsvImportDialog>("Import Transactions from CSV", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransactionCsvImportDialog>(L["Trans_DialogImportTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: int importedCount })
@@ -546,7 +549,7 @@
             if (importedCount > 0)
             {
                 await LoadTransactions();
-                SnackbarService.Add($"Imported {importedCount} transactions", Severity.Success);
+                SnackbarService.Add(string.Format(L["Trans_ImportedCount"], importedCount), Severity.Success);
             }
         }
     }
@@ -561,23 +564,23 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<TransactionDialog>("Edit Transaction", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransactionDialog>(L["Trans_DialogEditTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadTransactions();
-            SnackbarService.Add("Transaction updated successfully", Severity.Success);
+            SnackbarService.Add(L["Trans_UpdatedSuccess"], Severity.Success);
         }
     }
 
     private async Task DeleteTransaction(Transaction transaction)
     {
         var result = await DialogService.ShowMessageBox(
-            "Delete Transaction",
-            $"Are you sure you want to delete this transaction? This action cannot be undone.",
-            yesText: "Delete",
-            cancelText: "Cancel");
+            L["Trans_DialogDeleteTitle"],
+            L["Trans_ConfirmDeleteMessage"],
+            yesText: L["Btn_Delete"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result == true && _userId != null)
         {
@@ -587,16 +590,16 @@
                 if (deleted)
                 {
                     await LoadTransactions();
-                    SnackbarService.Add("Transaction deleted successfully", Severity.Success);
+                    SnackbarService.Add(L["Trans_DeletedSuccess"], Severity.Success);
                 }
                 else
                 {
-                    SnackbarService.Add("Failed to delete transaction", Severity.Error);
+                    SnackbarService.Add(L["Trans_DeleteFailed"], Severity.Error);
                 }
             }
             catch (InvalidOperationException ex)
             {
-                SnackbarService.Add("Cannot delete reconciled transaction", Severity.Error);
+                SnackbarService.Add(L["Trans_CannotDeleteReconciledError"], Severity.Error);
             }
         }
     }
@@ -635,7 +638,7 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<BulkEditTransactionDialog>("Bulk Edit Transactions", parameters, options);
+        var dialog = await DialogService.ShowAsync<BulkEditTransactionDialog>(L["Trans_DialogBulkEditTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: BulkEditResult editResult })
@@ -645,16 +648,16 @@
                 await LoadTransactions();
                 _selectedTransactions.Clear();
                 
-                var message = $"Updated {editResult.UpdatedCount} transaction{(editResult.UpdatedCount != 1 ? "s" : "")}";
+                var message = string.Format(L["Trans_UpdatedCount"], editResult.UpdatedCount);
                 if (editResult.SkippedTransactionIds.Count > 0)
                 {
-                    message += $" ({editResult.SkippedTransactionIds.Count} skipped: {editResult.SkipReason})";
+                    message += " " + string.Format(L["Trans_SkippedCount"], editResult.SkippedTransactionIds.Count, editResult.SkipReason);
                 }
                 SnackbarService.Add(message, Severity.Success);
             }
             else if (editResult.SkippedTransactionIds.Count > 0)
             {
-                SnackbarService.Add($"All transactions skipped: {editResult.SkipReason}", Severity.Warning);
+                SnackbarService.Add(string.Format(L["Trans_AllSkipped"], editResult.SkipReason), Severity.Warning);
             }
         }
     }
@@ -668,13 +671,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<TransferDialog>("Create Transfer", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransferDialog>(L["Trans_DialogCreateTransferTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadTransactions();
-            SnackbarService.Add("Transfer created successfully", Severity.Success);
+            SnackbarService.Add(L["Trans_TransferCreatedSuccess"], Severity.Success);
         }
     }
 
@@ -686,7 +689,7 @@
         var transfer = await TransactionService.GetTransferAsync(_userId!, transaction.Id);
         if (transfer == null)
         {
-            SnackbarService.Add("Transfer not found", Severity.Error);
+            SnackbarService.Add(L["Trans_TransferNotFound"], Severity.Error);
             return;
         }
 
@@ -698,13 +701,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<TransferDialog>("Edit Transfer", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransferDialog>(L["Trans_DialogEditTransferTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadTransactions();
-            SnackbarService.Add("Transfer updated successfully", Severity.Success);
+            SnackbarService.Add(L["Trans_TransferUpdatedSuccess"], Severity.Success);
         }
     }
 
@@ -716,15 +719,15 @@
         var transfer = await TransactionService.GetTransferAsync(_userId!, transaction.Id);
         if (transfer == null)
         {
-            SnackbarService.Add("Transfer not found", Severity.Error);
+            SnackbarService.Add(L["Trans_TransferNotFound"], Severity.Error);
             return;
         }
 
         var result = await DialogService.ShowMessageBox(
-            "Delete Transfer",
-            $"Are you sure you want to delete this transfer of {FormatCurrency(transfer.Amount)} from {transfer.FromTransaction.Account.Name} to {transfer.ToTransaction.Account.Name}? This will delete both linked transactions and cannot be undone.",
-            yesText: "Delete",
-            cancelText: "Cancel");
+            L["Trans_DialogDeleteTransferTitle"],
+            string.Format(L["Trans_ConfirmDeleteTransferMessage"], FormatCurrency(transfer.Amount), transfer.FromTransaction.Account.Name, transfer.ToTransaction.Account.Name),
+            yesText: L["Btn_Delete"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result == true && _userId != null)
         {
@@ -734,11 +737,11 @@
                 if (deleted)
                 {
                     await LoadTransactions();
-                    SnackbarService.Add("Transfer deleted successfully", Severity.Success);
+                    SnackbarService.Add(L["Trans_TransferDeletedSuccess"], Severity.Success);
                 }
                 else
                 {
-                    SnackbarService.Add("Failed to delete transfer", Severity.Error);
+                    SnackbarService.Add(L["Trans_TransferDeleteFailed"], Severity.Error);
                 }
             }
             catch (InvalidOperationException ex)
@@ -765,10 +768,10 @@
     private async Task PostAllPendingTransactions()
     {
         var result = await DialogService.ShowMessageBox(
-            "Post All Pending Transactions",
-            $"Are you sure you want to mark all {_pendingTransactionCount} pending transactions as posted? This will include them in budget calculations.",
-            yesText: "Post All",
-            cancelText: "Cancel");
+            L["Trans_DialogPostAllTitle"],
+            string.Format(L["Trans_ConfirmPostAllMessage"], _pendingTransactionCount),
+            yesText: L["Trans_PostAll"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result == true && _userId != null)
         {
@@ -780,16 +783,16 @@
                     await LoadTransactions();
                     await LoadPendingCount();
                     await LoadUnreconciledCount();
-                    SnackbarService.Add($"Posted {statusResult.UpdatedCount} transaction{(statusResult.UpdatedCount != 1 ? "s" : "")}", Severity.Success);
+                    SnackbarService.Add(string.Format(L["Trans_PostedCount"], statusResult.UpdatedCount), Severity.Success);
                 }
                 else
                 {
-                    SnackbarService.Add("No transactions were posted", Severity.Info);
+                    SnackbarService.Add(L["Trans_NoTransactionsPosted"], Severity.Info);
                 }
             }
             catch (Exception ex)
             {
-                SnackbarService.Add($"Error posting transactions: {ex.Message}", Severity.Error);
+                SnackbarService.Add(string.Format(L["Trans_ErrorPosting"], ex.Message), Severity.Error);
             }
         }
     }
@@ -802,12 +805,12 @@
             if (success)
             {
                 await LoadTransactions();
-                var newState = !transaction.IsCleared ? "cleared" : "uncleared";
-                SnackbarService.Add($"Transaction marked as {newState}", Severity.Success);
+                var newState = !transaction.IsCleared ? L["Trans_MarkedCleared"] : L["Trans_MarkedUncleared"];
+                SnackbarService.Add(newState, Severity.Success);
             }
             else
             {
-                SnackbarService.Add("Failed to update transaction", Severity.Error);
+                SnackbarService.Add(L["Trans_FailedToUpdate"], Severity.Error);
             }
         }
         catch (InvalidOperationException ex)

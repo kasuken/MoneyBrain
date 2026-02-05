@@ -1,14 +1,17 @@
 @using MoneyBrain.Web.Application.Budgets
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject IBudgetService BudgetService
 @inject ICategoryService CategoryService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="3">
             <MudText Typo="Typo.body2" Class="mb-2">
-                Select category groups or individual categories to add to this budget
+                @L["AddCatBudgetDlg_SelectCategories"]
             </MudText>
 
             @foreach (var group in _categoryGroups.OrderBy(g => g.Name))
@@ -29,7 +32,7 @@
                                              Color="Color.Primary"
                                              Dense="true" />
                                 <MudChip T="string" Size="Size.Small" Variant="Variant.Text">
-                                    @groupCategories.Count categor@(groupCategories.Count == 1 ? "y" : "ies")
+                                    @string.Format(L["AddCatBudgetDlg_CategoryCount"], groupCategories.Count)
                                 </MudChip>
                             </div>
                             
@@ -52,7 +55,7 @@
                             <MudButton Size="Size.Small" 
                                        Variant="Variant.Text"
                                        OnClick="@(() => ToggleGroupExpansion(group.Id))">
-                                @(IsGroupExpanded(group.Id) ? "Hide" : "Show") Categories
+                                @(IsGroupExpanded(group.Id) ? L["AddCatBudgetDlg_HideCategories"] : L["AddCatBudgetDlg_ShowCategories"])
                             </MudButton>
                         </MudStack>
                     </MudPaper>
@@ -62,7 +65,7 @@
             <MudDivider Class="my-2" />
 
             <MudNumericField @bind-Value="_plannedAmount" 
-                             Label="Default Planned Amount (per category)" 
+                             Label="@L["AddCatBudgetDlg_DefaultAmount"]" 
                              Variant="Variant.Outlined" 
                              Required="true"
                              Format="N2"
@@ -70,27 +73,27 @@
                              Step="0.01M"
                              Adornment="Adornment.Start"
                              AdornmentText="$"
-                             HelperText="This amount will be applied to all selected categories" />
+                             HelperText="@L["AddCatBudgetDlg_DefaultAmountHelper"]" />
 
             <MudSwitch @bind-Value="_allowRollover" 
-                       Label="Allow Rollover" 
+                       Label="@L["BudgetAsgnDlg_AllowRollover"]" 
                        Color="Color.Primary">
                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
-                    Carry over unused budget to next month
+                    @L["BudgetAsgnDlg_RolloverDesc"]
                 </MudText>
             </MudSwitch>
             
             <MudTextField @bind-Value="_notes" 
-                          Label="Notes (Optional)" 
+                          Label="@L["AddCatBudgetDlg_Notes"]" 
                           Variant="Variant.Outlined"
                           Lines="2"
                           MaxLength="500"
-                          HelperText="These notes will be added to all selected categories" />
+                          HelperText="@L["AddCatBudgetDlg_NotesHelper"]" />
 
             @if (_selectedCategoryIds.Count > 0)
             {
                 <MudAlert Severity="Severity.Info" Dense="true">
-                    <strong>@_selectedCategoryIds.Count</strong> categor@(_selectedCategoryIds.Count == 1 ? "y" : "ies") selected
+                    @string.Format(L["AddCatBudgetDlg_SelectedCount"], _selectedCategoryIds.Count)
                 </MudAlert>
             }
         </MudStack>
@@ -101,7 +104,7 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
                    OnClick="Submit" 
@@ -110,7 +113,7 @@
             {
                 <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
             }
-            Add @(_selectedCategoryIds.Count) Categor@(_selectedCategoryIds.Count == 1 ? "y" : "ies")
+            @string.Format(L["AddCatBudgetDlg_AddButton"], _selectedCategoryIds.Count)
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -215,13 +218,13 @@
 
         if (_selectedCategoryIds.Count == 0)
         {
-            _errorMessage = "Please select at least one category";
+            _errorMessage = L["AddCatBudgetDlg_SelectAtLeastOne"];
             return;
         }
 
         if (_plannedAmount < 0)
         {
-            _errorMessage = "Planned amount cannot be negative";
+            _errorMessage = L["BudgetAsgnDlg_AmountNegative"];
             return;
         }
 
@@ -267,7 +270,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error: {ex.Message}";
+            _errorMessage = string.Format(L["Msg_Error"], ex.Message);
         }
         finally
         {

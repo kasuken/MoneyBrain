@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Budgets;
@@ -18,6 +19,7 @@ using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Application.Transactions.RecurringTransactions;
+using MoneyBrain.Web.Application.InsightExplorer;
 using MoneyBrain.Web.Components;
 using MoneyBrain.Web.Components.Account;
 using MoneyBrain.Web.Data;
@@ -34,6 +36,22 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddMudServices();
+
+// Localization
+// Note: Do NOT use ResourcesPath since the marker class (SharedResource) is already in 
+// the MoneyBrain.Web.Resources namespace - the localizer uses the full namespace to find resources
+builder.Services.AddLocalization();
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en", "it", "es" };
+    options.SetDefaultCulture("en")
+           .AddSupportedCultures(supportedCultures)
+           .AddSupportedUICultures(supportedCultures);
+    options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
+});
+
+// Controllers for localization
+builder.Services.AddControllers();
 
 builder.Services.AddAuthentication(options =>
     {
@@ -79,6 +97,7 @@ builder.Services.AddScoped<INetWorthService, NetWorthService>();
 builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryService>();
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<ICreditCardBillingService, CreditCardBillingService>();
+builder.Services.AddScoped<IInsightExplorerService, InsightExplorerService>();
 
 // Mobile detection service
 builder.Services.AddScoped<MoneyBrain.Web.Services.IMobileDetectionService, MoneyBrain.Web.Services.MobileDetectionService>();
@@ -140,7 +159,10 @@ app.Use(async (context, next) =>
 
 app.UseAntiforgery();
 
+app.UseRequestLocalization();
+
 app.MapStaticAssets();
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

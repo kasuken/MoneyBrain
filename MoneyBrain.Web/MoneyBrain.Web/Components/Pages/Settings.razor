@@ -1,6 +1,8 @@
 @page "/settings"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.Settings
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 
 @attribute [Authorize]
 @inject IUserSettingsService SettingsService
@@ -8,14 +10,15 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Settings | MoneyBrain</PageTitle>
+<PageTitle>@L["Settings_PageTitle"] | MoneyBrain</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">Settings</h1>
-            <p class="mb-subtitle">Manage your preferences and display options</p>
+            <h1 class="mb-title">@L["Settings_Title"]</h1>
+            <p class="mb-subtitle">@L["Settings_Subtitle"]</p>
         </div>
     </div>
 
@@ -31,18 +34,18 @@
                     <MudStack Spacing="4">
                         <div>
                             <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: var(--mb-text-secondary); font-weight: 600;">
-                                DISPLAY PREFERENCES
+                                @L["Settings_DisplayPreferences"]
                             </MudText>
                         </div>
                         
                         <MudSelect T="string" 
-                                   Label="Currency" 
+                                   Label="@L["Settings_Currency"]" 
                                    @bind-Value="_currencyCode"
                                    Required="true"
-                                   RequiredError="Currency is required"
+                                   RequiredError="@L["Val_CurrencyRequired"]"
                                    Variant="Variant.Outlined"
                                    AnchorOrigin="Origin.BottomCenter"
-                                   HelperText="Used for displaying monetary values">
+                                   HelperText="@L["Settings_CurrencyHelper"]">
                             @foreach (var currency in _currencies)
                             {
                                 <MudSelectItem T="string" Value="@currency.Code">
@@ -52,13 +55,13 @@
                         </MudSelect>
 
                         <MudSelect T="string"
-                                   Label="Timezone"
+                                   Label="@L["Settings_Timezone"]"
                                    @bind-Value="_timeZoneId"
                                    Required="true"
-                                   RequiredError="Timezone is required"
+                                   RequiredError="@L["Val_TimezoneRequired"]"
                                    Variant="Variant.Outlined"
                                    AnchorOrigin="Origin.BottomCenter"
-                                   HelperText="Used for displaying dates and times">
+                                   HelperText="@L["Settings_TimezoneHelper"]">
                             @foreach (var tz in _timeZones)
                             {
                                 <MudSelectItem T="string" Value="@tz.Id">
@@ -68,11 +71,11 @@
                         </MudSelect>
 
                         <MudSelect T="string"
-                                   Label="Date Format"
+                                   Label="@L["Settings_DateFormat"]"
                                    @bind-Value="_dateFormat"
                                    Variant="Variant.Outlined"
                                    AnchorOrigin="Origin.BottomCenter"
-                                   HelperText="How dates are displayed throughout the app">
+                                   HelperText="@L["Settings_DateFormatHelper"]">
                             <MudSelectItem T="string" Value="@("yyyy-MM-dd")">2026-01-25 (ISO)</MudSelectItem>
                             <MudSelectItem T="string" Value="@("MM/dd/yyyy")">01/25/2026 (US)</MudSelectItem>
                             <MudSelectItem T="string" Value="@("dd/MM/yyyy")">25/01/2026 (EU)</MudSelectItem>
@@ -90,7 +93,7 @@
                             {
                                 <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
                             }
-                            Save Changes
+                            @L["Settings_SaveChanges"]
                         </MudButton>
                     </MudStack>
                 </MudForm>
@@ -101,14 +104,13 @@
             <MudStack Spacing="4">
                 <div>
                     <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: var(--mb-text-secondary); font-weight: 600;">
-                        DATA MANAGEMENT
+                        @L["Settings_DataManagement"]
                     </MudText>
                 </div>
                 
                 <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
                     <MudText Typo="Typo.body2">
-                        Erasing all data will permanently delete all your accounts, transactions, budgets, categories, and settings. 
-                        This action cannot be undone.
+                        @L["Settings_EraseWarning"]
                     </MudText>
                 </MudAlert>
 
@@ -121,15 +123,14 @@
                     {
                         <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
                     }
-                    Erase All Data
+                    @L["Settings_EraseAllData"]
                 </MudButton>
 
                 <MudDivider Class="my-2" />
 
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
                     <MudText Typo="Typo.body2">
-                        Load demo data to explore MoneyBrain with realistic sample accounts, transactions, and budgets.
-                        This will add data without affecting any existing records.
+                        @L["Settings_DemoDataInfo"]
                     </MudText>
                 </MudAlert>
 
@@ -142,29 +143,29 @@
                     {
                         <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
                     }
-                    Load Demo Data
+                    @L["Settings_LoadDemoData"]
                 </MudButton>
             </MudStack>
         </div>
     </div>
     
-    <HelpButton Title="Settings Help"
-                Description="Configure your personal preferences for MoneyBrain. These settings affect how data is displayed throughout the application."
+    <HelpButton Title="@L["Settings_HelpTitle"]"
+                Description="@L["Settings_HelpDescription"]"
                 Features="@(new[] { 
-                    "Currency format and symbol customization",
-                    "Date format preferences",
-                    "Default account selection",
-                    "Display preferences and themes"
+                    L["Settings_HelpFeature1"].Value,
+                    L["Settings_HelpFeature2"].Value,
+                    L["Settings_HelpFeature3"].Value,
+                    L["Settings_HelpFeature4"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Update any setting values as needed",
-                    "Click 'Save Changes' to apply your preferences",
-                    "Changes take effect immediately across the app"
+                    L["Settings_HelpHowTo1"].Value,
+                    L["Settings_HelpHowTo2"].Value,
+                    L["Settings_HelpHowTo3"].Value
                 })"
                 Tips="@(new[] {
-                    "Currency settings affect display only, not actual values",
-                    "Choose date formats that match your region",
-                    "Settings are saved per user account"
+                    L["Settings_HelpTip1"].Value,
+                    L["Settings_HelpTip2"].Value,
+                    L["Settings_HelpTip3"].Value
                 })" />
 </div>
 
@@ -221,16 +222,16 @@
 
             if (string.IsNullOrEmpty(userId))
             {
-                Snackbar.Add("Unable to identify user", Severity.Error);
+                Snackbar.Add(L["Msg_UnableToIdentifyUser"], Severity.Error);
                 return;
             }
 
             await SettingsService.SaveSettingsAsync(userId, _currencyCode, _timeZoneId, _dateFormat);
-            Snackbar.Add("Settings saved successfully", Severity.Success);
+            Snackbar.Add(L["Settings_SavedSuccess"], Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error saving settings: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorSavingSettings", ex.Message], Severity.Error);
         }
         finally
         {
@@ -242,20 +243,20 @@
     {
         // First confirmation
         var firstResult = await DialogService.ShowMessageBox(
-            "Erase All Data?",
-            "Are you sure you want to erase ALL your data? This includes accounts, transactions, budgets, categories, and settings. This action cannot be undone.",
-            yesText: "Yes, continue",
-            cancelText: "Cancel");
+            L["Settings_EraseConfirmTitle"],
+            L["Settings_EraseConfirmMessage"],
+            yesText: L["Settings_YesContinue"],
+            cancelText: L["Btn_Cancel"]);
 
         if (firstResult != true)
             return;
 
         // Second confirmation - more explicit
         var secondResult = await DialogService.ShowMessageBox(
-            "Final Confirmation",
-            (MarkupString)"<strong>This is your last chance to cancel.</strong><br/><br/>All your financial data will be permanently deleted. You will need to set up MoneyBrain from scratch.<br/><br/>Are you absolutely sure?",
-            yesText: "Yes, erase everything",
-            cancelText: "No, keep my data");
+            L["Settings_FinalConfirmTitle"],
+            (MarkupString)L["Settings_FinalConfirmMessage"].Value,
+            yesText: L["Settings_YesEraseEverything"],
+            cancelText: L["Settings_NoKeepData"]);
 
         if (secondResult != true)
             return;
@@ -274,12 +275,12 @@
 
             if (string.IsNullOrEmpty(userId))
             {
-                Snackbar.Add("Unable to identify user", Severity.Error);
+                Snackbar.Add(L["Msg_UnableToIdentifyUser"], Severity.Error);
                 return;
             }
 
             await SettingsService.EraseAllUserDataAsync(userId);
-            Snackbar.Add("All data has been erased successfully", Severity.Success);
+            Snackbar.Add(L["Settings_DataErasedSuccess"], Severity.Success);
 
             // Reset local state
             _currencyCode = "USD";
@@ -291,7 +292,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error erasing data: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorErasingData", ex.Message], Severity.Error);
         }
         finally
         {
@@ -302,10 +303,10 @@
     private async Task LoadDemoDataAsync()
     {
         var result = await DialogService.ShowMessageBox(
-            "Load Demo Data?",
-            "This will add sample accounts, transactions, categories, and budgets to help you explore MoneyBrain. Your existing data will not be affected.",
-            yesText: "Load Demo Data",
-            cancelText: "Cancel");
+            L["Settings_LoadDemoConfirmTitle"],
+            L["Settings_LoadDemoConfirmMessage"],
+            yesText: L["Settings_LoadDemoData"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result != true)
             return;
@@ -319,16 +320,16 @@
 
             if (string.IsNullOrEmpty(userId))
             {
-                Snackbar.Add("Unable to identify user", Severity.Error);
+                Snackbar.Add(L["Msg_UnableToIdentifyUser"], Severity.Error);
                 return;
             }
 
             await SettingsService.LoadDemoDataAsync(userId);
-            Snackbar.Add("Demo data loaded successfully! Check your accounts and transactions.", Severity.Success);
+            Snackbar.Add(L["Settings_DemoDataLoaded"], Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading demo data: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorLoadingDemoData", ex.Message], Severity.Error);
         }
         finally
         {

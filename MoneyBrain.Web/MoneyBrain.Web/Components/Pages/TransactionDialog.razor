@@ -5,51 +5,53 @@
 @using MoneyBrain.Web.Application.Transactions.Splits
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @using MudBlazor
 @inject ITransactionService TransactionService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog @bind-IsVisible="_isVisible" Options="@(FullScreen ? _fullScreenOptions : _defaultOptions)">
     <DialogContent>
         @if (!IsNew && Transaction?.IsReconciled == true)
         {
             <MudAlert Severity="MudBlazor.Severity.Warning" Class="mb-4" Icon="@Icons.Material.Filled.Lock">
-                <strong>This transaction is reconciled and cannot be edited.</strong><br/>
-                Reconciled transactions are locked to maintain financial accuracy. 
-                To modify this transaction, you must first unreconcile it through the Reconciliation page.
+                <strong>@L["TxnDlg_ReconciledWarningTitle"]</strong><br/>
+                @L["TxnDlg_ReconciledWarningDetails"]
             </MudAlert>
         }
         
         @if (IsNew && _accounts.FirstOrDefault(a => a.Id == _selectedAccountId)?.SubType == AccountSubType.CreditCard)
         {
             <MudAlert Severity="MudBlazor.Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.CreditCard">
-                <strong>Credit Card Transaction</strong><br/>
-                This transaction will be marked as <strong>Pending</strong> and will automatically be posted on your credit card's billing cycle day.
+                <strong>@L["TxnDlg_CreditCardTitle"]</strong><br/>
+                @((MarkupString)L["TxnDlg_CreditCardInfo"].ToString())
             </MudAlert>
         }
         
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
-            <MudSelect T="int" Value="_selectedAccountId" ValueChanged="@OnAccountChanged" Label="Account" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
+            <MudSelect T="int" Value="_selectedAccountId" ValueChanged="@OnAccountChanged" Label="@L["Col_Account"]" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                 @foreach (var account in _accounts)
                 {
                     <MudSelectItem T="int" Value="@account.Id">@account.Name</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudDatePicker @bind-Date="_date" Label="Date" Required="true" MaxDate="DateTime.Today.AddDays(30)" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
+            <MudDatePicker @bind-Date="_date" Label="@L["Col_Date"]" Required="true" MaxDate="DateTime.Today.AddDays(30)" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudNumericField @bind-Value="_amount" Label="Amount" Required="true" Format="F2"
+            <MudNumericField @bind-Value="_amount" Label="@L["Col_Amount"]" Required="true" Format="F2"
                              Adornment="Adornment.Start" AdornmentText="$"
-                             HelperText="Enter the transaction amount (sign is automatic based on category type)" 
+                             HelperText="@L["TxnDlg_AmountHelper"]" 
                              Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudAutocomplete T="string" @bind-Value="_payeeName" Label="Payee"
+            <MudAutocomplete T="string" @bind-Value="_payeeName" Label="@L["Col_Payee"]"
                              SearchFunc="@SearchPayees" Clearable="true" 
                              Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudSwitch @bind-Value="_useSplits" Color="MudBlazor.Color.Primary" Class="my-2" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">Split Across Categories</MudSwitch>
+            <MudSwitch @bind-Value="_useSplits" Color="MudBlazor.Color.Primary" Class="my-2" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">@L["TxnDlg_SplitCategories"]</MudSwitch>
 
             @if (_useSplits)
             {
@@ -60,7 +62,7 @@
             }
             else
             {
-                <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="Category" Clearable="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
+                <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="@L["Col_Category"]" Clearable="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                     @foreach (var group in _categoryGroups)
                     {
                         <MudSelectItem T="int?" Value="@((int?)null)" Disabled="true">
@@ -74,42 +76,42 @@
                 </MudSelect>
             }
 
-            <MudTextField @bind-Value="_memo" Label="Memo" Lines="2" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
+            <MudTextField @bind-Value="_memo" Label="@L["Col_Memo"]" Lines="2" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudTextField @bind-Value="_referenceNumber" Label="Reference#" HelperText="Check number, confirmation, etc." Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
+            <MudTextField @bind-Value="_referenceNumber" Label="@L["TxnDlg_Reference"]" HelperText="@L["TxnDlg_ReferenceHelper"]" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
-            <MudSwitch @bind-Value="_isCleared" Color="MudBlazor.Color.Success" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">Cleared</MudSwitch>
+            <MudSwitch @bind-Value="_isCleared" Color="MudBlazor.Color.Success" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">@L["Status_Cleared"]</MudSwitch>
 
-            <MudSelect T="TransactionStatus" @bind-Value="_status" Label="Status" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
-                <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Pending">Pending</MudSelectItem>
-                <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Posted">Posted</MudSelectItem>
+            <MudSelect T="TransactionStatus" @bind-Value="_status" Label="@L["Col_Status"]" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
+                <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Pending">@L["Status_Pending"]</MudSelectItem>
+                <MudSelectItem T="TransactionStatus" Value="@TransactionStatus.Posted">@L["Status_Posted"]</MudSelectItem>
             </MudSelect>
             
             <MudDivider Class="my-4" />
             
             <MudSwitch @bind-Value="_isRecurring" Color="MudBlazor.Color.Primary" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
-                Make this a recurring transaction
+                @L["TxnDlg_MakeRecurring"]
             </MudSwitch>
             
             @if (_isRecurring)
             {
-                <MudSelect T="RecurrenceFrequency?" @bind-Value="_recurrenceFrequency" Label="Repeat Every" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
-                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Weekly">Weekly</MudSelectItem>
-                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Monthly">Monthly</MudSelectItem>
-                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Quarterly">Quarterly (3 months)</MudSelectItem>
-                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.SixMonths">Semi-Annually (6 months)</MudSelectItem>
-                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Yearly">Yearly</MudSelectItem>
+                <MudSelect T="RecurrenceFrequency?" @bind-Value="_recurrenceFrequency" Label="@L["TxnDlg_RepeatEvery"]" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Weekly">@L["TxnDlg_Weekly"]</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Monthly">@L["TxnDlg_Monthly"]</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Quarterly">@L["TxnDlg_Quarterly"]</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.SixMonths">@L["TxnDlg_SemiAnnually"]</MudSelectItem>
+                    <MudSelectItem T="RecurrenceFrequency?" Value="@RecurrenceFrequency.Yearly">@L["TxnDlg_Yearly"]</MudSelectItem>
                 </MudSelect>
                 
-                <MudDatePicker @bind-Date="_recurrenceStartDate" Label="First Occurrence Date" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)"
-                               HelperText="When should this recurring transaction first appear?" />
+                <MudDatePicker @bind-Date="_recurrenceStartDate" Label="@L["TxnDlg_FirstOccurrence"]" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)"
+                               HelperText="@L["TxnDlg_FirstOccurrenceHelper"]" />
             }
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">@((!IsNew && Transaction?.IsReconciled == true) ? "Close" : "Cancel")</MudButton>
+        <MudButton OnClick="Cancel">@((!IsNew && Transaction?.IsReconciled == true) ? L["Btn_Close"] : L["Btn_Cancel"])</MudButton>
         <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid || (!IsNew && Transaction?.IsReconciled == true))">
-            @(IsNew ? "Create" : "Update")
+            @(IsNew ? L["Btn_Create"] : L["Btn_Update"])
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -355,9 +357,9 @@
         {
             // Show error for reconciled transaction or other validation errors
             await DialogService.ShowMessageBox(
-                "Cannot Modify Transaction",
+                L["TxnDlg_CannotModifyTitle"],
                 ex.Message,
-                yesText: "OK");
+                yesText: L["Btn_OK"]);
         }
     }
 

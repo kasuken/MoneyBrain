@@ -4,35 +4,38 @@
 @using MoneyBrain.Web.Application.Reporting.CsvExport
 @using Microsoft.JSInterop
 @using MudBlazor
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @attribute [Authorize]
 @inject INetWorthService NetWorthService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Net Worth</PageTitle>
+<PageTitle>@L["NetWorth_PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">Net Worth Over Time</MudText>
+    <MudText Typo="Typo.h4" Class="mb-4">@L["NetWorth_Header"]</MudText>
 
     <MudPaper Class="pa-4 mb-4">
         <MudGrid>
             <MudItem xs="12" sm="6" md="3">
-                <MudDatePicker Label="Start Date" 
+                <MudDatePicker Label="@L["Lbl_StartDate"]" 
                                @bind-Date="_startDate" 
                                @bind-Date:after="LoadDataAsync"
                                PickerVariant="PickerVariant.Dialog"
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudDatePicker Label="End Date" 
+                <MudDatePicker Label="@L["Lbl_EndDate"]" 
                                @bind-Date="_endDate"
                                @bind-Date:after="LoadDataAsync"
                                PickerVariant="PickerVariant.Dialog"
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudNumericField Label="Interval (Days)" 
+                <MudNumericField Label="@L["NetWorth_IntervalDays"]" 
                                  @bind-Value="_intervalDays"
                                  @bind-Value:after="LoadDataAsync"
                                  Min="1"
@@ -46,7 +49,7 @@
                            OnClick="ExportToCsv"
                            Disabled="@(_history == null)"
                            FullWidth="true">
-                    Export to CSV
+                    @L["NetWorth_ExportToCsv"]
                 </MudButton>
             </MudItem>
         </MudGrid>
@@ -62,7 +65,7 @@
         <MudGrid Class="mb-4">
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Current Net Worth</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_CurrentNetWorth"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_history.CurrentNetWorth >= 0 ? Color.Success : Color.Error)">
                         @_history.CurrentNetWorth.ToString("C2")
                     </MudText>
@@ -70,19 +73,19 @@
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Total Assets</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_TotalAssets"]</MudText>
                     <MudText Typo="Typo.h5" Color="Color.Primary">@_history.CurrentTotalAssets.ToString("C2")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Total Liabilities</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_TotalLiabilities"]</MudText>
                     <MudText Typo="Typo.h5" Color="Color.Secondary">@_history.CurrentTotalLiabilities.ToString("C2")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Change Over Period</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_ChangeOverPeriod"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_history.TotalChange >= 0 ? Color.Success : Color.Error)">
                         @_history.TotalChange.ToString("C2")
                         <MudChip T="string" Size="Size.Small" Color="@(_history.TotalChange >= 0 ? Color.Success : Color.Error)">
@@ -97,7 +100,7 @@
         <MudGrid Class="mb-4">
             <MudItem xs="12" sm="6">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Peak Net Worth</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["NetWorth_PeakNetWorth"]</MudText>
                     <MudText Typo="Typo.h6" Color="Color.Success">
                         @_history.PeakNetWorth.ToString("C2")
                     </MudText>
@@ -111,7 +114,7 @@
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Lowest Net Worth</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["NetWorth_LowestNetWorth"]</MudText>
                     <MudText Typo="Typo.h6" Color="@(_history.LowestNetWorth >= 0 ? Color.Info : Color.Error)">
                         @_history.LowestNetWorth.ToString("C2")
                     </MudText>
@@ -129,7 +132,7 @@
         @if (_chartData.Any())
         {
             <MudPaper Class="pa-4 mb-4" Elevation="2">
-                <MudText Typo="Typo.h6" Class="mb-4">Net Worth Trend</MudText>
+                <MudText Typo="Typo.h6" Class="mb-4">@L["NetWorth_TrendChart"]</MudText>
                 <MudChart ChartType="ChartType.Line" 
                           ChartSeries="_chartSeries" 
                           XAxisLabels="_chartData.Select(d => d.DateDisplay).ToArray()"
@@ -141,30 +144,30 @@
 
         <!-- Snapshot Details Table -->
         <MudPaper Class="pa-4" Elevation="2">
-            <MudText Typo="Typo.h6" Class="mb-4">Snapshot Details</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["NetWorth_SnapshotDetails"]</MudText>
             <MudTable Items="_history.Snapshots" 
                       Hover="true" 
                       Dense="true"
                       FixedHeader="true"
                       Height="600px">
                 <HeaderContent>
-                    <MudTh>Date</MudTh>
-                    <MudTh Style="text-align: right;">Assets</MudTh>
-                    <MudTh Style="text-align: right;">Liabilities</MudTh>
-                    <MudTh Style="text-align: right;">Net Worth</MudTh>
-                    <MudTh Style="text-align: right;">Change</MudTh>
-                    <MudTh Style="text-align: center;">Details</MudTh>
+                    <MudTh>@L["Col_Date"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["NetWorth_Assets"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["NetWorth_Liabilities"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["NetWorth_NetWorth"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["NetWorth_Change"]</MudTh>
+                    <MudTh Style="text-align: center;">@L["Lbl_Details"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Date">@context.DateDisplay</MudTd>
-                    <MudTd DataLabel="Assets" Style="text-align: right;">@context.TotalAssets.ToString("C2")</MudTd>
-                    <MudTd DataLabel="Liabilities" Style="text-align: right;">@context.TotalLiabilities.ToString("C2")</MudTd>
-                    <MudTd DataLabel="Net Worth" Style="text-align: right;">
+                    <MudTd DataLabel="@L["Col_Date"]">@context.DateDisplay</MudTd>
+                    <MudTd DataLabel="@L["NetWorth_Assets"]" Style="text-align: right;">@context.TotalAssets.ToString("C2")</MudTd>
+                    <MudTd DataLabel="@L["NetWorth_Liabilities"]" Style="text-align: right;">@context.TotalLiabilities.ToString("C2")</MudTd>
+                    <MudTd DataLabel="@L["NetWorth_NetWorth"]" Style="text-align: right;">
                         <span style="color: @(context.NetWorth >= 0 ? "green" : "red")">
                             @context.NetWorth.ToString("C2")
                         </span>
                     </MudTd>
-                    <MudTd DataLabel="Change" Style="text-align: right;">
+                    <MudTd DataLabel="@L["NetWorth_Change"]" Style="text-align: right;">
                         @if (context.ChangeFromPrevious.HasValue)
                         {
                             <span style="color: @(context.ChangeFromPrevious.Value >= 0 ? "green" : "red")">
@@ -177,7 +180,7 @@
                             <span>-</span>
                         }
                     </MudTd>
-                    <MudTd DataLabel="Details" Style="text-align: center;">
+                    <MudTd DataLabel="@L["Lbl_Details"]" Style="text-align: center;">
                         <MudIconButton Icon="@(_expandedSnapshots.Contains(context) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" 
                                        OnClick="@(() => ToggleSnapshotExpansion(context))"
                                        Size="Size.Small" />
@@ -191,19 +194,19 @@
                                 <MudCard Elevation="0" Class="my-2">
                                     <MudCardContent>
                                         <MudText Typo="Typo.subtitle2" Class="mb-2">
-                                            Account Balances - @context.DateDisplay
+                                            @L["NetWorth_AccountBalances"] - @context.DateDisplay
                                         </MudText>
                                         
                                         @if (context.AccountBalances.Any())
                                         {
                                             <MudGrid>
                                                 <MudItem xs="12" md="6">
-                                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-2">Assets</MudText>
+                                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-2">@L["NetWorth_Assets"]</MudText>
                                                     <MudSimpleTable Dense="true" Hover="true" Elevation="0">
                                                         <thead>
                                                             <tr>
-                                                                <th>Account</th>
-                                                                <th style="text-align: right;">Balance</th>
+                                                                <th>@L["Col_Account"]</th>
+                                                                <th style="text-align: right;">@L["Col_Balance"]</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -214,7 +217,7 @@
                                                                         @account.AccountName
                                                                         @if (!account.IsActive)
                                                                         {
-                                                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">Inactive</MudChip>
+                                                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">@L["Status_Inactive"]</MudChip>
                                                                         }
                                                                     </td>
                                                                     <td style="text-align: right;">@account.Balance.ToString("C2")</td>
@@ -224,12 +227,12 @@
                                                     </MudSimpleTable>
                                                 </MudItem>
                                                 <MudItem xs="12" md="6">
-                                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2">Liabilities</MudText>
+                                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2">@L["NetWorth_Liabilities"]</MudText>
                                                     <MudSimpleTable Dense="true" Hover="true" Elevation="0">
                                                         <thead>
                                                             <tr>
-                                                                <th>Account</th>
-                                                                <th style="text-align: right;">Balance</th>
+                                                                <th>@L["Col_Account"]</th>
+                                                                <th style="text-align: right;">@L["Col_Balance"]</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -240,7 +243,7 @@
                                                                         @account.AccountName
                                                                         @if (!account.IsActive)
                                                                         {
-                                                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">Inactive</MudChip>
+                                                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">@L["Status_Inactive"]</MudChip>
                                                                         }
                                                                     </td>
                                                                     <td style="text-align: right;">@account.Balance.ToString("C2")</td>
@@ -254,7 +257,7 @@
                                         else
                                         {
                                             <MudAlert Severity="Severity.Info" Dense="true">
-                                                No accounts found.
+                                                @L["NetWorth_NoAccountsFound"]
                                             </MudAlert>
                                         }
                                     </MudCardContent>
@@ -269,31 +272,31 @@
     else
     {
         <MudAlert Severity="Severity.Info">
-            Select a date range to view net worth history.
+            @L["NetWorth_SelectDateRange"]
         </MudAlert>
     }
     
-    <HelpButton Title="Net Worth Report Help"
-                Description="Track your financial progress over time. Net worth is calculated as total assets minus total liabilities."
+    <HelpButton Title="@L["NetWorth_HelpTitle"]"
+                Description="@L["NetWorth_HelpDescription"]"
                 Features="@(new[] { 
-                    "Historical net worth snapshots at regular intervals",
-                    "Breakdown of assets and liabilities by account",
-                    "Visual chart showing net worth trends",
-                    "Expandable rows to see account-level details",
-                    "Configurable interval (weekly, monthly, etc.)"
+                    L["NetWorth_HelpFeature1"].Value,
+                    L["NetWorth_HelpFeature2"].Value,
+                    L["NetWorth_HelpFeature3"].Value,
+                    L["NetWorth_HelpFeature4"].Value,
+                    L["NetWorth_HelpFeature5"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Set the date range for your analysis",
-                    "Choose an interval (days between snapshots)",
-                    "Click 'Load' to generate the report",
-                    "Click on a row to expand and see individual accounts",
-                    "Use the chart to visualize your financial progress"
+                    L["NetWorth_HelpHowTo1"].Value,
+                    L["NetWorth_HelpHowTo2"].Value,
+                    L["NetWorth_HelpHowTo3"].Value,
+                    L["NetWorth_HelpHowTo4"].Value,
+                    L["NetWorth_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Growing net worth indicates good financial health",
-                    "Asset accounts (checking, savings) add to net worth",
-                    "Liability accounts (credit cards, loans) subtract from net worth",
-                    "Regular snapshots help you track progress toward financial goals"
+                    L["NetWorth_HelpTip1"].Value,
+                    L["NetWorth_HelpTip2"].Value,
+                    L["NetWorth_HelpTip3"].Value,
+                    L["NetWorth_HelpTip4"].Value
                 })" />
 </MudContainer>
 
@@ -363,17 +366,17 @@
         [
             new ChartSeries
             {
-                Name = "Net Worth",
+                Name = L["NetWorth_NetWorth"],
                 Data = _chartData.Select(d => (double)d.NetWorth).ToArray()
             },
             new ChartSeries
             {
-                Name = "Assets",
+                Name = L["NetWorth_Assets"],
                 Data = _chartData.Select(d => (double)d.TotalAssets).ToArray()
             },
             new ChartSeries
             {
-                Name = "Liabilities",
+                Name = L["NetWorth_Liabilities"],
                 Data = _chartData.Select(d => (double)d.TotalLiabilities).ToArray()
             }
         ];

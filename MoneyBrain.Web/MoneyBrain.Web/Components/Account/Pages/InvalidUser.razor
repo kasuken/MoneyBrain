@@ -1,7 +1,11 @@
 ﻿@page "/Account/InvalidUser"
 
-<PageTitle>Invalid user</PageTitle>
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
-<h3>Invalid user</h3>
+<PageTitle>@L["Auth_InvalidUser_PageTitle"]</PageTitle>
+
+<h3>@L["Auth_InvalidUser_Title"]</h3>
 
 <StatusMessage/>

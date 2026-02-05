@@ -3,12 +3,15 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using MudBlazor
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @inject ICategoryService CategoryService
+@inject IStringLocalizer<SharedResource> L
 
 <MudPaper Class="pa-4" Elevation="0">
     <MudStack Spacing="3">
         <div class="d-flex justify-space-between align-center">
-            <MudText Typo="Typo.h6">Split Transaction</MudText>
+            <MudText Typo="Typo.h6">@L["Split_Title"]</MudText>
             <MudChip T="string" Size="Size.Small" Color="@GetBalanceColor()">
                 @GetBalanceText()
             </MudChip>
@@ -19,7 +22,7 @@
             <MudPaper Class="pa-3" Elevation="1">
                 <MudGrid>
                     <MudItem xs="12" sm="5">
-                        <MudSelect T="int?" @bind-Value="split.CategoryId" Label="Category" Variant="Variant.Outlined" Required>
+                        <MudSelect T="int?" @bind-Value="split.CategoryId" Label="@L["Lbl_Category"]" Variant="Variant.Outlined" Required>
                             @foreach (var group in _categoryGroups.OrderBy(g => g.Name))
                             {
                                 <MudSelectItem T="int?" Value="null" Disabled="true">
@@ -34,7 +37,7 @@
                     </MudItem>
                     <MudItem xs="12" sm="4">
                         <MudNumericField @bind-Value="split.Amount" 
-                                         Label="Amount" 
+                                         Label="@L["Lbl_Amount"]" 
                                          Variant="Variant.Outlined"
                                          Format="N2"
                                          Step="0.01M"
@@ -43,7 +46,7 @@
                     </MudItem>
                     <MudItem xs="10" sm="2">
                         <MudTextField @bind-Value="split.Memo" 
-                                      Label="Memo" 
+                                      Label="@L["Lbl_Memo"]" 
                                       Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="2" sm="1" Class="d-flex align-center">
@@ -61,14 +64,14 @@
                        Color="Color.Primary" 
                        StartIcon="@Icons.Material.Filled.Add"
                        OnClick="AddSplit">
-                Add Split
+                @L["Split_AddSplit"]
             </MudButton>
             @if (!IsBalanced)
             {
                 <MudButton Variant="Variant.Filled" 
                            Color="Color.Primary"
                            OnClick="AutoBalance">
-                    Auto-Balance
+                    @L["Split_AutoBalance"]
                 </MudButton>
             }
         </div>
@@ -135,9 +138,9 @@
         var remaining = GetRemainingAmount();
         if (IsBalanced)
         {
-            return "Balanced ✓";
+            return L["Split_Balanced"];
         }
-        return $"Remaining: {remaining:N2}";
+        return L["Split_Remaining", remaining.ToString("N2")];
     }
 
     private void AutoBalance()

@@ -92,6 +92,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<UserLicense> UserLicenses => Set<UserLicense>();
 
+    /// <summary>
+    /// Saved queries for the Insight Explorer feature
+    /// </summary>
+    public DbSet<SavedQuery> SavedQueries => Set<SavedQuery>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -468,6 +473,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(r => r.StatementBalance).HasPrecision(18, 2);
             entity.Property(r => r.ReconciledBalance).HasPrecision(18, 2);
             entity.Property(r => r.Difference).HasPrecision(18, 2);
+        });
+
+        // Configure SavedQuery entity
+        modelBuilder.Entity<SavedQuery>(entity =>
+        {
+            entity.HasKey(sq => sq.Id);
+
+            entity.HasIndex(sq => sq.UserId);
+            entity.HasIndex(sq => new { sq.UserId, sq.IsDefault });
+
+            entity.Property(sq => sq.Name).IsRequired().HasMaxLength(200);
+            entity.Property(sq => sq.Description).HasMaxLength(500);
+            entity.Property(sq => sq.QueryDefinitionJson).IsRequired();
+
+            // Relationship: SavedQuery belongs to one ApplicationUser
+            entity.HasOne(sq => sq.User)
+                .WithMany()
+                .HasForeignKey(sq => sq.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

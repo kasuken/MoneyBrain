@@ -1,12 +1,15 @@
 @using MoneyBrain.Web.Application.Transactions.PayeeNormalization
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudText Class="mb-4">
-            Are you sure you want to merge these payees into <strong>@TargetPayee?.Payee.Name</strong>?
+            @((MarkupString)string.Format(L["PayeeDlg_MergeConfirm"], $"<strong>{TargetPayee?.Payee.Name}</strong>"))
         </MudText>
 
-        <MudText Typo="Typo.subtitle2" Class="mb-2">Payees to be merged:</MudText>
+        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["PayeeDlg_PayeesToMerge"]</MudText>
         <MudList T="string" Dense>
             @foreach (var source in SourcePayees)
             {
@@ -14,7 +17,7 @@
                     <MudText>
                         @source.Payee.Name
                         <MudText Typo="Typo.caption" Inline>
-                            (@source.TransactionCount transaction(s))
+                            (@string.Format(L["PayeeDlg_TransactionCount"], source.TransactionCount))
                         </MudText>
                     </MudText>
                 </MudListItem>
@@ -22,13 +25,12 @@
         </MudList>
 
         <MudAlert Severity="Severity.Info" Class="mt-4">
-            All transactions from the payees above will be updated to use <strong>@TargetPayee?.Payee.Name</strong>.
-            Reconciled transactions will not be modified.
+            @((MarkupString)string.Format(L["PayeeDlg_MergeInfo"], $"<strong>{TargetPayee?.Payee.Name}</strong>"))
         </MudAlert>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Confirm">Merge</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Confirm">@L["Btn_Merge"]</MudButton>
     </DialogActions>
 </MudDialog>
 

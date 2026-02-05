@@ -1,20 +1,23 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
 @inject ISnackbar SnackbarService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudTextField @bind-Value="_name" 
-                      Label="Group Name" 
+                      Label="@L["CatGrpDlg_GroupName"]" 
                       Variant="Variant.Outlined" 
                       Required="true"
                       Immediate="true"
                       MaxLength="100" />
 
         <MudSelect @bind-Value="_type" 
-                   Label="Category Type" 
+                   Label="@L["CatGrpDlg_CategoryType"]" 
                    Variant="Variant.Outlined" 
                    Required="true"
                    Class="mt-4">
@@ -22,9 +25,9 @@
                 <div class="d-flex align-center gap-2">
                     <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Small" />
                     <div>
-                        <div>Expense</div>
+                        <div>@L["Cat_Expense"]</div>
                         <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
-                            For spending categories (housing, food, etc.)
+                            @L["CatGrpDlg_ExpenseDesc"]
                         </MudText>
                     </div>
                 </div>
@@ -33,9 +36,9 @@
                 <div class="d-flex align-center gap-2">
                     <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Success" />
                     <div>
-                        <div>Income</div>
+                        <div>@L["Cat_Income"]</div>
                         <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">
-                            For income sources (salary, freelance, etc.)
+                            @L["CatGrpDlg_IncomeDesc"]
                         </MudText>
                     </div>
                 </div>
@@ -48,7 +51,7 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="MudBlazor.Color.Primary" 
                    Variant="Variant.Filled" 
                    OnClick="Submit" 
@@ -57,7 +60,7 @@
             {
                 <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
             }
-            @(IsNew ? "Create" : "Update")
+            @(IsNew ? L["Btn_Create"] : L["Btn_Update"])
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -94,7 +97,7 @@
 
         if (string.IsNullOrWhiteSpace(_name))
         {
-            _errorMessage = "Group name is required";
+            _errorMessage = L["CatGrpDlg_NameRequired"];
             return;
         }
 
@@ -116,13 +119,13 @@
                 }
                 else
                 {
-                    _errorMessage = "Failed to update category group";
+                    _errorMessage = L["CatGrpDlg_UpdateFailed"];
                 }
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error: {ex.Message}";
+            _errorMessage = string.Format(L["Msg_Error"], ex.Message);
         }
         finally
         {

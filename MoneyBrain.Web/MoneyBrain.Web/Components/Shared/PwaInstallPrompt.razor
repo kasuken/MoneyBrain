@@ -1,6 +1,9 @@
 @* PWA Install Prompt Component *@
 @using MudBlazor
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @inject IJSRuntime JS
+@inject IStringLocalizer<SharedResource> L
 
 <div class="pwa-install-prompt" style="display: @(_showPrompt ? "block" : "none");">
     <MudPaper Class="pwa-prompt-card" Elevation="8">
@@ -10,23 +13,23 @@
             </div>
             <div class="flex-grow-1">
                 <MudText Typo="Typo.subtitle1" Style="font-weight: 600; margin-bottom: 4px;">
-                    Install MoneyBrain
+                    @L["Pwa_InstallMoneyBrain"]
                 </MudText>
                 <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
-                    Get quick access from your home screen
+                    @L["Pwa_QuickAccess"]
                 </MudText>
             </div>
             <div class="d-flex gap-2">
                 <MudButton Variant="Variant.Text" 
                            Size="Size.Small" 
                            OnClick="DismissPrompt">
-                    Not Now
+                    @L["Pwa_NotNow"]
                 </MudButton>
                 <MudButton Variant="Variant.Filled" 
                            Color="Color.Primary" 
                            Size="Size.Small"
                            OnClick="InstallPwa">
-                    Install
+                    @L["Pwa_Install"]
                 </MudButton>
             </div>
         </div>

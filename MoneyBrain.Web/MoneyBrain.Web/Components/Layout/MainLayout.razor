@@ -1,8 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @using MoneyBrain.Web.Components.Shared
 @using MoneyBrain.Web.Services
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject NavigationManager NavigationManager
 @inject IMobileDetectionService MobileDetection
+@inject IStringLocalizer<SharedResource> L
 @implements IDisposable
 
 @* Required *@
@@ -30,6 +33,8 @@
         
         <MudSpacer />
         
+        <LanguageSelector />
+        
         <AuthorizeView>
             <Authorized>
                 <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
@@ -45,9 +50,9 @@
                         </div>
                     </ActivatorContent>
                     <ChildContent>
-                        <MudMenuItem Href="/settings" Icon="@Icons.Material.Outlined.Settings">Settings</MudMenuItem>
-                        <MudMenuItem Href="/license" Icon="@Icons.Material.Outlined.CardMembership">License</MudMenuItem>
-                        <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Outlined.Person">Profile</MudMenuItem>
+                        <MudMenuItem Href="/settings" Icon="@Icons.Material.Outlined.Settings">@L["Nav_Settings"]</MudMenuItem>
+                        <MudMenuItem Href="/license" Icon="@Icons.Material.Outlined.CardMembership">@L["Nav_License"]</MudMenuItem>
+                        <MudMenuItem Href="/Account/Manage" Icon="@Icons.Material.Outlined.Person">@L["Nav_Profile"]</MudMenuItem>
                         <MudDivider />
                         <MudMenuItem>
                             <form action="Account/Logout" method="post">
@@ -55,7 +60,7 @@
                                 <input type="hidden" name="ReturnUrl" value="/" />
                                 <button type="submit" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 0; width: 100%;">
                                     <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
-                                    Sign Out
+                                    @L["Nav_SignOut"]
                                 </button>
                             </form>
                         </MudMenuItem>
@@ -64,10 +69,10 @@
             </Authorized>
             <NotAuthorized>
                 <MudButton Href="/Account/Login" Variant="Variant.Text" Color="Color.Default" Class="me-2">
-                    Sign In
+                    @L["Nav_SignIn"]
                 </MudButton>
                 <MudButton Href="/Account/Register" Variant="Variant.Filled" Class="mb-btn-primary">
-                    Get Started
+                    @L["Nav_GetStarted"]
                 </MudButton>
             </NotAuthorized>
         </AuthorizeView>

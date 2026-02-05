@@ -1,5 +1,8 @@
 @* Help dialog that shows context-specific help content *@
 @rendermode InteractiveServer
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <TitleContent>
@@ -15,7 +18,7 @@
                 <div>
                     <MudText Typo="Typo.subtitle2" Style="color: var(--mb-text-secondary); margin-bottom: 0.5rem;">
                         <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
-                        What's this screen?
+                        @L["HelpDlg_WhatsThisScreen"]
                     </MudText>
                     <MudText Typo="Typo.body2">@Description</MudText>
                 </div>
@@ -26,7 +29,7 @@
                 <div>
                     <MudText Typo="Typo.subtitle2" Style="color: var(--mb-text-secondary); margin-bottom: 0.5rem;">
                         <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
-                        Key Features
+                        @L["HelpDlg_KeyFeatures"]
                     </MudText>
                     <MudList T="string" Dense="true" DisableGutters="true">
                         @foreach (var feature in Features)
@@ -47,7 +50,7 @@
                 <div>
                     <MudText Typo="Typo.subtitle2" Style="color: var(--mb-text-secondary); margin-bottom: 0.5rem;">
                         <MudIcon Icon="@Icons.Material.Outlined.PlayCircle" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
-                        How to Use
+                        @L["HelpDlg_HowToUse"]
                     </MudText>
                     <MudList T="string" Dense="true" DisableGutters="true">
                         @{
@@ -72,7 +75,7 @@
                 <MudPaper Class="pa-3" Elevation="0" Style="background: var(--mb-primary-light); border-radius: var(--mb-radius);">
                     <MudText Typo="Typo.subtitle2" Style="color: var(--mb-primary); margin-bottom: 0.5rem;">
                         <MudIcon Icon="@Icons.Material.Outlined.Lightbulb" Size="Size.Small" Class="me-1" Style="vertical-align: middle;" />
-                        Tips & Tricks
+                        @L["HelpDlg_TipsTricks"]
                     </MudText>
                     <MudStack Spacing="1">
                         @foreach (var tip in Tips)
@@ -86,7 +89,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Close" Variant="Variant.Filled" Color="Color.Primary" Class="mb-btn-primary">
-            Got it!
+            @L["HelpDlg_GotIt"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -96,7 +99,7 @@
     private IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public string Title { get; set; } = "Help";
+    public string Title { get; set; } = "";
 
     [Parameter]
     public string? Description { get; set; }

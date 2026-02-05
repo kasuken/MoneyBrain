@@ -4,14 +4,17 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using MoneyBrain.Web.Data
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Confirm email change</PageTitle>
+<PageTitle>@L["Auth_ConfirmEmailChange_PageTitle"]</PageTitle>
 
-<h1>Confirm email change</h1>
+<h1>@L["Auth_ConfirmEmailChange_Title"]</h1>
 
 <StatusMessage Message="@message"/>
 
@@ -31,14 +34,14 @@
         if (UserId is null || Email is null || Code is null)
         {
             RedirectManager.RedirectToWithStatus(
-                "Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
+                "Account/Login", L["Auth_ConfirmEmailChange_InvalidLink"], HttpContext);
             return;
         }
 
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null)
         {
-            message = "Unable to find user with Id '{userId}'";
+            message = L["Auth_ConfirmEmailChange_UserNotFound"];
             return;
         }
 
@@ -46,7 +49,7 @@
         var result = await UserManager.ChangeEmailAsync(user, Email, code);
         if (!result.Succeeded)
         {
-            message = "Error changing email.";
+            message = L["Auth_ConfirmEmailChange_Error"];
             return;
         }
 
@@ -55,12 +58,12 @@
         var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
         if (!setUserNameResult.Succeeded)
         {
-            message = "Error changing user name.";
+            message = L["Auth_ConfirmEmailChange_UsernameError"];
             return;
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        message = "Thank you for confirming your email change.";
+        message = L["Auth_ConfirmEmailChange_Success"];
     }
 
 }

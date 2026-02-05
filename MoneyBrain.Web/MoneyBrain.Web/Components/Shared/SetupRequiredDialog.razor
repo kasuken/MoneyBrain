@@ -1,25 +1,27 @@
 @using MoneyBrain.Web.Application.Settings
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog Options="@(new DialogOptions { CloseButton = false, BackdropClick = false })">
     <TitleContent>
         <MudText Typo="Typo.h5">
             <MudIcon Icon="@Icons.Material.Filled.Settings" Class="me-2" />
-            Welcome to MoneyBrain
+            @L["SetupDlg_Welcome"]
         </MudText>
     </TitleContent>
     <DialogContent>
         <MudText Class="mb-4">
-            Before you get started, please configure your preferences. These settings help us display
-            monetary values and dates correctly for you.
+            @L["SetupDlg_ConfigurePreferences"]
         </MudText>
         
         <MudForm @ref="_form" @bind-IsValid="@_formValid">
             <MudStack Spacing="4">
                 <MudSelect T="string"
-                           Label="Currency"
+                           Label="@L["Lbl_Currency"]"
                            @bind-Value="_currencyCode"
                            Required="true"
-                           RequiredError="Please select your currency"
+                           RequiredError="@L["SetupDlg_SelectCurrency"]"
                            Variant="Variant.Outlined"
                            AnchorOrigin="Origin.BottomCenter">
                     @foreach (var currency in Currencies)
@@ -31,10 +33,10 @@
                 </MudSelect>
 
                 <MudSelect T="string"
-                           Label="Timezone"
+                           Label="@L["SetupDlg_Timezone"]"
                            @bind-Value="_timeZoneId"
                            Required="true"
-                           RequiredError="Please select your timezone"
+                           RequiredError="@L["SetupDlg_SelectTimezone"]"
                            Variant="Variant.Outlined"
                            AnchorOrigin="Origin.BottomCenter">
                     @foreach (var tz in TimeZones)
@@ -46,14 +48,14 @@
                 </MudSelect>
 
                 <MudSelect T="string"
-                           Label="Date Format"
+                           Label="@L["SetupDlg_DateFormat"]"
                            @bind-Value="_dateFormat"
                            Variant="Variant.Outlined"
                            AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem T="string" Value="@("yyyy-MM-dd")">2025-01-25 (ISO)</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("MM/dd/yyyy")">01/25/2025 (US)</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("dd/MM/yyyy")">25/01/2025 (EU)</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("dd.MM.yyyy")">25.01.2025</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("yyyy-MM-dd")">@L["SetupDlg_DateFormatISO"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("MM/dd/yyyy")">@L["SetupDlg_DateFormatUS"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("dd/MM/yyyy")">@L["SetupDlg_DateFormatEU"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("dd.MM.yyyy")">@L["SetupDlg_DateFormatDot"]</MudSelectItem>
                 </MudSelect>
             </MudStack>
         </MudForm>
@@ -67,7 +69,7 @@
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
             }
-            Get Started
+            @L["Auth_Register"]
         </MudButton>
     </DialogActions>
 </MudDialog>

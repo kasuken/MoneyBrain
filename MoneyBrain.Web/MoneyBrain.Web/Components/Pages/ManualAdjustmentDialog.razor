@@ -1,72 +1,75 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
             <MudStack Spacing="3">
                 <MudAlert Severity="Severity.Info" Dense="true">
-                    Manual adjustments directly affect the account balance. All adjustments are fully auditable.
+                    @L["AdjustDlg_Description"]
                 </MudAlert>
 
                 <MudTextField @bind-Value="Account.Name"
-                              Label="Account"
+                              Label="@L["Col_Account"]"
                               ReadOnly="true"
                               Variant="Variant.Filled" />
 
                 <MudNumericField @bind-Value="_currentBalance"
-                                 Label="Current Balance"
+                                 Label="@L["AdjustDlg_CurrentBalance"]"
                                  ReadOnly="true"
                                  Variant="Variant.Filled"
                                  Format="C2" />
 
                 <MudNumericField @bind-Value="_amount"
-                                 Label="Adjustment Amount"
+                                 Label="@L["AdjustDlg_AdjustmentAmount"]"
                                  Required="true"
-                                 RequiredError="Amount is required"
+                                 RequiredError="@L["AdjustDlg_AmountRequired"]"
                                  Variant="Variant.Outlined"
                                  Format="C2"
-                                 HelperText="Positive = increase balance, Negative = decrease balance" />
+                                 HelperText="@L["AdjustDlg_AmountHelper"]" />
 
                 <MudDatePicker @bind-Date="_adjustmentDate"
-                               Label="Adjustment Date"
+                               Label="@L["AdjustDlg_AdjustmentDate"]"
                                Required="true"
-                               RequiredError="Date is required"
+                               RequiredError="@L["AdjustDlg_DateRequired"]"
                                Variant="Variant.Outlined"
-                               HelperText="When this adjustment takes effect" />
+                               HelperText="@L["AdjustDlg_DateHelper"]" />
 
                 <MudSelect T="string"
                            @bind-Value="_category"
-                           Label="Category (optional)"
+                           Label="@L["AdjustDlg_Category"]"
                            Variant="Variant.Outlined"
                            Clearable="true">
-                    <MudSelectItem Value="@("Bank Fee")">Bank Fee</MudSelectItem>
-                    <MudSelectItem Value="@("Interest")">Interest</MudSelectItem>
-                    <MudSelectItem Value="@("Correction")">Correction</MudSelectItem>
-                    <MudSelectItem Value="@("Service Charge")">Service Charge</MudSelectItem>
-                    <MudSelectItem Value="@("ATM Fee")">ATM Fee</MudSelectItem>
-                    <MudSelectItem Value="@("Overdraft Fee")">Overdraft Fee</MudSelectItem>
-                    <MudSelectItem Value="@("Other")">Other</MudSelectItem>
+                    <MudSelectItem Value="@("Bank Fee")">@L["AdjustDlg_BankFee"]</MudSelectItem>
+                    <MudSelectItem Value="@("Interest")">@L["AdjustDlg_Interest"]</MudSelectItem>
+                    <MudSelectItem Value="@("Correction")">@L["AdjustDlg_Correction"]</MudSelectItem>
+                    <MudSelectItem Value="@("Service Charge")">@L["AdjustDlg_ServiceCharge"]</MudSelectItem>
+                    <MudSelectItem Value="@("ATM Fee")">@L["AdjustDlg_ATMFee"]</MudSelectItem>
+                    <MudSelectItem Value="@("Overdraft Fee")">@L["AdjustDlg_OverdraftFee"]</MudSelectItem>
+                    <MudSelectItem Value="@("Other")">@L["AdjustDlg_Other"]</MudSelectItem>
                 </MudSelect>
 
                 <MudTextField @bind-Value="_description"
-                              Label="Description"
+                              Label="@L["AdjustDlg_DescriptionLabel"]"
                               Required="true"
-                              RequiredError="Description is required"
+                              RequiredError="@L["AdjustDlg_DescriptionRequired"]"
                               Lines="3"
                               Variant="Variant.Outlined"
-                              HelperText="Explain why this adjustment is being made" />
+                              HelperText="@L["AdjustDlg_DescriptionHelper"]" />
 
                 <MudAlert Severity="Severity.Success" Dense="true">
-                    New Balance: <strong>@(_currentBalance + _amount).ToString("C2")</strong>
+                    @L["AdjustDlg_NewBalance"]: <strong>@(_currentBalance + _amount).ToString("C2")</strong>
                 </MudAlert>
             </MudStack>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
                    OnClick="Submit" 
@@ -74,11 +77,11 @@
             @if (_isSaving)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                <MudText Class="ml-2">Creating...</MudText>
+                <MudText Class="ml-2">@L["AdjustDlg_Creating"]</MudText>
             }
             else
             {
-                <MudText>Create Adjustment</MudText>
+                <MudText>@L["AdjustDlg_CreateButton"]</MudText>
             }
         </MudButton>
     </DialogActions>
@@ -111,7 +114,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error calculating balance: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["AdjustDlg_BalanceError"], ex.Message), Severity.Error);
             _currentBalance = Account.OpeningBalance;
         }
     }
@@ -127,7 +130,7 @@
 
         if (string.IsNullOrWhiteSpace(_description))
         {
-            Snackbar.Add("Description is required", Severity.Warning);
+            Snackbar.Add(L["AdjustDlg_DescriptionRequiredSnack"], Severity.Warning);
             return;
         }
 
@@ -146,7 +149,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error creating adjustment: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["AdjustDlg_CreateError"], ex.Message), Severity.Error);
         }
         finally
         {

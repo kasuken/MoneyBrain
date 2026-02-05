@@ -5,17 +5,20 @@
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using System.Security.Claims
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @attribute [Authorize]
 
 @inject IReconciliationService ReconciliationService
+@inject IStringLocalizer<SharedResource> L
 @inject IAccountService AccountService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<PageTitle>Reconciliation | MoneyBrain</PageTitle>
+<PageTitle>@L["ReconcileWs_PageTitle"] | MoneyBrain</PageTitle>
 
 <div class="mb-page mb-animate-in">
     @if (_isLoading)
@@ -26,9 +29,9 @@
     {
         <div class="mb-empty-state">
             <MudIcon Icon="@Icons.Material.Outlined.Error" Class="mb-empty-state-icon" />
-            <MudText Typo="Typo.h6" Class="mb-2">Reconciliation not found</MudText>
+            <MudText Typo="Typo.h6" Class="mb-2">@L["ReconcileWs_NotFound"]</MudText>
             <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@(() => NavigationManager.NavigateTo("/reconciliations"))">
-                Back to Reconciliations
+                @L["ReconcileWs_BackToList"]
             </MudButton>
         </div>
     }
@@ -37,29 +40,29 @@
         <!-- Header -->
         <div class="mb-section-header">
             <div>
-                <h1 class="mb-title">Reconcile @_account?.Name</h1>
-                <p class="mb-subtitle">Statement Date: @_reconciliation.StatementDate.ToString("yyyy-MM-dd")</p>
+                <h1 class="mb-title">@L["ReconcileWs_ReconcileAccount", _account?.Name ?? ""]</h1>
+                <p class="mb-subtitle">@L["ReconcileWs_StatementDateLabel", _reconciliation.StatementDate.ToString("yyyy-MM-dd")]</p>
             </div>
             <div class="d-flex gap-2">
                 @if (!_reconciliation.IsCompleted)
                 {
                     <MudButton Variant="Variant.Outlined" 
                                OnClick="@(() => NavigationManager.NavigateTo("/reconciliations"))">
-                        Cancel
+                        @L["Btn_Cancel"]
                     </MudButton>
                     <MudButton Variant="Variant.Filled" 
                                Color="@(_isBalanced ? MudBlazor.Color.Success : MudBlazor.Color.Primary)"
                                StartIcon="@Icons.Material.Filled.CheckCircle"
                                OnClick="@CompleteReconciliation"
                                Disabled="@(!_isBalanced)">
-                        Complete Reconciliation
+                        @L["ReconcileWs_CompleteBtn"]
                     </MudButton>
                 }
                 else
                 {
                     <MudButton Variant="Variant.Filled" 
                                OnClick="@(() => NavigationManager.NavigateTo("/reconciliations"))">
-                        Back to Reconciliations
+                        @L["ReconcileWs_BackToList"]
                     </MudButton>
                 }
             </div>
@@ -68,30 +71,30 @@
         <!-- Reconciliation Summary -->
         <div class="mb-grid-stats mb-6">
             <div class="mb-card-stat info">
-                <div class="mb-label">Opening Balance</div>
+                <div class="mb-label">@L["ReconcileWs_OpeningBalance"]</div>
                 <div class="mb-amount @GetBalanceClass(_reconciliation.OpeningBalance)">
                     @FormatCurrency(_reconciliation.OpeningBalance)
                 </div>
             </div>
             <div class="mb-card-stat info">
-                <div class="mb-label">Reconciled Balance</div>
+                <div class="mb-label">@L["ReconcileWs_ReconciledBalance"]</div>
                 <div class="mb-amount @GetBalanceClass(_reconciliation.ReconciledBalance)">
                     @FormatCurrency(_reconciliation.ReconciledBalance)
                 </div>
             </div>
             <div class="mb-card-stat info">
-                <div class="mb-label">Statement Balance</div>
+                <div class="mb-label">@L["ReconcileWs_StatementBalance"]</div>
                 <div class="mb-amount @GetBalanceClass(_reconciliation.StatementBalance)">
                     @FormatCurrency(_reconciliation.StatementBalance)
                 </div>
             </div>
             <div class="mb-card-stat @(_isBalanced ? "income" : "expense")">
-                <div class="mb-label">Difference</div>
+                <div class="mb-label">@L["ReconcileWs_Difference"]</div>
                 <div class="mb-amount @(_isBalanced ? "positive" : "negative")">
                     @if (_isBalanced)
                     {
                         <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Class="me-1" />
-                        <span>Balanced</span>
+                        <span>@L["ReconcileWs_Balanced"]</span>
                     }
                     else
                     {
@@ -104,31 +107,29 @@
         @if (_reconciliation.IsCompleted)
         {
             <MudAlert Severity="MudBlazor.Severity.Success" Class="mb-4" Icon="@Icons.Material.Filled.Lock">
-                This reconciliation was completed on @_reconciliation.CompletedAt?.ToString("yyyy-MM-dd HH:mm"). 
-                Reconciled transactions are now locked and cannot be modified.
+                @L["ReconcileWs_CompletedAlert", _reconciliation.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? ""]
             </MudAlert>
         }
         else
         {
             <MudAlert Severity="MudBlazor.Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.Info">
-                Check the transactions below that appear on your bank statement. 
-                When the reconciled balance matches your statement balance, you can complete the reconciliation.
+                @L["ReconcileWs_InstructionsAlert"]
             </MudAlert>
         }
 
         @if (!string.IsNullOrWhiteSpace(_reconciliation.Notes))
         {
             <MudPaper Class="pa-4 mb-4">
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Notes:</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["ReconcileWs_NotesLabel"]</MudText>
                 <MudText Typo="Typo.body2">@_reconciliation.Notes</MudText>
             </MudPaper>
         }
 
         <!-- Transactions Table -->
         <div class="mb-section-header mt-6">
-            <h2 class="mb-section-title">Transactions</h2>
+            <h2 class="mb-section-title">@L["Nav_Transactions"]</h2>
             <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
-                @_reconciledCount of @_transactions.Count transactions reconciled
+                @L["ReconcileWs_TransactionCount", _reconciledCount, _transactions.Count]
             </MudText>
         </div>
 
@@ -136,7 +137,7 @@
         {
             <MudPaper Class="pa-6 mb-4 text-center">
                 <MudText Typo="Typo.body1" Color="MudBlazor.Color.Default">
-                    No posted transactions found for this account up to the statement date.
+                    @L["ReconcileWs_NoTransactions"]
                 </MudText>
             </MudPaper>
         }
@@ -157,12 +158,12 @@
                                         Color="MudBlazor.Color.Primary" />
                         }
                     </MudTh>
-                    <MudTh>Date</MudTh>
-                    <MudTh>Payee</MudTh>
-                    <MudTh>Category</MudTh>
-                    <MudTh>Memo</MudTh>
-                    <MudTh>Amount</MudTh>
-                    <MudTh>Cleared</MudTh>
+                    <MudTh>@L["Lbl_Date"]</MudTh>
+                    <MudTh>@L["Lbl_Payee"]</MudTh>
+                    <MudTh>@L["Lbl_Category"]</MudTh>
+                    <MudTh>@L["Lbl_Memo"]</MudTh>
+                    <MudTh>@L["Lbl_Amount"]</MudTh>
+                    <MudTh>@L["Col_Cleared"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="">
@@ -259,7 +260,7 @@
         }
         catch (Exception ex)
         {
-            SnackbarService.Add($"Error loading reconciliation: {ex.Message}", MudBlazor.Severity.Error);
+            SnackbarService.Add(string.Format(L["ReconcileWs_LoadError"], ex.Message), MudBlazor.Severity.Error);
         }
     }
 
@@ -300,7 +301,7 @@
         }
         catch (Exception ex)
         {
-            SnackbarService.Add($"Error updating transaction: {ex.Message}", MudBlazor.Severity.Error);
+            SnackbarService.Add(string.Format(L["ReconcileWs_UpdateError"], ex.Message), MudBlazor.Severity.Error);
         }
     }
 
@@ -341,7 +342,7 @@
         }
         catch (Exception ex)
         {
-            SnackbarService.Add($"Error updating transactions: {ex.Message}", MudBlazor.Severity.Error);
+            SnackbarService.Add(string.Format(L["ReconcileWs_UpdateError"], ex.Message), MudBlazor.Severity.Error);
         }
     }
 
@@ -360,22 +361,22 @@
         }
 
         var confirmed = await DialogService.ShowMessageBox(
-            "Complete Reconciliation",
-            "Are you sure you want to complete this reconciliation? Reconciled transactions will be locked and cannot be edited.",
-            yesText: "Complete",
-            cancelText: "Cancel");
+            L["ReconcileWs_CompleteDialogTitle"],
+            L["ReconcileWs_CompleteDialogMessage"],
+            yesText: L["ReconcileWs_CompleteDialogYes"],
+            cancelText: L["Btn_Cancel"]);
 
         if (confirmed == true)
         {
             try
             {
                 await ReconciliationService.CompleteReconciliationAsync(ReconciliationId, _userId);
-                SnackbarService.Add("Reconciliation completed successfully", MudBlazor.Severity.Success);
+                SnackbarService.Add(L["ReconcileWs_CompleteSuccess"], MudBlazor.Severity.Success);
                 await LoadData(); // Reload to show completed state
             }
             catch (Exception ex)
             {
-                SnackbarService.Add($"Error completing reconciliation: {ex.Message}", MudBlazor.Severity.Error);
+                SnackbarService.Add(string.Format(L["ReconcileWs_CompleteError"], ex.Message), MudBlazor.Severity.Error);
             }
         }
     }

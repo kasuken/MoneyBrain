@@ -4,28 +4,33 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using MoneyBrain.Web.Data
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Register confirmation</PageTitle>
+<PageTitle>@L["Auth_RegisterConfirm_PageTitle"]</PageTitle>
 
-<h1>Register confirmation</h1>
+<h1>@L["Auth_RegisterConfirm_Title"]</h1>
 
 <StatusMessage Message="@statusMessage"/>
 
 @if (emailConfirmationLink is not null)
 {
     <p>
-        This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf">these docs</a> for how to configure a real email sender.
-        Normally this would be emailed: <a href="@emailConfirmationLink">Click here to confirm your account</a>
+        @L["Auth_RegisterConfirm_NoEmailSenderNotice"]
+        <a href="https://aka.ms/aspaccountconf">@L["Auth_RegisterConfirm_TheseDocsLink"]</a>
+        @L["Auth_RegisterConfirm_NormallyEmailed"]
+        <a href="@emailConfirmationLink">@L["Auth_RegisterConfirm_ClickToConfirm"]</a>
     </p>
 }
 else
 {
-    <p role="alert">Please check your email to confirm your account.</p>
+    <p role="alert">@L["Auth_RegisterConfirm_CheckEmail"]</p>
 }
 
 @code {

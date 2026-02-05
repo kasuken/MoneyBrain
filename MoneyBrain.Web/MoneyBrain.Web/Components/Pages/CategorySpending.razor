@@ -4,30 +4,33 @@
 @using MoneyBrain.Web.Application.Reporting.CsvExport
 @using System.Globalization
 @using Microsoft.JSInterop
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @inject ICategorySpendingService CategorySpendingService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 @attribute [Authorize]
 
-<PageTitle>Category Spending - MoneyBrain</PageTitle>
+<PageTitle>@L["CatSpend_PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">
         <MudIcon Icon="@Icons.Material.Filled.PieChart" Class="mr-2" />
-        Category Spending Report
+        @L["CatSpend_Header"]
     </MudText>
 
     <MudPaper Class="pa-4 mb-4">
         <MudGrid>
             <MudItem xs="12" md="6">
-                <MudDatePicker Label="Start Date" 
+                <MudDatePicker Label="@L["Lbl_StartDate"]" 
                               @bind-Date="_startDate" 
                               MaxDate="DateTime.Today"
                               @bind-Date:after="LoadDataAsync" />
             </MudItem>
             <MudItem xs="12" md="6">
-                <MudDatePicker Label="End Date" 
+                <MudDatePicker Label="@L["Lbl_EndDate"]" 
                               @bind-Date="_endDate" 
                               MaxDate="DateTime.Today"
                               @bind-Date:after="LoadDataAsync" />
@@ -39,7 +42,7 @@
                            OnClick="ExportToCsv"
                            Disabled="@(_summary == null || !_summary.Categories.Any())"
                            FullWidth="true">
-                    Export to CSV
+                    @L["CatSpend_ExportToCsv"]
                 </MudButton>
             </MudItem>
         </MudGrid>
@@ -56,7 +59,7 @@
             <MudItem xs="12" md="4">
                 <MudCard>
                     <MudCardContent>
-                        <MudText Typo="Typo.h6" Color="Color.Error">Total Spending</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Error">@L["CatSpend_TotalSpending"]</MudText>
                         <MudText Typo="Typo.h4">@_summary.TotalSpending.ToString("C")</MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
                             @_summary.StartDate.ToString("MMM d") - @_summary.EndDate.ToString("MMM d, yyyy")
@@ -67,19 +70,19 @@
             <MudItem xs="12" md="4">
                 <MudCard>
                     <MudCardContent>
-                        <MudText Typo="Typo.h6" Color="Color.Info">Categories</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Info">@L["CatSpend_Categories"]</MudText>
                         <MudText Typo="Typo.h4">@_summary.CategoryCount</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">With spending</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["CatSpend_WithSpending"]</MudText>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudCard>
                     <MudCardContent>
-                        <MudText Typo="Typo.h6" Color="Color.Success">Transactions</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Success">@L["CatSpend_Transactions"]</MudText>
                         <MudText Typo="Typo.h4">@_summary.TotalTransactions</MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
-                            Avg: @(_summary.TotalTransactions > 0 ? (_summary.TotalSpending / _summary.TotalTransactions).ToString("C") : "$0")
+                            @L["CatSpend_Avg"]: @(_summary.TotalTransactions > 0 ? (_summary.TotalSpending / _summary.TotalTransactions).ToString("C") : "$0")
                         </MudText>
                     </MudCardContent>
                 </MudCard>
@@ -88,7 +91,7 @@
 
         <!-- Top Categories Chart -->
         <MudPaper Class="pa-4 mb-4">
-            <MudText Typo="Typo.h6" Class="mb-4">Top @_topCount Categories</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@string.Format(L["CatSpend_TopCategories"], _topCount)</MudText>
             <MudChart ChartType="ChartType.Donut"
                      InputData="@_chartData"
                      InputLabels="@_chartLabels"
@@ -99,18 +102,18 @@
 
         <!-- Detailed Category Table -->
         <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h6" Class="mb-4">All Categories</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["CatSpend_AllCategories"]</MudText>
             <MudTable Items="@_summary.Categories" Hover="true" Dense="true" Striped="true">
                 <HeaderContent>
-                    <MudTh>Category</MudTh>
-                    <MudTh Style="text-align: right">Total Spending</MudTh>
-                    <MudTh Style="text-align: right">% of Total</MudTh>
-                    <MudTh Style="text-align: center">Transactions</MudTh>
-                    <MudTh Style="text-align: right">Avg/Transaction</MudTh>
+                    <MudTh>@L["Col_Category"]</MudTh>
+                    <MudTh Style="text-align: right">@L["CatSpend_TotalSpending"]</MudTh>
+                    <MudTh Style="text-align: right">@L["CatSpend_PercentOfTotal"]</MudTh>
+                    <MudTh Style="text-align: center">@L["Col_Transactions"]</MudTh>
+                    <MudTh Style="text-align: right">@L["CatSpend_AvgPerTransaction"]</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Category">
+                    <MudTd DataLabel="@L["Col_Category"]">
                         @if (!string.IsNullOrEmpty(context.CategoryGroupName))
                         {
                             <MudText Typo="Typo.caption" Color="Color.Secondary">@context.CategoryGroupName</MudText>
@@ -118,16 +121,16 @@
                         }
                         <strong>@context.CategoryName</strong>
                     </MudTd>
-                    <MudTd DataLabel="Total" Style="text-align: right">
+                    <MudTd DataLabel="@L["Lbl_Total"]" Style="text-align: right">
                         <MudText Color="Color.Error"><strong>@context.TotalSpending.ToString("C")</strong></MudText>
                     </MudTd>
                     <MudTd DataLabel="%" Style="text-align: right">
                         <MudChip T="string" Size="Size.Small" Color="Color.Primary">@context.PercentageOfTotal.ToString("F1")%</MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Transactions" Style="text-align: center">
+                    <MudTd DataLabel="@L["Col_Transactions"]" Style="text-align: center">
                         @context.TransactionCount
                     </MudTd>
-                    <MudTd DataLabel="Average" Style="text-align: right">
+                    <MudTd DataLabel="@L["CatSpend_Average"]" Style="text-align: right">
                         @context.AverageTransactionAmount.ToString("C")
                     </MudTd>
                     <MudTd>
@@ -144,7 +147,7 @@
                             <td colspan="6" style="padding: 0;">
                                 <MudPaper Class="pa-4 ma-2" Elevation="0">
                                     <MudText Typo="Typo.subtitle1" Class="mb-3">
-                                        <strong>Monthly Spending Trend</strong>
+                                        <strong>@L["CatSpend_MonthlySpendingTrend"]</strong>
                                     </MudText>
 
                                     @if (context.MonthlyBreakdown.Any())
@@ -161,10 +164,10 @@
                                         <MudSimpleTable Dense="true" Hover="true" Class="mt-4" Style="max-height: 300px; overflow-y: auto;">
                                             <thead>
                                                 <tr>
-                                                    <th>Month</th>
-                                                    <th style="text-align: right">Amount</th>
-                                                    <th style="text-align: center">Transactions</th>
-                                                    <th style="text-align: right">Avg/Transaction</th>
+                                                    <th>@L["Col_Month"]</th>
+                                                    <th style="text-align: right">@L["Col_Amount"]</th>
+                                                    <th style="text-align: center">@L["Col_Transactions"]</th>
+                                                    <th style="text-align: right">@L["CatSpend_AvgPerTransaction"]</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -186,7 +189,7 @@
                                     }
                                     else
                                     {
-                                        <MudAlert Severity="Severity.Info">No monthly breakdown available</MudAlert>
+                                        <MudAlert Severity="Severity.Info">@L["CatSpend_NoMonthlyBreakdown"]</MudAlert>
                                     }
                                 </MudPaper>
                             </td>
@@ -199,31 +202,31 @@
     else
     {
         <MudAlert Severity="Severity.Info">
-            No spending data found for the selected period. Create some expense transactions to see category spending reports.
+            @L["CatSpend_NoDataMessage"]
         </MudAlert>
     }
     
-    <HelpButton Title="Category Spending Report Help"
-                Description="See where your money goes with detailed spending breakdowns by category. Identify your biggest expense areas."
+    <HelpButton Title="@L["CatSpend_HelpTitle"]"
+                Description="@L["CatSpend_HelpDescription"]"
                 Features="@(new[] { 
-                    "Spending totals grouped by category",
-                    "Percentage of total spending per category",
-                    "Monthly trend data per category",
-                    "Expandable rows for detailed breakdown",
-                    "Visual charts for quick understanding"
+                    L["CatSpend_HelpFeature1"].Value,
+                    L["CatSpend_HelpFeature2"].Value,
+                    L["CatSpend_HelpFeature3"].Value,
+                    L["CatSpend_HelpFeature4"].Value,
+                    L["CatSpend_HelpFeature5"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Set the date range for your analysis",
-                    "Click 'Load' to generate the report",
-                    "Review the pie chart for spending distribution",
-                    "Click category rows to see monthly details",
-                    "Sort columns to find highest spending areas"
+                    L["CatSpend_HelpHowTo1"].Value,
+                    L["CatSpend_HelpHowTo2"].Value,
+                    L["CatSpend_HelpHowTo3"].Value,
+                    L["CatSpend_HelpHowTo4"].Value,
+                    L["CatSpend_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Focus on your top 3-5 spending categories for the biggest impact",
-                    "Compare this report with your budgets to check alignment",
-                    "Uncategorized spending should be reviewed and categorized",
-                    "Transfers between accounts are excluded from this report"
+                    L["CatSpend_HelpTip1"].Value,
+                    L["CatSpend_HelpTip2"].Value,
+                    L["CatSpend_HelpTip3"].Value,
+                    L["CatSpend_HelpTip4"].Value
                 })" />
 </MudContainer>
 

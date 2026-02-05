@@ -1,6 +1,9 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
@@ -12,18 +15,15 @@
 
             <MudAlert Severity="Severity.Warning" Dense="true">
                 <MudText Typo="Typo.body2" Class="mb-2">
-                    <strong>Warning:</strong> This action will merge all data from the source category into the target category.
+                    <strong>@L["MergeCatDlg_Warning"]</strong>
                 </MudText>
                 <MudText Typo="Typo.caption">
-                    • All transactions and splits will be moved to the target category<br/>
-                    • Budget data will be merged (target takes precedence if conflicts exist)<br/>
-                    • The source category will be deactivated<br/>
-                    • This action cannot be undone
+                    @((MarkupString)L["MergeCatDlg_WarningDetails"].Value)
                 </MudText>
             </MudAlert>
 
             <MudText Typo="Typo.body2" Class="mb-2">
-                <strong>Merge from (Source):</strong>
+                <strong>@L["MergeCatDlg_MergeFrom"]</strong>
             </MudText>
             <MudPaper Class="pa-3" Outlined="true">
                 <div class="d-flex flex-column">
@@ -39,13 +39,13 @@
             </div>
 
             <MudText Typo="Typo.body2" Class="mb-2">
-                <strong>Merge into (Target):</strong>
+                <strong>@L["MergeCatDlg_MergeInto"]</strong>
             </MudText>
             <MudSelect @bind-Value="_selectedTargetCategoryId" 
-                       Label="Select target category" 
+                       Label="@L["MergeCatDlg_SelectTarget"]" 
                        Variant="Variant.Outlined"
                        Required="true"
-                       HelperText="All source category data will be merged into this category">
+                       HelperText="@L["MergeCatDlg_TargetHelper"]">
                 @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
                 {
                     var categories = _allCategories
@@ -79,8 +79,7 @@
                 {
                     <MudAlert Severity="Severity.Info" Dense="true">
                         <MudText Typo="Typo.caption">
-                            <strong>Result:</strong> Category "@SourceCategory.Name" will be merged into "@targetCategory.Name" 
-                            (@targetCategory.CategoryGroup.Name)
+                            <strong>@L["MergeCatDlg_Result"]</strong> @string.Format(L["MergeCatDlg_ResultDesc"], SourceCategory.Name, targetCategory.Name, targetCategory.CategoryGroup.Name)
                         </MudText>
                     </MudAlert>
                 }
@@ -88,7 +87,7 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel" Disabled="_isSubmitting">Cancel</MudButton>
+        <MudButton OnClick="Cancel" Disabled="_isSubmitting">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Error" 
                    Variant="Variant.Filled" 
                    OnClick="Submit" 
@@ -97,7 +96,7 @@
             {
                 <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
             }
-            Merge Categories
+            @L["MergeCatDlg_MergeButton"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -132,13 +131,13 @@
 
         if (_selectedTargetCategoryId == 0)
         {
-            _errorMessage = "Please select a target category";
+            _errorMessage = L["MergeCatDlg_SelectRequired"];
             return;
         }
 
         if (_selectedTargetCategoryId == SourceCategory.Id)
         {
-            _errorMessage = "Cannot merge a category into itself";
+            _errorMessage = L["MergeCatDlg_CannotMergeSelf"];
             return;
         }
 
@@ -157,12 +156,12 @@
             }
             else
             {
-                _errorMessage = "Failed to merge categories";
+                _errorMessage = L["MergeCatDlg_Failed"];
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error: {ex.Message}";
+            _errorMessage = string.Format(L["Msg_Error"], ex.Message);
         }
         finally
         {

@@ -6,17 +6,20 @@
 @using MoneyBrain.Web.Domain.Entities
 @using Microsoft.JSInterop
 @using MudBlazor
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @attribute [Authorize]
 @inject IAccountBalanceHistoryService BalanceHistoryService
 @inject IAccountService AccountService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Account Balance History</PageTitle>
+<PageTitle>@L["BalHistory_PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">Account Balance History</MudText>
+    <MudText Typo="Typo.h4" Class="mb-4">@L["BalHistory_Header"]</MudText>
 
     <MudPaper Class="pa-4 mb-4">
         <MudGrid>
@@ -24,10 +27,10 @@
                 <MudSelect T="int?" 
                            @bind-Value="_selectedAccountId"
                            @bind-Value:after="LoadSingleAccountDataAsync"
-                           Label="Account"
+                           Label="@L["Col_Account"]"
                            Variant="Variant.Outlined"
                            AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem T="int?" Value="null">-- All Accounts --</MudSelectItem>
+                    <MudSelectItem T="int?" Value="null">@L["BalHistory_AllAccounts"]</MudSelectItem>
                     @foreach (var account in _accounts)
                     {
                         <MudSelectItem T="int?" Value="@account.Id">@account.Name (@account.SubType)</MudSelectItem>
@@ -35,21 +38,21 @@
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudDatePicker Label="Start Date" 
+                <MudDatePicker Label="@L["Lbl_StartDate"]" 
                                @bind-Date="_startDate" 
                                @bind-Date:after="LoadDataAsync"
                                PickerVariant="PickerVariant.Dialog"
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudDatePicker Label="End Date" 
+                <MudDatePicker Label="@L["Lbl_EndDate"]" 
                                @bind-Date="_endDate"
                                @bind-Date:after="LoadDataAsync"
                                PickerVariant="PickerVariant.Dialog"
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6" md="2">
-                <MudNumericField Label="Interval (Days)" 
+                <MudNumericField Label="@L["BalHistory_IntervalDays"]" 
                                  @bind-Value="_intervalDays"
                                  @bind-Value:after="LoadDataAsync"
                                  Min="1"
@@ -63,7 +66,7 @@
                            OnClick="ExportToCsv"
                            Disabled="@(_singleAccountHistory == null && _multiAccountHistory == null)"
                            FullWidth="true">
-                    Export to CSV
+                    @L["BalHistory_ExportToCsv"]
                 </MudButton>
             </MudItem>
         </MudGrid>
@@ -79,7 +82,7 @@
         <MudGrid Class="mb-4">
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Current Balance</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_CurrentBalance"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_singleAccountHistory.CurrentBalance >= 0 ? Color.Success : Color.Error)">
                         @_singleAccountHistory.CurrentBalance.ToString("C2")
                     </MudText>
@@ -87,13 +90,13 @@
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Opening Balance</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_OpeningBalance"]</MudText>
                     <MudText Typo="Typo.h5">@_singleAccountHistory.OpeningBalance.ToString("C2")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Change</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_Change"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_singleAccountHistory.BalanceChange >= 0 ? Color.Success : Color.Error)">
                         @(_singleAccountHistory.BalanceChange >= 0 ? "+" : "")@_singleAccountHistory.BalanceChange.ToString("C2")
                         <MudChip T="string" Size="Size.Small" Color="@(_singleAccountHistory.BalanceChange >= 0 ? Color.Success : Color.Error)">
@@ -104,7 +107,7 @@
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Average Balance</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_AverageBalance"]</MudText>
                     <MudText Typo="Typo.h5">@_singleAccountHistory.AverageBalance.ToString("C2")</MudText>
                 </MudPaper>
             </MudItem>
@@ -114,7 +117,7 @@
         <MudGrid Class="mb-4">
             <MudItem xs="12" sm="6">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Peak Balance</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["BalHistory_PeakBalance"]</MudText>
                     <MudText Typo="Typo.h6" Color="Color.Success">
                         @_singleAccountHistory.PeakBalance.ToString("C2")
                     </MudText>
@@ -122,7 +125,7 @@
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Default">Lowest Balance</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["BalHistory_LowestBalance"]</MudText>
                     <MudText Typo="Typo.h6" Color="@(_singleAccountHistory.LowestBalance >= 0 ? Color.Info : Color.Error)">
                         @_singleAccountHistory.LowestBalance.ToString("C2")
                     </MudText>
@@ -134,7 +137,7 @@
         @if (_singleAccountChartData.Any())
         {
             <MudPaper Class="pa-4 mb-4" Elevation="2">
-                <MudText Typo="Typo.h6" Class="mb-4">@_singleAccountHistory.AccountName - Balance Trend</MudText>
+                <MudText Typo="Typo.h6" Class="mb-4">@_singleAccountHistory.AccountName - @L["BalHistory_BalanceTrend"]</MudText>
                 <MudChart ChartType="ChartType.Line" 
                           ChartSeries="_singleAccountChartSeries" 
                           XAxisLabels="_singleAccountChartData.Select(d => d.DateDisplay).ToArray()"
@@ -146,26 +149,26 @@
 
         <!-- Snapshot Details Table -->
         <MudPaper Class="pa-4" Elevation="2">
-            <MudText Typo="Typo.h6" Class="mb-4">Balance Snapshots</MudText>
+            <MudText Typo="Typo.h6" Class="mb-4">@L["BalHistory_BalanceSnapshots"]</MudText>
             <MudTable Items="_singleAccountHistory.Snapshots" 
                       Hover="true" 
                       Dense="true"
                       FixedHeader="true"
                       Height="400px">
                 <HeaderContent>
-                    <MudTh>Date</MudTh>
-                    <MudTh Style="text-align: right;">Balance</MudTh>
-                    <MudTh Style="text-align: right;">Change</MudTh>
-                    <MudTh Style="text-align: right;">% Change</MudTh>
+                    <MudTh>@L["Col_Date"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["Col_Balance"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["BalHistory_Change"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["BalHistory_PercentChange"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Date">@context.DateDisplay</MudTd>
-                    <MudTd DataLabel="Balance" Style="text-align: right;">
+                    <MudTd DataLabel="@L["Col_Date"]">@context.DateDisplay</MudTd>
+                    <MudTd DataLabel="@L["Col_Balance"]" Style="text-align: right;">
                         <span style="color: @(context.Balance >= 0 ? "green" : "red")">
                             @context.Balance.ToString("C2")
                         </span>
                     </MudTd>
-                    <MudTd DataLabel="Change" Style="text-align: right;">
+                    <MudTd DataLabel="@L["BalHistory_Change"]" Style="text-align: right;">
                         @if (context.ChangeFromPrevious.HasValue)
                         {
                             <span style="color: @(context.ChangeFromPrevious.Value >= 0 ? "green" : "red")">
@@ -177,7 +180,7 @@
                             <span>-</span>
                         }
                     </MudTd>
-                    <MudTd DataLabel="% Change" Style="text-align: right;">
+                    <MudTd DataLabel="@L["BalHistory_PercentChange"]" Style="text-align: right;">
                         @if (context.PercentageChangeFromPrevious.HasValue)
                         {
                             <span style="color: @(context.PercentageChangeFromPrevious.Value >= 0 ? "green" : "red")">
@@ -199,7 +202,7 @@
         <MudGrid Class="mb-4">
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Total Current Balance</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_TotalCurrentBalance"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_multiAccountHistory.TotalCurrentBalance >= 0 ? Color.Success : Color.Error)">
                         @_multiAccountHistory.TotalCurrentBalance.ToString("C2")
                     </MudText>
@@ -207,13 +210,13 @@
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Total Opening Balance</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_TotalOpeningBalance"]</MudText>
                     <MudText Typo="Typo.h5">@_multiAccountHistory.TotalOpeningBalance.ToString("C2")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.body2" Color="Color.Default">Total Change</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_TotalChange"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_multiAccountHistory.TotalChange >= 0 ? Color.Success : Color.Error)">
                         @(_multiAccountHistory.TotalChange >= 0 ? "+" : "")@_multiAccountHistory.TotalChange.ToString("C2")
                     </MudText>
@@ -225,7 +228,7 @@
         @if (_multiAccountChartData.Any())
         {
             <MudPaper Class="pa-4 mb-4" Elevation="2">
-                <MudText Typo="Typo.h6" Class="mb-4">Account Balances Over Time</MudText>
+                <MudText Typo="Typo.h6" Class="mb-4">@L["BalHistory_AccountBalancesOverTime"]</MudText>
                 <MudChart ChartType="ChartType.Line" 
                           ChartSeries="_multiAccountChartSeries" 
                           XAxisLabels="_multiAccountChartLabels"
@@ -236,7 +239,7 @@
         }
 
         <!-- Account Summary Cards -->
-        <MudText Typo="Typo.h6" Class="mb-3">Account Summaries</MudText>
+        <MudText Typo="Typo.h6" Class="mb-3">@L["BalHistory_AccountSummaries"]</MudText>
         <MudGrid Class="mb-4">
             @foreach (var account in _multiAccountHistory.Accounts)
             {
@@ -250,23 +253,23 @@
                             
                             <MudGrid>
                                 <MudItem xs="6">
-                                    <MudText Typo="Typo.body2">Current:</MudText>
+                                    <MudText Typo="Typo.body2">@L["BalHistory_Current"]:</MudText>
                                     <MudText Typo="Typo.body1" Color="@(account.CurrentBalance >= 0 ? Color.Success : Color.Error)">
                                         @account.CurrentBalance.ToString("C2")
                                     </MudText>
                                 </MudItem>
                                 <MudItem xs="6">
-                                    <MudText Typo="Typo.body2">Change:</MudText>
+                                    <MudText Typo="Typo.body2">@L["BalHistory_Change"]:</MudText>
                                     <MudText Typo="Typo.body1" Color="@(account.BalanceChange >= 0 ? Color.Success : Color.Error)">
                                         @(account.BalanceChange >= 0 ? "+" : "")@account.BalanceChange.ToString("C2")
                                     </MudText>
                                 </MudItem>
                                 <MudItem xs="6">
-                                    <MudText Typo="Typo.body2">Peak:</MudText>
+                                    <MudText Typo="Typo.body2">@L["BalHistory_Peak"]:</MudText>
                                     <MudText Typo="Typo.body1">@account.PeakBalance.ToString("C2")</MudText>
                                 </MudItem>
                                 <MudItem xs="6">
-                                    <MudText Typo="Typo.body2">Average:</MudText>
+                                    <MudText Typo="Typo.body2">@L["BalHistory_Average"]:</MudText>
                                     <MudText Typo="Typo.body1">@account.AverageBalance.ToString("C2")</MudText>
                                 </MudItem>
                             </MudGrid>
@@ -275,7 +278,7 @@
                             <MudButton Size="Size.Small" 
                                        Color="Color.Primary" 
                                        OnClick="@(() => SelectAccount(account.AccountId))">
-                                View Details
+                                @L["BalHistory_ViewDetails"]
                             </MudButton>
                         </MudCardActions>
                     </MudCard>
@@ -286,7 +289,7 @@
     else
     {
         <MudAlert Severity="Severity.Info">
-            Select a date range to view account balance history.
+            @L["BalHistory_SelectDateRange"]
         </MudAlert>
     }
 </MudContainer>
@@ -421,7 +424,7 @@
         [
             new ChartSeries
             {
-                Name = "Balance",
+                Name = L["Col_Balance"],
                 Data = _singleAccountChartData.Select(d => (double)d.Balance).ToArray()
             }
         ];

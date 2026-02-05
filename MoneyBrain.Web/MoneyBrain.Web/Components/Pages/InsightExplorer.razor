@@ -1,0 +1,913 @@
+@page "/insights"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.InsightExplorer
+@using MoneyBrain.Web.Application.InsightExplorer.Models
+@using MoneyBrain.Web.Domain.Entities
+@using InsightChartType = MoneyBrain.Web.Application.InsightExplorer.Models.ChartType
+@using InsightFilterOperator = MoneyBrain.Web.Application.InsightExplorer.Models.FilterOperator
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
+@attribute [Authorize]
+
+@inject IInsightExplorerService InsightExplorerService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["Insight_PageTitle"]</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">@L["Insight_Header"]</h1>
+            <p class="mb-subtitle">@L["Insight_Subtitle"]</p>
+        </div>
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="OpenSaveDialog" Disabled="@(!_hasChanges)">
+                @L["Insight_SaveQuery"]
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.FolderOpen"
+                       OnClick="OpenLoadDialog">
+                @L["Insight_LoadQuery"]
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Class="mb-btn-primary"
+                       StartIcon="@Icons.Material.Filled.PlayArrow"
+                       OnClick="ExecuteQuery" Disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                @L["Insight_RunQuery"]
+            </MudButton>
+        </div>
+    </div>
+
+    <!-- Query Builder Section -->
+    <MudPaper Class="pa-4 mb-4">
+        <MudGrid>
+            <!-- Target Entity Selection -->
+            <MudItem xs="12" md="4">
+                <MudSelect T="QueryTargetEntity" Value="_query.TargetEntity"
+                           Label="@L["Insight_QueryTarget"]" Variant="Variant.Outlined"
+                           ValueChanged="OnTargetEntityChanged">
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Transaction">@L["Insight_TargetTransactions"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Account">@L["Insight_TargetAccounts"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Category">@L["Insight_TargetCategories"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Payee">@L["Insight_TargetPayees"]</MudSelectItem>
+                    <MudSelectItem T="QueryTargetEntity" Value="QueryTargetEntity.Budget">@L["Insight_TargetBudgets"]</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Filter Conditions -->
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">@L["Insight_Filters"]</MudText>
+        @for (var i = 0; i < _query.Filters.Count; i++)
+        {
+            var index = i;
+            var filter = _query.Filters[i];
+            <MudPaper Class="pa-3 mb-2" Elevation="0" Style="background: var(--mud-palette-background-gray);">
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="string" Value="filter.Property"
+                                   Label="@L["Insight_Property"]" Variant="Variant.Outlined" Dense="true"
+                                   ValueChanged="@(v => OnPropertyChanged(index, v))">
+                            @foreach (var prop in _availableProperties.Where(p => p.IsFilterable))
+                            {
+                                <MudSelectItem T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="InsightFilterOperator" Value="filter.Operator"
+                                   Label="@L["Insight_Operator"]" Variant="Variant.Outlined" Dense="true"
+                                   ValueChanged="@(v => OnOperatorChanged(index, v))">
+                            @foreach (var op in GetOperatorsForDataType(filter.DataType))
+                            {
+                                <MudSelectItem T="InsightFilterOperator" Value="@op">@FormatOperator(op)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        @if (filter.Operator != InsightFilterOperator.IsNull && filter.Operator != InsightFilterOperator.IsNotNull)
+                        {
+                            @if (filter.DataType == PropertyDataType.Boolean)
+                            {
+                                <MudSelect T="string" Value="filter.Value"
+                                           Label="@L["Insight_Value"]" Variant="Variant.Outlined" Dense="true"
+                                           ValueChanged="@(v => OnValueChanged(index, v))">
+                                    <MudSelectItem T="string" Value="@("true")">@L["Common_Yes"]</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("false")">@L["Common_No"]</MudSelectItem>
+                                </MudSelect>
+                            }
+                            else if (filter.DataType == PropertyDataType.Enum)
+                            {
+                                var propMeta = _availableProperties.FirstOrDefault(p => p.Name == filter.Property);
+                                <MudSelect T="string" Value="filter.Value"
+                                           Label="@L["Insight_Value"]" Variant="Variant.Outlined" Dense="true"
+                                           ValueChanged="@(v => OnValueChanged(index, v))">
+                                    @if (propMeta?.EnumValues != null)
+                                    {
+                                        @foreach (var enumVal in propMeta.EnumValues)
+                                        {
+                                            <MudSelectItem T="string" Value="@enumVal">@enumVal</MudSelectItem>
+                                        }
+                                    }
+                                </MudSelect>
+                            }
+                            else if (filter.DataType == PropertyDataType.DateTime)
+                            {
+                                <MudDatePicker Date="@(_filterDates.GetValueOrDefault(index))" Label="@L["Insight_Value"]"
+                                               Variant="Variant.Outlined" Dense="true"
+                                               DateChanged="@(d => OnDateFilterChanged(index, d))" />
+                            }
+                            else
+                            {
+                                <MudTextField T="string" Value="filter.Value"
+                                              Label="@L["Insight_Value"]" Variant="Variant.Outlined" Dense="true"
+                                              ValueChanged="@(v => OnValueChanged(index, v))" />
+                            }
+
+                            @if (filter.Operator == InsightFilterOperator.Between)
+                            {
+                                @if (filter.DataType == PropertyDataType.DateTime)
+                                {
+                                    <MudDatePicker Date="@(_filterSecondDates.GetValueOrDefault(index))" Label="@L["Insight_ToValue"]"
+                                                   Variant="Variant.Outlined" Dense="true" Class="mt-2"
+                                                   DateChanged="@(d => OnSecondDateFilterChanged(index, d))" />
+                                }
+                                else
+                                {
+                                    <MudTextField T="string" Value="filter.SecondValue"
+                                                  Label="@L["Insight_ToValue"]" Variant="Variant.Outlined" Dense="true" Class="mt-2"
+                                                  ValueChanged="@(v => OnSecondValueChanged(index, v))" />
+                                }
+                            }
+                        }
+                    </MudItem>
+                    <MudItem xs="12" md="2" Class="d-flex align-center">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                       OnClick="@(() => RemoveFilter(index))" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="AddFilter" Color="Color.Primary">
+            @L["Insight_AddFilter"]
+        </MudButton>
+
+        <!-- Aggregation (Optional) -->
+        <MudExpansionPanels Class="mt-4">
+            <MudExpansionPanel Text="@L["Insight_AggregationOptional"]">
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudSwitch T="bool" Value="_useAggregation" Label="@L["Insight_EnableAggregation"]"
+                                   Color="Color.Primary" ValueChanged="OnAggregationToggled" />
+                    </MudItem>
+                    @if (_useAggregation)
+                    {
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="AggregationFunction" Value="_aggregationFunction"
+                                       Label="@L["Insight_Function"]" Variant="Variant.Outlined"
+                                       ValueChanged="OnAggregationFunctionChanged">
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Sum">@L["Insight_FuncSum"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Count">@L["Insight_FuncCount"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Average">@L["Insight_FuncAverage"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Min">@L["Insight_FuncMin"]</MudSelectItem>
+                                <MudSelectItem T="AggregationFunction" Value="AggregationFunction.Max">@L["Insight_FuncMax"]</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="string" Value="_aggregationProperty"
+                                       Label="@L["Insight_AggregateProperty"]" Variant="Variant.Outlined"
+                                       ValueChanged="OnAggregationPropertyChanged">
+                                @foreach (var prop in _availableProperties.Where(p => p.IsAggregatable))
+                                {
+                                    <MudSelectItem T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="string" Value="_groupByProperty"
+                                       Label="@L["Lbl_Group"]" Variant="Variant.Outlined"
+                                       ValueChanged="OnGroupByChanged">
+                                <MudSelectItem T="string" Value="@string.Empty">@L["Common_None"]</MudSelectItem>
+                                @foreach (var prop in _availableProperties.Where(p => p.IsGroupable))
+                                {
+                                    <MudSelectItem T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="@L["Insight_ChartSettingsOptional"]">
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudSwitch T="bool" Value="_useChart" Label="@L["Insight_EnableChart"]"
+                                   Color="Color.Primary" ValueChanged="OnChartToggled" />
+                    </MudItem>
+                    @if (_useChart)
+                    {
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="InsightChartType" Value="_chartType"
+                                       Label="@L["Insight_ChartType"]" Variant="Variant.Outlined"
+                                       ValueChanged="OnChartTypeChanged">
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Bar">@L["Insight_ChartBar"]</MudSelectItem>
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Line">@L["Insight_ChartLine"]</MudSelectItem>
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Pie">@L["Insight_ChartPie"]</MudSelectItem>
+                                <MudSelectItem T="InsightChartType" Value="InsightChartType.Donut">@L["Insight_ChartDonut"]</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField T="string" Value="_chartTitle"
+                                          Label="@L["Insight_ChartTitle"]" Variant="Variant.Outlined"
+                                          ValueChanged="OnChartTitleChanged" />
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudPaper>
+
+    <!-- Results Section with Tabs -->
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+        <MudTabPanel Text="@L["Insight_DataTable"]" Icon="@Icons.Material.Filled.TableChart">
+            @if (_isLoading)
+            {
+                <MudProgressLinear Indeterminate="true" />
+            }
+            else if (_result != null && (_result.Rows.Count > 0 || _result.AggregatedRows.Count > 0))
+            {
+                @if (_result.AggregatedRows.Count > 0)
+                {
+                    <MudDataGrid T="AggregatedRow" Items="@_result.AggregatedRows"
+                                 Dense="true" Hover="true">
+                        <Columns>
+                            @foreach (var col in _result.Columns)
+                            {
+                                <TemplateColumn T="AggregatedRow" Title="@col.DisplayName">
+                                    <CellTemplate>
+                                        @GetAggregatedValue(context.Item, col.Name)
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            }
+                        </Columns>
+                    </MudDataGrid>
+                    <MudText Typo="Typo.caption" Class="mt-2">@L["Insight_TotalRows"]: @_result.TotalCount</MudText>
+                }
+                else
+                {
+                    <MudDataGrid T="Dictionary<string, object?>" Items="@_result.Rows"
+                                 Dense="true" Hover="true" Virtualize="true">
+                        <Columns>
+                            @foreach (var col in _result.Columns)
+                            {
+                                <TemplateColumn T="Dictionary<string, object?>" Title="@col.DisplayName">
+                                    <CellTemplate>
+                                        @FormatValue(context.Item.GetValueOrDefault(col.Name), col.DataType)
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            }
+                        </Columns>
+                    </MudDataGrid>
+                    <MudText Typo="Typo.caption" Class="mt-2">@L["Insight_ShowingRows", _result.Rows.Count, _result.TotalCount]</MudText>
+                }
+            }
+            else if (_hasExecuted)
+            {
+                <MudAlert Severity="Severity.Info">@L["Insight_NoResultsFound"]</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info">@L["Insight_RunQueryToSeeResults"]</MudAlert>
+            }
+        </MudTabPanel>
+        <MudTabPanel Text="@L["Insight_Chart"]" Icon="@Icons.Material.Filled.BarChart">
+            @if (_result?.ChartData != null && _result.ChartData.Labels.Length > 0)
+            {
+                @if (!string.IsNullOrEmpty(_chartTitle))
+                {
+                    <MudText Typo="Typo.h6" Class="mb-4">@_chartTitle</MudText>
+                }
+                @if (_chartType == InsightChartType.Line || _chartType == InsightChartType.Bar)
+                {
+                    <MudChart ChartType="@GetMudChartType()"
+                              ChartSeries="@_chartSeries"
+                              XAxisLabels="@_result.ChartData.Labels"
+                              Width="100%" Height="400px"
+                              ChartOptions="@_chartOptions" />
+                }
+                else
+                {
+                    <MudChart ChartType="@GetMudChartType()"
+                              InputData="@_result.ChartData.Data"
+                              InputLabels="@_result.ChartData.Labels"
+                              Width="100%" Height="400px"
+                              ChartOptions="@_chartOptions" />
+                }
+            }
+            else if (_hasExecuted)
+            {
+                <MudAlert Severity="Severity.Info">@L["Insight_ConfigureAggregationForChart"]</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info">@L["Insight_ConfigureChartAndRun"]</MudAlert>
+            }
+        </MudTabPanel>
+    </MudTabs>
+
+    @if (_loadedQueryName != null)
+    {
+        <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Secondary">@L["Insight_LoadedQuery"]: @_loadedQueryName</MudText>
+    }
+</div>
+
+<!-- Save Query Dialog -->
+<MudDialog @bind-Visible="_showSaveDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Insight_SaveQueryTitle"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField T="string" @bind-Value="_saveQueryName" Label="@L["Insight_QueryName"]"
+                      Variant="Variant.Outlined" Required="true" Class="mb-4" />
+        <MudTextField T="string" @bind-Value="_saveQueryDescription" Label="@L["Insight_DescriptionOptional"]"
+                      Variant="Variant.Outlined" Lines="2" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showSaveDialog = false)">@L["Btn_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SaveQuery" Disabled="@string.IsNullOrWhiteSpace(_saveQueryName)">@L["Btn_Save"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Load Query Dialog -->
+<MudDialog @bind-Visible="_showLoadDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Insight_LoadQueryTitle"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_savedQueries.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info">@L["Insight_NoSavedQueries"]</MudAlert>
+        }
+        else
+        {
+            <MudList T="SavedQuery" Dense="true">
+                @foreach (var sq in _savedQueries)
+                {
+                    <MudListItem>
+                        <div class="d-flex justify-space-between align-center" style="width: 100%;">
+                            <div>
+                                <MudText Typo="Typo.body1">@sq.Name</MudText>
+                                @if (!string.IsNullOrEmpty(sq.Description))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@sq.Description</MudText>
+                                }
+                                <MudText Typo="Typo.caption">@L["Insight_Updated"]: @sq.UpdatedAt.ToString("g")</MudText>
+                            </div>
+                            <div>
+                                <MudIconButton Icon="@Icons.Material.Filled.FileOpen" Color="Color.Primary"
+                                               OnClick="@(() => LoadQuery(sq))" Title="@L["Insight_Load"]" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                               OnClick="@(() => DeleteSavedQuery(sq))" Title="@L["Btn_Delete"]" />
+                            </div>
+                        </div>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showLoadDialog = false)">@L["Btn_Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private string? _userId;
+    private QueryDefinition _query = new();
+    private QueryResult? _result;
+    private List<PropertyMetadata> _availableProperties = [];
+    private List<SavedQuery> _savedQueries = [];
+    private Dictionary<int, DateTime?> _filterDates = new();
+    private Dictionary<int, DateTime?> _filterSecondDates = new();
+
+    private bool _isLoading;
+    private bool _hasChanges;
+    private bool _hasExecuted;
+    private string? _loadedQueryName;
+    private int? _loadedQueryId;
+
+    // Aggregation state
+    private bool _useAggregation;
+    private AggregationFunction _aggregationFunction = AggregationFunction.Sum;
+    private string _aggregationProperty = "Amount";
+    private string _groupByProperty = "";
+
+    // Chart state
+    private bool _useChart;
+    private InsightChartType _chartType = InsightChartType.Bar;
+    private string _chartTitle = "";
+    private ChartOptions _chartOptions = new() { YAxisTicks = 5 };
+    private List<ChartSeries> _chartSeries = [];
+
+    // Save dialog state
+    private bool _showSaveDialog;
+    private string _saveQueryName = "";
+    private string _saveQueryDescription = "";
+
+    // Load dialog state
+    private bool _showLoadDialog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        UpdateAvailableProperties();
+    }
+
+    private void UpdateAvailableProperties()
+    {
+        _availableProperties = InsightExplorerService.GetEntityProperties(_query.TargetEntity);
+    }
+
+    private void OnTargetEntityChanged(QueryTargetEntity entity)
+    {
+        _query.TargetEntity = entity;
+        _query.Filters.Clear();
+        _filterDates.Clear();
+        _filterSecondDates.Clear();
+        UpdateAvailableProperties();
+        MarkAsChanged();
+    }
+
+    private void AddFilter()
+    {
+        var defaultProp = _availableProperties.FirstOrDefault(p => p.IsFilterable);
+        _query.Filters.Add(new FilterCondition
+        {
+            Property = defaultProp?.Name ?? "",
+            DataType = defaultProp?.DataType ?? PropertyDataType.String,
+            Operator = InsightFilterOperator.Equals
+        });
+        MarkAsChanged();
+    }
+
+    private void OnPropertyChanged(int index, string? value)
+    {
+        if (index >= 0 && index < _query.Filters.Count)
+        {
+            _query.Filters[index].Property = value ?? "";
+            var prop = _availableProperties.FirstOrDefault(p => p.Name == value);
+            if (prop != null)
+            {
+                _query.Filters[index].DataType = prop.DataType;
+            }
+        }
+        MarkAsChanged();
+    }
+
+    private void OnOperatorChanged(int index, InsightFilterOperator op)
+    {
+        if (index >= 0 && index < _query.Filters.Count)
+        {
+            _query.Filters[index].Operator = op;
+        }
+        MarkAsChanged();
+    }
+
+    private void OnValueChanged(int index, string? value)
+    {
+        if (index >= 0 && index < _query.Filters.Count)
+        {
+            _query.Filters[index].Value = value;
+        }
+        MarkAsChanged();
+    }
+
+    private void OnSecondValueChanged(int index, string? value)
+    {
+        if (index >= 0 && index < _query.Filters.Count)
+        {
+            _query.Filters[index].SecondValue = value;
+        }
+        MarkAsChanged();
+    }
+
+    private void RemoveFilter(int index)
+    {
+        if (index >= 0 && index < _query.Filters.Count)
+        {
+            _query.Filters.RemoveAt(index);
+            _filterDates.Remove(index);
+            _filterSecondDates.Remove(index);
+            MarkAsChanged();
+        }
+    }
+
+    private void OnFilterChanged()
+    {
+        // Update data type when property changes
+        foreach (var filter in _query.Filters)
+        {
+            var prop = _availableProperties.FirstOrDefault(p => p.Name == filter.Property);
+            if (prop != null)
+            {
+                filter.DataType = prop.DataType;
+            }
+        }
+        MarkAsChanged();
+    }
+
+    private void OnDateFilterChanged(int index, DateTime? date)
+    {
+        _filterDates[index] = date;
+        if (index < _query.Filters.Count)
+        {
+            _query.Filters[index].Value = date?.ToString("O");
+        }
+        MarkAsChanged();
+    }
+
+    private void OnSecondDateFilterChanged(int index, DateTime? date)
+    {
+        _filterSecondDates[index] = date;
+        if (index < _query.Filters.Count)
+        {
+            _query.Filters[index].SecondValue = date?.ToString("O");
+        }
+        MarkAsChanged();
+    }
+
+    private void OnAggregationToggled(bool enabled)
+    {
+        _useAggregation = enabled;
+        UpdateAggregationConfig();
+        MarkAsChanged();
+    }
+
+    private void OnAggregationFunctionChanged(AggregationFunction func)
+    {
+        _aggregationFunction = func;
+        UpdateAggregationConfig();
+        MarkAsChanged();
+    }
+
+    private void OnAggregationPropertyChanged(string prop)
+    {
+        _aggregationProperty = prop;
+        UpdateAggregationConfig();
+        MarkAsChanged();
+    }
+
+    private void OnGroupByChanged(string prop)
+    {
+        _groupByProperty = prop;
+        UpdateAggregationConfig();
+        MarkAsChanged();
+    }
+
+    private void UpdateAggregationConfig()
+    {
+        if (_useAggregation)
+        {
+            _query.Aggregation = new AggregationConfig
+            {
+                Function = _aggregationFunction,
+                Property = _aggregationProperty,
+                GroupBy = string.IsNullOrEmpty(_groupByProperty) ? [] : [_groupByProperty]
+            };
+        }
+        else
+        {
+            _query.Aggregation = null;
+        }
+    }
+
+    private void OnChartToggled(bool enabled)
+    {
+        _useChart = enabled;
+        UpdateChartConfig();
+        MarkAsChanged();
+    }
+
+    private void OnChartTypeChanged(InsightChartType type)
+    {
+        _chartType = type;
+        UpdateChartConfig();
+        MarkAsChanged();
+    }
+
+    private void OnChartTitleChanged(string? title)
+    {
+        _chartTitle = title ?? "";
+        UpdateChartConfig();
+        MarkAsChanged();
+    }
+
+    private void UpdateChartConfig()
+    {
+        if (_useChart && _useAggregation && !string.IsNullOrEmpty(_groupByProperty))
+        {
+            _query.Chart = new ChartConfig
+            {
+                Type = _chartType,
+                XAxisProperty = _groupByProperty,
+                YAxisProperty = _aggregationProperty,
+                Title = _chartTitle
+            };
+        }
+        else
+        {
+            _query.Chart = null;
+        }
+    }
+
+    private void BuildChartSeries()
+    {
+        _chartSeries.Clear();
+
+        if (_result?.ChartData == null || _result.ChartData.Data.Length == 0)
+            return;
+
+        // Build ChartSeries for Line/Bar charts
+        _chartSeries.Add(new ChartSeries
+        {
+            Name = _aggregationProperty,
+            Data = _result.ChartData.Data
+        });
+    }
+
+    private void MarkAsChanged()
+    {
+        _hasChanges = true;
+    }
+
+    private async Task ExecuteQuery()
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+
+        var validation = InsightExplorerService.ValidateQuery(_query);
+        if (!validation.IsValid)
+        {
+            foreach (var error in validation.Errors)
+            {
+                Snackbar.Add(error, Severity.Warning);
+            }
+            return;
+        }
+
+        _isLoading = true;
+        _hasExecuted = true;
+        StateHasChanged();
+
+        try
+        {
+            _result = await InsightExplorerService.ExecuteQueryAsync(_userId, _query);
+            BuildChartSeries();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error executing query: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OpenSaveDialog()
+    {
+        _saveQueryName = _loadedQueryName ?? "";
+        _saveQueryDescription = "";
+        _showSaveDialog = true;
+    }
+
+    private async Task SaveQuery()
+    {
+        if (string.IsNullOrEmpty(_userId) || string.IsNullOrWhiteSpace(_saveQueryName))
+            return;
+
+        try
+        {
+            if (_loadedQueryId.HasValue)
+            {
+                await InsightExplorerService.UpdateQueryAsync(_loadedQueryId.Value, _userId, _saveQueryName, _saveQueryDescription, _query);
+                Snackbar.Add("Query updated successfully", Severity.Success);
+            }
+            else
+            {
+                var saved = await InsightExplorerService.SaveQueryAsync(_userId, _saveQueryName, _saveQueryDescription, _query);
+                _loadedQueryId = saved.Id;
+                Snackbar.Add("Query saved successfully", Severity.Success);
+            }
+
+            _loadedQueryName = _saveQueryName;
+            _hasChanges = false;
+            _showSaveDialog = false;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving query: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OpenLoadDialog()
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+
+        try
+        {
+            _savedQueries = await InsightExplorerService.GetSavedQueriesAsync(_userId);
+            _showLoadDialog = true;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading queries: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void LoadQuery(SavedQuery savedQuery)
+    {
+        var deserializedQuery = InsightExplorerService.DeserializeQuery(savedQuery.QueryDefinitionJson);
+        if (deserializedQuery != null)
+        {
+            _query = deserializedQuery;
+            _loadedQueryId = savedQuery.Id;
+            _loadedQueryName = savedQuery.Name;
+
+            // Update UI state from loaded query
+            UpdateAvailableProperties();
+            _useAggregation = _query.Aggregation != null;
+            if (_query.Aggregation != null)
+            {
+                _aggregationFunction = _query.Aggregation.Function;
+                _aggregationProperty = _query.Aggregation.Property;
+                _groupByProperty = _query.Aggregation.GroupBy.FirstOrDefault() ?? "";
+            }
+
+            _useChart = _query.Chart != null;
+            if (_query.Chart != null)
+            {
+                _chartType = _query.Chart.Type;
+                _chartTitle = _query.Chart.Title ?? "";
+            }
+
+            // Update filter dates
+            _filterDates.Clear();
+            _filterSecondDates.Clear();
+            for (int i = 0; i < _query.Filters.Count; i++)
+            {
+                var filter = _query.Filters[i];
+                if (filter.DataType == PropertyDataType.DateTime)
+                {
+                    if (DateTime.TryParse(filter.Value, out var d1))
+                        _filterDates[i] = d1;
+                    if (DateTime.TryParse(filter.SecondValue, out var d2))
+                        _filterSecondDates[i] = d2;
+                }
+            }
+
+            _hasChanges = false;
+            _result = null;
+            _hasExecuted = false;
+            _showLoadDialog = false;
+
+            Snackbar.Add($"Loaded query: {savedQuery.Name}", Severity.Success);
+        }
+    }
+
+    private async Task DeleteSavedQuery(SavedQuery savedQuery)
+    {
+        if (string.IsNullOrEmpty(_userId))
+            return;
+
+        var confirmed = await DialogService.ShowMessageBox(
+            L["Insight_DeleteQueryTitle"],
+            string.Format(L["Insight_DeleteQueryConfirm"], savedQuery.Name),
+            yesText: L["Btn_Delete"],
+            cancelText: L["Btn_Cancel"]);
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await InsightExplorerService.DeleteQueryAsync(savedQuery.Id, _userId);
+                _savedQueries.Remove(savedQuery);
+
+                if (_loadedQueryId == savedQuery.Id)
+                {
+                    _loadedQueryId = null;
+                    _loadedQueryName = null;
+                }
+
+                Snackbar.Add("Query deleted", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting query: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private MudBlazor.ChartType GetMudChartType()
+    {
+        return _chartType switch
+        {
+            InsightChartType.Bar => MudBlazor.ChartType.Bar,
+            InsightChartType.Line => MudBlazor.ChartType.Line,
+            InsightChartType.Pie => MudBlazor.ChartType.Pie,
+            InsightChartType.Donut => MudBlazor.ChartType.Donut,
+            _ => MudBlazor.ChartType.Bar
+        };
+    }
+
+    private static IEnumerable<InsightFilterOperator> GetOperatorsForDataType(PropertyDataType dataType)
+    {
+        return dataType switch
+        {
+            PropertyDataType.String =>
+            [
+                InsightFilterOperator.Equals, InsightFilterOperator.NotEquals,
+                InsightFilterOperator.Contains, InsightFilterOperator.StartsWith, InsightFilterOperator.EndsWith,
+                InsightFilterOperator.IsNull, InsightFilterOperator.IsNotNull
+            ],
+            PropertyDataType.Integer or PropertyDataType.Decimal =>
+            [
+                InsightFilterOperator.Equals, InsightFilterOperator.NotEquals,
+                InsightFilterOperator.GreaterThan, InsightFilterOperator.LessThan,
+                InsightFilterOperator.GreaterOrEqual, InsightFilterOperator.LessOrEqual,
+                InsightFilterOperator.Between
+            ],
+            PropertyDataType.DateTime =>
+            [
+                InsightFilterOperator.Equals, InsightFilterOperator.NotEquals,
+                InsightFilterOperator.GreaterThan, InsightFilterOperator.LessThan,
+                InsightFilterOperator.GreaterOrEqual, InsightFilterOperator.LessOrEqual,
+                InsightFilterOperator.Between
+            ],
+            PropertyDataType.Boolean =>
+            [
+                InsightFilterOperator.Equals, InsightFilterOperator.NotEquals
+            ],
+            PropertyDataType.Enum =>
+            [
+                InsightFilterOperator.Equals, InsightFilterOperator.NotEquals
+            ],
+            _ =>
+            [
+                InsightFilterOperator.Equals, InsightFilterOperator.NotEquals
+            ]
+        };
+    }
+
+    private static string FormatOperator(InsightFilterOperator op)
+    {
+        return op switch
+        {
+            InsightFilterOperator.Equals => "=",
+            InsightFilterOperator.NotEquals => "≠",
+            InsightFilterOperator.Contains => "∋",
+            InsightFilterOperator.StartsWith => "^",
+            InsightFilterOperator.EndsWith => "$",
+            InsightFilterOperator.GreaterThan => ">",
+            InsightFilterOperator.LessThan => "<",
+            InsightFilterOperator.GreaterOrEqual => ">=",
+            InsightFilterOperator.LessOrEqual => "<=",
+            InsightFilterOperator.Between => "↔",
+            InsightFilterOperator.IsNull => "∅",
+            InsightFilterOperator.IsNotNull => "!∅",
+            InsightFilterOperator.InList => "∈",
+            _ => op.ToString()
+        };
+    }
+
+    private static object? GetAggregatedValue(AggregatedRow row, string columnName)
+    {
+        if (columnName == "Value")
+            return row.AggregatedValue;
+
+        return row.GroupKeys.GetValueOrDefault(columnName);
+    }
+
+    private static string FormatValue(object? value, PropertyDataType dataType)
+    {
+        if (value == null)
+            return "";
+
+        return dataType switch
+        {
+            PropertyDataType.DateTime when value is DateTimeOffset dto => dto.ToString("g"),
+            PropertyDataType.DateTime when value is DateTime dt => dt.ToString("g"),
+            PropertyDataType.Decimal when value is decimal d => d.ToString("N2"),
+            PropertyDataType.Boolean when value is bool b => b ? "✓" : "✗",
+            _ => value.ToString() ?? ""
+        };
+    }
+}

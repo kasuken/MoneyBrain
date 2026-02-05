@@ -853,6 +853,49 @@ namespace MoneyBrain.Web.Migrations
                     b.ToTable("Reconciliations");
                 });
 
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.SavedQuery", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("QueryDefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "IsDefault");
+
+                    b.ToTable("SavedQueries");
+                });
+
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.SavedTransactionFilter", b =>
                 {
                     b.Property<int>("Id")
@@ -1373,6 +1416,17 @@ namespace MoneyBrain.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.SavedQuery", b =>
+                {
+                    b.HasOne("MoneyBrain.Web.Data.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.Transaction", b =>

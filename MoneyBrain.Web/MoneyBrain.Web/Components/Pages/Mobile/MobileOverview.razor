@@ -8,18 +8,21 @@
 @using MoneyBrain.Web.Application.Reporting.Cashflow
 @using MoneyBrain.Web.Domain.Entities
 @using MudBlazor
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @inject ITransactionService TransactionService
 @inject IBudgetService BudgetService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
 @inject ICashflowService CashflowService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 
 <AuthorizeView>
     <Authorized>
         <MudContainer MaxWidth="MaxWidth.False" Class="pa-4" Style="padding-bottom: 80px !important;">
             <!-- Header -->
-            <MudText Typo="Typo.h5" Style="font-weight: 600;" Class="mb-4">Overview</MudText>
+            <MudText Typo="Typo.h5" Style="font-weight: 600;" Class="mb-4">@L["Mobile_Overview"]</MudText>
 
             @if (_isLoading)
             {
@@ -30,7 +33,7 @@
                 <!-- Total Balance Card -->
                 <MudCard Class="mb-3" Elevation="2">
                     <MudCardContent Class="pa-4">
-                        <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">Total Balance</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">@L["Mobile_TotalBalance"]</MudText>
                         <MudText Typo="Typo.h4" Style="font-weight: 700; color: #4F46E5;">
                             @_totalBalance.ToString("C2")
                         </MudText>
@@ -42,7 +45,7 @@
                     <MudCardContent Class="pa-4">
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Color="Color.Default">This Month</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Default">@L["Mobile_ThisMonth"]</MudText>
                                 <MudText Typo="Typo.h6" 
                                          Style="@($"font-weight: 600; color: {(_periodChange >= 0 ? "#10B981" : "#EF4444")}")">
                                     @_periodChange.ToString("C2")
@@ -61,7 +64,7 @@
                     <MudItem xs="6">
                         <MudCard Elevation="2" Style="height: 100%;">
                             <MudCardContent Class="pa-4">
-                                <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">Income</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">@L["Mobile_Income"]</MudText>
                                 <MudText Typo="Typo.h6" Style="font-weight: 600; color: #10B981;">
                                     @_totalIncome.ToString("C2")
                                 </MudText>
@@ -76,7 +79,7 @@
                     <MudItem xs="6">
                         <MudCard Elevation="2" Style="height: 100%;">
                             <MudCardContent Class="pa-4">
-                                <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">Expenses</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">@L["Mobile_Expenses"]</MudText>
                                 <MudText Typo="Typo.h6" Style="font-weight: 600; color: #EF4444;">
                                     @_totalExpenses.ToString("C2")
                                 </MudText>
@@ -93,7 +96,7 @@
                 {
                     <MudCard Elevation="2">
                         <MudCardContent Class="pa-4">
-                            <MudText Typo="Typo.h6" Style="font-weight: 600;" Class="mb-3">Budget Summary</MudText>
+                            <MudText Typo="Typo.h6" Style="font-weight: 600;" Class="mb-3">@L["Mobile_BudgetSummary"]</MudText>
                             
                             @foreach (var budget in _budgets.Take(5))
                             {
@@ -127,7 +130,7 @@
                                                        Size="Size.Small" 
                                                        Rounded="true" />
                                     <MudText Typo="Typo.caption" Color="@color">
-                                        @remaining.ToString("C2") remaining
+                                        @L["Mobile_Remaining", remaining.ToString("C2")]
                                     </MudText>
                                 </MudStack>
                             }
@@ -135,7 +138,7 @@
                             @if (_budgets.Count > 5)
                             {
                                 <MudText Typo="Typo.caption" Color="Color.Default" Class="mt-2">
-                                    + @(_budgets.Count - 5) more categories
+                                    + @L["Mobile_MoreCategories", _budgets.Count - 5]
                                 </MudText>
                             }
                         </MudCardContent>
@@ -147,7 +150,7 @@
     <NotAuthorized>
         <MudContainer MaxWidth="MaxWidth.Small" Class="pa-4">
             <MudPaper Class="pa-8" Style="text-align: center;">
-                <MudText Typo="Typo.h6">Please sign in to view overview</MudText>
+                <MudText Typo="Typo.h6">@L["Mobile_PleaseSignIn"]</MudText>
             </MudPaper>
         </MudContainer>
     </NotAuthorized>

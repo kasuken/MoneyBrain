@@ -4,17 +4,20 @@
 @using MoneyBrain.Web.Domain.Enums
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @attribute [Authorize]
 @inject IAccountService AccountService
+@inject IStringLocalizer<SharedResource> L
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<PageTitle>Balance History - MoneyBrain</PageTitle>
+<PageTitle>@L["BalHist_PageTitle"] - MoneyBrain</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 mb-8">
-    <MudText Typo="Typo.h4" GutterBottom="true">Balance History</MudText>
+    <MudText Typo="Typo.h4" GutterBottom="true">@L["BalHist_Title"]</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-        Track account balance changes over time with point-in-time snapshots.
+        @L["BalHist_Subtitle"]
     </MudText>
 
     @if (_isLoading)
@@ -31,7 +34,7 @@
                         <MudItem xs="12" md="6">
                             <MudSelect T="Account" 
                                        @bind-Value="_selectedAccount" 
-                                       Label="Select Account" 
+                                       Label="@L["Lbl_SelectAccount"]" 
                                        Variant="Variant.Outlined"
                                        AnchorOrigin="Origin.BottomCenter"
                                        ToStringFunc="@(a => a?.Name ?? string.Empty)">
@@ -45,13 +48,13 @@
                         </MudItem>
                         <MudItem xs="12" md="3">
                             <MudDatePicker @bind-Date="_startDate" 
-                                          Label="Start Date" 
+                                          Label="@L["Lbl_StartDate"]" 
                                           Variant="Variant.Outlined"
                                           Clearable="true" />
                         </MudItem>
                         <MudItem xs="12" md="3">
                             <MudDatePicker @bind-Date="_endDate" 
-                                          Label="End Date" 
+                                          Label="@L["Lbl_EndDate"]" 
                                           Variant="Variant.Outlined"
                                           Clearable="true" />
                         </MudItem>
@@ -61,13 +64,13 @@
                                           Color="Color.Primary" 
                                           OnClick="LoadBalanceHistory"
                                           Disabled="@(_selectedAccount == null)">
-                                    Load History
+                                    @L["BalHist_LoadHistory"]
                                 </MudButton>
                                 <MudButton Variant="Variant.Outlined" 
                                           Color="Color.Secondary" 
                                           OnClick="CreateManualSnapshot"
                                           Disabled="@(_selectedAccount == null)">
-                                    Create Snapshot
+                                    @L["BalHist_CreateSnapshot"]
                                 </MudButton>
                             </MudStack>
                         </MudItem>
@@ -80,9 +83,9 @@
                 <!-- Chart Visualization -->
                 <MudItem xs="12">
                     <MudPaper Class="pa-4">
-                        <MudText Typo="Typo.h6" Class="mb-4">Balance Trend</MudText>
+                        <MudText Typo="Typo.h6" Class="mb-4">@L["BalHist_BalanceTrend"]</MudText>
                         <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
-                            Chart visualization will be added in a future update. For now, view the data table below.
+                            @L["BalHist_ChartComingSoon"]
                         </MudAlert>
                     </MudPaper>
                 </MudItem>
@@ -90,29 +93,29 @@
                 <!-- Data Table -->
                 <MudItem xs="12">
                     <MudPaper Class="pa-4">
-                        <MudText Typo="Typo.h6" Class="mb-4">Snapshot History (@_snapshots.Count)</MudText>
+                        <MudText Typo="Typo.h6" Class="mb-4">@L["BalHist_SnapshotHistory"] (@_snapshots.Count)</MudText>
                         <MudTable Items="@_snapshots" 
                                   Dense="true" 
                                   Hover="true" 
                                   Breakpoint="Breakpoint.Sm"
                                   Loading="@_isLoadingSnapshots">
                             <HeaderContent>
-                                <MudTh>Date</MudTh>
-                                <MudTh>Balance</MudTh>
-                                <MudTh>Change</MudTh>
-                                <MudTh>Type</MudTh>
-                                <MudTh>Notes</MudTh>
+                                <MudTh>@L["Col_Date"]</MudTh>
+                                <MudTh>@L["Col_Balance"]</MudTh>
+                                <MudTh>@L["BalHist_Change"]</MudTh>
+                                <MudTh>@L["Col_Type"]</MudTh>
+                                <MudTh>@L["Lbl_Notes"]</MudTh>
                             </HeaderContent>
                             <RowTemplate>
-                                <MudTd DataLabel="Date">
+                                <MudTd DataLabel="@L["Col_Date"]">
                                     @context.SnapshotDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
                                 </MudTd>
-                                <MudTd DataLabel="Balance">
+                                <MudTd DataLabel="@L["Col_Balance"]">
                                     <MudText Color="@(context.Balance >= 0 ? Color.Success : Color.Error)">
                                         @context.Balance.ToString("C2")
                                     </MudText>
                                 </MudTd>
-                                <MudTd DataLabel="Change">
+                                <MudTd DataLabel="@L["BalHist_Change"]">
                                     @{
                                         var change = GetBalanceChange(context);
                                         if (change.HasValue)
@@ -129,14 +132,14 @@
                                         }
                                     }
                                 </MudTd>
-                                <MudTd DataLabel="Type">
+                                <MudTd DataLabel="@L["Col_Type"]">
                                     <MudChip T="string" 
                                             Size="Size.Small" 
                                             Color="@GetTypeColor(context.Type)">
                                         @context.Type
                                     </MudChip>
                                 </MudTd>
-                                <MudTd DataLabel="Notes">
+                                <MudTd DataLabel="@L["Lbl_Notes"]">
                                     @(context.Notes ?? "-")
                                 </MudTd>
                             </RowTemplate>
@@ -148,33 +151,33 @@
             {
                 <MudItem xs="12">
                     <MudAlert Severity="Severity.Info">
-                        No balance snapshots found for this account in the selected date range. Create a snapshot to start tracking balance history.
+                        @L["BalHist_NoSnapshots"]
                     </MudAlert>
                 </MudItem>
             }
         </MudGrid>
     }
     
-    <HelpButton Title="Balance History Help"
-                Description="Track how an account balance changes over time. Use balance snapshots to record your actual bank statement balances."
+    <HelpButton Title="@L["BalHist_HelpTitle"]"
+                Description="@L["BalHist_HelpDescription"]"
                 Features="@(new[] { 
-                    "Historical balance snapshots per account",
-                    "Visual chart of balance over time",
-                    "Compare system balance vs actual statement balance",
-                    "Manual snapshot creation for point-in-time records",
-                    "Filterable date range"
+                    L["BalHist_HelpFeature1"].Value,
+                    L["BalHist_HelpFeature2"].Value,
+                    L["BalHist_HelpFeature3"].Value,
+                    L["BalHist_HelpFeature4"].Value,
+                    L["BalHist_HelpFeature5"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Select an account from the dropdown",
-                    "Set the date range to view history",
-                    "Click 'Create Snapshot' to record current balance",
-                    "Review the chart to see balance trends",
-                    "Use snapshots to verify your records match the bank"
+                    L["BalHist_HelpHowTo1"].Value,
+                    L["BalHist_HelpHowTo2"].Value,
+                    L["BalHist_HelpHowTo3"].Value,
+                    L["BalHist_HelpHowTo4"].Value,
+                    L["BalHist_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Create snapshots when you receive bank statements",
-                    "Discrepancies between snapshots and calculated balance may indicate missing transactions",
-                    "Use this alongside reconciliation for accurate records"
+                    L["BalHist_HelpTip1"].Value,
+                    L["BalHist_HelpTip2"].Value,
+                    L["BalHist_HelpTip3"].Value
                 })" />
 </MudContainer>
 
@@ -211,7 +214,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorLoadingAccounts", ex.Message], Severity.Error);
         }
         finally
         {
@@ -234,12 +237,12 @@
 
             if (!_snapshots.Any())
             {
-                Snackbar.Add("No snapshots found in the selected date range", Severity.Info);
+                Snackbar.Add(L["BalHist_NoSnapshotsFound"], Severity.Info);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading balance history: {ex.Message}", Severity.Error);
+            Snackbar.Add(L["Msg_ErrorLoadingBalanceHistory", ex.Message], Severity.Error);
         }
         finally
         {
@@ -258,13 +261,13 @@
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ManualSnapshotDialog>("Create Balance Snapshot", parameters, options);
+        var dialog = await DialogService.ShowAsync<ManualSnapshotDialog>(L["BalHist_CreateSnapshotDialogTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
             await LoadBalanceHistory();
-            Snackbar.Add($"Snapshot created for {_selectedAccount.Name}", Severity.Success);
+            Snackbar.Add(L["BalHist_SnapshotCreated", _selectedAccount.Name], Severity.Success);
         }
     }
 

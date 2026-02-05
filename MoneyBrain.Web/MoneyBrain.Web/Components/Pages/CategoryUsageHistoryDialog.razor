@@ -1,6 +1,9 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
@@ -27,29 +30,29 @@
 
                 <!-- Overall Statistics -->
                 <MudPaper Class="pa-4" Outlined="true">
-                    <MudText Typo="Typo.h6" Class="mb-3">Usage Statistics</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-3">@L["CatUsageDlg_UsageStatistics"]</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="6" sm="3">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Total Transactions</MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_TotalTransactions"]</MudText>
                                 <MudText Typo="Typo.h6">@(_stats.TransactionCount + _stats.SplitCount)</MudText>
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Total Income</MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_TotalIncome"]</MudText>
                                 <MudText Typo="Typo.h6" Color="Color.Success">@_stats.TotalIncome.ToString("C2")</MudText>
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Total Expenses</MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_TotalExpenses"]</MudText>
                                 <MudText Typo="Typo.h6" Color="Color.Error">@_stats.TotalExpense.ToString("C2")</MudText>
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Net Amount</MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_NetAmount"]</MudText>
                                 <MudText Typo="Typo.h6" Color="@(_stats.NetAmount >= 0 ? Color.Success : Color.Error)">
                                     @_stats.NetAmount.ToString("C2")
                                 </MudText>
@@ -57,17 +60,17 @@
                         </MudItem>
                         <MudItem xs="6">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">First Used</MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_FirstUsed"]</MudText>
                                 <MudText Typo="Typo.body2">
-                                    @(_stats.FirstUsed?.ToString("MMM dd, yyyy") ?? "Never")
+                                    @(_stats.FirstUsed?.ToString("MMM dd, yyyy") ?? L["CatUsageDlg_Never"])
                                 </MudText>
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6">
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Last Used</MudText>
+                                <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_LastUsed"]</MudText>
                                 <MudText Typo="Typo.body2">
-                                    @(_stats.LastUsed?.ToString("MMM dd, yyyy") ?? "Never")
+                                    @(_stats.LastUsed?.ToString("MMM dd, yyyy") ?? L["CatUsageDlg_Never"])
                                 </MudText>
                             </MudStack>
                         </MudItem>
@@ -78,7 +81,7 @@
                 @if (_monthlySpending.Count > 0)
                 {
                     <MudPaper Class="pa-4" Outlined="true">
-                        <MudText Typo="Typo.h6" Class="mb-3">Monthly Activity (Last 12 Months)</MudText>
+                        <MudText Typo="Typo.h6" Class="mb-3">@L["CatUsageDlg_MonthlyActivity"]</MudText>
                         
                         <!-- Use MudBlazor chart -->
                         <MudChart ChartType="ChartType.Bar" 
@@ -94,11 +97,11 @@
                                   Hover="true" 
                                   Class="mt-4">
                             <HeaderContent>
-                                <MudTh>Month</MudTh>
-                                <MudTh Style="text-align: right;">Income</MudTh>
-                                <MudTh Style="text-align: right;">Expenses</MudTh>
-                                <MudTh Style="text-align: right;">Net</MudTh>
-                                <MudTh Style="text-align: right;">Transactions</MudTh>
+                                <MudTh>@L["Col_Month"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["CatUsageDlg_Income"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["CatUsageDlg_Expenses"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["CatUsageDlg_Net"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["Col_Transactions"]</MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd>@(new DateTime(context.Year, context.Month, 1).ToString("MMM yyyy"))</MudTd>
@@ -123,19 +126,19 @@
                 @if (_transactions.Count > 0)
                 {
                     <MudPaper Class="pa-4" Outlined="true">
-                        <MudText Typo="Typo.h6" Class="mb-3">Recent Transactions (Last 100)</MudText>
+                        <MudText Typo="Typo.h6" Class="mb-3">@L["CatUsageDlg_RecentTransactions"]</MudText>
                         <MudTable Items="@_transactions" 
                                   Dense="true" 
                                   Hover="true"
                                   FixedHeader="true"
                                   Height="400px">
                             <HeaderContent>
-                                <MudTh>Date</MudTh>
-                                <MudTh>Account</MudTh>
-                                <MudTh>Payee</MudTh>
-                                <MudTh>Memo</MudTh>
-                                <MudTh Style="text-align: right;">Amount</MudTh>
-                                <MudTh>Status</MudTh>
+                                <MudTh>@L["Col_Date"]</MudTh>
+                                <MudTh>@L["Col_Account"]</MudTh>
+                                <MudTh>@L["Col_Payee"]</MudTh>
+                                <MudTh>@L["Col_Memo"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["Col_Amount"]</MudTh>
+                                <MudTh>@L["Col_Status"]</MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd>@context.Date.ToString("MM/dd/yyyy")</MudTd>
@@ -154,11 +157,11 @@
                                 <MudTd>
                                     @if (context.IsReconciled)
                                     {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">Reconciled</MudChip>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text">@L["Status_Reconciled"]</MudChip>
                                     }
                                     else if (context.IsCleared)
                                     {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">Cleared</MudChip>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@L["Status_Cleared"]</MudChip>
                                     }
                                     else
                                     {
@@ -172,14 +175,14 @@
                 else if (_stats.TransactionCount + _stats.SplitCount == 0)
                 {
                     <MudAlert Severity="Severity.Info">
-                        This category has not been used in any transactions yet.
+                        @L["CatUsageDlg_NotUsedYet"]
                     </MudAlert>
                 }
             </MudStack>
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Close">Close</MudButton>
+        <MudButton OnClick="Close">@L["Btn_Close"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -223,7 +226,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error loading usage history: {ex.Message}";
+            _errorMessage = string.Format(L["CatUsageDlg_LoadError"], ex.Message);
         }
         finally
         {
@@ -245,12 +248,12 @@
         {
             new ChartSeries
             {
-                Name = "Income",
+                Name = L["CatUsageDlg_Income"],
                 Data = orderedData.Select(m => (double)m.Income).ToArray()
             },
             new ChartSeries
             {
-                Name = "Expenses",
+                Name = L["CatUsageDlg_Expenses"],
                 Data = orderedData.Select(m => (double)m.Expense).ToArray()
             }
         };

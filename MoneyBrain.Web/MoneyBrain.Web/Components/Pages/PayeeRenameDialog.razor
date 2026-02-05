@@ -1,15 +1,19 @@
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> L
+
 <MudDialog>
     <DialogContent>
         <MudTextField @bind-Value="_newName" 
-                      Label="Payee Name" 
+                      Label="@L["PayeeDlg_PayeeName"]" 
                       Variant="Variant.Outlined"
                       Required
-                      HelperText="Enter the new name for this payee" />
+                      HelperText="@L["PayeeDlg_EnterNewName"]" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" OnClick="Confirm" Disabled="@string.IsNullOrWhiteSpace(_newName)">
-            Rename
+            @L["PayeeDlg_Rename"]
         </MudButton>
     </DialogActions>
 </MudDialog>

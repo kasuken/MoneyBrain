@@ -6,6 +6,8 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using MoneyBrain.Web.Data
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -14,8 +16,9 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Register</PageTitle>
+<PageTitle>@L["Auth_Register_PageTitle"]</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <div style="max-width: 480px; margin: 0 auto; padding-top: 4rem;">
@@ -24,8 +27,8 @@
                 <div class="mb-logo-icon">M</div>
                 <span>MoneyBrain</span>
             </div>
-            <h1 style="font-weight: 700; color: var(--mb-text-primary); margin-bottom: 0.5rem; font-size: 1.75rem;">Create your account</h1>
-            <p style="color: var(--mb-text-secondary); margin-bottom: 0;">Start managing your finances with MoneyBrain</p>
+            <h1 style="font-weight: 700; color: var(--mb-text-primary); margin-bottom: 0.5rem; font-size: 1.75rem;">@L["Auth_Register_CreateAccount"]</h1>
+            <p style="color: var(--mb-text-secondary); margin-bottom: 0;">@L["Auth_Register_StartManaging"]</p>
         </div>
 
         <div class="mb-card" style="padding: 2rem;">
@@ -35,24 +38,24 @@
                 <ValidationSummary class="text-danger" role="alert"/>
                 <div class="form-floating mb-3">
                     <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com"/>
-                    <label for="Input.Email">Email</label>
+                    <label for="Input.Email">@L["Auth_Email"]</label>
                     <ValidationMessage For="() => Input.Email" class="text-danger"/>
                 </div>
                 <div class="form-floating mb-3">
                     <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password"/>
-                    <label for="Input.Password">Password</label>
+                    <label for="Input.Password">@L["Auth_Password"]</label>
                     <ValidationMessage For="() => Input.Password" class="text-danger"/>
                 </div>
                 <div class="form-floating mb-3">
                     <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password"/>
-                    <label for="Input.ConfirmPassword">Confirm Password</label>
+                    <label for="Input.ConfirmPassword">@L["Auth_ConfirmPassword"]</label>
                     <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger"/>
                 </div>
-                <button type="submit" class="w-100 btn btn-lg mb-btn-primary" style="border-radius: var(--mb-radius);">Register</button>
+                <button type="submit" class="w-100 btn btn-lg mb-btn-primary" style="border-radius: var(--mb-radius);">@L["Auth_Register_RegisterButton"]</button>
                 <hr style="margin: 1.5rem 0;"/>
                 <p style="text-align: center; color: var(--mb-text-secondary); margin-bottom: 0;">
-                    Already have an account?
-                    <a href="Account/Login" style="color: var(--mb-primary); font-weight: 500; text-decoration: none; margin-left: 0.25rem;">Sign in</a>
+                    @L["Auth_Register_AlreadyHaveAccount"]
+                    <a href="Account/Login" style="color: var(--mb-primary); font-weight: 500; text-decoration: none; margin-left: 0.25rem;">@L["Auth_Register_SignIn"]</a>
                 </p>
             </EditForm>
         </div>

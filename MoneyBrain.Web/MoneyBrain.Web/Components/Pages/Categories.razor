@@ -1,48 +1,51 @@
 @page "/categories"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using MoneyBrain.Web.Resources
 @using System.Security.Claims
 
 @attribute [Authorize]
 
+@inject IStringLocalizer<SharedResource> L
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Categories | MoneyBrain</PageTitle>
+<PageTitle>@L["Nav_Categories"] | @L["App_MoneyBrain"]</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <!-- Header -->
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">Categories</h1>
-            <p class="mb-subtitle">Organize your transactions with category groups</p>
+            <h1 class="mb-title">@L["Nav_Categories"]</h1>
+            <p class="mb-subtitle">@L["Cat_Subtitle"]</p>
         </div>
         <div class="d-flex gap-2">
             <MudButtonGroup Variant="Variant.Outlined" Color="Color.Secondary">
                 <MudButton OnClick="@(() => SetViewMode("categories"))" 
                            Variant="@(_viewMode == "categories" ? Variant.Filled : Variant.Outlined)">
-                    Categories
+                    @L["Nav_Categories"]
                 </MudButton>
                 <MudButton OnClick="@(() => SetViewMode("budgets"))"
                            Variant="@(_viewMode == "budgets" ? Variant.Filled : Variant.Outlined)">
-                    Budgets
+                    @L["Nav_Budgets"]
                 </MudButton>
             </MudButtonGroup>
             <MudButton Variant="Variant.Outlined" 
                        Color="Color.Secondary"
                        StartIcon="@Icons.Material.Filled.Add"
                        OnClick="@OpenCreateGroupDialog">
-                New Group
+                @L["Cat_NewGroup"]
             </MudButton>
             <MudButton Variant="Variant.Filled" 
                        Class="mb-btn-primary"
                        StartIcon="@Icons.Material.Filled.Add"
                        OnClick="@(() => OpenCreateCategoryDialog())">
-                New Category
+                @L["Cat_NewCategory"]
             </MudButton>
         </div>
     </div>
@@ -59,11 +62,11 @@
                 <MudText Typo="Typo.h6">
                     @if (_showingDefaults)
                     {
-                        <text>Default Monthly Budgets</text>
+                        <text>@L["Cat_DefaultMonthlyBudgets"]</text>
                     }
                     else
                     {
-                        <text>@_selectedMonthName @_selectedYear Budgets</text>
+                        <text>@string.Format(L["Cat_MonthBudgets"], _selectedMonthName, _selectedYear)</text>
                     }
                 </MudText>
                 <div class="d-flex gap-2 align-center">
@@ -75,7 +78,7 @@
                         <MudButton Variant="Variant.Text" 
                                    Size="Size.Small"
                                    OnClick="@CurrentMonth">
-                            Today
+                            @L["Time_Today"]
                         </MudButton>
                         <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
                                        Size="Size.Small"
@@ -85,7 +88,7 @@
                     <MudButton Variant="@(_showingDefaults ? Variant.Filled : Variant.Outlined)" 
                                Size="Size.Small"
                                OnClick="@(() => ToggleDefaultView())">
-                        @(_showingDefaults ? "Viewing Defaults" : "View Defaults")
+                        @(_showingDefaults ? L["Cat_ViewingDefaults"] : L["Cat_ViewDefaults"])
                     </MudButton>
                 </div>
             </div>
@@ -95,9 +98,9 @@
         {
             <div class="mb-empty-state">
                 <MudIcon Icon="@Icons.Material.Outlined.Category" Class="mb-empty-state-icon" />
-                <MudText Typo="Typo.h6" Class="mb-2">No categories yet</MudText>
+                <MudText Typo="Typo.h6" Class="mb-2">@L["Cat_NoCategoriesYet"]</MudText>
                 <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
-                    Create categories first to set budgets
+                    @L["Cat_CreateCategoriesFirstForBudgets"]
                 </MudText>
             </div>
         }
@@ -115,12 +118,12 @@
                                       Dense="true" 
                                       Hover="true">
                                 <HeaderContent>
-                                    <MudTh>Category</MudTh>
-                                    <MudTh Style="text-align: right;">Budgeted</MudTh>
-                                    <MudTh Style="text-align: right;">Actual</MudTh>
-       <MudTh Style="text-align: right;">Remaining</MudTh>
-                                    <MudTh>Notes</MudTh>
-                                    <MudTh Style="text-align: right;">Actions</MudTh>
+                                    <MudTh>@L["Col_Category"]</MudTh>
+                                    <MudTh Style="text-align: right;">@L["Cat_Budgeted"]</MudTh>
+                                    <MudTh Style="text-align: right;">@L["Cat_Actual"]</MudTh>
+       <MudTh Style="text-align: right;">@L["Dashboard_Remaining"]</MudTh>
+                                    <MudTh>@L["Lbl_Notes"]</MudTh>
+                                    <MudTh Style="text-align: right;">@L["Col_Actions"]</MudTh>
                                 </HeaderContent>
                                 <RowTemplate>
                                     <MudTd>@context.Name</MudTd>
@@ -135,13 +138,13 @@
                                                     <MudText>@budget.PlannedAmount.ToString("C2")</MudText>
                                                     @if (hasOverride)
                                                     {
-                                                        <MudTooltip Text="Month-specific override">
+                                                        <MudTooltip Text="@L["Cat_MonthSpecificOverride"]">
                                                             <MudIcon Icon="@Icons.Material.Filled.EditCalendar" Size="Size.Small" Color="Color.Warning" />
                                                         </MudTooltip>
                                                     }
                                                     @if (budget.AllowRollover)
                                                     {
-                                                        <MudTooltip Text="Rollover enabled">
+                                                        <MudTooltip Text="@L["Cat_RolloverEnabled"]">
                                                             <MudIcon Icon="@Icons.Material.Filled.Repeat" Size="Size.Small" Color="Color.Info" />
                                                         </MudTooltip>
                                                     }
@@ -189,13 +192,13 @@
                                                     </MudText>
                                                     @if (isOverspent)
                                                     {
-                                                        <MudTooltip Text="@($"Overspent by {Math.Abs(remaining):C2} ({percentUsed:F0}% of budget)")">
+                                                        <MudTooltip Text="@string.Format(L["Cat_OverspentTooltip"], Math.Abs(remaining), percentUsed)">
                                                             <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Error" />
                                                         </MudTooltip>
                                                     }
                                                     else if (percentUsed >= 90)
                                                     {
-                                                        <MudTooltip Text="@($"{percentUsed:F0}% of budget used")">
+                                                        <MudTooltip Text="@string.Format(L["Cat_BudgetUsedTooltip"], percentUsed)">
                                                             <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Warning" />
                                                         </MudTooltip>
                                                     }
@@ -227,7 +230,7 @@
                         else
                         {
                             <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
-                                No categories in this group
+                                @L["Cat_NoCategoriesInGroup"]
                             </MudText>
                         }
                     </MudPaper>
@@ -239,13 +242,13 @@
     {
         <div class="mb-empty-state">
             <MudIcon Icon="@Icons.Material.Outlined.Category" Class="mb-empty-state-icon" />
-            <MudText Typo="Typo.h6" Class="mb-2">No category groups yet</MudText>
+            <MudText Typo="Typo.h6" Class="mb-2">@L["Cat_NoCategoryGroupsYet"]</MudText>
             <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
-                Create groups to organize your categories
+                @L["Cat_CreateGroupsDescription"]
             </MudText>
             <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateGroupDialog">
                 <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
-                Create Your First Group
+                @L["Cat_CreateFirstGroup"]
             </MudButton>
         </div>
     }
@@ -263,18 +266,18 @@
                             @if (group.Type == CategoryType.Income)
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.TrendingUp">
-                                    Income
+                                    @L["Cat_Income"]
                                 </MudChip>
                             }
                             else
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Default" Icon="@Icons.Material.Filled.ShoppingCart">
-                                    Expense
+                                    @L["Cat_Expense"]
                                 </MudChip>
                             }
                             
                             <MudChip T="string" Size="Size.Small" Color="Color.Info">
-                                @group.Categories.Count(c => c.IsActive) categor@(group.Categories.Count(c => c.IsActive) == 1 ? "y" : "ies")
+                                @string.Format(L["Cat_CategoryCount"], group.Categories.Count(c => c.IsActive))
                             </MudChip>
                         </div>
                         <div class="d-flex gap-1">
@@ -306,18 +309,18 @@
                                         <div class="d-flex gap-1">
                                             <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
                                                 <MudMenuItem Icon="@Icons.Material.Filled.History" OnClick="@(() => OpenUsageHistoryDialog(category))">
-                                                    View Usage History
+                                                    @L["Cat_ViewUsageHistory"]
                                                 </MudMenuItem>
                                                 <MudDivider />
                                                 <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenRenameCategoryDialog(category))">
-                                                    Rename
+                                                    @L["Cat_Rename"]
                                                 </MudMenuItem>
                                                 <MudMenuItem Icon="@Icons.Material.Filled.Merge" OnClick="@(() => OpenMergeCategoryDialog(category))">
-                                                    Merge into another category
+                                                    @L["Cat_MergeIntoAnother"]
                                                 </MudMenuItem>
                                                 <MudDivider />
                                                 <MudMenuItem Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DeleteCategory(category))">
-                                                    <MudText Color="Color.Error">Delete</MudText>
+                                                    <MudText Color="Color.Error">@L["Common_Delete"]</MudText>
                                                 </MudMenuItem>
                                             </MudMenu>
                                         </div>
@@ -329,7 +332,7 @@
                     else
                     {
                         <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
-                            No categories in this group. Click + to add one.
+                            @L["Cat_NoCategoriesClickToAdd"]
                         </MudText>
                     }
                 </MudPaper>
@@ -337,29 +340,29 @@
         </MudStack>
     }
     
-    <HelpButton Title="Categories Help"
-                Description="Organize your transactions with categories and groups. Categories help you understand where your money goes and are essential for budgeting and reporting."
+    <HelpButton Title="@L["Cat_HelpTitle"]"
+                Description="@L["Cat_HelpDescription"]"
                 Features="@(new[] { 
-                    "Create custom categories organized into groups",
-                    "Default categories are set up automatically for new users",
-                    "Rename categories while preserving transaction history",
-                    "Merge duplicate categories together",
-                    "View category usage statistics",
-                    "Reorder categories and groups via drag-and-drop"
+                    L["Cat_HelpFeature1"].Value,
+                    L["Cat_HelpFeature2"].Value,
+                    L["Cat_HelpFeature3"].Value,
+                    L["Cat_HelpFeature4"].Value,
+                    L["Cat_HelpFeature5"].Value,
+                    L["Cat_HelpFeature6"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Click 'Add Group' to create a new category group (e.g., 'Food', 'Housing')",
-                    "Click the + button on a group to add categories within it",
-                    "Click on a category name to rename it",
-                    "Use the menu (⋮) for merge, view usage, or delete options",
-                    "Drag categories between groups to reorganize"
+                    L["Cat_HelpHowTo1"].Value,
+                    L["Cat_HelpHowTo2"].Value,
+                    L["Cat_HelpHowTo3"].Value,
+                    L["Cat_HelpHowTo4"].Value,
+                    L["Cat_HelpHowTo5"].Value
                 })"
                 Tips="@(new[] {
-                    "Group related categories together (e.g., 'Groceries' and 'Restaurants' under 'Food')",
-                    "Keep category names short and clear",
-                    "Use 'Merge' to combine duplicate categories without losing data",
-                    "Deleting a category will uncategorize its transactions, not delete them",
-                    "Categories with transactions cannot be permanently deleted, only deactivated"
+                    L["Cat_HelpTip1"].Value,
+                    L["Cat_HelpTip2"].Value,
+                    L["Cat_HelpTip3"].Value,
+                    L["Cat_HelpTip4"].Value,
+                    L["Cat_HelpTip5"].Value
                 })" />
 </div>
 
@@ -480,13 +483,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CategoryGroupDialog>("New Category Group", parameters, options);
+        var dialog = await DialogService.ShowAsync<CategoryGroupDialog>(L["Cat_NewCategoryGroupTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadCategories();
-            SnackbarService.Add("Category group created successfully", Severity.Success);
+            SnackbarService.Add(L["Cat_GroupCreatedSuccess"], Severity.Success);
         }
     }
 
@@ -500,13 +503,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CategoryGroupDialog>("Edit Category Group", parameters, options);
+        var dialog = await DialogService.ShowAsync<CategoryGroupDialog>(L["Cat_EditCategoryGroupTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadCategories();
-            SnackbarService.Add("Category group updated successfully", Severity.Success);
+            SnackbarService.Add(L["Cat_GroupUpdatedSuccess"], Severity.Success);
         }
     }
 
@@ -515,14 +518,14 @@
         var activeCategoriesCount = group.Categories.Count(c => c.IsActive);
         
         var message = activeCategoriesCount > 0
-            ? $"This group contains {activeCategoriesCount} active categor{(activeCategoriesCount == 1 ? "y" : "ies")}. You must move or delete them first."
-            : "Are you sure you want to delete this category group? This action cannot be undone.";
+            ? string.Format(L["Cat_GroupHasActiveCategories"], activeCategoriesCount)
+            : L["Cat_ConfirmDeleteGroup"].Value;
 
         var result = await DialogService.ShowMessageBox(
-            "Delete Category Group",
+            L["Cat_DeleteCategoryGroupTitle"],
             message,
-            yesText: activeCategoriesCount > 0 ? "OK" : "Delete",
-            cancelText: "Cancel");
+            yesText: activeCategoriesCount > 0 ? L["Btn_Ok"] : L["Btn_Delete"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result == true && _userId != null)
         {
@@ -532,11 +535,11 @@
                 if (deleted)
                 {
                     await LoadCategories();
-                    SnackbarService.Add("Category group deleted successfully", Severity.Success);
+                    SnackbarService.Add(L["Cat_GroupDeletedSuccess"], Severity.Success);
                 }
                 else
                 {
-                    SnackbarService.Add("Failed to delete category group", Severity.Error);
+                    SnackbarService.Add(L["Cat_GroupDeleteFailed"], Severity.Error);
                 }
             }
             catch (InvalidOperationException ex)
@@ -556,13 +559,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CategoryDialog>("New Category", parameters, options);
+        var dialog = await DialogService.ShowAsync<CategoryDialog>(L["Cat_NewCategoryTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadCategories();
-            SnackbarService.Add("Category created successfully", Severity.Success);
+            SnackbarService.Add(L["Cat_CategoryCreatedSuccess"], Severity.Success);
         }
     }
 
@@ -576,23 +579,23 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CategoryDialog>("Edit Category", parameters, options);
+        var dialog = await DialogService.ShowAsync<CategoryDialog>(L["Cat_EditCategoryTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadCategories();
-            SnackbarService.Add("Category updated successfully", Severity.Success);
+            SnackbarService.Add(L["Cat_CategoryUpdatedSuccess"], Severity.Success);
         }
     }
 
     private async Task DeleteCategory(Category category)
     {
         var result = await DialogService.ShowMessageBox(
-            "Delete Category",
-            $"Are you sure you want to delete '{category.Name}'? This will not affect existing transactions using this category.",
-            yesText: "Delete",
-            cancelText: "Cancel");
+            L["Cat_DeleteCategoryTitle"],
+            string.Format(L["Cat_ConfirmDeleteCategory"], category.Name),
+            yesText: L["Btn_Delete"],
+            cancelText: L["Btn_Cancel"]);
 
         if (result == true && _userId != null)
         {
@@ -600,11 +603,11 @@
             if (deleted)
             {
                 await LoadCategories();
-                SnackbarService.Add("Category deleted successfully", Severity.Success);
+                SnackbarService.Add(L["Cat_CategoryDeletedSuccess"], Severity.Success);
             }
             else
             {
-                SnackbarService.Add("Failed to delete category", Severity.Error);
+                SnackbarService.Add(L["Cat_CategoryDeleteFailed"], Severity.Error);
             }
         }
     }
@@ -619,13 +622,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CategoryDialog>("Rename Category", parameters, options);
+        var dialog = await DialogService.ShowAsync<CategoryDialog>(L["Cat_RenameCategoryTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadCategories();
-            SnackbarService.Add("Category renamed successfully", Severity.Success);
+            SnackbarService.Add(L["Cat_CategoryRenamedSuccess"], Severity.Success);
         }
     }
 
@@ -638,7 +641,7 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true };
-        await DialogService.ShowAsync<CategoryUsageHistoryDialog>($"{category.Name} - Usage History", parameters, options);
+        await DialogService.ShowAsync<CategoryUsageHistoryDialog>(string.Format(L["Cat_UsageHistoryTitle"], category.Name), parameters, options);
     }
 
     private async Task OpenMergeCategoryDialog(Category category)
@@ -650,13 +653,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<MergeCategoryDialog>("Merge Category", parameters, options);
+        var dialog = await DialogService.ShowAsync<MergeCategoryDialog>(L["Cat_MergeCategoryTitle"], parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadCategories();
-            SnackbarService.Add($"Category '{category.Name}' merged successfully", Severity.Success);
+            SnackbarService.Add(string.Format(L["Cat_CategoryMergedSuccess"], category.Name), Severity.Success);
         }
     }
 
@@ -671,7 +674,7 @@
             { x => x.IsDefaultMode, isDefault }
         };
 
-        var title = isDefault ? "Set Default Budget" : $"Set Budget for {_selectedMonthName} {_selectedYear}";
+        var title = isDefault ? L["Cat_SetDefaultBudget"].Value : string.Format(L["Cat_SetBudgetForMonth"], _selectedMonthName, _selectedYear);
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = await DialogService.ShowAsync<BudgetAssignmentDialog>(title, parameters, options);
         var result = await dialog.Result;
@@ -679,7 +682,7 @@
         if (result is { Canceled: false })
         {
             await LoadBudgets();
-            SnackbarService.Add("Budget updated successfully", Severity.Success);
+            SnackbarService.Add(L["Cat_BudgetUpdatedSuccess"], Severity.Success);
         }
     }
 }

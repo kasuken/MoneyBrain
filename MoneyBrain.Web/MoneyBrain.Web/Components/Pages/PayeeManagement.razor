@@ -4,35 +4,38 @@
 @using MoneyBrain.Web.Application.Transactions.PayeeNormalization
 @using MoneyBrain.Web.Domain.Entities
 @using System.Security.Claims
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @attribute [Authorize]
 
+@inject IStringLocalizer<SharedResource> L
 @inject ITransactionService TransactionService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Payee Management | MoneyBrain</PageTitle>
+<PageTitle>@L["Payee_PageTitle"] | MoneyBrain</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <!-- Header -->
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">Payee Management</h1>
-            <p class="mb-subtitle">Manage and normalize payee names</p>
+            <h1 class="mb-title">@L["Payee_Title"]</h1>
+            <p class="mb-subtitle">@L["Payee_Subtitle"]</p>
         </div>
         <div class="d-flex gap-2">
             <MudButton Variant="Variant.Outlined" 
                        Color="Color.Warning"
                        StartIcon="@Icons.Material.Filled.FindReplace"
                        OnClick="@FindDuplicates">
-                Find Duplicates
+                @L["Payee_FindDuplicates"]
             </MudButton>
             <MudButton Variant="Variant.Outlined" 
                        Color="Color.Error"
                        StartIcon="@Icons.Material.Filled.DeleteSweep"
                        OnClick="@DeleteUnusedPayees">
-                Clean Up Unused
+                @L["Payee_CleanUpUnused"]
             </MudButton>
         </div>
     </div>
@@ -47,17 +50,17 @@
         {
             <MudPaper Class="mb-4 pa-4">
                 <MudAlert Severity="Severity.Warning" Class="mb-4">
-                    Found @_duplicateGroups.Count potential duplicate groups affecting @_duplicateGroups.Sum(g => g.Payees.Count) payees
+                    @string.Format(L["Payee_DuplicatesFound"].Value, _duplicateGroups.Count, _duplicateGroups.Sum(g => g.Payees.Count))
                 </MudAlert>
 
-                <MudText Typo="Typo.h6" Class="mb-3">Potential Duplicates</MudText>
+                <MudText Typo="Typo.h6" Class="mb-3">@L["Payee_PotentialDuplicates"]</MudText>
 
                 @foreach (var group in _duplicateGroups)
                 {
                     <MudCard Class="mb-3">
                         <MudCardContent>
                             <MudText Typo="Typo.subtitle2" Class="mb-2">
-                                Suggested merge: @group.SuggestedPrimary?.Payee.Name (keep this one)
+                                @string.Format(L["Payee_SuggestedMerge"].Value, group.SuggestedPrimary?.Payee.Name)
                             </MudText>
                             <MudList T="string" Dense>
                                 @foreach (var payeeUsage in group.Payees)
@@ -69,11 +72,11 @@
                                                     <strong>@payeeUsage.Payee.Name</strong>
                                                     @if (payeeUsage.Payee.Id == group.SuggestedPrimary?.Payee.Id)
                                                     {
-                                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">Primary</MudChip>
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">@L["Payee_Primary"]</MudChip>
                                                     }
                                                 </MudText>
                                                 <MudText Typo="Typo.caption">
-                                                    @payeeUsage.TransactionCount transaction(s) • Last used: @(payeeUsage.LastUsedDate?.ToString("MM/dd/yyyy") ?? "Never")
+                                                    @string.Format(L["Payee_TransactionCount"].Value, payeeUsage.TransactionCount) • @L["Payee_LastUsed"]: @(payeeUsage.LastUsedDate?.ToString("MM/dd/yyyy") ?? L["Common_Never"].Value)
                                                 </MudText>
                                             </div>
                                         </div>
@@ -83,7 +86,7 @@
                         </MudCardContent>
                         <MudCardActions>
                             <MudButton Color="Color.Primary" OnClick="@(() => MergeGroup(group))">
-                                Merge All → @group.SuggestedPrimary?.Payee.Name
+                                @string.Format(L["Payee_MergeAll"].Value, group.SuggestedPrimary?.Payee.Name)
                             </MudButton>
                         </MudCardActions>
                     </MudCard>
@@ -92,19 +95,19 @@
         }
 
         <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h6" Class="mb-3">All Payees (@_payees.Count)</MudText>
+            <MudText Typo="Typo.h6" Class="mb-3">@string.Format(L["Payee_AllPayees"].Value, _payees.Count)</MudText>
             
             <MudTable Items="_payees" Dense Hover FixedHeader Height="600px">
                 <HeaderContent>
-                    <MudTh>Payee Name</MudTh>
-                    <MudTh>Transactions</MudTh>
-                    <MudTh>Last Used</MudTh>
-                    <MudTh>Actions</MudTh>
+                    <MudTh>@L["Payee_Col_PayeeName"]</MudTh>
+                    <MudTh>@L["Payee_Col_Transactions"]</MudTh>
+                    <MudTh>@L["Payee_Col_LastUsed"]</MudTh>
+                    <MudTh>@L["Common_Actions"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Payee Name">@context.Payee.Name</MudTd>
-                    <MudTd DataLabel="Transactions">@context.TransactionCount</MudTd>
-                    <MudTd DataLabel="Last Used">@(context.LastUsedDate?.ToString("MM/dd/yyyy") ?? "Never")</MudTd>
+                    <MudTd DataLabel="@L["Payee_Col_PayeeName"].Value">@context.Payee.Name</MudTd>
+                    <MudTd DataLabel="@L["Payee_Col_Transactions"].Value">@context.TransactionCount</MudTd>
+                    <MudTd DataLabel="@L["Payee_Col_LastUsed"].Value">@(context.LastUsedDate?.ToString("MM/dd/yyyy") ?? L["Common_Never"].Value)</MudTd>
                     <MudTd DataLabel="Actions">
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                        Size="Size.Small" 
@@ -115,8 +118,8 @@
                 <NoRecordsContent>
                     <div class="pa-8 text-center">
                         <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Class="mb-4" Style="opacity: 0.3;" />
-                        <MudText Typo="Typo.h6">No payees yet</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Payees will appear as you add transactions</MudText>
+                        <MudText Typo="Typo.h6">@L["Payee_NoPayees"]</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Payee_NoPayeesHint"]</MudText>
                     </div>
                 </NoRecordsContent>
             </MudTable>
@@ -165,11 +168,11 @@
             
             if (_duplicateGroups.Count == 0)
             {
-                SnackbarService.Add("No duplicate payees found", Severity.Success);
+                SnackbarService.Add(L["Payee_Msg_NoDuplicates"].Value, Severity.Success);
             }
             else
             {
-                SnackbarService.Add($"Found {_duplicateGroups.Count} potential duplicate groups", Severity.Warning);
+                SnackbarService.Add(string.Format(L["Payee_Msg_FoundDuplicates"].Value, _duplicateGroups.Count), Severity.Warning);
             }
         }
 
@@ -188,7 +191,7 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<PayeeMergeDialog>("Merge Payees", parameters, options);
+        var dialog = await DialogService.ShowAsync<PayeeMergeDialog>(L["Payee_Dlg_MergePayees"].Value, parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
@@ -202,13 +205,13 @@
 
             if (success)
             {
-                SnackbarService.Add("Payees merged successfully", Severity.Success);
+                SnackbarService.Add(L["Payee_Msg_MergeSuccess"].Value, Severity.Success);
                 await LoadPayees();
                 _duplicateGroups.Remove(group);
             }
             else
             {
-                SnackbarService.Add("Failed to merge payees", Severity.Error);
+                SnackbarService.Add(L["Payee_Msg_MergeFailed"].Value, Severity.Error);
             }
         }
     }
@@ -222,7 +225,7 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<PayeeRenameDialog>("Rename Payee", parameters, options);
+        var dialog = await DialogService.ShowAsync<PayeeRenameDialog>(L["Payee_Dlg_RenamePayee"].Value, parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: string newName })
@@ -231,12 +234,12 @@
 
             if (success)
             {
-                SnackbarService.Add("Payee renamed successfully", Severity.Success);
+                SnackbarService.Add(L["Payee_Msg_RenameSuccess"].Value, Severity.Success);
                 await LoadPayees();
             }
             else
             {
-                SnackbarService.Add("Failed to rename payee", Severity.Error);
+                SnackbarService.Add(L["Payee_Msg_RenameFailed"].Value, Severity.Error);
             }
         }
     }
@@ -244,14 +247,14 @@
     private async Task DeleteUnusedPayees()
     {
         bool? confirm = await DialogService.ShowMessageBox(
-            "Delete Unused Payees",
-            "This will permanently delete all payees with no transactions. Continue?",
-            yesText: "Delete", cancelText: "Cancel");
+            L["Payee_Dlg_DeleteUnused"].Value,
+            L["Payee_Dlg_DeleteUnusedConfirm"].Value,
+            yesText: L["Common_Delete"].Value, cancelText: L["Common_Cancel"].Value);
 
         if (confirm == true)
         {
             var count = await TransactionService.DeleteUnusedPayeesAsync(_userId);
-            SnackbarService.Add($"Deleted {count} unused payees", Severity.Success);
+            SnackbarService.Add(string.Format(L["Payee_Msg_DeletedCount"].Value, count), Severity.Success);
             await LoadPayees();
         }
     }

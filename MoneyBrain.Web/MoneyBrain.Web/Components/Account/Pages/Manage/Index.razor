@@ -3,14 +3,17 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using MoneyBrain.Web.Data
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Profile</PageTitle>
+<PageTitle>@L["Manage_Profile_PageTitle"]</PageTitle>
 
-<h3>Profile</h3>
+<h3>@L["Manage_Profile_Title"]</h3>
 <StatusMessage/>
 
 <div class="row">
@@ -20,14 +23,14 @@
             <ValidationSummary class="text-danger" role="alert"/>
             <div class="form-floating mb-3">
                 <input type="text" value="@username" id="username" class="form-control" placeholder="Choose your username." disabled/>
-                <label for="username" class="form-label">Username</label>
+                <label for="username" class="form-label">@L["Manage_Profile_Username"]</label>
             </div>
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="form-control" placeholder="Enter your phone number"/>
-                <label for="Input.PhoneNumber" class="form-label">Phone number</label>
+                <label for="Input.PhoneNumber" class="form-label">@L["Manage_Profile_PhoneNumber"]</label>
                 <ValidationMessage For="() => Input.PhoneNumber" class="text-danger"/>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">@L["Common_Save"]</button>
         </EditForm>
     </div>
 </div>
@@ -71,13 +74,13 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+                RedirectManager.RedirectToCurrentPageWithStatus(L["Manage_Profile_PhoneError"], HttpContext);
                 return;
             }
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus(L["Manage_Profile_Updated"], HttpContext);
     }
 
     private sealed class InputModel

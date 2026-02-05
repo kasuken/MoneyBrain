@@ -1,8 +1,10 @@
 @page "/budgets"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Application.Budgets
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
 @using System.Security.Claims
 
 @attribute [Authorize]
@@ -12,32 +14,33 @@
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Budgets | MoneyBrain</PageTitle>
+<PageTitle>@L["Nav_Budgets"] | @L["App_MoneyBrain"]</PageTitle>
 
 <div class="mb-page mb-animate-in">
     <!-- Header -->
     <div class="mb-section-header">
         <div>
-            <h1 class="mb-title">Budgets</h1>
-            <p class="mb-subtitle">Create and manage named budgets for different periods</p>
+            <h1 class="mb-title">@L["Nav_Budgets"]</h1>
+            <p class="mb-subtitle">@L["Budget_Subtitle"]</p>
         </div>
         <div class="d-flex gap-2">
             <MudButtonGroup Variant="Variant.Outlined" Color="Color.Secondary">
                 <MudButton OnClick="@(() => SetViewMode("all"))" 
                            Variant="@(_viewMode == "all" ? Variant.Filled : Variant.Outlined)">
-                    All Budgets
+                    @L["Budget_AllBudgets"]
                 </MudButton>
                 <MudButton OnClick="@(() => SetViewMode("defaults"))"
                            Variant="@(_viewMode == "defaults" ? Variant.Filled : Variant.Outlined)">
-                    Defaults Only
+                    @L["Budget_DefaultsOnly"]
                 </MudButton>
             </MudButtonGroup>
             <MudButton Variant="Variant.Filled" 
                        Class="mb-btn-primary"
                        StartIcon="@Icons.Material.Filled.Add"
                        OnClick="@OpenCreateBudgetDialog">
-                New Budget
+                @L["Budget_NewBudget"]
             </MudButton>
         </div>
     </div>
@@ -50,13 +53,13 @@
     {
         <div class="mb-empty-state">
             <MudIcon Icon="@Icons.Material.Outlined.AccountBalance" Class="mb-empty-state-icon" />
-            <MudText Typo="Typo.h6" Class="mb-2">No budgets yet</MudText>
+            <MudText Typo="Typo.h6" Class="mb-2">@L["Budget_NoBudgetsYet"]</MudText>
             <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
-                Create your first budget to start planning your spending
+                @L["Budget_CreateFirstDescription"]
             </MudText>
             <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateBudgetDialog">
                 <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
-                Create Your First Budget
+                @L["Budget_CreateFirstBudget"]
             </MudButton>
         </div>
     }
@@ -67,7 +70,7 @@
             {
                 var totalBudgeted = budget.BudgetCategories.Sum(bc => bc.PlannedAmount);
                 var categoryCount = budget.BudgetCategories.Count;
-                var periodName = budget.IsDefault ? "Default (All Months)" : new DateTime(budget.Year!.Value, budget.Month!.Value, 1).ToString("MMMM yyyy");
+                var periodName = budget.IsDefault ? L["Budget_DefaultAllMonths"].Value : new DateTime(budget.Year!.Value, budget.Month!.Value, 1).ToString("MMMM yyyy");
 
                 <MudPaper Class="pa-4">
                     <div class="d-flex justify-space-between align-center mb-3">
@@ -78,7 +81,7 @@
                                 {
                                     <MudChip T="string" Size="Size.Small" Color="Color.Primary">
                                         <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="me-1" />
-                                        Default
+                                        @L["Budget_Default"]
                                     </MudChip>
                                 }
                                 else
@@ -96,10 +99,10 @@
                             }
                             <div class="d-flex gap-3 mt-2">
                                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
-                                    <strong>@categoryCount</strong> categor@(categoryCount == 1 ? "y" : "ies")
+                                    <strong>@categoryCount</strong> @L["Budget_CategoryCount", categoryCount]
                                 </MudText>
                                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
-                                    <strong>@totalBudgeted.ToString("C2")</strong> total budgeted
+                                    <strong>@totalBudgeted.ToString("C2")</strong> @L["Budget_TotalBudgeted"]
                                 </MudText>
                             </div>
                         </div>
@@ -120,12 +123,12 @@
                                   Dense="true" 
                                   Hover="true">
                             <HeaderContent>
-                                <MudTh>Category</MudTh>
-                                <MudTh Style="text-align: right;">Budgeted</MudTh>
-                                <MudTh Style="text-align: right;">Actual</MudTh>
-                                <MudTh Style="text-align: right;">Remaining</MudTh>
-                                <MudTh>Notes</MudTh>
-                                <MudTh Style="text-align: center;">Rollover</MudTh>
+                                <MudTh>@L["Lbl_Category"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["Cat_Budgeted"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["Cat_Actual"]</MudTh>
+                                <MudTh Style="text-align: right;">@L["Dashboard_Remaining"]</MudTh>
+                                <MudTh>@L["Lbl_Notes"]</MudTh>
+                                <MudTh Style="text-align: center;">@L["Budget_Rollover"]</MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd>
@@ -162,13 +165,13 @@
                                             </MudText>
                                             @if (isOverspent)
                                             {
-                                                <MudTooltip Text="@($"Overspent by {Math.Abs(remaining):C2} ({percentUsed:F0}% of budget)")">
+                                                <MudTooltip Text="@string.Format(L["Budget_OverspentTooltip"].Value, Math.Abs(remaining), percentUsed)">
                                                     <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Error" />
                                                 </MudTooltip>
                                             }
                                             else if (percentUsed >= 90)
                                             {
-                                                <MudTooltip Text="@($"{percentUsed:F0}% of budget used")">
+                                                <MudTooltip Text="@string.Format(L["Budget_BudgetUsedTooltip"].Value, percentUsed)">
                                                     <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Warning" />
                                                 </MudTooltip>
                                             }
@@ -199,7 +202,7 @@
                     else
                     {
                         <MudText Typo="Typo.body2" Color="Color.Surface" Class="text-center py-3">
-                            No categories assigned. Click edit to add categories.
+                            @L["Budget_NoCategoriesAssigned"]
                         </MudText>
                     }
                 </MudPaper>
@@ -207,30 +210,30 @@
         </MudStack>
     }
     
-    <HelpButton Title="Budgets Help"
-                Description="Create and manage monthly budgets using the envelope method. Assign planned amounts to categories and track your spending against those goals."
+    <HelpButton Title="@L["Budget_HelpTitle"].Value"
+                Description="@L["Budget_HelpDescription"].Value"
                 Features="@(new[] { 
-                    "Create budgets for specific months or use default templates",
-                    "Assign spending limits to individual categories",
-                    "Track actual spending vs. planned amounts",
-                    "Visual progress indicators show budget health",
-                    "Copy budgets to new months quickly",
-                    "Support for rollover of unused amounts (optional)"
+                    L["Budget_HelpFeature1"].Value,
+                    L["Budget_HelpFeature2"].Value,
+                    L["Budget_HelpFeature3"].Value,
+                    L["Budget_HelpFeature4"].Value,
+                    L["Budget_HelpFeature5"].Value,
+                    L["Budget_HelpFeature6"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Click 'Add Budget' to create a new monthly budget",
-                    "Set planned amounts for each category you want to track",
-                    "View the 'Remaining' column to see available funds",
-                    "Green progress = on track, Yellow = caution, Red = over budget",
-                    "Use 'Copy to Month' to duplicate a budget as a starting point",
-                    "Edit any budget to adjust planned amounts mid-month"
+                    L["Budget_HelpHowTo1"].Value,
+                    L["Budget_HelpHowTo2"].Value,
+                    L["Budget_HelpHowTo3"].Value,
+                    L["Budget_HelpHowTo4"].Value,
+                    L["Budget_HelpHowTo5"].Value,
+                    L["Budget_HelpHowTo6"].Value
                 })"
                 Tips="@(new[] {
-                    "Start with your fixed expenses (rent, utilities) before discretionary spending",
-                    "Create a 'Default' budget to use as a template for new months",
-                    "Review your actual spending regularly to adjust future budgets",
-                    "Only posted transactions count toward budget spending",
-                    "Transfers are excluded from budget calculations"
+                    L["Budget_HelpTip1"].Value,
+                    L["Budget_HelpTip2"].Value,
+                    L["Budget_HelpTip3"].Value,
+                    L["Budget_HelpTip4"].Value,
+                    L["Budget_HelpTip5"].Value
                 })" />
 </div>
 
@@ -315,13 +318,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<BudgetDialog>("Create Budget", parameters, options);
+        var dialog = await DialogService.ShowAsync<BudgetDialog>(L["Budget_DialogCreateTitle"].Value, parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadBudgets();
-            SnackbarService.Add("Budget created successfully", Severity.Success);
+            SnackbarService.Add(L["Budget_CreatedSuccess"].Value, Severity.Success);
         }
     }
 
@@ -335,13 +338,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<BudgetDialog>("Edit Budget", parameters, options);
+        var dialog = await DialogService.ShowAsync<BudgetDialog>(L["Budget_DialogEditTitle"].Value, parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadBudgets();
-            SnackbarService.Add("Budget updated successfully", Severity.Success);
+            SnackbarService.Add(L["Budget_UpdatedSuccess"].Value, Severity.Success);
         }
     }
 
@@ -350,14 +353,14 @@
         var categoryCount = budget.BudgetCategories.Count;
         
         var message = categoryCount > 0
-            ? $"This budget contains {categoryCount} categor{(categoryCount == 1 ? "y" : "ies")}. Are you sure you want to delete it?"
-            : "Are you sure you want to delete this budget?";
+            ? string.Format(L["Budget_ConfirmDeleteWithCategories"].Value, categoryCount)
+            : L["Budget_ConfirmDelete"].Value;
 
         var result = await DialogService.ShowMessageBox(
-            "Delete Budget",
+            L["Budget_DialogDeleteTitle"].Value,
             message,
-            yesText: "Delete",
-            cancelText: "Cancel");
+            yesText: L["Btn_Delete"].Value,
+            cancelText: L["Btn_Cancel"].Value);
 
         if (result == true && _userId != null)
         {
@@ -365,11 +368,11 @@
             if (deleted)
             {
                 await LoadBudgets();
-                SnackbarService.Add("Budget deleted successfully", Severity.Success);
+                SnackbarService.Add(L["Budget_DeletedSuccess"].Value, Severity.Success);
             }
             else
             {
-                SnackbarService.Add("Failed to delete budget", Severity.Error);
+                SnackbarService.Add(L["Budget_DeleteFailed"].Value, Severity.Error);
             }
         }
     }

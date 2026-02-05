@@ -3,7 +3,10 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog Options="@(new DialogOptions { CloseButton = false, BackdropClick = false, MaxWidth = MaxWidth.Medium, FullWidth = true })">
     <DialogContent>
@@ -14,36 +17,35 @@
                     ActionContent="@(context => null)">
             
             <!-- Step 1: Welcome -->
-            <MudStep Title="Welcome" Icon="@Icons.Material.Filled.WavingHand">
+            <MudStep Title="@L["Setup_StepWelcome"]" Icon="@Icons.Material.Filled.WavingHand">
                 <div class="pa-4">
                     <div class="mb-logo" style="justify-content: center; margin-bottom: 2rem;">
                         <div class="mb-logo-icon" style="width: 64px; height: 64px; font-size: 1.75rem;">M</div>
                     </div>
                     <MudText Typo="Typo.h4" Class="mb-4" Style="font-weight: 700; color: var(--mb-text-primary);">
-                        Welcome to MoneyBrain!
+                        @L["Setup_Welcome"]
                     </MudText>
                     <MudText Typo="Typo.body1" Style="color: var(--mb-text-secondary); max-width: 500px; margin: 0 auto;">
-                        Your personal finance companion. Let's set up your account in just a few steps. 
-                        This will only take a couple of minutes.
+                        @L["Setup_WelcomeDescription"]
                     </MudText>
                     
                     <MudStack Row="true" Justify="Justify.Center" Class="mt-8" Spacing="6">
                         <div class="text-center">
                             <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Large" Color="Color.Primary" />
-                            <MudText Typo="Typo.body2" Class="mt-2">Configure Settings</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">@L["Setup_ConfigureSettings"]</MudText>
                         </div>
                         <div class="text-center">
                             <MudIcon Icon="@Icons.Material.Outlined.AccountBalance" Size="Size.Large" Color="Color.Primary" />
-                            <MudText Typo="Typo.body2" Class="mt-2">Add Account</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">@L["Setup_AddAccount"]</MudText>
                         </div>
                         <div class="text-center">
                             <MudIcon Icon="@Icons.Material.Outlined.Category" Size="Size.Large" Color="Color.Primary" />
-                            <MudText Typo="Typo.body2" Class="mt-2">Setup Categories</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">@L["Setup_SetupCategories"]</MudText>
                         </div>
                     </MudStack>
                     
                     <MudText Typo="Typo.body2" Class="mt-8 text-center" Style="color: var(--mb-text-muted);">
-                        or
+                        @L["Setup_Or"]
                     </MudText>
                     
                     <div class="text-center mt-3">
@@ -57,27 +59,27 @@
                             {
                                 <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
                             }
-                            Try with Demo Data
+                            @L["Setup_TryDemoData"]
                         </MudButton>
                     </div>
                 </div>
             </MudStep>
 
             <!-- Step 2: Settings -->
-            <MudStep Title="Settings" Icon="@Icons.Material.Filled.Settings">
+            <MudStep Title="@L["Setup_StepSettings"]" Icon="@Icons.Material.Filled.Settings">
                 <div class="pa-4">
-                    <MudText Typo="Typo.h6" Class="mb-2">Configure Your Preferences</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-2">@L["Setup_ConfigurePreferences"]</MudText>
                     <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
-                        Choose your currency, timezone, and date format. These settings help us display values correctly for you.
+                        @L["Setup_ConfigurePreferencesDescription"]
                     </MudText>
                     
                     <MudForm @ref="_settingsForm" @bind-IsValid="@_settingsValid">
                         <MudStack Spacing="4">
                             <MudSelect T="string"
-                                       Label="Currency"
+                                       Label="@L["Settings_Currency"]"
                                        @bind-Value="_currencyCode"
                                        Required="true"
-                                       RequiredError="Please select your currency"
+                                       RequiredError="@L["Val_SelectCurrency"]"
                                        Variant="Variant.Outlined"
                                        AnchorOrigin="Origin.BottomCenter">
                                 @foreach (var currency in Currencies)
@@ -89,10 +91,10 @@
                             </MudSelect>
 
                             <MudSelect T="string"
-                                       Label="Timezone"
+                                       Label="@L["Settings_Timezone"]"
                                        @bind-Value="_timeZoneId"
                                        Required="true"
-                                       RequiredError="Please select your timezone"
+                                       RequiredError="@L["Val_SelectTimezone"]"
                                        Variant="Variant.Outlined"
                                        AnchorOrigin="Origin.BottomCenter">
                                 @foreach (var tz in TimeZones)
@@ -104,7 +106,7 @@
                             </MudSelect>
 
                             <MudSelect T="string"
-                                       Label="Date Format"
+                                       Label="@L["Settings_DateFormat"]"
                                        @bind-Value="_dateFormat"
                                        Variant="Variant.Outlined"
                                        AnchorOrigin="Origin.BottomCenter">
@@ -119,68 +121,68 @@
             </MudStep>
 
             <!-- Step 3: First Account -->
-            <MudStep Title="First Account" Icon="@Icons.Material.Filled.AccountBalance">
+            <MudStep Title="@L["Setup_StepFirstAccount"]" Icon="@Icons.Material.Filled.AccountBalance">
                 <div class="pa-4">
-                    <MudText Typo="Typo.h6" Class="mb-2">Create Your First Account</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-2">@L["Setup_CreateFirstAccount"]</MudText>
                     <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
-                        Add your first bank account, credit card, or cash account to start tracking your finances.
+                        @L["Setup_CreateFirstAccountDescription"]
                     </MudText>
                     
                     <MudForm @ref="_accountForm" @bind-IsValid="@_accountValid">
                         <MudStack Spacing="3">
                             <MudTextField @bind-Value="_accountName"
-                                          Label="Account Name"
+                                          Label="@L["Lbl_AccountName"]"
                                           Required="true"
-                                          RequiredError="Account name is required"
+                                          RequiredError="@L["Val_AccountNameRequired"]"
                                           MaxLength="100"
                                           Variant="Variant.Outlined"
-                                          Placeholder="e.g., Chase Checking, Main Credit Card" />
+                                          Placeholder="@L["Setup_AccountNamePlaceholder"]" />
 
                             <MudStack Row="true" Spacing="3">
                                 <MudSelect @bind-Value="_accountType"
-                                           Label="Account Type"
+                                           Label="@L["Lbl_AccountType"]"
                                            Required="true"
                                            Variant="Variant.Outlined"
                                            Style="flex: 1;">
-                                    <MudSelectItem Value="@AccountType.Asset">Asset (Bank, Cash, Savings)</MudSelectItem>
-                                    <MudSelectItem Value="@AccountType.Liability">Liability (Credit Card, Loan)</MudSelectItem>
+                                    <MudSelectItem Value="@AccountType.Asset">@L["AccountType_Asset"]</MudSelectItem>
+                                    <MudSelectItem Value="@AccountType.Liability">@L["AccountType_Liability"]</MudSelectItem>
                                 </MudSelect>
 
                                 <MudSelect @bind-Value="_accountSubType"
-                                           Label="Sub-Type"
+                                           Label="@L["Lbl_SubType"]"
                                            Required="true"
                                            Variant="Variant.Outlined"
                                            Style="flex: 1;">
                                     @if (_accountType == AccountType.Asset)
                                     {
-                                        <MudSelectItem Value="@AccountSubType.Checking">Checking</MudSelectItem>
-                                        <MudSelectItem Value="@AccountSubType.Savings">Savings</MudSelectItem>
-                                        <MudSelectItem Value="@AccountSubType.Cash">Cash</MudSelectItem>
-                                        <MudSelectItem Value="@AccountSubType.Investment">Investment</MudSelectItem>
-                                        <MudSelectItem Value="@AccountSubType.OtherAsset">Other Asset</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Checking">@L["SubType_Checking"]</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Savings">@L["SubType_Savings"]</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Cash">@L["SubType_Cash"]</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Investment">@L["SubType_Investment"]</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.OtherAsset">@L["SubType_OtherAsset"]</MudSelectItem>
                                     }
                                     else
                                     {
-                                        <MudSelectItem Value="@AccountSubType.CreditCard">Credit Card</MudSelectItem>
-                                        <MudSelectItem Value="@AccountSubType.Loan">Loan</MudSelectItem>
-                                        <MudSelectItem Value="@AccountSubType.Mortgage">Mortgage</MudSelectItem>
-                                        <MudSelectItem Value="@AccountSubType.OtherLiability">Other Liability</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.CreditCard">@L["SubType_CreditCard"]</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Loan">@L["SubType_Loan"]</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.Mortgage">@L["SubType_Mortgage"]</MudSelectItem>
+                                        <MudSelectItem Value="@AccountSubType.OtherLiability">@L["SubType_OtherLiability"]</MudSelectItem>
                                     }
                                 </MudSelect>
                             </MudStack>
 
                             <MudNumericField @bind-Value="_openingBalance"
-                                             Label="Current Balance"
+                                             Label="@L["Lbl_CurrentBalance"]"
                                              Variant="Variant.Outlined"
                                              Format="N2"
-                                             HelperText="Enter the current balance of this account" />
+                                             HelperText="@L["Setup_BalanceHelperText"]" />
                         </MudStack>
                     </MudForm>
 
                     @if (_createdAccounts.Count > 0)
                     {
                         <MudDivider Class="my-4" />
-                        <MudText Typo="Typo.subtitle2" Class="mb-2">Accounts Added:</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Setup_AccountsAdded"]:</MudText>
                         <MudStack Spacing="2">
                             @foreach (var account in _createdAccounts)
                             {
@@ -204,39 +206,39 @@
                                    Class="mt-3"
                                    StartIcon="@Icons.Material.Filled.Add"
                                    OnClick="AddAnotherAccount">
-                            Add another account
+                            @L["Setup_AddAnotherAccount"]
                         </MudButton>
                     }
                 </div>
             </MudStep>
 
             <!-- Step 4: Categories -->
-            <MudStep Title="Categories" Icon="@Icons.Material.Filled.Category">
+            <MudStep Title="@L["Setup_StepCategories"]" Icon="@Icons.Material.Filled.Category">
                 <div class="pa-4">
-                    <MudText Typo="Typo.h6" Class="mb-2">Setup Categories</MudText>
+                    <MudText Typo="Typo.h6" Class="mb-2">@L["Setup_SetupCategories"]</MudText>
                     <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
-                        Categories help you organize and track your spending. We'll set up some common categories for you.
+                        @L["Setup_CategoriesDescription"]
                     </MudText>
                     
                     <MudPaper Class="pa-4" Elevation="0" Style="border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg);">
                         <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="3">
                             <MudIcon Icon="@Icons.Material.Outlined.AutoAwesome" Color="Color.Primary" Size="Size.Large" />
                             <div>
-                                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">Default Categories</MudText>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">@L["Setup_DefaultCategories"]</MudText>
                                 <MudText Typo="Typo.body2" Style="color: var(--mb-text-secondary);">
-                                    We'll create a set of common categories to get you started:
+                                    @L["Setup_DefaultCategoriesDescription"]
                                 </MudText>
                                 
                                 <MudStack Row="true" Spacing="2" Class="mt-3" Wrap="Wrap.Wrap">
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Housing</MudChip>
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Transportation</MudChip>
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Food & Dining</MudChip>
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Utilities</MudChip>
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Shopping</MudChip>
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Entertainment</MudChip>
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Healthcare</MudChip>
-                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">Income</MudChip>
-                                    <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Small">+ more</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_Housing"]</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_Transportation"]</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_FoodDining"]</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_Utilities"]</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_Shopping"]</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_Entertainment"]</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_Healthcare"]</MudChip>
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">@L["Cat_Income"]</MudChip>
+                                    <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined" Size="Size.Small">@L["Setup_PlusMore"]</MudChip>
                                 </MudStack>
                             </div>
                         </MudStack>
@@ -244,14 +246,14 @@
                     
                     <MudAlert Severity="Severity.Info" Class="mt-4" Dense="true">
                         <MudText Typo="Typo.body2">
-                            You can customize, add, or remove categories at any time from the Categories page.
+                            @L["Setup_CategoriesCustomizeHint"]
                         </MudText>
                     </MudAlert>
                 </div>
             </MudStep>
 
             <!-- Step 5: Complete -->
-            <MudStep Title="Complete" Icon="@Icons.Material.Filled.CheckCircle">
+            <MudStep Title="@L["Setup_StepComplete"]" Icon="@Icons.Material.Filled.CheckCircle">
                 <div class="text-center pa-6">
                     <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
                              Color="Color.Success" 
@@ -259,10 +261,10 @@
                              Class="mb-4" />
                     
                     <MudText Typo="Typo.h4" Class="mb-2" Style="font-weight: 700; color: var(--mb-text-primary);">
-                        You're All Set!
+                        @L["Setup_AllSet"]
                     </MudText>
                     <MudText Typo="Typo.body1" Class="mb-6" Style="color: var(--mb-text-secondary);">
-                        Your MoneyBrain account is ready. Here's a summary of what we set up:
+                        @L["Setup_Summary"]
                     </MudText>
                     
                     <MudPaper Class="pa-4 text-left" Elevation="0" Style="border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg); max-width: 400px; margin: 0 auto;">
@@ -270,7 +272,7 @@
                             <div class="d-flex align-center gap-3">
                                 <MudIcon Icon="@Icons.Material.Outlined.Payments" Color="Color.Primary" />
                                 <div>
-                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Currency</MudText>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["Settings_Currency"]</MudText>
                                     <MudText Typo="Typo.body1">@GetCurrencyDisplay()</MudText>
                                 </div>
                             </div>
@@ -280,7 +282,7 @@
                             <div class="d-flex align-center gap-3">
                                 <MudIcon Icon="@Icons.Material.Outlined.Schedule" Color="Color.Primary" />
                                 <div>
-                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Timezone</MudText>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["Settings_Timezone"]</MudText>
                                     <MudText Typo="Typo.body1">@GetTimezoneDisplay()</MudText>
                                 </div>
                             </div>
@@ -290,8 +292,8 @@
                             <div class="d-flex align-center gap-3">
                                 <MudIcon Icon="@Icons.Material.Outlined.AccountBalance" Color="Color.Primary" />
                                 <div>
-                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Accounts</MudText>
-                                    <MudText Typo="Typo.body1">@_createdAccounts.Count account(s) created</MudText>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["Nav_Accounts"]</MudText>
+                                    <MudText Typo="Typo.body1">@L["Setup_AccountsCreated", _createdAccounts.Count]</MudText>
                                 </div>
                             </div>
                             
@@ -300,8 +302,8 @@
                             <div class="d-flex align-center gap-3">
                                 <MudIcon Icon="@Icons.Material.Outlined.Category" Color="Color.Primary" />
                                 <div>
-                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">Categories</MudText>
-                                    <MudText Typo="Typo.body1">Default categories ready</MudText>
+                                    <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["Nav_Categories"]</MudText>
+                                    <MudText Typo="Typo.body1">@L["Setup_CategoriesReady"]</MudText>
                                 </div>
                             </div>
                         </MudStack>
@@ -318,7 +320,7 @@
                     <MudButton OnClick="PreviousStepAsync"
                                Variant="Variant.Text"
                                Disabled="@_saving">
-                        Back
+                        @L["Btn_Back"]
                     </MudButton>
                 }
             </div>
@@ -334,7 +336,7 @@
                         {
                             <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
                         }
-                        Get Started
+                        @L["Setup_GetStarted"]
                     </MudButton>
                 }
                 else
@@ -407,11 +409,11 @@
     {
         return _activeStep switch
         {
-            0 => "Let's Go",
-            1 => "Continue",
-            2 => _createdAccounts.Count == 0 ? "Create Account" : "Continue",
-            3 => "Finish Setup",
-            _ => "Next"
+            0 => L["Setup_LetsGo"],
+            1 => L["Btn_Continue"],
+            2 => _createdAccounts.Count == 0 ? L["Setup_CreateAccount"] : L["Btn_Continue"],
+            3 => L["Setup_FinishSetup"],
+            _ => L["Btn_Next"]
         };
     }
 

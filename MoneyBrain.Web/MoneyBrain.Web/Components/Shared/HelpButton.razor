@@ -1,18 +1,21 @@
 @* Floating help button that appears on the bottom-right of pages *@
 @rendermode InteractiveServer
 
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject IDialogService DialogService
+@inject IStringLocalizer<SharedResource> L
 
 <MudFab StartIcon="@Icons.Material.Outlined.HelpOutline"
         Color="Color.Primary"
         Size="Size.Medium"
         OnClick="ShowHelpDialog"
         Style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;"
-        aria-label="Help" />
+        aria-label="@L["Help_AriaLabel"]" />
 
 @code {
     [Parameter]
-    public string Title { get; set; } = "Help";
+    public string Title { get; set; } = "";
 
     [Parameter]
     public string? Description { get; set; }

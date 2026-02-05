@@ -8,8 +8,11 @@
 @using MoneyBrain.Web.Application.Budgets
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 
 @attribute [Authorize]
+@inject IStringLocalizer<SharedResource> L
 @inject IAccountService AccountService
 @inject IUserSettingsService SettingsService
 @inject ICashflowService CashflowService
@@ -20,7 +23,7 @@
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Dashboard | MoneyBrain</PageTitle>
+<PageTitle>@L["Nav_Dashboard"] | MoneyBrain</PageTitle>
 
 <div class="mb-page mb-animate-in">
     @if (_loading)
@@ -31,7 +34,7 @@
     {
         <!-- Overview Section -->
         <div class="mb-section-header mt-6">
-            <h2 class="mb-section-title">Overview</h2>
+            <h2 class="mb-section-title">@L["Dashboard_Overview"]</h2>
             <div class="d-flex align-center gap-2">
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="MudBlazor.Size.Small" OnClick="PreviousMonth" />
                 <div class="mb-date-range">
@@ -45,36 +48,36 @@
         <!-- Stats Cards -->
         <div class="mb-grid-stats mb-4">
             <div class="mb-card-stat">
-                <div class="mb-label">Total Balance</div>
+                <div class="mb-label">@L["Dashboard_TotalBalance"]</div>
                 <div class="mb-amount @GetBalanceClass(_totalBalance)">@FormatCurrency(_totalBalance)</div>
             </div>
             <div class="mb-card-stat info">
-                <div class="mb-label">Period Change</div>
+                <div class="mb-label">@L["Dashboard_PeriodChange"]</div>
                 <div class="mb-amount @GetBalanceClass(_periodChange)">@FormatCurrency(_periodChange)</div>
                 @if (_pendingPeriodChange != 0)
                 {
                     <div class="mb-pending-amount @GetBalanceClass(_pendingPeriodChange)">
-                        <span class="pending-label">Pending:</span>@FormatCurrency(_pendingPeriodChange)<span class="separator">|</span>@FormatCurrency(_combinedPeriodChange)
+                        <span class="pending-label">@L["Dashboard_Pending"]:</span>@FormatCurrency(_pendingPeriodChange)<span class="separator">|</span>@FormatCurrency(_combinedPeriodChange)
                     </div>
                 }
             </div>
             <div class="mb-card-stat expense">
-                <div class="mb-label">Total Expenses</div>
+                <div class="mb-label">@L["Dashboard_TotalExpenses"]</div>
                 <div class="mb-amount negative">@FormatCurrency(_totalExpenses)</div>
                 @if (_pendingExpenses > 0)
                 {
                     <div class="mb-pending-amount negative">
-                        <span class="pending-label">Pending:</span>@FormatCurrency(_pendingExpenses)<span class="separator">|</span>@FormatCurrency(_combinedExpenses)
+                        <span class="pending-label">@L["Dashboard_Pending"]:</span>@FormatCurrency(_pendingExpenses)<span class="separator">|</span>@FormatCurrency(_combinedExpenses)
                     </div>
                 }
             </div>
             <div class="mb-card-stat income">
-                <div class="mb-label">Total Income</div>
+                <div class="mb-label">@L["Dashboard_TotalIncome"]</div>
                 <div class="mb-amount positive">@FormatCurrency(_totalIncome)</div>
                 @if (_pendingIncome > 0)
                 {
                     <div class="mb-pending-amount positive">
-                        <span class="pending-label">Pending:</span>@FormatCurrency(_pendingIncome)<span class="separator">|</span>@FormatCurrency(_combinedIncome)
+                        <span class="pending-label">@L["Dashboard_Pending"]:</span>@FormatCurrency(_pendingIncome)<span class="separator">|</span>@FormatCurrency(_combinedIncome)
                     </div>
                 }
             </div>
@@ -84,19 +87,19 @@
         @* @if (_budgetComparison != null && _budgetComparison.TotalBudgeted > 0)
         { *@
             <div class="mb-section-header mt-6">
-                <h2 class="mb-section-title">Budget Summary</h2>
+                <h2 class="mb-section-title">@L["Dashboard_BudgetSummary"]</h2>
                 <MudButton Variant="Variant.Text" 
                            Color="Color.Primary" 
                            EndIcon="@Icons.Material.Filled.ArrowForward"
                            OnClick="@(() => NavigationManager.NavigateTo("/budgets"))">
-                    View All Budgets
+                    @L["Dashboard_ViewAllBudgets"]
                 </MudButton>
             </div>
             
             @if (_activeBudgets.Any())
             {
                 <MudPaper Class="pa-3 mb-4">
-                    <MudText Typo="Typo.body2" Style="font-weight: 500; margin-bottom: 8px;">Active Budgets for @_periodStart.ToString("MMMM yyyy")</MudText>
+                    <MudText Typo="Typo.body2" Style="font-weight: 500; margin-bottom: 8px;">@L["Dashboard_ActiveBudgetsFor"] @_periodStart.ToString("MMMM yyyy")</MudText>
                     <MudStack Row="true" Spacing="2">
                         @foreach (var budget in _activeBudgets)
                         {
@@ -113,19 +116,19 @@
             
             <div class="mb-grid-stats mb-4">
                 <div class="mb-card-stat">
-                    <div class="mb-label">Budgeted This Month</div>
+                    <div class="mb-label">@L["Dashboard_BudgetedThisMonth"]</div>
                     <div class="mb-amount neutral">@FormatCurrency(_budgetComparison.TotalBudgeted)</div>
                 </div>
                 <div class="mb-card-stat @(_budgetComparison.IsOverBudget ? "expense" : "income")">
-                    <div class="mb-label">Actual Spending</div>
+                    <div class="mb-label">@L["Dashboard_ActualSpending"]</div>
                     <div class="mb-amount @(_budgetComparison.IsOverBudget ? "negative" : "positive")">@FormatCurrency(_budgetComparison.TotalActual)</div>
                 </div>
                 <div class="mb-card-stat @(_budgetComparison.Remaining >= 0 ? "income" : "expense")">
-                    <div class="mb-label">Remaining</div>
+                    <div class="mb-label">@L["Dashboard_Remaining"]</div>
                     <div class="mb-amount @GetBalanceClass(_budgetComparison.Remaining)">@FormatCurrency(_budgetComparison.Remaining)</div>
                 </div>
                 <div class="mb-card-stat @GetBudgetHealthClass(_budgetComparison.PercentageUsed)">
-                    <div class="mb-label">Budget Used</div>
+                    <div class="mb-label">@L["Dashboard_BudgetUsed"]</div>
                     <div class="mb-amount">@_budgetComparison.PercentageUsed.ToString("F1")%</div>
                 </div>
             </div>
@@ -134,10 +137,10 @@
             {
                 <MudPaper Class="pa-4 mb-4">
                     <div class="d-flex justify-space-between align-center mb-3">
-                        <MudText Typo="Typo.h6">Top Budget Categories</MudText>
+                        <MudText Typo="Typo.h6">@L["Dashboard_TopBudgetCategories"]</MudText>
                         @if (_budgetComparison.CategoriesOverBudget > 0)
                         {
-                            <MudChip T="string" Color="Color.Error" Size="Size.Small">@_budgetComparison.CategoriesOverBudget over budget</MudChip>
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">@_budgetComparison.CategoriesOverBudget @L["Dashboard_OverBudget"]</MudChip>
                         }
                     </div>
                     <MudStack Spacing="2">
@@ -165,7 +168,7 @@
             <div class="mb-chart-container">
                 <div class="mb-chart-header">
                     <div>
-                        <div class="mb-chart-title">Income vs Expenses</div>
+                        <div class="mb-chart-title">@L["Dashboard_IncomeVsExpenses"]</div>
                         <div class="mb-chart-subtitle">@_periodStart.ToString("MMMM yyyy")</div>
                     </div>
                 </div>
@@ -183,7 +186,7 @@
                     <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
                         <MudStack AlignItems="AlignItems.Center">
                             <MudIcon Icon="@Icons.Material.Outlined.BarChart" Style="font-size: 3rem; opacity: 0.5;" />
-                            <MudText Typo="Typo.body2">No transactions this month</MudText>
+                            <MudText Typo="Typo.body2">@L["Dashboard_NoTransactionsThisMonth"]</MudText>
                         </MudStack>
                     </div>
                 }
@@ -192,7 +195,7 @@
             <div class="mb-chart-container">
                 <div class="mb-chart-header">
                     <div>
-                        <div class="mb-chart-title">Top Expense Categories</div>
+                        <div class="mb-chart-title">@L["Dashboard_TopExpenseCategories"]</div>
                         <div class="mb-chart-subtitle">@_periodStart.ToString("MMMM yyyy")</div>
                     </div>
                 </div>
@@ -209,7 +212,7 @@
                     <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
                         <MudStack AlignItems="AlignItems.Center">
                             <MudIcon Icon="@Icons.Material.Outlined.PieChart" Style="font-size: 3rem; opacity: 0.5;" />
-                            <MudText Typo="Typo.body2">No expenses this month</MudText>
+                            <MudText Typo="Typo.body2">@L["Dashboard_NoExpensesThisMonth"]</MudText>
                         </MudStack>
                     </div>
                 }
@@ -220,15 +223,15 @@
         @if (_hasTrendData)
         {
             <div class="mb-section-header mt-6">
-                <h2 class="mb-section-title">Trends (Last 6 Months)</h2>
+                <h2 class="mb-section-title">@L["Dashboard_TrendsLast6Months"]</h2>
             </div>
             
             <div class="mb-grid-charts">
                 <div class="mb-chart-container">
                     <div class="mb-chart-header">
                         <div>
-                            <div class="mb-chart-title">Net Worth Trend</div>
-                            <div class="mb-chart-subtitle">Financial health over time</div>
+                            <div class="mb-chart-title">@L["Dashboard_NetWorthTrend"]</div>
+                            <div class="mb-chart-subtitle">@L["Dashboard_FinancialHealthOverTime"]</div>
                         </div>
                     </div>
                     @if (_netWorthTrendSeries.Any() && _netWorthTrendSeries[0].Data.Length > 0)
@@ -245,7 +248,7 @@
                         <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
                             <MudStack AlignItems="AlignItems.Center">
                                 <MudIcon Icon="@Icons.Material.Outlined.TrendingUp" Style="font-size: 3rem; opacity: 0.5;" />
-                                <MudText Typo="Typo.body2">Not enough data yet</MudText>
+                                <MudText Typo="Typo.body2">@L["Dashboard_NotEnoughDataYet"]</MudText>
                             </MudStack>
                         </div>
                     }
@@ -254,8 +257,8 @@
                 <div class="mb-chart-container">
                     <div class="mb-chart-header">
                         <div>
-                            <div class="mb-chart-title">Monthly Cashflow</div>
-                            <div class="mb-chart-subtitle">Income vs Expenses over time</div>
+                            <div class="mb-chart-title">@L["Dashboard_MonthlyCashflow"]</div>
+                            <div class="mb-chart-subtitle">@L["Dashboard_IncomeVsExpensesOverTime"]</div>
                         </div>
                     </div>
                     @if (_cashflowTrendSeries.Any() && _cashflowTrendSeries[0].Data.Length > 0)
@@ -272,7 +275,7 @@
                         <div style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--mb-text-muted);">
                             <MudStack AlignItems="AlignItems.Center">
                                 <MudIcon Icon="@Icons.Material.Outlined.ShowChart" Style="font-size: 3rem; opacity: 0.5;" />
-                                <MudText Typo="Typo.body2">Not enough data yet</MudText>
+                                <MudText Typo="Typo.body2">@L["Dashboard_NotEnoughDataYet"]</MudText>
                             </MudStack>
                         </div>
                     }
@@ -281,26 +284,26 @@
         }
     }
     
-    <HelpButton Title="Dashboard Help"
-                Description="The Dashboard is your financial command center. Get a quick overview of your budgets, net worth, and recent financial activity at a glance."
+    <HelpButton Title="@L["Dashboard_HelpTitle"]"
+                Description="@L["Dashboard_HelpDescription"]"
                 Features="@(new[] { 
-                    "View active budgets for the current month",
-                    "Track your total net worth (assets minus liabilities)",
-                    "Monitor budget vs actual spending",
-                    "See top spending categories with progress bars",
-                    "Review monthly income vs expenses breakdown"
+                    L["Dashboard_HelpFeature1"].Value,
+                    L["Dashboard_HelpFeature2"].Value,
+                    L["Dashboard_HelpFeature3"].Value,
+                    L["Dashboard_HelpFeature4"].Value,
+                    L["Dashboard_HelpFeature5"].Value
                 })"
                 HowToUse="@(new[] {
-                    "Check the Budget Summary to see overall budget health",
-                    "Review active budgets to see which budgets apply this month",
-                    "Use the progress bars to identify over-budget categories",
-                    "Monitor the cashflow chart to spot spending patterns"
+                    L["Dashboard_HelpHowTo1"].Value,
+                    L["Dashboard_HelpHowTo2"].Value,
+                    L["Dashboard_HelpHowTo3"].Value,
+                    L["Dashboard_HelpHowTo4"].Value
                 })"
                 Tips="@(new[] {
-                    "Green progress bars indicate spending within budget",
-                    "Red progress bars indicate over-budget categories",
-                    "The dashboard updates automatically when you add transactions",
-                    "Navigate between months to see budget trends over time"
+                    L["Dashboard_HelpTip1"].Value,
+                    L["Dashboard_HelpTip2"].Value,
+                    L["Dashboard_HelpTip3"].Value,
+                    L["Dashboard_HelpTip4"].Value
                 })" />
 </div>
 
@@ -441,8 +444,8 @@
             _cashflowTrendLabels = orderedCashflow.Select(c => new DateTime(c.Year, c.Month, 1).ToString("MMM")).ToArray();
             _cashflowTrendSeries = new List<ChartSeries>
             {
-                new ChartSeries { Name = "Income", Data = orderedCashflow.Select(c => (double)c.TotalIncome).ToArray() },
-                new ChartSeries { Name = "Expenses", Data = orderedCashflow.Select(c => (double)c.TotalExpenses).ToArray() }
+                new ChartSeries { Name = L["Dashboard_Income"], Data = orderedCashflow.Select(c => (double)c.TotalIncome).ToArray() },
+                new ChartSeries { Name = L["Dashboard_Expenses"], Data = orderedCashflow.Select(c => (double)c.TotalExpenses).ToArray() }
             };
         }
         
@@ -456,7 +459,7 @@
             _netWorthTrendLabels = netWorthHistory.Snapshots.Select(s => s.Date.ToString("MMM")).ToArray();
             _netWorthTrendSeries = new List<ChartSeries>
             {
-                new ChartSeries { Name = "Net Worth", Data = netWorthHistory.Snapshots.Select(s => (double)s.NetWorth).ToArray() }
+                new ChartSeries { Name = L["Nav_NetWorth"], Data = netWorthHistory.Snapshots.Select(s => (double)s.NetWorth).ToArray() }
             };
         }
     }
@@ -493,10 +496,10 @@
     private void PrepareChartData(MonthlyCashflowDto cashflow)
     {
         // Prepare income vs expenses bar chart
-        _incomeExpenseChartLabels = new[] { "Income", "Expenses" };
+        _incomeExpenseChartLabels = new[] { L["Dashboard_Income"].Value, L["Dashboard_Expenses"].Value };
         _incomeExpenseChartSeries = new List<ChartSeries>
         {
-            new ChartSeries { Name = "Amount", Data = new double[] { (double)cashflow.TotalIncome, (double)cashflow.TotalExpenses } }
+            new ChartSeries { Name = L["Lbl_Amount"], Data = new double[] { (double)cashflow.TotalIncome, (double)cashflow.TotalExpenses } }
         };
         
         // Prepare expense category pie chart (top 5 categories)
@@ -513,7 +516,7 @@
         else
         {
             _categoryPieData = new double[] { 1 };
-            _categoryPieLabels = new[] { "No expenses" };
+            _categoryPieLabels = new[] { L["Dashboard_NoExpenses"].Value };
         }
     }
     

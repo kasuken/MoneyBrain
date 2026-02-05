@@ -1,54 +1,57 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
             <MudStack Spacing="3">
                 <MudAlert Severity="Severity.Info" Dense="true">
-                    Create a manual snapshot to record the account balance at a specific point in time.
+                    @L["SnapshotDlg_Description"]
                 </MudAlert>
 
                 <MudTextField @bind-Value="Account.Name"
-                              Label="Account"
+                              Label="@L["Col_Account"]"
                               ReadOnly="true"
                               Variant="Variant.Filled" />
 
                 <MudNumericField @bind-Value="_currentBalance"
-                                 Label="Current Balance (Calculated)"
+                                 Label="@L["SnapshotDlg_CurrentBalance"]"
                                  ReadOnly="true"
                                  Variant="Variant.Filled"
                                  Format="C2"
-                                 HelperText="Balance = Opening Balance + Transactions (in v1: just opening balance)" />
+                                 HelperText="@L["SnapshotDlg_BalanceHelper"]" />
 
                 <MudDatePicker @bind-Date="_snapshotDate"
-                               Label="Snapshot Date"
+                               Label="@L["SnapshotDlg_SnapshotDate"]"
                                Required="true"
-                               RequiredError="Snapshot date is required"
+                               RequiredError="@L["SnapshotDlg_DateRequired"]"
                                Variant="Variant.Outlined"
                                DisableFuture="true"
-                               HelperText="Date and time for this snapshot" />
+                               HelperText="@L["SnapshotDlg_DateTimeHelper"]" />
 
                 <MudTimePicker @bind-Time="_snapshotTime"
-                               Label="Snapshot Time"
+                               Label="@L["SnapshotDlg_SnapshotTime"]"
                                Required="true"
-                               RequiredError="Snapshot time is required"
+                               RequiredError="@L["SnapshotDlg_TimeRequired"]"
                                Variant="Variant.Outlined"
-                               HelperText="Time of day for this snapshot" />
+                               HelperText="@L["SnapshotDlg_TimeHelper"]" />
 
                 <MudTextField @bind-Value="_notes"
-                              Label="Notes (optional)"
+                              Label="@L["AcctDlg_Notes"]"
                               Lines="3"
                               Variant="Variant.Outlined"
-                              HelperText="Optional description for this snapshot" />
+                              HelperText="@L["SnapshotDlg_NotesHelper"]" />
             </MudStack>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" 
                    Variant="Variant.Filled" 
                    OnClick="Submit" 
@@ -56,11 +59,11 @@
             @if (_isSaving)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                <MudText Class="ml-2">Creating...</MudText>
+                <MudText Class="ml-2">@L["SnapshotDlg_Creating"]</MudText>
             }
             else
             {
-                <MudText>Create Snapshot</MudText>
+                <MudText>@L["SnapshotDlg_CreateButton"]</MudText>
             }
         </MudButton>
     </DialogActions>
@@ -92,7 +95,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error calculating balance: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["SnapshotDlg_BalanceError"], ex.Message), Severity.Error);
             _currentBalance = Account.OpeningBalance;
         }
     }
@@ -123,7 +126,7 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error creating snapshot: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(L["SnapshotDlg_CreateError"], ex.Message), Severity.Error);
         }
         finally
         {

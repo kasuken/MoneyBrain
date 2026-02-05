@@ -7,17 +7,20 @@
 @using MoneyBrain.Web.Domain.Enums
 @using MoneyBrain.Web.Components.Pages
 @using MudBlazor
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
 @inject ITransactionService TransactionService
 @inject IAccountService AccountService
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<SharedResource> L
 
 <AuthorizeView>
     <Authorized>
         <MudContainer MaxWidth="MaxWidth.False" Class="pa-4" Style="padding-bottom: 80px !important;">
             <!-- Header -->
             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-                <MudText Typo="Typo.h5" Style="font-weight: 600;">Transactions</MudText>
+                <MudText Typo="Typo.h5" Style="font-weight: 600;">@L["Mobile_Transactions"]</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.FilterList" 
                                Color="Color.Default" 
                                Size="Size.Medium"
@@ -29,7 +32,7 @@
             {
                 <MudCard Class="mb-4">
                     <MudCardContent>
-                        <MudSelect T="int?" @bind-Value="_selectedAccountId" Label="Account" Clearable="true" FullWidth="true">
+                        <MudSelect T="int?" @bind-Value="_selectedAccountId" Label="@L["Lbl_Account"]" Clearable="true" FullWidth="true">
                             @foreach (var account in _accounts)
                             {
                                 <MudSelectItem T="int?" Value="@((int?)account.Id)">@account.Name</MudSelectItem>
@@ -41,7 +44,7 @@
                                    Color="Color.Primary" 
                                    FullWidth="true"
                                    Class="mt-3">
-                            Apply Filters
+                            @L["Btn_ApplyFilters"]
                         </MudButton>
                     </MudCardContent>
                 </MudCard>
@@ -56,7 +59,7 @@
             {
                 <MudPaper Class="pa-8" Style="text-align: center;">
                     <MudIcon Icon="@Icons.Material.Filled.Receipt" Size="Size.Large" Color="Color.Default" />
-                    <MudText Typo="Typo.body1" Class="mt-2">No transactions found</MudText>
+                    <MudText Typo="Typo.body1" Class="mt-2">@L["Trans_NoTransactionsFound"]</MudText>
                 </MudPaper>
             }
             else
@@ -71,7 +74,7 @@
                                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                     <MudStack Spacing="1" Style="flex: 1;">
                                         <MudText Typo="Typo.body1" Style="font-weight: 500;">
-                                            @(transaction.Payee?.Name ?? "No Payee")
+                                            @(transaction.Payee?.Name ?? L["Trans_NoPayee"])
                                         </MudText>
                                         <MudText Typo="Typo.caption" Color="Color.Default">
                                             @transaction.Date.ToString("MMM dd, yyyy")
@@ -111,7 +114,7 @@
     <NotAuthorized>
         <MudContainer MaxWidth="MaxWidth.Small" Class="pa-4">
             <MudPaper Class="pa-8" Style="text-align: center;">
-                <MudText Typo="Typo.h6">Please sign in to view transactions</MudText>
+                <MudText Typo="Typo.h6">@L["Mobile_PleaseSignInTransactions"]</MudText>
             </MudPaper>
         </MudContainer>
     </NotAuthorized>
@@ -198,7 +201,7 @@
             CloseOnEscapeKey = true
         };
 
-        var dialog = await DialogService.ShowAsync<TransactionDialog>("New Transaction", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransactionDialog>(L["Trans_NewTransaction"], parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -224,7 +227,7 @@
             CloseOnEscapeKey = true
         };
 
-        var dialog = await DialogService.ShowAsync<TransactionDialog>("Edit Transaction", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransactionDialog>(L["Trans_EditTransaction"], parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)

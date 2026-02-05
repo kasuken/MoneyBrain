@@ -3,48 +3,51 @@
 @using MoneyBrain.Web.Application.Transactions
 @using MoneyBrain.Web.Application.Transactions.Transfers
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @using MudBlazor
 @inject ITransactionService TransactionService
 @inject IAccountService AccountService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
             <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
-                Transfer money between your accounts. This creates two linked transactions.
+                @L["TransferDlg_Description"]
             </MudText>
 
-            <MudSelect T="int" @bind-Value="_fromAccountId" Label="From Account" Required="true"
-                       HelperText="Account to transfer money from">
+            <MudSelect T="int" @bind-Value="_fromAccountId" Label="@L["TransferDlg_FromAccount"]" Required="true"
+                       HelperText="@L["TransferDlg_FromAccountHelper"]">
                 @foreach (var account in _accounts)
                 {
                     <MudSelectItem T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect T="int" @bind-Value="_toAccountId" Label="To Account" Required="true"
-                       HelperText="Account to transfer money to">
+            <MudSelect T="int" @bind-Value="_toAccountId" Label="@L["TransferDlg_ToAccount"]" Required="true"
+                       HelperText="@L["TransferDlg_ToAccountHelper"]">
                 @foreach (var account in _accounts)
                 {
                     <MudSelectItem T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudDatePicker @bind-Date="_date" Label="Date" Required="true" MaxDate="DateTime.Today.AddDays(30)" />
+            <MudDatePicker @bind-Date="_date" Label="@L["Col_Date"]" Required="true" MaxDate="DateTime.Today.AddDays(30)" />
 
-            <MudNumericField @bind-Value="_amount" Label="Amount" Required="true" Format="F2"
+            <MudNumericField @bind-Value="_amount" Label="@L["Col_Amount"]" Required="true" Format="F2"
                              Adornment="Adornment.Start" AdornmentText="$"
-                             HelperText="Amount to transfer (always positive)"
+                             HelperText="@L["TransferDlg_AmountHelper"]"
                              Min="0.01M" />
 
-            <MudTextField @bind-Value="_memo" Label="Memo" Lines="2" 
-                          HelperText="Optional note about this transfer" />
+            <MudTextField @bind-Value="_memo" Label="@L["Col_Memo"]" Lines="2" 
+                          HelperText="@L["TransferDlg_MemoHelper"]" />
 
-            <MudTextField @bind-Value="_referenceNumber" Label="Reference#" 
-                          HelperText="Confirmation number, etc." />
+            <MudTextField @bind-Value="_referenceNumber" Label="@L["TransferDlg_Reference"]" 
+                          HelperText="@L["TransferDlg_ReferenceHelper"]" />
 
             <MudSwitch @bind-Value="_isCleared" Color="MudBlazor.Color.Success">
-                Mark as Cleared
+                @L["TransferDlg_MarkCleared"]
             </MudSwitch>
 
             @if (!string.IsNullOrWhiteSpace(_errorMessage))
@@ -54,9 +57,9 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid)">
-            @(IsNew ? "Create Transfer" : "Update Transfer")
+            @(IsNew ? L["TransferDlg_CreateButton"] : L["TransferDlg_UpdateButton"])
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -121,13 +124,13 @@
 
         if (_fromAccountId == _toAccountId)
         {
-            _errorMessage = "Cannot transfer to the same account";
+            _errorMessage = L["TransferDlg_SameAccountError"];
             return;
         }
 
         if (_amount <= 0)
         {
-            _errorMessage = "Amount must be greater than zero";
+            _errorMessage = L["TransferDlg_AmountPositiveError"];
             return;
         }
 
@@ -162,7 +165,7 @@
                 }
                 else
                 {
-                    _errorMessage = "Failed to update transfer";
+                    _errorMessage = L["TransferDlg_UpdateFailed"];
                 }
             }
         }
@@ -172,7 +175,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"An error occurred: {ex.Message}";
+            _errorMessage = string.Format(L["Msg_Error"], ex.Message);
         }
     }
 

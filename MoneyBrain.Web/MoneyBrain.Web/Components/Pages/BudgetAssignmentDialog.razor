@@ -1,7 +1,10 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
 @inject ISnackbar SnackbarService
+@inject IStringLocalizer<SharedResource> L
 
 <MudDialog>
     <DialogContent>
@@ -9,25 +12,25 @@
             @if (Category != null)
             {
                 <MudText Typo="Typo.body1">
-                    <strong>Category:</strong> @Category.Name
+                    <strong>@L["Col_Category"]:</strong> @Category.Name
                 </MudText>
             }
 
             @if (!IsDefaultMode)
             {
                 <MudText Typo="Typo.body1">
-                    <strong>Budget Period:</strong> @_monthName @Year
+                    <strong>@L["BudgetAsgnDlg_BudgetPeriod"]:</strong> @_monthName @Year
                 </MudText>
             }
             else
             {
                 <MudText Typo="Typo.body1">
-                    <strong>Budget Type:</strong> Default (applies to all months)
+                    <strong>@L["BudgetAsgnDlg_BudgetType"]:</strong> @L["BudgetAsgnDlg_DefaultType"]
                 </MudText>
             }
 
             <MudNumericField @bind-Value="_plannedAmount" 
-                             Label="Planned Amount" 
+                             Label="@L["BudgetAsgnDlg_PlannedAmount"]" 
                              Variant="Variant.Outlined" 
                              Required="true"
                              Format="N2"
@@ -37,26 +40,26 @@
                              AdornmentText="$" />
 
             <MudSwitch @bind-Value="_allowRollover" 
-                       Label="Allow Rollover" 
+                       Label="@L["BudgetAsgnDlg_AllowRollover"]" 
                        Color="Color.Primary">
                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
-                    Carry over unused budget to next month
+                    @L["BudgetAsgnDlg_RolloverDesc"]
                 </MudText>
             </MudSwitch>
 
             @if (!IsDefaultMode && _defaultBudget != null)
             {
                 <MudAlert Severity="Severity.Info" Dense="true">
-                    Default budget: @_defaultBudget.PlannedAmount.ToString("C2")
+                    @L["BudgetAsgnDlg_DefaultBudget"]: @_defaultBudget.PlannedAmount.ToString("C2")
                     <br />
-                    <small>Setting a budget here will override the default for this month only.</small>
+                    <small>@L["BudgetAsgnDlg_OverrideInfo"]</small>
                 </MudAlert>
             }
 
             @if (IsDefaultMode && _hasOverrides)
             {
                 <MudAlert Severity="Severity.Warning" Dense="true">
-                    Some months have specific overrides that will take precedence over this default.
+                    @L["BudgetAsgnDlg_HasOverridesWarning"]
                 </MudAlert>
             }
         </MudStack>
@@ -67,14 +70,14 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
         @if (_existingBudget != null)
         {
             <MudButton Color="Color.Error" 
                        Variant="Variant.Text" 
                        OnClick="Delete" 
                        Disabled="_isSubmitting">
-                @(IsDefaultMode ? "Remove Default" : "Remove Override")
+                @(IsDefaultMode ? L["BudgetAsgnDlg_RemoveDefault"] : L["BudgetAsgnDlg_RemoveOverride"])
             </MudButton>
         }
         <MudButton Color="Color.Primary" 
@@ -85,7 +88,7 @@
             {
                 <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
             }
-            @(_existingBudget != null ? "Update" : (IsDefaultMode ? "Set Default" : "Set Override"))
+            @(_existingBudget != null ? L["Btn_Update"] : (IsDefaultMode ? L["BudgetAsgnDlg_SetDefault"] : L["BudgetAsgnDlg_SetOverride"]))
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -159,13 +162,13 @@
 
         if (Category == null)
         {
-            _errorMessage = "Category is required";
+            _errorMessage = L["BudgetAsgnDlg_CategoryRequired"];
             return;
         }
 
         if (_plannedAmount < 0)
         {
-            _errorMessage = "Planned amount cannot be negative";
+            _errorMessage = L["BudgetAsgnDlg_AmountNegative"];
             return;
         }
 
@@ -198,7 +201,7 @@
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error: {ex.Message}";
+            _errorMessage = string.Format(L["Msg_Error"], ex.Message);
         }
         finally
         {
@@ -232,12 +235,12 @@
             }
             else
             {
-                _errorMessage = "Failed to delete budget";
+                _errorMessage = L["BudgetAsgnDlg_DeleteFailed"];
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error: {ex.Message}";
+            _errorMessage = string.Format(L["Msg_Error"], ex.Message);
         }
         finally
         {
