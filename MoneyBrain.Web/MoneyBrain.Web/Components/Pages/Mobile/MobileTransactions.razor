@@ -9,7 +9,9 @@
 @using MudBlazor
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
+@using MoneyBrain.Web.Application.Settings
 @inject ITransactionService TransactionService
+@inject IUserSettingsService UserSettingsService
 @inject IAccountService AccountService
 @inject IDialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -87,7 +89,7 @@
                                     <MudStack Spacing="1" AlignItems="AlignItems.End">
                                         <MudText Typo="Typo.body1" 
                                                  Style="@($"font-weight: 600; color: {(transaction.Amount >= 0 ? "#10B981" : "#EF4444")}")">
-                                            @transaction.Amount.ToString("C2")
+                                            @FormatCurrency(transaction.Amount)
                                         </MudText>
                                         @if (transaction.IsCleared)
                                         {
@@ -127,6 +129,7 @@
     private bool _showFilters = false;
     private int? _selectedAccountId;
     private string? _userId;
+    private string _currencyCode = "USD";
 
     protected override async Task OnInitializedAsync()
     {
@@ -151,6 +154,13 @@
 
         try
         {
+            // Load user settings for currency
+            var settings = await UserSettingsService.GetSettingsAsync(_userId!);
+            if (settings != null)
+            {
+                _currencyCode = settings.CurrencyCode;
+            }
+
             _accounts = (await AccountService.GetUserAccountsAsync(_userId!)).ToList();
             
             if (_selectedAccountId.HasValue)
@@ -234,6 +244,11 @@
         {
             await LoadDataAsync();
         }
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        return $"{amount:N2} {_currencyCode}";
     }
 }
 

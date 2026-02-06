@@ -10,7 +10,9 @@
 @using MudBlazor
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
+@using MoneyBrain.Web.Application.Settings
 @inject ITransactionService TransactionService
+@inject IUserSettingsService UserSettingsService
 @inject IBudgetService BudgetService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
@@ -35,7 +37,7 @@
                     <MudCardContent Class="pa-4">
                         <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">@L["Mobile_TotalBalance"]</MudText>
                         <MudText Typo="Typo.h4" Style="font-weight: 700; color: #4F46E5;">
-                            @_totalBalance.ToString("C2")
+                            @FormatCurrency(_totalBalance)
                         </MudText>
                     </MudCardContent>
                 </MudCard>
@@ -46,9 +48,9 @@
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Color="Color.Default">@L["Mobile_ThisMonth"]</MudText>
-                                <MudText Typo="Typo.h6" 
+                                    <MudText Typo="Typo.h6" 
                                          Style="@($"font-weight: 600; color: {(_periodChange >= 0 ? "#10B981" : "#EF4444")}")">
-                                    @_periodChange.ToString("C2")
+                                    @FormatCurrency(_periodChange, true)
                                 </MudText>
                             </MudStack>
                             <MudIcon Icon="@(_periodChange >= 0 ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)" 
@@ -66,7 +68,7 @@
                             <MudCardContent Class="pa-4">
                                 <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">@L["Mobile_Income"]</MudText>
                                 <MudText Typo="Typo.h6" Style="font-weight: 600; color: #10B981;">
-                                    @_totalIncome.ToString("C2")
+                                    @FormatCurrency(_totalIncome)
                                 </MudText>
                                 <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" 
                                          Color="Color.Success" 
@@ -81,7 +83,7 @@
                             <MudCardContent Class="pa-4">
                                 <MudText Typo="Typo.caption" Color="Color.Default" Class="mb-1">@L["Mobile_Expenses"]</MudText>
                                 <MudText Typo="Typo.h6" Style="font-weight: 600; color: #EF4444;">
-                                    @_totalExpenses.ToString("C2")
+                                    @FormatCurrency(_totalExpenses)
                                 </MudText>
                                 <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" 
                                          Color="Color.Error" 
@@ -122,7 +124,7 @@
                                             @budget.Category?.Name
                                         </MudText>
                                         <MudText Typo="Typo.body2" Color="Color.Default">
-                                            @spent.ToString("C0") / @budget.PlannedAmount.ToString("C0")
+                                            @FormatCurrencyCompact(spent) / @FormatCurrencyCompact(budget.PlannedAmount)
                                         </MudText>
                                     </MudStack>
                                     <MudProgressLinear Value="@((double)percentUsed)" 
@@ -130,7 +132,7 @@
                                                        Size="Size.Small" 
                                                        Rounded="true" />
                                     <MudText Typo="Typo.caption" Color="@color">
-                                        @L["Mobile_Remaining", remaining.ToString("C2")]
+                                        @L["Mobile_Remaining", FormatCurrency(remaining)]
                                     </MudText>
                                 </MudStack>
                             }
@@ -159,6 +161,7 @@
 @code {
     private bool _isLoading = true;
     private string? _userId;
+    private string _currencyCode = "USD";
     
     private decimal _totalBalance;
     private decimal _periodChange;
@@ -190,6 +193,13 @@
 
         try
         {
+            // Load user settings for currency
+            var settings = await UserSettingsService.GetSettingsAsync(_userId!);
+            if (settings != null)
+            {
+                _currencyCode = settings.CurrencyCode;
+            }
+
             // Calculate total balance from all accounts
             var accounts = (await AccountService.GetUserAccountsAsync(_userId!)).ToList();
             _totalBalance = 0;
@@ -243,6 +253,17 @@
             _isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private string FormatCurrency(decimal amount, bool showSign = false)
+    {
+        var sign = showSign && amount >= 0 ? "+" : "";
+        return $"{sign}{amount:N2} {_currencyCode}";
+    }
+
+    private string FormatCurrencyCompact(decimal amount)
+    {
+        return $"{amount:N0} {_currencyCode}";
     }
 }
 
