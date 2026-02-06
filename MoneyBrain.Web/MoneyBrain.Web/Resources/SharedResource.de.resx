@@ -831,6 +831,37 @@
   <data name="Trans_FreqYearly" xml:space="preserve">
     <value>Jährlich</value>
   </data>
+  <!-- Account SubTypes -->
+  <data name="SubType_Checking" xml:space="preserve">
+    <value>Girokonto</value>
+  </data>
+  <data name="SubType_Savings" xml:space="preserve">
+    <value>Sparkonto</value>
+  </data>
+  <data name="SubType_Cash" xml:space="preserve">
+    <value>Bargeld</value>
+  </data>
+  <data name="SubType_Investment" xml:space="preserve">
+    <value>Investition</value>
+  </data>
+  <data name="SubType_OtherAsset" xml:space="preserve">
+    <value>Sonstiges Vermögen</value>
+  </data>
+  <data name="SubType_DebitCard" xml:space="preserve">
+    <value>Debitkarte</value>
+  </data>
+  <data name="SubType_CreditCard" xml:space="preserve">
+    <value>Kreditkarte</value>
+  </data>
+  <data name="SubType_Loan" xml:space="preserve">
+    <value>Darlehen</value>
+  </data>
+  <data name="SubType_Mortgage" xml:space="preserve">
+    <value>Hypothek</value>
+  </data>
+  <data name="SubType_OtherLiability" xml:space="preserve">
+    <value>Sonstige Verbindlichkeit</value>
+  </data>
   <!-- Categories Page -->
   <data name="Cat_PageTitle" xml:space="preserve">
     <value>Kategorien</value>
@@ -3279,5 +3310,102 @@
   </data>
   <data name="Lbl_Actions" xml:space="preserve">
     <value>Aktionen</value>
+  </data>
+  <!-- Account Dialog Keys -->
+  <data name="AcctDlg_AccountName" xml:space="preserve">
+    <value>Kontoname</value>
+  </data>
+  <data name="AcctDlg_AccountSubType" xml:space="preserve">
+    <value>Kontountertyp</value>
+  </data>
+  <data name="AcctDlg_AccountType" xml:space="preserve">
+    <value>Kontotyp</value>
+  </data>
+  <data name="AcctDlg_Active" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="AcctDlg_Asset" xml:space="preserve">
+    <value>Vermögenswert</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDay" xml:space="preserve">
+    <value>Abrechnungszyklus-Tag</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDayHelper" xml:space="preserve">
+    <value>Tag des Monats, an dem der Abrechnungszyklus endet (1-31)</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDayRequired" xml:space="preserve">
+    <value>Abrechnungszyklus-Tag ist für Kreditkarten erforderlich</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDesc" xml:space="preserve">
+    <value>Wann Ihre Kreditkartenabrechnung endet</value>
+  </data>
+  <data name="AcctDlg_Cash" xml:space="preserve">
+    <value>Bargeld</value>
+  </data>
+  <data name="AcctDlg_Checking" xml:space="preserve">
+    <value>Girokonto</value>
+  </data>
+  <data name="AcctDlg_CreditCard" xml:space="preserve">
+    <value>Kreditkarte</value>
+  </data>
+  <data name="AcctDlg_CreditCardBillingCycle" xml:space="preserve">
+    <value>Kreditkarten-Abrechnungszyklus</value>
+  </data>
+  <data name="AcctDlg_DebitCard" xml:space="preserve">
+    <value>Debitkarte</value>
+  </data>
+  <data name="AcctDlg_Group" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="AcctDlg_GroupHelper" xml:space="preserve">
+    <value>Konten organisieren (z. B. Privat, Geschäftlich)</value>
+  </data>
+  <data name="AcctDlg_Investment" xml:space="preserve">
+    <value>Investition</value>
+  </data>
+  <data name="AcctDlg_Liability" xml:space="preserve">
+    <value>Verbindlichkeit</value>
+  </data>
+  <data name="AcctDlg_Loan" xml:space="preserve">
+    <value>Darlehen</value>
+  </data>
+  <data name="AcctDlg_MonthlySpendingLimit" xml:space="preserve">
+    <value>Monatliches Ausgabenlimit</value>
+  </data>
+  <data name="AcctDlg_MonthlySpendingLimitHelper" xml:space="preserve">
+    <value>Optionales Limit zur Ausgabenverfolgung</value>
+  </data>
+  <data name="AcctDlg_Mortgage" xml:space="preserve">
+    <value>Hypothek</value>
+  </data>
+  <data name="AcctDlg_NameRequired" xml:space="preserve">
+    <value>Kontoname ist erforderlich</value>
+  </data>
+  <data name="AcctDlg_Notes" xml:space="preserve">
+    <value>Notizen</value>
+  </data>
+  <data name="AcctDlg_OpeningBalance" xml:space="preserve">
+    <value>Anfangssaldo</value>
+  </data>
+  <data name="AcctDlg_OpeningBalanceHelper" xml:space="preserve">
+    <value>Aktueller Saldo, wenn Sie mit der Verfolgung dieses Kontos beginnen</value>
+  </data>
+  <data name="AcctDlg_OtherAsset" xml:space="preserve">
+    <value>Sonstiger Vermögenswert</value>
+  </data>
+  <data name="AcctDlg_OtherLiability" xml:space="preserve">
+    <value>Sonstige Verbindlichkeit</value>
+  </data>
+  <data name="AcctDlg_PaymentAccount" xml:space="preserve">
+    <value>Zahlungskonto</value>
+  </data>
+  <data name="AcctDlg_PaymentAccountHelper" xml:space="preserve">
+    <value>Konto zur Zahlung dieser Kreditkarte</value>
+  </data>
+  <data name="AcctDlg_PaymentAccountRequired" xml:space="preserve">
+    <value>Zahlungskonto ist für Kreditkarten erforderlich</value>
+  </data>
+  <data name="AcctDlg_Savings" xml:space="preserve">
+    <value>Sparkonto</value>
   </data>
 </root>

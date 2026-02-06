@@ -4049,6 +4049,9 @@
   <data name="SubType_OtherAsset" xml:space="preserve">
     <value>Altro Attivo</value>
   </data>
+  <data name="SubType_DebitCard" xml:space="preserve">
+    <value>Carta di Debito</value>
+  </data>
   <data name="SubType_CreditCard" xml:space="preserve">
     <value>Carta di Credito</value>
   </data>
@@ -4092,5 +4095,102 @@
   </data>
   <data name="Trans_EditTransaction" xml:space="preserve">
     <value>Modifica Transazione</value>
+  </data>
+  <!-- Account Dialog Keys -->
+  <data name="AcctDlg_AccountName" xml:space="preserve">
+    <value>Nome Conto</value>
+  </data>
+  <data name="AcctDlg_AccountSubType" xml:space="preserve">
+    <value>Sottotipo di Conto</value>
+  </data>
+  <data name="AcctDlg_AccountType" xml:space="preserve">
+    <value>Tipo di Conto</value>
+  </data>
+  <data name="AcctDlg_Active" xml:space="preserve">
+    <value>Attivo</value>
+  </data>
+  <data name="AcctDlg_Asset" xml:space="preserve">
+    <value>Attivo</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDay" xml:space="preserve">
+    <value>Giorno del Ciclo di Fatturazione</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDayHelper" xml:space="preserve">
+    <value>Giorno del mese in cui si chiude il ciclo di fatturazione (1-31)</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDayRequired" xml:space="preserve">
+    <value>Il giorno del ciclo di fatturazione è obbligatorio per le carte di credito</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDesc" xml:space="preserve">
+    <value>Quando si chiude l'estratto conto della carta di credito</value>
+  </data>
+  <data name="AcctDlg_Cash" xml:space="preserve">
+    <value>Contanti</value>
+  </data>
+  <data name="AcctDlg_Checking" xml:space="preserve">
+    <value>Conto Corrente</value>
+  </data>
+  <data name="AcctDlg_CreditCard" xml:space="preserve">
+    <value>Carta di Credito</value>
+  </data>
+  <data name="AcctDlg_CreditCardBillingCycle" xml:space="preserve">
+    <value>Ciclo di Fatturazione Carta di Credito</value>
+  </data>
+  <data name="AcctDlg_DebitCard" xml:space="preserve">
+    <value>Carta di Debito</value>
+  </data>
+  <data name="AcctDlg_Group" xml:space="preserve">
+    <value>Gruppo</value>
+  </data>
+  <data name="AcctDlg_GroupHelper" xml:space="preserve">
+    <value>Organizza i conti (ad es., Personale, Azienda)</value>
+  </data>
+  <data name="AcctDlg_Investment" xml:space="preserve">
+    <value>Investimento</value>
+  </data>
+  <data name="AcctDlg_Liability" xml:space="preserve">
+    <value>Passività</value>
+  </data>
+  <data name="AcctDlg_Loan" xml:space="preserve">
+    <value>Prestito</value>
+  </data>
+  <data name="AcctDlg_MonthlySpendingLimit" xml:space="preserve">
+    <value>Limite di Spesa Mensile</value>
+  </data>
+  <data name="AcctDlg_MonthlySpendingLimitHelper" xml:space="preserve">
+    <value>Limite facoltativo per monitorare la spesa</value>
+  </data>
+  <data name="AcctDlg_Mortgage" xml:space="preserve">
+    <value>Mutuo</value>
+  </data>
+  <data name="AcctDlg_NameRequired" xml:space="preserve">
+    <value>Il nome del conto è obbligatorio</value>
+  </data>
+  <data name="AcctDlg_Notes" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="AcctDlg_OpeningBalance" xml:space="preserve">
+    <value>Saldo Iniziale</value>
+  </data>
+  <data name="AcctDlg_OpeningBalanceHelper" xml:space="preserve">
+    <value>Saldo corrente quando inizi a monitorare questo conto</value>
+  </data>
+  <data name="AcctDlg_OtherAsset" xml:space="preserve">
+    <value>Altro Attivo</value>
+  </data>
+  <data name="AcctDlg_OtherLiability" xml:space="preserve">
+    <value>Altra Passività</value>
+  </data>
+  <data name="AcctDlg_PaymentAccount" xml:space="preserve">
+    <value>Conto di Pagamento</value>
+  </data>
+  <data name="AcctDlg_PaymentAccountHelper" xml:space="preserve">
+    <value>Conto utilizzato per pagare questa carta di credito</value>
+  </data>
+  <data name="AcctDlg_PaymentAccountRequired" xml:space="preserve">
+    <value>Il conto di pagamento è obbligatorio per le carte di credito</value>
+  </data>
+  <data name="AcctDlg_Savings" xml:space="preserve">
+    <value>Risparmio</value>
   </data>
 </root>

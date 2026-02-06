@@ -11,6 +11,7 @@ public enum AccountSubType
     Savings = 3,
     Investment = 4,
     OtherAsset = 99,
+    DebitCard = 100,
 
     // Liability sub-types
     CreditCard = 101,
