@@ -73,10 +73,10 @@
                              Min="0"
                              HelperText="@L["AcctDlg_MonthlySpendingLimitHelper"]" />
 
-            @if (_model.SubType == AccountSubType.CreditCard)
+            @if (_model.SubType == AccountSubType.CreditCard || _model.SubType == AccountSubType.DebitCard)
             {
                 <MudDivider Class="my-4" />
-                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["AcctDlg_CreditCardBillingCycle"]</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["AcctDlg_CardBillingCycle"]</MudText>
                 <MudText Typo="Typo.caption" Class="mb-3" Style="color: var(--mb-text-muted);">
                     @L["AcctDlg_BillingCycleDesc"]
                 </MudText>
@@ -208,8 +208,9 @@
         if (!_isValid)
             return;
 
-        // Additional validation for credit cards
-        if (_model.SubType == AccountSubType.CreditCard)
+        // Additional validation for card accounts (credit and debit)
+        var isCardAccount = _model.SubType == AccountSubType.CreditCard || _model.SubType == AccountSubType.DebitCard;
+        if (isCardAccount)
         {
             if (!_model.BillingCycleDay.HasValue || _model.BillingCycleDay < 1 || _model.BillingCycleDay > 31)
             {
@@ -235,8 +236,8 @@
                     Group = _model.Group,
                     OpeningBalance = _model.OpeningBalance,
                     MonthlySpendingLimit = _model.MonthlySpendingLimit,
-                    BillingCycleDay = _model.SubType == AccountSubType.CreditCard ? _model.BillingCycleDay : null,
-                    LinkedPaymentAccountId = _model.SubType == AccountSubType.CreditCard ? _model.LinkedPaymentAccountId : null,
+                    BillingCycleDay = isCardAccount ? _model.BillingCycleDay : null,
+                    LinkedPaymentAccountId = isCardAccount ? _model.LinkedPaymentAccountId : null,
                     Notes = _model.Notes,
                     IsActive = _model.IsActive
                 };
@@ -251,8 +252,8 @@
                 Account.Group = _model.Group;
                 Account.OpeningBalance = _model.OpeningBalance;
                 Account.MonthlySpendingLimit = _model.MonthlySpendingLimit;
-                Account.BillingCycleDay = _model.SubType == AccountSubType.CreditCard ? _model.BillingCycleDay : null;
-                Account.LinkedPaymentAccountId = _model.SubType == AccountSubType.CreditCard ? _model.LinkedPaymentAccountId : null;
+                Account.BillingCycleDay = isCardAccount ? _model.BillingCycleDay : null;
+                Account.LinkedPaymentAccountId = isCardAccount ? _model.LinkedPaymentAccountId : null;
                 Account.Notes = _model.Notes;
                 Account.IsActive = _model.IsActive;
 
