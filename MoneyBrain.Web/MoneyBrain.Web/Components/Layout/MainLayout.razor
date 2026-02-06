@@ -142,8 +142,14 @@
     {
         if (firstRender)
         {
-            await MobileDetection.InitializeAsync();
-            MobileDetection.OnViewportChanged += HandleViewportChange;
+            MobileDetection.OnViewportChanged += HandleViewportChange;  // Subscribe FIRST
+            await MobileDetection.InitializeAsync();  // Then initialize
+            
+            // Handle initial state explicitly (in case event was missed)
+            if (MobileDetection.IsMobile)
+            {
+                HandleViewportChange(true);
+            }
             StateHasChanged();
         }
     }
