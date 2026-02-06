@@ -1,7 +1,11 @@
 @inherits LayoutComponentBase
 @using MoneyBrain.Web.Services
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Components.Shared
 @inject NavigationManager NavigationManager
 @inject IMobileDetectionService MobileDetection
+@inject IStringLocalizer<SharedResource> L
 
 <MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
@@ -9,6 +13,45 @@
 <MudSnackbarProvider />
 
 <MudLayout>
+    <!-- Mobile Top App Bar with Menu -->
+    <MudAppBar Elevation="1" Dense="true" Fixed="true" Class="mobile-top-bar">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@ToggleDrawer"
+                       class="hamburger-toggle"
+                       aria-label="Open navigation" />
+        <div class="mb-logo" style="margin-left: 8px;">
+            <div class="mb-logo-icon" style="width: 32px; height: 32px; font-size: 1rem;">M</div>
+            <span style="font-size: 1.1rem;">MoneyBrain</span>
+        </div>
+        <MudSpacer />
+        <LanguageSelector />
+    </MudAppBar>
+
+    <!-- Navigation Drawer -->
+    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Variant="DrawerVariant.Temporary">
+        <MudNavMenu>
+            <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">@L["Nav_Dashboard"]</MudNavLink>
+            <MudNavLink Href="/transactions" Icon="@Icons.Material.Filled.List">@L["Nav_Transactions"]</MudNavLink>
+            <MudNavLink Href="/budgets" Icon="@Icons.Material.Filled.AccountBalance">@L["Nav_Budgets"]</MudNavLink>
+            <MudNavLink Href="/categories" Icon="@Icons.Material.Filled.Category">@L["Nav_Categories"]</MudNavLink>
+            <MudNavLink Href="/reconciliations" Icon="@Icons.Material.Filled.CheckCircle">@L["Nav_Reconciliations"]</MudNavLink>
+            <MudNavLink Href="/payees" Icon="@Icons.Material.Filled.People">@L["Nav_Payees"]</MudNavLink>
+            <MudNavGroup Title="@L["Nav_Reports"]" Icon="@Icons.Material.Filled.BarChart" Expanded="false">
+                <MudNavLink Href="/cashflow" Icon="@Icons.Material.Filled.TrendingUp">@L["Nav_Cashflow"]</MudNavLink>
+                <MudNavLink Href="/category-spending" Icon="@Icons.Material.Filled.PieChart">@L["Nav_CategorySpending"]</MudNavLink>
+                <MudNavLink Href="/budget-comparison" Icon="@Icons.Material.Filled.Compare">@L["Nav_BudgetVsActual"]</MudNavLink>
+                <MudNavLink Href="/net-worth" Icon="@Icons.Material.Filled.ShowChart">@L["Nav_NetWorth"]</MudNavLink>
+                <MudNavLink Href="/account-balance-history" Icon="@Icons.Material.Filled.History">@L["Nav_BalanceHistory"]</MudNavLink>
+            </MudNavGroup>
+            <MudNavLink Href="/insights" Icon="@Icons.Material.Filled.Lightbulb">@L["Nav_Insights"]</MudNavLink>
+            <MudNavLink Href="/accounts" Icon="@Icons.Material.Filled.AccountBalanceWallet">@L["Nav_Accounts"]</MudNavLink>
+            <MudDivider Class="my-2" />
+            <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">@L["Nav_Settings"]</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
     <!-- Mobile Bottom Navigation -->
     <MudAppBar Bottom="true" Fixed="true" Elevation="3" Class="mobile-bottom-nav">
         <MudStack Row="true" Justify="Justify.SpaceAround" AlignItems="AlignItems.Center" Style="width: 100%;">
@@ -32,13 +75,15 @@
         </MudStack>
     </MudAppBar>
 
-    <!-- Main Content with Bottom Padding for Nav -->
-    <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: 100vh; padding-bottom: 72px;">
+    <!-- Main Content with Top and Bottom Padding for Nav Bars -->
+    <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: 100vh; padding-top: 56px; padding-bottom: 72px;">
         @Body
     </MudMainContent>
 </MudLayout>
 
 @code {
+    private bool _drawerOpen = false;
+
     private MudTheme _theme = new MudTheme
     {
         PaletteLight = new PaletteLight
@@ -54,6 +99,11 @@
             Surface = "#FFFFFF"
         }
     };
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
 
     private bool IsActive(string path)
     {
@@ -71,6 +121,12 @@
 }
 
 <style>
+    .mobile-top-bar {
+        background-color: white !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        color: #1A202C !important;
+    }
+
     .mobile-bottom-nav {
         top: auto !important;
         bottom: 0 !important;
@@ -101,5 +157,13 @@
     .mobile-nav-btn {
         min-height: 44px;
         min-width: 44px;
+    }
+
+    /* Hide the hamburger toggle on narrow screens (mobile) */
+    @@media (max-width: 600px) {
+        .mobile-top-bar .hamburger-toggle {
+            display: none !important;
+            visibility: hidden !important;
+        }
     }
 </style>
