@@ -15,7 +15,12 @@
 <MudLayout>
     <!-- Mobile Top App Bar with Menu -->
     <MudAppBar Elevation="1" Dense="true" Fixed="true" Class="mobile-top-bar">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@ToggleDrawer"
+                       class="hamburger-toggle"
+                       aria-label="Open navigation" />
         <div class="mb-logo" style="margin-left: 8px;">
             <div class="mb-logo-icon" style="width: 32px; height: 32px; font-size: 1rem;">M</div>
             <span style="font-size: 1.1rem;">MoneyBrain</span>
@@ -152,5 +157,13 @@
     .mobile-nav-btn {
         min-height: 44px;
         min-width: 44px;
+    }
+
+    /* Hide the hamburger toggle on narrow screens (mobile) */
+    @@media (max-width: 600px) {
+        .mobile-top-bar .hamburger-toggle {
+            display: none !important;
+            visibility: hidden !important;
+        }
     }
 </style>
