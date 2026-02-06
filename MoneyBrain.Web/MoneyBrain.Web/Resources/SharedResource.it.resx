@@ -4136,6 +4136,9 @@
   <data name="AcctDlg_CreditCardBillingCycle" xml:space="preserve">
     <value>Ciclo di Fatturazione Carta di Credito</value>
   </data>
+  <data name="AcctDlg_CardBillingCycle" xml:space="preserve">
+    <value>Ciclo di Fatturazione Carta</value>
+  </data>
   <data name="AcctDlg_DebitCard" xml:space="preserve">
     <value>Carta di Debito</value>
   </data>

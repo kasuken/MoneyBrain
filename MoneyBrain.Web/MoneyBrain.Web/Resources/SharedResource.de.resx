@@ -3351,6 +3351,9 @@
   <data name="AcctDlg_CreditCardBillingCycle" xml:space="preserve">
     <value>Kreditkarten-Abrechnungszyklus</value>
   </data>
+  <data name="AcctDlg_CardBillingCycle" xml:space="preserve">
+    <value>Karten-Abrechnungszyklus</value>
+  </data>
   <data name="AcctDlg_DebitCard" xml:space="preserve">
     <value>Debitkarte</value>
   </data>
