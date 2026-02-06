@@ -43,7 +43,7 @@ builder.Services.AddMudServices();
 builder.Services.AddLocalization();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
-    var supportedCultures = new[] { "en", "it", "es" };
+    var supportedCultures = new[] { "en", "it", "es", "de" };
     options.SetDefaultCulture("en")
            .AddSupportedCultures(supportedCultures)
            .AddSupportedUICultures(supportedCultures);
