@@ -3408,4 +3408,29 @@
   <data name="AcctDlg_Savings" xml:space="preserve">
     <value>Sparkonto</value>
   </data>
+  <!-- PWA Install Prompt -->
+  <data name="Pwa_InstallMoneyBrain" xml:space="preserve">
+    <value>MoneyBrain installieren</value>
+  </data>
+  <data name="Pwa_QuickAccess" xml:space="preserve">
+    <value>Schneller Zugriff von Ihrem Startbildschirm</value>
+  </data>
+  <data name="Pwa_NotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
+  <data name="Pwa_Install" xml:space="preserve">
+    <value>Installieren</value>
+  </data>
+  <data name="Pwa_IosInstructions" xml:space="preserve">
+    <value>Installieren Sie MoneyBrain auf Ihrem iPhone für schnellen Zugriff:</value>
+  </data>
+  <data name="Pwa_IosStep1" xml:space="preserve">
+    <value>Tippen Sie auf die Teilen-Schaltfläche in Safari</value>
+  </data>
+  <data name="Pwa_IosStep2" xml:space="preserve">
+    <value>Wählen Sie "Zum Home-Bildschirm"</value>
+  </data>
+  <data name="Pwa_IosStep3" xml:space="preserve">
+    <value>Tippen Sie auf "Hinzufügen" zum Bestätigen</value>
+  </data>
 </root>

@@ -9,6 +9,7 @@ window.moneybrainPwa = {
         this.checkInstallation();
         this.registerServiceWorker();
         this.setupBeforeInstallPrompt();
+        this.setupMobileInstallPrompt();
         this.setupAppInstalled();
         this.setupOnlineOfflineHandlers();
         this.checkForUpdates();
@@ -20,6 +21,49 @@ window.moneybrainPwa = {
             window.navigator.standalone === true) {
             this.isInstalled = true;
             console.log('[PWA] App is running in standalone mode');
+        }
+    },
+
+    detectMobileDevice: function () {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+        const isAndroid = /Android/.test(userAgent);
+        const isMobile = isIOS || isAndroid || /Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+        
+        return {
+            isIOS: isIOS,
+            isAndroid: isAndroid,
+            isMobile: isMobile
+        };
+    },
+
+    setupMobileInstallPrompt: function () {
+        const device = this.detectMobileDevice();
+        
+        // iOS doesn't support beforeinstallprompt, show instructions proactively
+        if (device.isIOS && !this.isInstalled) {
+            console.log('[PWA] iOS detected - will show native install instructions');
+            
+            // Check if user has previously dismissed the prompt
+            const dismissedDate = localStorage.getItem('pwa-install-dismissed');
+            if (dismissedDate) {
+                const daysSinceDismissed = (Date.now() - parseInt(dismissedDate)) / (1000 * 60 * 60 * 24);
+                if (daysSinceDismissed < 7) {
+                    return; // Don't show for 7 days after dismissal
+                }
+            }
+            
+            setTimeout(() => {
+                if (this.dotNetRef && !this.isInstalled) {
+                    this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt');
+                }
+            }, 5000); // 5 seconds delay for iOS
+        } else if (device.isAndroid && !this.isInstalled) {
+            // Android - use shorter delay, beforeinstallprompt will override if available
+            console.log('[PWA] Android detected - using mobile-optimized timing');
+        } else if (device.isMobile && !this.isInstalled) {
+            // Other mobile devices
+            console.log('[PWA] Other mobile device detected');
         }
     },
 
@@ -66,12 +110,15 @@ window.moneybrainPwa = {
                 }
             }
 
-            // Show the install prompt after a delay
+            // Show the install prompt with mobile-optimized timing
+            const device = this.detectMobileDevice();
+            const delay = device.isMobile ? 5000 : 3000; // 5s for mobile, 3s for desktop
+            
             setTimeout(() => {
                 if (this.dotNetRef && !this.isInstalled) {
                     this.dotNetRef.invokeMethodAsync('ShowInstallPrompt');
                 }
-            }, 3000);
+            }, delay);
         });
     },
 

@@ -3897,6 +3897,18 @@
   <data name="Pwa_Install" xml:space="preserve">
     <value>Install</value>
   </data>
+  <data name="Pwa_IosInstructions" xml:space="preserve">
+    <value>Install MoneyBrain on your iPhone for quick access:</value>
+  </data>
+  <data name="Pwa_IosStep1" xml:space="preserve">
+    <value>Tap the Share button in Safari</value>
+  </data>
+  <data name="Pwa_IosStep2" xml:space="preserve">
+    <value>Select "Add to Home Screen"</value>
+  </data>
+  <data name="Pwa_IosStep3" xml:space="preserve">
+    <value>Tap "Add" to confirm</value>
+  </data>
   <!-- License Enforcer -->
   <data name="LicEnf_LicenseRequired" xml:space="preserve">
     <value>License Required</value>
