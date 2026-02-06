@@ -3897,6 +3897,18 @@
   <data name="Pwa_Install" xml:space="preserve">
     <value>Install</value>
   </data>
+  <data name="Pwa_IosInstructions" xml:space="preserve">
+    <value>Install MoneyBrain on your iPhone for quick access:</value>
+  </data>
+  <data name="Pwa_IosStep1" xml:space="preserve">
+    <value>Tap the Share button in Safari</value>
+  </data>
+  <data name="Pwa_IosStep2" xml:space="preserve">
+    <value>Select "Add to Home Screen"</value>
+  </data>
+  <data name="Pwa_IosStep3" xml:space="preserve">
+    <value>Tap "Add" to confirm</value>
+  </data>
   <!-- License Enforcer -->
   <data name="LicEnf_LicenseRequired" xml:space="preserve">
     <value>License Required</value>
@@ -4049,6 +4061,9 @@
   <data name="SubType_OtherAsset" xml:space="preserve">
     <value>Other Asset</value>
   </data>
+  <data name="SubType_DebitCard" xml:space="preserve">
+    <value>Debit Card</value>
+  </data>
   <data name="SubType_CreditCard" xml:space="preserve">
     <value>Credit Card</value>
   </data>
@@ -4092,5 +4107,102 @@
   </data>
   <data name="Trans_EditTransaction" xml:space="preserve">
     <value>Edit Transaction</value>
+  </data>
+  <!-- Account Dialog Keys -->
+  <data name="AcctDlg_AccountName" xml:space="preserve">
+    <value>Account Name</value>
+  </data>
+  <data name="AcctDlg_AccountSubType" xml:space="preserve">
+    <value>Account Sub Type</value>
+  </data>
+  <data name="AcctDlg_AccountType" xml:space="preserve">
+    <value>Account Type</value>
+  </data>
+  <data name="AcctDlg_Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="AcctDlg_Asset" xml:space="preserve">
+    <value>Asset</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDay" xml:space="preserve">
+    <value>Billing Cycle Day</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDayHelper" xml:space="preserve">
+    <value>Day of month when the billing cycle closes (1-31)</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDayRequired" xml:space="preserve">
+    <value>Billing cycle day is required for credit cards</value>
+  </data>
+  <data name="AcctDlg_BillingCycleDesc" xml:space="preserve">
+    <value>When your credit card statement closes</value>
+  </data>
+  <data name="AcctDlg_Cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="AcctDlg_Checking" xml:space="preserve">
+    <value>Checking</value>
+  </data>
+  <data name="AcctDlg_CreditCard" xml:space="preserve">
+    <value>Credit Card</value>
+  </data>
+  <data name="AcctDlg_CreditCardBillingCycle" xml:space="preserve">
+    <value>Credit Card Billing Cycle</value>
+  </data>
+  <data name="AcctDlg_DebitCard" xml:space="preserve">
+    <value>Debit Card</value>
+  </data>
+  <data name="AcctDlg_Group" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="AcctDlg_GroupHelper" xml:space="preserve">
+    <value>Organize accounts (e.g., Personal, Business)</value>
+  </data>
+  <data name="AcctDlg_Investment" xml:space="preserve">
+    <value>Investment</value>
+  </data>
+  <data name="AcctDlg_Liability" xml:space="preserve">
+    <value>Liability</value>
+  </data>
+  <data name="AcctDlg_Loan" xml:space="preserve">
+    <value>Loan</value>
+  </data>
+  <data name="AcctDlg_MonthlySpendingLimit" xml:space="preserve">
+    <value>Monthly Spending Limit</value>
+  </data>
+  <data name="AcctDlg_MonthlySpendingLimitHelper" xml:space="preserve">
+    <value>Optional limit to track spending against</value>
+  </data>
+  <data name="AcctDlg_Mortgage" xml:space="preserve">
+    <value>Mortgage</value>
+  </data>
+  <data name="AcctDlg_NameRequired" xml:space="preserve">
+    <value>Account name is required</value>
+  </data>
+  <data name="AcctDlg_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AcctDlg_OpeningBalance" xml:space="preserve">
+    <value>Opening Balance</value>
+  </data>
+  <data name="AcctDlg_OpeningBalanceHelper" xml:space="preserve">
+    <value>Current balance when you start tracking this account</value>
+  </data>
+  <data name="AcctDlg_OtherAsset" xml:space="preserve">
+    <value>Other Asset</value>
+  </data>
+  <data name="AcctDlg_OtherLiability" xml:space="preserve">
+    <value>Other Liability</value>
+  </data>
+  <data name="AcctDlg_PaymentAccount" xml:space="preserve">
+    <value>Payment Account</value>
+  </data>
+  <data name="AcctDlg_PaymentAccountHelper" xml:space="preserve">
+    <value>Account used to pay this credit card</value>
+  </data>
+  <data name="AcctDlg_PaymentAccountRequired" xml:space="preserve">
+    <value>Payment account is required for credit cards</value>
+  </data>
+  <data name="AcctDlg_Savings" xml:space="preserve">
+    <value>Savings</value>
   </data>
 </root>

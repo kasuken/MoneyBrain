@@ -1,11 +1,13 @@
 @using Microsoft.AspNetCore.Components
 @using MoneyBrain.Web.Application.Transactions.Splits
 @using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Domain.Entities
 @using MudBlazor
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
 @inject ICategoryService CategoryService
+@inject IUserSettingsService SettingsService
 @inject IStringLocalizer<SharedResource> L
 
 <MudPaper Class="pa-4" Elevation="0">
@@ -91,9 +93,17 @@
 
     private List<CategoryGroup> _categoryGroups = [];
     private string? _errorMessage;
+    private string _currencySymbol = "$";
 
     protected override async Task OnInitializedAsync()
     {
+        // Load user settings for currency
+        var settings = await SettingsService.GetSettingsAsync(UserId);
+        if (settings != null)
+        {
+            _currencySymbol = GetCurrencySymbol(settings.CurrencyCode);
+        }
+
         _categoryGroups = (await CategoryService.GetCategoryGroupsAsync(UserId)).ToList();
         
         // Initialize with one split if empty
@@ -158,5 +168,11 @@
     private async Task OnSplitChanged()
     {
         await OnSplitsChanged.InvokeAsync();
+    }
+
+    private string GetCurrencySymbol(string currencyCode)
+    {
+        var currencies = SettingsService.GetAvailableCurrencies();
+        return currencies.FirstOrDefault(c => c.Code == currencyCode)?.Symbol ?? "$";
     }
 }
