@@ -48,10 +48,16 @@
                         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Color="Color.Default">@L["Mobile_ThisMonth"]</MudText>
-                                    <MudText Typo="Typo.h6" 
+                                <MudText Typo="Typo.h6" 
                                          Style="@($"font-weight: 600; color: {(_periodChange >= 0 ? "#10B981" : "#EF4444")}")">
                                     @FormatCurrency(_periodChange, true)
                                 </MudText>
+                                @if (_pendingPeriodChange != 0)
+                                {
+                                    <MudText Typo="Typo.caption" Color="@(_pendingPeriodChange >= 0 ? Color.Success : Color.Error)">
+                                        @L["Dashboard_Pending"]: @FormatCurrency(_pendingPeriodChange, true) | @FormatCurrency(_combinedPeriodChange, true)
+                                    </MudText>
+                                }
                             </MudStack>
                             <MudIcon Icon="@(_periodChange >= 0 ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)" 
                                      Color="@(_periodChange >= 0 ? Color.Success : Color.Error)" 
@@ -70,6 +76,12 @@
                                 <MudText Typo="Typo.h6" Style="font-weight: 600; color: #10B981;">
                                     @FormatCurrency(_totalIncome)
                                 </MudText>
+                                @if (_pendingIncome > 0)
+                                {
+                                    <MudText Typo="Typo.caption" Style="color: #10B981;">
+                                        @L["Dashboard_Pending"]: @FormatCurrency(_pendingIncome)
+                                    </MudText>
+                                }
                                 <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" 
                                          Color="Color.Success" 
                                          Size="Size.Small" />
@@ -85,6 +97,12 @@
                                 <MudText Typo="Typo.h6" Style="font-weight: 600; color: #EF4444;">
                                     @FormatCurrency(_totalExpenses)
                                 </MudText>
+                                @if (_pendingExpenses > 0)
+                                {
+                                    <MudText Typo="Typo.caption" Style="color: #EF4444;">
+                                        @L["Dashboard_Pending"]: @FormatCurrency(_pendingExpenses)
+                                    </MudText>
+                                }
                                 <MudIcon Icon="@Icons.Material.Filled.ArrowUpward" 
                                          Color="Color.Error" 
                                          Size="Size.Small" />
@@ -169,6 +187,13 @@
     private decimal _totalExpenses;
     private List<BudgetCategory> _budgets = new();
     private Dictionary<int, decimal> _categorySpending = new();
+    
+    private decimal _pendingIncome;
+    private decimal _pendingExpenses;
+    private decimal _pendingPeriodChange;
+    private decimal _combinedIncome;
+    private decimal _combinedExpenses;
+    private decimal _combinedPeriodChange;
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,6 +245,14 @@
                 _totalIncome = currentMonth.TotalIncome;
                 _totalExpenses = Math.Abs(currentMonth.TotalExpenses);
                 _periodChange = currentMonth.NetCashflow;
+                
+                _pendingIncome = currentMonth.PendingIncome;
+                _pendingExpenses = currentMonth.PendingExpenses;
+                _pendingPeriodChange = currentMonth.PendingNetCashflow;
+
+                _combinedExpenses = _totalExpenses + _pendingExpenses;
+                _combinedIncome = _totalIncome + _pendingIncome;
+                _combinedPeriodChange = _periodChange + _pendingPeriodChange;
             }
 
             // Get budget data
