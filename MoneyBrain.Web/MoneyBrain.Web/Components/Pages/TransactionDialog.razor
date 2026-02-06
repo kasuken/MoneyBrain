@@ -3,6 +3,7 @@
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Application.Transactions
 @using MoneyBrain.Web.Application.Transactions.Splits
+@using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using MoneyBrain.Web.Resources
@@ -12,6 +13,7 @@
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
+@inject IUserSettingsService SettingsService
 @inject IStringLocalizer<SharedResource> L
 
 <MudDialog @bind-IsVisible="_isVisible" Options="@(FullScreen ? _fullScreenOptions : _defaultOptions)">
@@ -43,8 +45,9 @@
             <MudDatePicker @bind-Date="_date" Label="@L["Col_Date"]" Required="true" MaxDate="DateTime.Today.AddDays(30)" Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudNumericField @bind-Value="_amount" Label="@L["Col_Amount"]" Required="true" Format="F2"
-                             Adornment="Adornment.Start" AdornmentText="$"
-                             HelperText="@L["TxnDlg_AmountHelper"]" 
+                             Adornment="Adornment.Start" AdornmentText="@_currencySymbol"
+                             HelperText="@L["TxnDlg_AmountHelper"]"
+                             SelectOnClick="true"
                              Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudAutocomplete T="string" @bind-Value="_payeeName" Label="@L["Col_Payee"]"
@@ -127,6 +130,7 @@
 
     private MudForm _form = null!;
     private bool _isValid;
+    private string _currencySymbol = "$";
 
     private List<Account> _accounts = [];
     private List<CategoryGroup> _categoryGroups = [];
@@ -155,6 +159,13 @@
     {
         if (string.IsNullOrWhiteSpace(UserId))
             return;
+
+        // Load user settings for currency
+        var settings = await SettingsService.GetSettingsAsync(UserId);
+        if (settings != null)
+        {
+            _currencySymbol = GetCurrencySymbol(settings.CurrencyCode);
+        }
 
         // Load accounts
         _accounts = (await AccountService.GetUserAccountsAsync(UserId)).ToList();
@@ -372,5 +383,11 @@
     {
         StateHasChanged();
         return Task.CompletedTask;
+    }
+
+    private string GetCurrencySymbol(string currencyCode)
+    {
+        var currencies = SettingsService.GetAvailableCurrencies();
+        return currencies.FirstOrDefault(c => c.Code == currencyCode)?.Symbol ?? "$";
     }
 }
