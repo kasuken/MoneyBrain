@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
+using MoneyBrain.Web.Application.Common.Interfaces;
+using MoneyBrain.Web.Application.Common.Services;
 using MoneyBrain.Web.Application.CreditCardBilling;
 using MoneyBrain.Web.Application.Licensing;
 using MoneyBrain.Web.Application.Reconciliation;
@@ -79,6 +81,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Cache service
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 
 // MoneyBrain application services
 builder.Services.AddScoped<IAccountService, AccountService>();
