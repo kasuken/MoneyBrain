@@ -91,3 +91,6 @@ yarn-error.log*
 
 .serena/
 .copilot/
+
+/bin/
+/obj/
