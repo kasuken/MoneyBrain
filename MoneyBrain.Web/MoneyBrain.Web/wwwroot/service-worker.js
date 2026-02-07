@@ -1,9 +1,9 @@
 // MoneyBrain Service Worker - Advanced PWA Implementation
-// Version: 1.0.0
+// Version: 1.1.0 - Performance optimized for mobile
 
-const CACHE_VERSION = 'moneybrain-v1';
-const RUNTIME_CACHE = 'moneybrain-runtime-v1';
-const DATA_CACHE = 'moneybrain-data-v1';
+const CACHE_VERSION = 'moneybrain-v1.1';
+const RUNTIME_CACHE = 'moneybrain-runtime-v1.1';
+const DATA_CACHE = 'moneybrain-data-v1.1';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -47,7 +47,30 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_VERSION)
       .then((cache) => {
         console.log('[Service Worker] Caching static assets');
-        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'no-cache' })));
+        
+        // Separate critical assets (must cache) from non-critical (can fail gracefully)
+        const criticalAssets = [
+          '/',
+          '/manifest.json',
+          '/offline.html'
+        ];
+        
+        const nonCriticalAssets = STATIC_ASSETS.filter(url => !criticalAssets.includes(url));
+        
+        // Cache critical assets first (blocks installation if fails)
+        return cache.addAll(criticalAssets.map(url => new Request(url, { cache: 'no-cache' })))
+          .then(() => {
+            // Cache non-critical assets in parallel (don't block installation)
+            return Promise.all(
+              nonCriticalAssets.map(url => 
+                cache.add(new Request(url, { cache: 'no-cache' }))
+                  .catch(error => {
+                    console.warn(`[Service Worker] Failed to cache ${url}:`, error);
+                    // Don't fail installation if a non-critical asset fails
+                  })
+              )
+            );
+          });
       })
       .then(() => {
         console.log('[Service Worker] Installation complete');

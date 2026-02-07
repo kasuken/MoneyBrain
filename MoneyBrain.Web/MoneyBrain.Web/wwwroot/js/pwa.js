@@ -3,16 +3,47 @@ window.moneybrainPwa = {
     deferredPrompt: null,
     dotNetRef: null,
     isInstalled: false,
+    performanceMarkers: {
+        startTime: 0,
+        initComplete: 0,
+        serviceWorkerReady: 0
+    },
 
-    initialize: function (dotNetReference) {
+    initialize: async function (dotNetReference) {
+        this.performanceMarkers.startTime = performance.now();
         this.dotNetRef = dotNetReference;
+        
+        // Check installation status first (synchronous)
         this.checkInstallation();
-        this.registerServiceWorker();
-        this.setupBeforeInstallPrompt();
-        this.setupMobileInstallPrompt();
-        this.setupAppInstalled();
-        this.setupOnlineOfflineHandlers();
-        this.checkForUpdates();
+        
+        // Parallelize all async operations for faster startup
+        try {
+            await Promise.all([
+                this.registerServiceWorker(),
+                Promise.resolve(this.setupBeforeInstallPrompt()),
+                Promise.resolve(this.setupMobileInstallPrompt()),
+                Promise.resolve(this.setupAppInstalled()),
+                Promise.resolve(this.setupOnlineOfflineHandlers())
+            ]);
+            
+            // Check for updates after other initialization completes
+            this.checkForUpdates();
+            
+            this.performanceMarkers.initComplete = performance.now();
+            const initTime = this.performanceMarkers.initComplete - this.performanceMarkers.startTime;
+            console.log(`[PWA] Initialization complete in ${initTime.toFixed(2)}ms`);
+            
+            // Track when service worker is fully ready
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(() => {
+                    this.performanceMarkers.serviceWorkerReady = performance.now();
+                    const swReadyTime = this.performanceMarkers.serviceWorkerReady - this.performanceMarkers.startTime;
+                    console.log(`[PWA] Service Worker ready in ${swReadyTime.toFixed(2)}ms`);
+                });
+            }
+        } catch (error) {
+            console.error('[PWA] Initialization error:', error);
+        }
     },
 
     checkInstallation: function () {
@@ -53,11 +84,12 @@ window.moneybrainPwa = {
                 }
             }
             
-            setTimeout(() => {
-                if (this.dotNetRef && !this.isInstalled) {
-                    this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt');
-                }
-            }, 5000); // 5 seconds delay for iOS
+            // Show prompt immediately - user can dismiss if not interested
+            // No artificial delay needed as this doesn't block app initialization
+            if (this.dotNetRef) {
+                this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt')
+                    .catch(error => console.error('[PWA] iOS prompt error:', error));
+            }
         } else if (device.isAndroid && !this.isInstalled) {
             // Android - use shorter delay, beforeinstallprompt will override if available
             console.log('[PWA] Android detected - using mobile-optimized timing');
@@ -73,10 +105,16 @@ window.moneybrainPwa = {
                 .then((registration) => {
                     console.log('[PWA] Service Worker registered:', registration.scope);
 
-                    // Check for updates every hour
-                    setInterval(() => {
-                        registration.update();
-                    }, 60 * 60 * 1000);
+                    // Check for updates when user returns to the app (more efficient than polling)
+                    document.addEventListener('visibilitychange', () => {
+                        if (!document.hidden && registration) {
+                            console.log('[PWA] Checking for updates (visibility change)');
+                            registration.update();
+                        }
+                    });
+                    
+                    // Also check on initial load
+                    registration.update();
 
                     // Handle service worker updates
                     registration.addEventListener('updatefound', () => {
