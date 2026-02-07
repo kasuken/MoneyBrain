@@ -495,11 +495,31 @@
 
     private void PrepareChartData(MonthlyCashflowDto cashflow)
     {
-        // Prepare income vs expenses bar chart
-        _incomeExpenseChartLabels = new[] { L["Dashboard_Income"].Value, L["Dashboard_Expenses"].Value };
+        // Prepare income vs expenses bar chart with confirmed and pending series
+        // "Dashboard_Amount" is appropriate for this single-category bar chart that shows all 4 series together for comparison
+        _incomeExpenseChartLabels = new[] { L["Dashboard_Amount"].Value };
         _incomeExpenseChartSeries = new List<ChartSeries>
         {
-            new ChartSeries { Name = L["Lbl_Amount"], Data = new double[] { (double)cashflow.TotalIncome, (double)cashflow.TotalExpenses } }
+            new ChartSeries 
+            { 
+                Name = FormatChartLabel(L["Dashboard_Income"].Value, isPending: false),
+                Data = new double[] { (double)cashflow.TotalIncome } 
+            },
+            new ChartSeries 
+            { 
+                Name = FormatChartLabel(L["Dashboard_Income"].Value, isPending: true),
+                Data = new double[] { (double)_pendingIncome } 
+            },
+            new ChartSeries 
+            { 
+                Name = FormatChartLabel(L["Dashboard_Expenses"].Value, isPending: false),
+                Data = new double[] { (double)cashflow.TotalExpenses } 
+            },
+            new ChartSeries 
+            { 
+                Name = FormatChartLabel(L["Dashboard_Expenses"].Value, isPending: true),
+                Data = new double[] { (double)_pendingExpenses } 
+            }
         };
         
         // Prepare expense category pie chart (top 5 categories)
@@ -518,6 +538,12 @@
             _categoryPieData = new double[] { 1 };
             _categoryPieLabels = new[] { L["Dashboard_NoExpenses"].Value };
         }
+    }
+    
+    private string FormatChartLabel(string label, bool isPending)
+    {
+        var suffix = isPending ? L["Dashboard_Pending"].Value : L["Dashboard_Confirmed"].Value;
+        return $"{label} ({suffix})";
     }
     
     private string GetBudgetHealthClass(decimal percentageUsed) => percentageUsed switch
