@@ -398,10 +398,11 @@
         {
             await JS.InvokeVoidAsync("moneyBrain.selectOnFocus");
         }
-        catch (JSException)
+        catch (Exception)
         {
-            // Silently fail if JavaScript is not available
+            // Silently fail if JavaScript is not available or interop fails
             // This ensures the form remains functional even if the JS file fails to load
+            // or if there are other JavaScript interop issues
         }
     }
 }
