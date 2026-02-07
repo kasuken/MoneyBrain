@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -8,14 +10,21 @@ namespace MoneyBrain.Web.Application.Categories;
 public class CategoryService : ICategoryService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ICacheService _cacheService;
 
-    public CategoryService(ApplicationDbContext context)
+    public CategoryService(ApplicationDbContext context, ICacheService cacheService)
     {
         _context = context;
+        _cacheService = cacheService;
     }
 
     public async Task<List<CategoryGroup>> GetCategoryGroupsAsync(string userId, bool includeCategories = false, CancellationToken cancellationToken = default)
     {
+        var cacheKey = CacheKeyHelper.ForUserCategories(userId);
+        var cached = await _cacheService.GetAsync<List<CategoryGroup>>(cacheKey);
+        if (cached != null)
+            return cached;
+
         IQueryable<CategoryGroup> query = _context.CategoryGroups
             .Where(cg => cg.UserId == userId && cg.IsActive)
             .OrderBy(cg => cg.SortOrder)
@@ -26,7 +35,9 @@ public class CategoryService : ICategoryService
             query = query.Include(cg => cg.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name));
         }
 
-        return await query.ToListAsync(cancellationToken);
+        var result = await query.ToListAsync(cancellationToken);
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(24));
+        return result;
     }
 
     public async Task<List<Category>> GetCategoriesAsync(string userId, bool includeInactive = false, CancellationToken cancellationToken = default)
@@ -72,6 +83,8 @@ public class CategoryService : ICategoryService
         _context.CategoryGroups.Add(categoryGroup);
         await _context.SaveChangesAsync(cancellationToken);
 
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
+
         return categoryGroup;
     }
 
@@ -95,6 +108,7 @@ public class CategoryService : ICategoryService
         group.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
         return true;
     }
 
@@ -115,6 +129,7 @@ public class CategoryService : ICategoryService
         group.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
         return true;
     }
 
@@ -175,6 +190,8 @@ public class CategoryService : ICategoryService
         _context.Categories.Add(category);
         await _context.SaveChangesAsync(cancellationToken);
 
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
+
         return category;
     }
 
@@ -191,6 +208,7 @@ public class CategoryService : ICategoryService
         category.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
         return true;
     }
 
@@ -206,6 +224,7 @@ public class CategoryService : ICategoryService
         category.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
         return true;
     }
 
