@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Reporting.Cashflow;
@@ -7,8 +9,16 @@ namespace MoneyBrain.Web.Application.Reporting.Cashflow;
 /// Service for generating cashflow reports using double-entry ledger data.
 /// Analyzes income and expenses from ledger entries with category associations.
 /// </summary>
-public class CashflowService(ApplicationDbContext context) : ICashflowService
+public class CashflowService : ICashflowService
 {
+    private readonly ApplicationDbContext _context;
+    private readonly ICacheService _cacheService;
+
+    public CashflowService(ApplicationDbContext context, ICacheService cacheService)
+    {
+        _context = context;
+        _cacheService = cacheService;
+    }
     public async Task<List<MonthlyCashflowDto>> GetMonthlyCashflowAsync(
         string userId,
         DateTime? startDate = null,
@@ -20,7 +30,7 @@ public class CashflowService(ApplicationDbContext context) : ICashflowService
         var start = startDate ?? end.AddMonths(-5).Date;
 
         // Get all ledger entries with categories for the period
-        var entries = await context.LedgerEntries
+        var entries = await _context.LedgerEntries
             .Include(le => le.Category)
                 .ThenInclude(c => c!.CategoryGroup)
             .Include(le => le.Transaction)
@@ -81,11 +91,16 @@ public class CashflowService(ApplicationDbContext context) : ICashflowService
         int month,
         CancellationToken cancellationToken = default)
     {
+        var cacheKey = CacheKeyHelper.ForMonthCashflow(userId, year, month);
+        var cached = await _cacheService.GetAsync<MonthlyCashflowDto>(cacheKey);
+        if (cached != null)
+            return cached;
+
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
 
         // Get all ledger entries with categories for the month
-        var entries = await context.LedgerEntries
+        var entries = await _context.LedgerEntries
             .Include(le => le.Category)
                 .ThenInclude(c => c!.CategoryGroup)
             .Include(le => le.Transaction)
@@ -96,7 +111,11 @@ public class CashflowService(ApplicationDbContext context) : ICashflowService
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        return await BuildMonthlyCashflowAsync(userId, year, month, entries, cancellationToken);
+        var result = await BuildMonthlyCashflowAsync(userId, year, month, entries, cancellationToken);
+
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(30));
+
+        return result;
     }
 
     /// <summary>

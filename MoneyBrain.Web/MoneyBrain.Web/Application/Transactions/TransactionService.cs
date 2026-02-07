@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.FlagManagement;
@@ -17,11 +19,13 @@ public class TransactionService : ITransactionService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILedgerService _ledgerService;
+    private readonly ICacheService _cacheService;
 
-    public TransactionService(ApplicationDbContext context, ILedgerService ledgerService)
+    public TransactionService(ApplicationDbContext context, ILedgerService ledgerService, ICacheService cacheService)
     {
         _context = context;
         _ledgerService = ledgerService;
+        _cacheService = cacheService;
     }
 
     /// <summary>
@@ -159,6 +163,8 @@ public class TransactionService : ITransactionService
         // Generate ledger entries for double-entry bookkeeping
         await _ledgerService.GenerateLedgerEntriesAsync(transaction, cancellationToken);
 
+        await InvalidateRelatedCachesAsync(userId, date);
+
         return transaction;
     }
 
@@ -227,6 +233,8 @@ public class TransactionService : ITransactionService
         // Regenerate ledger entries to reflect the updated transaction
         await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
 
+        await InvalidateRelatedCachesAsync(userId, date);
+
         return true;
     }
 
@@ -242,11 +250,16 @@ public class TransactionService : ITransactionService
         if (transaction.IsReconciled)
             throw new InvalidOperationException("Cannot delete reconciled transaction");
 
+        var transactionDate = transaction.Date;
+
         // Delete ledger entries first (cascade delete would handle this, but explicit is clearer)
         await _ledgerService.DeleteLedgerEntriesAsync(transactionId, cancellationToken);
 
         _context.Transactions.Remove(transaction);
         await _context.SaveChangesAsync(cancellationToken);
+
+        await InvalidateRelatedCachesAsync(userId, transactionDate);
+
         return true;
     }
 
@@ -661,6 +674,13 @@ public class TransactionService : ITransactionService
         if (result.UpdatedCount > 0)
         {
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Invalidate caches for all affected transaction dates
+            var affectedDates = transactionsToUpdate.Select(t => t.Date).Distinct();
+            foreach (var date in affectedDates)
+            {
+                await InvalidateRelatedCachesAsync(userId, date);
+            }
         }
 
         return result;
@@ -773,6 +793,8 @@ public class TransactionService : ITransactionService
         // Generate ledger entries for double-entry bookkeeping
         await _ledgerService.GenerateLedgerEntriesAsync(createdTransaction, cancellationToken);
 
+        await InvalidateRelatedCachesAsync(userId, date);
+
         return createdTransaction;
     }
 
@@ -855,6 +877,8 @@ public class TransactionService : ITransactionService
 
         // Regenerate ledger entries to reflect the updated transaction with splits
         await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
+
+        await InvalidateRelatedCachesAsync(userId, date);
 
         return true;
     }
@@ -939,6 +963,8 @@ public class TransactionService : ITransactionService
         await _ledgerService.GenerateLedgerEntriesAsync(fromTransaction, cancellationToken);
         await _ledgerService.GenerateLedgerEntriesAsync(toTransaction, cancellationToken);
 
+        await InvalidateRelatedCachesAsync(userId, transfer.Date);
+
         return new TransferResult
         {
             FromTransaction = fromTransaction,
@@ -996,6 +1022,9 @@ public class TransactionService : ITransactionService
         toTransaction.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        await InvalidateRelatedCachesAsync(userId, transfer.Date);
+
         return true;
     }
 
@@ -1020,6 +1049,8 @@ public class TransactionService : ITransactionService
         if (transaction.IsReconciled || (linkedTransaction?.IsReconciled == true))
             throw new InvalidOperationException("Cannot delete reconciled transfer");
 
+        var transactionDate = transaction.Date;
+
         // Delete both transactions
         _context.Transactions.Remove(transaction);
         if (linkedTransaction != null)
@@ -1028,6 +1059,9 @@ public class TransactionService : ITransactionService
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        await InvalidateRelatedCachesAsync(userId, transactionDate);
+
         return true;
     }
 
@@ -1252,6 +1286,17 @@ public class TransactionService : ITransactionService
         throw new InvalidOperationException(
             "Direct toggling of reconciled flag is not allowed. " +
             "Use ReconciliationService to reconcile or unreconcile transactions.");
+    }
+
+    private async Task InvalidateRelatedCachesAsync(string userId, DateTime transactionDate)
+    {
+        var cacheKey = CacheKeyHelper.ForMonthCashflow(userId, transactionDate.Year, transactionDate.Month);
+        await _cacheService.RemoveAsync(cacheKey);
+
+        var budgetComparisonKey = CacheKeyHelper.ForBudgetComparison(userId, transactionDate.Year, transactionDate.Month);
+        await _cacheService.RemoveAsync(budgetComparisonKey);
+
+        await _cacheService.RemoveByPatternAsync($"user:{userId}:networth:*");
     }
 }
 
