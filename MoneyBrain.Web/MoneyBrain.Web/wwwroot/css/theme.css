@@ -646,3 +646,13 @@ body {
 .mb-animate-in {
     animation: fadeIn 0.3s ease-out;
 }
+
+/* Chart series color customization
+ * NOTE: This nth-child approach is fragile but necessary.
+ * MudBlazor charts don't support custom CSS classes per series (known limitation).
+ * This is acceptable for now given the constraint.
+ */
+.mud-chart-serie:nth-child(1) { fill: var(--mb-success); } /* Confirmed Income */
+.mud-chart-serie:nth-child(2) { fill: var(--mb-warning); opacity: 0.8; } /* Pending Income */
+.mud-chart-serie:nth-child(3) { fill: var(--mb-danger); } /* Confirmed Expenses */
+.mud-chart-serie:nth-child(4) { fill: var(--mb-warning); opacity: 0.7; } /* Pending Expenses */
