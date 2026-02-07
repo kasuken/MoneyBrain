@@ -713,6 +713,9 @@
   <data name="Dashboard_Pending" xml:space="preserve">
     <value>Pending</value>
   </data>
+  <data name="Dashboard_Confirmed" xml:space="preserve">
+    <value>Confirmed</value>
+  </data>
   <data name="Dashboard_TotalExpenses" xml:space="preserve">
     <value>Total Expenses</value>
   </data>
