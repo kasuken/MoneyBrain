@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Enums;
@@ -12,11 +14,13 @@ public class NetWorthService : INetWorthService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILedgerService _ledgerService;
+    private readonly ICacheService _cacheService;
 
-    public NetWorthService(ApplicationDbContext context, ILedgerService ledgerService)
+    public NetWorthService(ApplicationDbContext context, ILedgerService ledgerService, ICacheService cacheService)
     {
         _context = context;
         _ledgerService = ledgerService;
+        _cacheService = cacheService;
     }
 
     /// <inheritdoc />
@@ -79,6 +83,11 @@ public class NetWorthService : INetWorthService
         DateTime asOfDate,
         CancellationToken cancellationToken = default)
     {
+        var cacheKey = CacheKeyHelper.ForNetWorthSnapshot(userId, asOfDate);
+        var cached = await _cacheService.GetAsync<NetWorthSnapshotDto>(cacheKey);
+        if (cached != null)
+            return cached;
+
         // Get all user accounts
         var accounts = await _context.Accounts
             .AsNoTracking()
@@ -126,12 +135,16 @@ public class NetWorthService : INetWorthService
             }
         }
 
-        return new NetWorthSnapshotDto
+        var result = new NetWorthSnapshotDto
         {
             Date = asOfDate,
             TotalAssets = totalAssets,
             TotalLiabilities = totalLiabilities,
             AccountBalances = accountBalances
         };
+
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(1));
+
+        return result;
     }
 }

@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -11,6 +13,7 @@ namespace MoneyBrain.Web.Application.Settings;
 public class UserSettingsService : IUserSettingsService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ICacheService _cacheService;
 
     // Common currencies - most widely used first
     private static readonly List<CurrencyInfo> CommonCurrencies =
@@ -47,17 +50,30 @@ public class UserSettingsService : IUserSettingsService
         new("MYR", "Malaysian Ringgit", "RM")
     ];
 
-    public UserSettingsService(ApplicationDbContext context)
+    public UserSettingsService(ApplicationDbContext context, ICacheService cacheService)
     {
         _context = context;
+        _cacheService = cacheService;
     }
 
     /// <inheritdoc />
     public async Task<UserSettings?> GetSettingsAsync(string userId)
     {
-        return await _context.UserSettings
+        var cacheKey = CacheKeyHelper.ForUserSettings(userId);
+        var cached = await _cacheService.GetAsync<UserSettings>(cacheKey);
+        if (cached != null)
+            return cached;
+
+        var result = await _context.UserSettings
             .AsNoTracking()
             .FirstOrDefaultAsync(us => us.UserId == userId);
+
+        if (result != null)
+        {
+            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(24));
+        }
+
+        return result;
     }
 
     /// <inheritdoc />
@@ -101,6 +117,7 @@ public class UserSettingsService : IUserSettingsService
         }
 
         await _context.SaveChangesAsync();
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserSettings(userId));
         return existing;
     }
 
@@ -223,6 +240,9 @@ public class UserSettingsService : IUserSettingsService
         await _context.UserSettings
             .Where(us => us.UserId == userId)
             .ExecuteDeleteAsync();
+
+        // Invalidate cache
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserSettings(userId));
     }
 
     /// <inheritdoc />
