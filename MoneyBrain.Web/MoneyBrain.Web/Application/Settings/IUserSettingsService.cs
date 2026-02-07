@@ -28,6 +28,16 @@ public interface IUserSettingsService
         string? dateFormat = null);
 
     /// <summary>
+    /// Updates tips and insights preferences for a user.
+    /// </summary>
+    Task UpdateTipsPreferencesAsync(
+        string userId,
+        bool showTipsAndInsights,
+        bool showEducationalTips,
+        bool showSpendingInsights,
+        bool showBehavioralInsights);
+
+    /// <summary>
     /// Gets a list of commonly used currencies with display names.
     /// </summary>
     IReadOnlyList<CurrencyInfo> GetAvailableCurrencies();

@@ -1,0 +1,74 @@
+@using MoneyBrain.Web.Application.Tips
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
+
+@inject ITipPreferenceService TipPreferenceService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+<MudCard Class="mb-3">
+    <MudCardContent>
+        <MudStack Spacing="2">
+            <div class="d-flex justify-space-between align-start">
+                <div class="d-flex align-center gap-2" style="flex: 1;">
+                    <MudIcon Icon="@Icon" Color="Color.Primary" Size="Size.Medium" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 600;">@Title</MudText>
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                               Size="Size.Small" 
+                               OnClick="DismissTipAsync"
+                               aria-label="@L["Btn_Dismiss"]" />
+            </div>
+            <MudText Typo="Typo.body2" Class="@(!string.IsNullOrEmpty(ColorClass) ? ColorClass : "")">
+                @Content
+            </MudText>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter]
+    public string TipId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Content { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Icon { get; set; } = Icons.Material.Filled.Lightbulb;
+
+    [Parameter]
+    public string ColorClass { get; set; } = string.Empty;
+
+    private async Task DismissTipAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                Snackbar.Add(L["Msg_UnableToIdentifyUser"], Severity.Error);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(TipId))
+            {
+                return;
+            }
+
+            // Use preference key to track dismissed tips
+            var preferenceKey = $"DismissedTip_{TipId}";
+            await TipPreferenceService.UpdatePreferenceAsync(userId, preferenceKey, true);
+            Snackbar.Add(L["Msg_TipDismissed"], Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(L["Msg_ErrorDismissingTip", ex.Message], Severity.Error);
+        }
+    }
+}
