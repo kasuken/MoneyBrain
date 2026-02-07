@@ -713,6 +713,9 @@
   <data name="Dashboard_Pending" xml:space="preserve">
     <value>In Sospeso</value>
   </data>
+  <data name="Dashboard_Confirmed" xml:space="preserve">
+    <value>Confermato</value>
+  </data>
   <data name="Dashboard_TotalExpenses" xml:space="preserve">
     <value>Spese Totali</value>
   </data>
@@ -4220,5 +4223,177 @@
   </data>
   <data name="Pwa_IosStep3" xml:space="preserve">
     <value>Tocca "Aggiungi" per confermare</value>
+  </data>
+  <!-- Educational Tips -->
+  <data name="Tip_Saving_Emergency_Title" xml:space="preserve">
+    <value>Fondamenti del Fondo di Emergenza</value>
+  </data>
+  <data name="Tip_Saving_Emergency_Content" xml:space="preserve">
+    <value>Un fondo di emergenza copre tipicamente 3-6 mesi di spese essenziali. Questa rete di sicurezza aiuta a gestire costi imprevisti come spese mediche o riparazioni urgenti senza compromettere gli obiettivi finanziari a lungo termine.</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Title" xml:space="preserve">
+    <value>Benefici del Monitoraggio delle Spese</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Content" xml:space="preserve">
+    <value>Il monitoraggio regolare delle spese rivela modelli di spesa e aiuta a identificare aree in cui piccoli acquisti frequenti si accumulano in importi significativi nel tempo.</value>
+  </data>
+  <data name="Tip_Investing_Compound_Title" xml:space="preserve">
+    <value>Comprendere l'Interesse Composto</value>
+  </data>
+  <data name="Tip_Investing_Compound_Content" xml:space="preserve">
+    <value>L'interesse composto permette agli investimenti di crescere esponenzialmente nel tempo, poiché i rendimenti generano rendimenti aggiuntivi. Iniziare presto, anche con importi più piccoli, può avere un impatto sostanziale nel corso di decenni.</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Title" xml:space="preserve">
+    <value>Metodo del Budget a Buste</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Content" xml:space="preserve">
+    <value>Il budget a buste assegna un importo fisso a ogni categoria di spesa ogni mese. Quando l'assegnazione di una categoria è esaurita, non vengono effettuate ulteriori spese in quella categoria fino al periodo successivo.</value>
+  </data>
+  <data name="Tip_General_Automation_Title" xml:space="preserve">
+    <value>Automazione Finanziaria</value>
+  </data>
+  <data name="Tip_General_Automation_Content" xml:space="preserve">
+    <value>L'automazione dei trasferimenti di risparmio e dei pagamenti delle bollette riduce lo sforzo mentale richiesto per la gestione finanziaria e aiuta a garantire un progresso costante verso gli obiettivi finanziari.</value>
+  </data>
+  <data name="Tip_Saving_Goals_Title" xml:space="preserve">
+    <value>Impostare Obiettivi di Risparmio</value>
+  </data>
+  <data name="Tip_Saving_Goals_Content" xml:space="preserve">
+    <value>Obiettivi di risparmio specifici e misurabili con tempistiche definite aumentano la probabilità di raggiungere i risultati finanziari desiderati. Suddividere obiettivi più grandi in traguardi più piccoli rende il progresso più visibile.</value>
+  </data>
+  <data name="Tip_Spending_Needs_Title" xml:space="preserve">
+    <value>Analisi Bisogni vs Desideri</value>
+  </data>
+  <data name="Tip_Spending_Needs_Content" xml:space="preserve">
+    <value>Distinguere tra spese essenziali e spese discrezionali fornisce chiarezza su dove possono essere effettuati aggiustamenti di budget senza influenzare la qualità di vita di base.</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Title" xml:space="preserve">
+    <value>Diversificazione degli Investimenti</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Content" xml:space="preserve">
+    <value>Distribuire gli investimenti tra diversi tipi di asset e settori aiuta a gestire il rischio. Un portafoglio diversificato riduce l'impatto di una scarsa performance di qualsiasi singolo investimento.</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Title" xml:space="preserve">
+    <value>Budget a Base Zero</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Content" xml:space="preserve">
+    <value>Il budget a base zero assegna ogni euro di reddito a uno scopo specifico: spese, risparmi o rimborso del debito, garantendo un uso intenzionale delle risorse disponibili.</value>
+  </data>
+  <data name="Tip_General_Debt_Title" xml:space="preserve">
+    <value>Strategie di Rimborso del Debito</value>
+  </data>
+  <data name="Tip_General_Debt_Content" xml:space="preserve">
+    <value>Gli approcci comuni al rimborso del debito includono il metodo a valanga (interessi più alti prima) e il metodo a palla di neve (saldo più piccolo prima). Ciascuno ha diversi benefici psicologici e finanziari.</value>
+  </data>
+  <data name="Tip_Saving_Interest_Title" xml:space="preserve">
+    <value>Conti di Risparmio ad Alto Rendimento</value>
+  </data>
+  <data name="Tip_Saving_Interest_Content" xml:space="preserve">
+    <value>I conti di risparmio ad alto rendimento offrono tassi di interesse più elevati rispetto ai conti di risparmio tradizionali mantenendo liquidità e sicurezza. Confrontare i tassi tra le istituzioni può aumentare la crescita del risparmio.</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Title" xml:space="preserve">
+    <value>Gestione degli Abbonamenti</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Content" xml:space="preserve">
+    <value>Rivedere regolarmente gli abbonamenti ricorrenti aiuta a identificare servizi che non sono più utilizzati o apprezzati. Piccoli addebiti mensili possono accumularsi in spese annuali significative.</value>
+  </data>
+  <data name="Disclaimer_EducationalTips" xml:space="preserve">
+    <value>I suggerimenti educativi sono forniti solo a scopo informativo e non costituiscono consulenza finanziaria. Si prega di consultare un consulente finanziario qualificato per una guida personalizzata.</value>
+  </data>
+  <data name="Nav_Tips" xml:space="preserve">
+    <value>Suggerimenti</value>
+  </data>
+  <data name="Tips_PageTitle" xml:space="preserve">
+    <value>Suggerimenti e Approfondimenti</value>
+  </data>
+  <data name="Tips_Loading" xml:space="preserve">
+    <value>Caricamento suggerimenti...</value>
+  </data>
+  <data name="Tips_NoTips" xml:space="preserve">
+    <value>Nessun suggerimento disponibile</value>
+  </data>
+  <data name="Tips_FilterByCategory" xml:space="preserve">
+    <value>Filtra per categoria</value>
+  </data>
+  <data name="Tips_CategoryAll" xml:space="preserve">
+    <value>Tutte le categorie</value>
+  </data>
+  <data name="Tips_ViewAll" xml:space="preserve">
+    <value>Visualizza tutti i suggerimenti</value>
+  </data>
+  <data name="Tips_DismissButton" xml:space="preserve">
+    <value>Ignora</value>
+  </data>
+  <data name="Tips_DismissSuccess" xml:space="preserve">
+    <value>Suggerimento ignorato</value>
+  </data>
+  <data name="Tips_DismissError" xml:space="preserve">
+    <value>Errore nell'ignorare il suggerimento</value>
+  </data>
+  <data name="Tips_LoadError" xml:space="preserve">
+    <value>Errore nel caricamento dei suggerimenti</value>
+  </data>
+  <data name="TipCategory_Saving" xml:space="preserve">
+    <value>Risparmio</value>
+  </data>
+  <data name="TipCategory_Spending" xml:space="preserve">
+    <value>Spese</value>
+  </data>
+  <data name="TipCategory_Investing" xml:space="preserve">
+    <value>Investimenti</value>
+  </data>
+  <data name="TipCategory_Budgeting" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="TipCategory_General" xml:space="preserve">
+    <value>Generale</value>
+  </data>
+  <data name="Settings_TipsAndInsights" xml:space="preserve">
+    <value>Suggerimenti e Approfondimenti</value>
+  </data>
+  <data name="Settings_EnableTips" xml:space="preserve">
+    <value>Mostra suggerimenti e approfondimenti</value>
+  </data>
+  <data name="Settings_EnableEducationalTips" xml:space="preserve">
+    <value>Mostra suggerimenti educativi</value>
+  </data>
+  <data name="Settings_EnableSpendingInsights" xml:space="preserve">
+    <value>Mostra informazioni sulle spese</value>
+  </data>
+  <data name="Settings_EnableBehavioralInsights" xml:space="preserve">
+    <value>Mostra informazioni comportamentali</value>
+  </data>
+  <data name="Settings_TipsPreferencesUpdated" xml:space="preserve">
+    <value>Preferenze suggerimenti aggiornate</value>
+  </data>
+  <data name="Dashboard_TipsSection" xml:space="preserve">
+    <value>Suggerimenti e Approfondimenti</value>
+  </data>
+  <data name="Dashboard_NoTipsEnabled" xml:space="preserve">
+    <value>I suggerimenti sono attualmente disabilitati nelle impostazioni</value>
+  </data>
+  <data name="Disclaimer_TipsNotAdvisory" xml:space="preserve">
+    <value>Gli approfondimenti e i suggerimenti mostrati qui si basano sui tuoi dati finanziari e sui modelli di utilizzo dell'app. Sono solo informazioni descrittive e non devono essere considerati consulenza finanziaria.</value>
+  </data>
+  <data name="Disclaimer_Label" xml:space="preserve">
+    <value>Avviso importante</value>
+  </data>
+  <data name="Action_Dismiss" xml:space="preserve">
+    <value>Ignora</value>
+  </data>
+  <data name="Message_TipDismissed" xml:space="preserve">
+    <value>Il suggerimento è stato ignorato</value>
+  </data>
+  <data name="Message_PreferencesSaved" xml:space="preserve">
+    <value>Preferenze salvate con successo</value>
+  </data>
+  <data name="Message_ErrorOccurred" xml:space="preserve">
+    <value>Si è verificato un errore</value>
+  </data>
+  <data name="Settings_TipsSettings" xml:space="preserve">
+    <value>Impostazioni suggerimenti</value>
+  </data>
+  <data name="Nav_TipsInsights" xml:space="preserve">
+    <value>Suggerimenti e Approfondimenti</value>
   </data>
 </root>

@@ -1,14 +1,25 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 
 namespace MoneyBrain.Web.Application.Budgets;
 
-public class BudgetService(ApplicationDbContext context) : IBudgetService
+public class BudgetService : IBudgetService
 {
+    private readonly ApplicationDbContext _context;
+    private readonly ICacheService _cacheService;
+
+    public BudgetService(ApplicationDbContext context, ICacheService cacheService)
+    {
+        _context = context;
+        _cacheService = cacheService;
+    }
+
     public async Task<List<Budget>> GetBudgetsAsync(string userId)
     {
-        return await context.Budgets
+        return await _context.Budgets
             .Where(b => b.UserId == userId)
             .Include(b => b.BudgetCategories)
                 .ThenInclude(bc => bc.Category)
@@ -22,7 +33,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
 
     public async Task<List<Budget>> GetDefaultBudgetsAsync(string userId)
     {
-        return await context.Budgets
+        return await _context.Budgets
             .Where(b => b.UserId == userId && b.IsDefault)
             .Include(b => b.BudgetCategories)
                 .ThenInclude(bc => bc.Category)
@@ -33,7 +44,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
 
     public async Task<Budget?> GetBudgetByIdAsync(int budgetId, string userId)
     {
-        return await context.Budgets
+        return await _context.Budgets
             .Where(b => b.Id == budgetId && b.UserId == userId)
             .Include(b => b.BudgetCategories)
                 .ThenInclude(bc => bc.Category)
@@ -43,7 +54,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
 
     public async Task<List<Budget>> GetBudgetsForPeriodAsync(string userId, int year, int month)
     {
-        return await context.Budgets
+        return await _context.Budgets
             .Where(b => b.UserId == userId && !b.IsDefault && b.Year == year && b.Month == month)
             .Include(b => b.BudgetCategories)
                 .ThenInclude(bc => bc.Category)
@@ -55,7 +66,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
     public async Task<Budget?> GetEffectiveBudgetAsync(string userId, string budgetName, int year, int month)
     {
         // First check for period-specific budget
-        var periodSpecific = await context.Budgets
+        var periodSpecific = await _context.Budgets
             .Where(b => b.UserId == userId && b.Name == budgetName && !b.IsDefault && b.Year == year && b.Month == month)
             .Include(b => b.BudgetCategories)
                 .ThenInclude(bc => bc.Category)
@@ -66,7 +77,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
             return periodSpecific;
 
         // Fall back to default budget
-        return await context.Budgets
+        return await _context.Budgets
             .Where(b => b.UserId == userId && b.Name == budgetName && b.IsDefault)
             .Include(b => b.BudgetCategories)
                 .ThenInclude(bc => bc.Category)
@@ -92,15 +103,17 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.Budgets.Add(budget);
-        await context.SaveChangesAsync();
+        _context.Budgets.Add(budget);
+        await _context.SaveChangesAsync();
+
+        await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
         return budget;
     }
 
     public async Task<Budget> UpdateBudgetAsync(int budgetId, string userId, string name, string? description, bool isDefault, int? year, int? month)
     {
-        var budget = await context.Budgets
+        var budget = await _context.Budgets
             .FirstOrDefaultAsync(b => b.Id == budgetId && b.UserId == userId);
 
         if (budget == null)
@@ -117,21 +130,25 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
         budget.Month = month;
         budget.UpdatedAt = DateTime.UtcNow;
 
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+
+        await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
         return budget;
     }
 
     public async Task<bool> DeleteBudgetAsync(int budgetId, string userId)
     {
-        var budget = await context.Budgets
+        var budget = await _context.Budgets
             .FirstOrDefaultAsync(b => b.Id == budgetId && b.UserId == userId);
 
         if (budget == null)
             return false;
 
-        context.Budgets.Remove(budget);
-        await context.SaveChangesAsync();
+        _context.Budgets.Remove(budget);
+        await _context.SaveChangesAsync();
+
+        await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
         return true;
     }
@@ -139,14 +156,14 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
     public async Task<BudgetCategory> AddCategoryToBudgetAsync(int budgetId, string userId, int categoryId, decimal plannedAmount, bool allowRollover, string? notes = null)
     {
         // Verify budget belongs to user
-        var budget = await context.Budgets
+        var budget = await _context.Budgets
             .FirstOrDefaultAsync(b => b.Id == budgetId && b.UserId == userId);
 
         if (budget == null)
             throw new InvalidOperationException("Budget not found");
 
         // Check if category already exists in budget
-        var existing = await context.BudgetCategories
+        var existing = await _context.BudgetCategories
             .FirstOrDefaultAsync(bc => bc.BudgetId == budgetId && bc.CategoryId == categoryId);
 
         if (existing != null)
@@ -163,14 +180,16 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.BudgetCategories.Add(budgetCategory);
+        _context.BudgetCategories.Add(budgetCategory);
         
         budget.UpdatedAt = DateTime.UtcNow;
         
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+
+        await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
         // Load the category for return
-        await context.Entry(budgetCategory)
+        await _context.Entry(budgetCategory)
             .Reference(bc => bc.Category)
             .LoadAsync();
 
@@ -179,7 +198,7 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
 
     public async Task<BudgetCategory> UpdateBudgetCategoryAsync(int budgetCategoryId, string userId, decimal plannedAmount, bool allowRollover, string? notes = null)
     {
-        var budgetCategory = await context.BudgetCategories
+        var budgetCategory = await _context.BudgetCategories
             .Include(bc => bc.Budget)
             .FirstOrDefaultAsync(bc => bc.Id == budgetCategoryId && bc.Budget.UserId == userId);
 
@@ -193,32 +212,36 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
         
         budgetCategory.Budget.UpdatedAt = DateTime.UtcNow;
 
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+
+        await InvalidateBudgetComparisonCacheAsync(userId, budgetCategory.Budget);
 
         return budgetCategory;
     }
 
     public async Task<bool> RemoveCategoryFromBudgetAsync(int budgetCategoryId, string userId)
     {
-        var budgetCategory = await context.BudgetCategories
+        var budgetCategory = await _context.BudgetCategories
             .Include(bc => bc.Budget)
             .FirstOrDefaultAsync(bc => bc.Id == budgetCategoryId && bc.Budget.UserId == userId);
 
         if (budgetCategory == null)
             return false;
 
-        context.BudgetCategories.Remove(budgetCategory);
+        _context.BudgetCategories.Remove(budgetCategory);
         
         budgetCategory.Budget.UpdatedAt = DateTime.UtcNow;
         
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+
+        await InvalidateBudgetComparisonCacheAsync(userId, budgetCategory.Budget);
 
         return true;
     }
 
     public async Task<decimal> GetTotalBudgetedAsync(int budgetId, string userId)
     {
-        var budget = await context.Budgets
+        var budget = await _context.Budgets
             .Where(b => b.Id == budgetId && b.UserId == userId)
             .Include(b => b.BudgetCategories)
             .FirstOrDefaultAsync();
@@ -227,5 +250,18 @@ public class BudgetService(ApplicationDbContext context) : IBudgetService
             return 0;
 
         return budget.BudgetCategories.Sum(bc => bc.PlannedAmount);
+    }
+
+    private async Task InvalidateBudgetComparisonCacheAsync(string userId, Budget budget)
+    {
+        if (!budget.IsDefault && budget.Year.HasValue && budget.Month.HasValue)
+        {
+            var cacheKey = CacheKeyHelper.ForBudgetComparison(userId, budget.Year.Value, budget.Month.Value);
+            await _cacheService.RemoveAsync(cacheKey);
+        }
+        else
+        {
+            await _cacheService.RemoveByPatternAsync($"user:{userId}:budgetcomparison:*");
+        }
     }
 }

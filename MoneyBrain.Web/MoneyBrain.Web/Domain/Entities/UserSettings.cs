@@ -53,6 +53,26 @@ public class UserSettings
     public bool SetupCompleted { get; set; } = false;
 
     /// <summary>
+    /// Whether to show tips and insights features.
+    /// </summary>
+    public bool ShowTipsAndInsights { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show educational tips.
+    /// </summary>
+    public bool ShowEducationalTips { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show spending insights.
+    /// </summary>
+    public bool ShowSpendingInsights { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show behavioral insights.
+    /// </summary>
+    public bool ShowBehavioralInsights { get; set; } = true;
+
+    /// <summary>
     /// When the settings were created.
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
