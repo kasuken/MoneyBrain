@@ -46,6 +46,16 @@ public static class CacheKeyHelper
         $"user:{userId}:networth:{date:yyyy-MM-dd}";
 
     /// <summary>
+    /// Generates a cache key for budget comparison data.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="year">The year.</param>
+    /// <param name="month">The month.</param>
+    /// <returns>Cache key in format "user:{userId}:budgetcomparison:{year}:{month}"</returns>
+    public static string ForBudgetComparison(string userId, int year, int month) =>
+        $"user:{userId}:budgetcomparison:{year}:{month}";
+
+    /// <summary>
     /// Generates a pattern to invalidate all cache entries for a user.
     /// </summary>
     /// <param name="userId">The user ID.</param>

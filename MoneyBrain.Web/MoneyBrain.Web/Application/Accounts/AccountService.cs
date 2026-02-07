@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
@@ -15,15 +17,18 @@ public class AccountService : IAccountService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<AccountService> _logger;
     private readonly ILedgerService _ledgerService;
+    private readonly ICacheService _cacheService;
 
     public AccountService(
         ApplicationDbContext context, 
         ILogger<AccountService> logger,
-        ILedgerService ledgerService)
+        ILedgerService ledgerService,
+        ICacheService cacheService)
     {
         _context = context;
         _logger = logger;
         _ledgerService = ledgerService;
+        _cacheService = cacheService;
     }
 
     public async Task<IReadOnlyList<Account>> GetUserAccountsAsync(
@@ -31,6 +36,15 @@ public class AccountService : IAccountService
         bool includeInactive = false, 
         CancellationToken cancellationToken = default)
     {
+        var cacheKey = CacheKeyHelper.ForUserAccounts(userId);
+
+        if (!includeInactive)
+        {
+            var cached = await _cacheService.GetAsync<IReadOnlyList<Account>>(cacheKey);
+            if (cached != null)
+                return cached;
+        }
+
         var query = _context.Accounts
             .Where(a => a.UserId == userId);
 
@@ -39,10 +53,17 @@ public class AccountService : IAccountService
             query = query.Where(a => a.IsActive);
         }
 
-        return await query
+        var result = await query
             .OrderBy(a => a.Name)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+
+        if (!includeInactive)
+        {
+            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(24));
+        }
+
+        return result;
     }
 
     public async Task<Account?> GetAccountByIdAsync(
@@ -73,6 +94,8 @@ public class AccountService : IAccountService
 
         _context.Accounts.Add(account);
         await _context.SaveChangesAsync(cancellationToken);
+
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(account.UserId));
 
         _logger.LogInformation(
             "Account created: {AccountId} - {AccountName} for user {UserId}", 
@@ -124,6 +147,8 @@ public class AccountService : IAccountService
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(account.UserId));
+
         _logger.LogInformation(
             "Account updated: {AccountId} - {AccountName}", 
             account.Id, 
@@ -151,6 +176,8 @@ public class AccountService : IAccountService
         account.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
         _logger.LogInformation(
             "Account deactivated: {AccountId} - {AccountName}", 
@@ -180,6 +207,8 @@ public class AccountService : IAccountService
 
         _context.Accounts.Remove(account);
         await _context.SaveChangesAsync(cancellationToken);
+
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
         _logger.LogInformation(
             "Account deleted: {AccountId} - {AccountName}", 
@@ -242,6 +271,8 @@ public class AccountService : IAccountService
             _context.AccountBalanceSnapshots.Add(snapshot);
             
             await _context.SaveChangesAsync(cancellationToken);
+
+            await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
             _logger.LogInformation(
                 "Opening balance adjusted for account {AccountId} from {PreviousBalance} to {NewBalance} (Δ {Adjustment}). Reason: {Reason}",

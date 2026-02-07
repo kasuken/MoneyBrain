@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Budgets;
+using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Reporting.BudgetComparison;
@@ -11,11 +13,13 @@ public class BudgetComparisonService : IBudgetComparisonService
 {
     private readonly ApplicationDbContext _context;
     private readonly IBudgetService _budgetService;
+    private readonly ICacheService _cacheService;
 
-    public BudgetComparisonService(ApplicationDbContext context, IBudgetService budgetService)
+    public BudgetComparisonService(ApplicationDbContext context, IBudgetService budgetService, ICacheService cacheService)
     {
         _context = context;
         _budgetService = budgetService;
+        _cacheService = cacheService;
     }
 
     /// <inheritdoc />
@@ -60,6 +64,11 @@ public class BudgetComparisonService : IBudgetComparisonService
         int month,
         CancellationToken cancellationToken = default)
     {
+        var cacheKey = CacheKeyHelper.ForBudgetComparison(userId, year, month);
+        var cached = await _cacheService.GetAsync<MonthlyBudgetComparisonDto>(cacheKey);
+        if (cached != null)
+            return cached;
+
         // Get all budgets for this month (period-specific or default)
         var budgetsForPeriod = await _budgetService.GetBudgetsForPeriodAsync(userId, year, month);
         var defaultBudgets = await _budgetService.GetDefaultBudgetsAsync(userId);
@@ -133,7 +142,7 @@ public class BudgetComparisonService : IBudgetComparisonService
             .ThenBy(c => c.CategoryName)
             .ToList();
 
-        return new MonthlyBudgetComparisonDto
+        var result = new MonthlyBudgetComparisonDto
         {
             Year = year,
             Month = month,
@@ -141,5 +150,9 @@ public class BudgetComparisonService : IBudgetComparisonService
             TotalActual = categoryComparisons.Sum(c => c.Actual),
             Categories = categoryComparisons
         };
+
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(30));
+
+        return result;
     }
 }
