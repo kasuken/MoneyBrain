@@ -22,6 +22,7 @@ using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Application.Transactions.RecurringTransactions;
 using MoneyBrain.Web.Application.InsightExplorer;
+using MoneyBrain.Web.Application.Tips;
 using MoneyBrain.Web.Components;
 using MoneyBrain.Web.Components.Account;
 using MoneyBrain.Web.Data;
@@ -104,6 +105,14 @@ builder.Services.AddScoped<IAccountBalanceHistoryService, AccountBalanceHistoryS
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<ICreditCardBillingService, CreditCardBillingService>();
 builder.Services.AddScoped<IInsightExplorerService, InsightExplorerService>();
+
+// Tips & Insights services
+builder.Services.AddScoped<IEducationalTipService, EducationalTipService>();
+builder.Services.AddScoped<ITipPreferenceService, TipPreferenceService>();
+builder.Services.AddScoped<ISpendingInsightService, SpendingInsightService>();
+builder.Services.AddScoped<IBudgetInsightService, BudgetInsightService>();
+builder.Services.AddScoped<INetWorthInsightService, NetWorthInsightService>();
+builder.Services.AddScoped<IBehaviorInsightService, BehaviorInsightService>();
 
 // Mobile detection service
 builder.Services.AddScoped<MoneyBrain.Web.Services.IMobileDetectionService, MoneyBrain.Web.Services.MobileDetectionService>();

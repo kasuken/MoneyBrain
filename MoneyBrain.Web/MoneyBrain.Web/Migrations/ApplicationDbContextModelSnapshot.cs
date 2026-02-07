@@ -539,6 +539,94 @@ namespace MoneyBrain.Web.Migrations
                     b.ToTable("CategoryGroups");
                 });
 
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.EducationalTip", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LocalizationKey")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("EducationalTips");
+                });
+
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.FeatureDisclaimer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DisclaimerText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Feature")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("LocalizationKey")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Feature");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("FeatureDisclaimers");
+                });
+
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.LedgerEntry", b =>
                 {
                     b.Property<int>("Id")
@@ -1078,6 +1166,45 @@ namespace MoneyBrain.Web.Migrations
                     b.ToTable("TransactionSplits");
                 });
 
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.UserAppUsageLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActivityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityType");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "OccurredAt")
+                        .IsDescending(false, true);
+
+                    b.ToTable("UserAppUsageLogs");
+                });
+
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.UserLicense", b =>
                 {
                     b.Property<int>("Id")
@@ -1157,6 +1284,26 @@ namespace MoneyBrain.Web.Migrations
                     b.Property<bool>("SetupCompleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("ShowBehavioralInsights")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ShowEducationalTips")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ShowSpendingInsights")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ShowTipsAndInsights")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("TimeZoneId")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1175,6 +1322,51 @@ namespace MoneyBrain.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("UserSettings");
+                });
+
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.UserTipPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DismissedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EducationalTipId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDismissed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EducationalTipId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "EducationalTipId")
+                        .IsUnique()
+                        .HasFilter("[EducationalTipId] IS NOT NULL");
+
+                    b.ToTable("UserTipPreferences");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1498,6 +1690,17 @@ namespace MoneyBrain.Web.Migrations
                     b.Navigation("Transaction");
                 });
 
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.UserAppUsageLog", b =>
+                {
+                    b.HasOne("MoneyBrain.Web.Data.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.UserLicense", b =>
                 {
                     b.HasOne("MoneyBrain.Web.Data.ApplicationUser", "User")
@@ -1515,6 +1718,24 @@ namespace MoneyBrain.Web.Migrations
                         .WithOne("Settings")
                         .HasForeignKey("MoneyBrain.Web.Domain.Entities.UserSettings", "UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MoneyBrain.Web.Domain.Entities.UserTipPreference", b =>
+                {
+                    b.HasOne("MoneyBrain.Web.Domain.Entities.EducationalTip", "EducationalTip")
+                        .WithMany()
+                        .HasForeignKey("EducationalTipId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MoneyBrain.Web.Data.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EducationalTip");
 
                     b.Navigation("User");
                 });

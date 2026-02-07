@@ -122,6 +122,32 @@ public class UserSettingsService : IUserSettingsService
     }
 
     /// <inheritdoc />
+    public async Task UpdateTipsPreferencesAsync(
+        string userId,
+        bool showTipsAndInsights,
+        bool showEducationalTips,
+        bool showSpendingInsights,
+        bool showBehavioralInsights)
+    {
+        var existing = await _context.UserSettings
+            .FirstOrDefaultAsync(us => us.UserId == userId);
+
+        if (existing == null)
+        {
+            throw new InvalidOperationException("User settings not found. Please complete setup first.");
+        }
+
+        existing.ShowTipsAndInsights = showTipsAndInsights;
+        existing.ShowEducationalTips = showEducationalTips;
+        existing.ShowSpendingInsights = showSpendingInsights;
+        existing.ShowBehavioralInsights = showBehavioralInsights;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserSettings(userId));
+    }
+
+    /// <inheritdoc />
     public IReadOnlyList<CurrencyInfo> GetAvailableCurrencies()
     {
         return CommonCurrencies;

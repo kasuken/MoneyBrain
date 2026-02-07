@@ -623,6 +623,82 @@
   <data name="Tip_Collapse" xml:space="preserve">
     <value>Collapse</value>
   </data>
+  <!-- Educational Tips -->
+  <data name="Tip_Saving_Emergency_Title" xml:space="preserve">
+    <value>Emergency Fund Basics</value>
+  </data>
+  <data name="Tip_Saving_Emergency_Content" xml:space="preserve">
+    <value>An emergency fund typically covers 3-6 months of essential living expenses. This safety net helps manage unexpected costs like medical bills or urgent repairs without disrupting long-term financial goals.</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Title" xml:space="preserve">
+    <value>Expense Tracking Benefits</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Content" xml:space="preserve">
+    <value>Regular expense tracking reveals spending patterns and helps identify areas where small, frequent purchases accumulate into significant amounts over time.</value>
+  </data>
+  <data name="Tip_Investing_Compound_Title" xml:space="preserve">
+    <value>Understanding Compound Interest</value>
+  </data>
+  <data name="Tip_Investing_Compound_Content" xml:space="preserve">
+    <value>Compound interest allows investments to grow exponentially over time, as returns generate additional returns. Starting early, even with smaller amounts, can have a substantial impact over decades.</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Title" xml:space="preserve">
+    <value>Envelope Budgeting Method</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Content" xml:space="preserve">
+    <value>Envelope budgeting assigns a fixed amount to each spending category each month. When a category's allocation is depleted, no additional spending occurs in that category until the next period.</value>
+  </data>
+  <data name="Tip_General_Automation_Title" xml:space="preserve">
+    <value>Financial Automation</value>
+  </data>
+  <data name="Tip_General_Automation_Content" xml:space="preserve">
+    <value>Automating savings transfers and bill payments reduces the mental effort required for financial management and helps ensure consistent progress toward financial goals.</value>
+  </data>
+  <data name="Tip_Saving_Goals_Title" xml:space="preserve">
+    <value>Setting Savings Goals</value>
+  </data>
+  <data name="Tip_Saving_Goals_Content" xml:space="preserve">
+    <value>Specific, measurable savings goals with defined timelines increase the likelihood of achieving desired financial outcomes. Breaking larger goals into smaller milestones makes progress more visible.</value>
+  </data>
+  <data name="Tip_Spending_Needs_Title" xml:space="preserve">
+    <value>Needs vs Wants Analysis</value>
+  </data>
+  <data name="Tip_Spending_Needs_Content" xml:space="preserve">
+    <value>Distinguishing between essential expenses and discretionary spending provides clarity on where budget adjustments can be made without affecting basic quality of life.</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Title" xml:space="preserve">
+    <value>Investment Diversification</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Content" xml:space="preserve">
+    <value>Spreading investments across different asset types and sectors helps manage risk. A diversified portfolio reduces the impact of poor performance in any single investment.</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Title" xml:space="preserve">
+    <value>Zero-Based Budgeting</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Content" xml:space="preserve">
+    <value>Zero-based budgeting allocates every dollar of income to a specific purpose—expenses, savings, or debt repayment—ensuring intentional use of available resources.</value>
+  </data>
+  <data name="Tip_General_Debt_Title" xml:space="preserve">
+    <value>Debt Repayment Strategies</value>
+  </data>
+  <data name="Tip_General_Debt_Content" xml:space="preserve">
+    <value>Common debt repayment approaches include the avalanche method (highest interest first) and the snowball method (smallest balance first). Each has different psychological and financial benefits.</value>
+  </data>
+  <data name="Tip_Saving_Interest_Title" xml:space="preserve">
+    <value>High-Yield Savings Accounts</value>
+  </data>
+  <data name="Tip_Saving_Interest_Content" xml:space="preserve">
+    <value>High-yield savings accounts offer higher interest rates than traditional savings accounts while maintaining liquidity and security. Comparing rates across institutions can increase savings growth.</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Title" xml:space="preserve">
+    <value>Subscription Management</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Content" xml:space="preserve">
+    <value>Regularly reviewing recurring subscriptions helps identify services that are no longer used or valued. Small monthly charges can accumulate to significant annual expenses.</value>
+  </data>
+  <data name="Disclaimer_EducationalTips" xml:space="preserve">
+    <value>Educational tips are provided for informational purposes only and do not constitute financial advice. Please consult with a qualified financial advisor for personalized guidance.</value>
+  </data>
   <!-- Status -->
   <data name="Status_Active" xml:space="preserve">
     <value>Active</value>
@@ -4210,5 +4286,101 @@
   </data>
   <data name="AcctDlg_Savings" xml:space="preserve">
     <value>Savings</value>
+  </data>
+  <data name="Nav_Tips" xml:space="preserve">
+    <value>Tips</value>
+  </data>
+  <data name="Tips_PageTitle" xml:space="preserve">
+    <value>Tips &amp; Insights</value>
+  </data>
+  <data name="Tips_Loading" xml:space="preserve">
+    <value>Loading tips...</value>
+  </data>
+  <data name="Tips_NoTips" xml:space="preserve">
+    <value>No tips available</value>
+  </data>
+  <data name="Tips_FilterByCategory" xml:space="preserve">
+    <value>Filter by Category</value>
+  </data>
+  <data name="Tips_CategoryAll" xml:space="preserve">
+    <value>All Categories</value>
+  </data>
+  <data name="Tips_ViewAll" xml:space="preserve">
+    <value>View All Tips</value>
+  </data>
+  <data name="Tips_DismissButton" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="Tips_DismissSuccess" xml:space="preserve">
+    <value>Tip dismissed</value>
+  </data>
+  <data name="Tips_DismissError" xml:space="preserve">
+    <value>Failed to dismiss tip</value>
+  </data>
+  <data name="Tips_LoadError" xml:space="preserve">
+    <value>Failed to load tips</value>
+  </data>
+  <data name="TipCategory_Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="TipCategory_Spending" xml:space="preserve">
+    <value>Spending</value>
+  </data>
+  <data name="TipCategory_Investing" xml:space="preserve">
+    <value>Investing</value>
+  </data>
+  <data name="TipCategory_Budgeting" xml:space="preserve">
+    <value>Budgeting</value>
+  </data>
+  <data name="TipCategory_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_TipsAndInsights" xml:space="preserve">
+    <value>Tips &amp; Insights</value>
+  </data>
+  <data name="Settings_EnableTips" xml:space="preserve">
+    <value>Show tips and insights</value>
+  </data>
+  <data name="Settings_EnableEducationalTips" xml:space="preserve">
+    <value>Show educational tips</value>
+  </data>
+  <data name="Settings_EnableSpendingInsights" xml:space="preserve">
+    <value>Show spending insights</value>
+  </data>
+  <data name="Settings_EnableBehavioralInsights" xml:space="preserve">
+    <value>Show behavioral insights</value>
+  </data>
+  <data name="Settings_TipsPreferencesUpdated" xml:space="preserve">
+    <value>Tips preferences updated</value>
+  </data>
+  <data name="Dashboard_TipsSection" xml:space="preserve">
+    <value>Tips &amp; Insights</value>
+  </data>
+  <data name="Dashboard_NoTipsEnabled" xml:space="preserve">
+    <value>Tips are currently disabled in settings</value>
+  </data>
+  <data name="Disclaimer_TipsNotAdvisory" xml:space="preserve">
+    <value>The insights and tips shown here are based on your financial data and app usage patterns. They are descriptive information only and should not be considered financial advice.</value>
+  </data>
+  <data name="Disclaimer_Label" xml:space="preserve">
+    <value>Important Notice</value>
+  </data>
+  <data name="Action_Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="Message_TipDismissed" xml:space="preserve">
+    <value>Tip has been dismissed</value>
+  </data>
+  <data name="Message_PreferencesSaved" xml:space="preserve">
+    <value>Preferences saved successfully</value>
+  </data>
+  <data name="Message_ErrorOccurred" xml:space="preserve">
+    <value>An error occurred</value>
+  </data>
+  <data name="Settings_TipsSettings" xml:space="preserve">
+    <value>Tips Settings</value>
+  </data>
+  <data name="Nav_TipsInsights" xml:space="preserve">
+    <value>Tips &amp; Insights</value>
   </data>
 </root>
