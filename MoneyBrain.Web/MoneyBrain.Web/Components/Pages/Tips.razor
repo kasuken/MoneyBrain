@@ -1,0 +1,141 @@
+@page "/tips"
+@using Microsoft.AspNetCore.Authorization
+@using MoneyBrain.Web.Application.Tips
+@using MoneyBrain.Web.Application.Tips.DTOs
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
+
+@attribute [Authorize]
+@inject IEducationalTipService EducationalTipService
+@inject IStringLocalizer<SharedResource> L
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>@L["Nav_Tips"] | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <div class="mb-section-header">
+        <div>
+            <h1 class="mb-title">@L["Tips_Title"]</h1>
+            <p class="mb-subtitle">@L["Tips_Subtitle"]</p>
+        </div>
+    </div>
+
+    <FeatureDisclaimer />
+
+    @if (_loading)
+    {
+        <div class="d-flex justify-center align-center" style="min-height: 300px;">
+            <MudProgressCircular Indeterminate Size="Size.Large" />
+        </div>
+    }
+    else
+    {
+        <div class="mb-4">
+            <MudSelect T="string?" 
+                       Label="@L["Tips_FilterByCategory"]" 
+                       @bind-Value="_selectedCategory"
+                       Variant="Variant.Outlined"
+                       AnchorOrigin="Origin.BottomCenter"
+                       Style="max-width: 300px;">
+                <MudSelectItem T="string?" Value="null">@L["Tips_AllCategories"]</MudSelectItem>
+                <MudSelectItem T="string?" Value="@("Saving")">@L["Category_Saving"]</MudSelectItem>
+                <MudSelectItem T="string?" Value="@("Spending")">@L["Category_Spending"]</MudSelectItem>
+                <MudSelectItem T="string?" Value="@("Investing")">@L["Category_Investing"]</MudSelectItem>
+                <MudSelectItem T="string?" Value="@("Budgeting")">@L["Category_Budgeting"]</MudSelectItem>
+                <MudSelectItem T="string?" Value="@("General")">@L["Category_General"]</MudSelectItem>
+            </MudSelect>
+        </div>
+
+        @if (!_filteredTips.Any())
+        {
+            <MudPaper Class="pa-6 text-center">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Outlined.Lightbulb" Style="font-size: 4rem; opacity: 0.5;" />
+                    <MudText Typo="Typo.h6">@L["Tips_NoTipsAvailable"]</MudText>
+                    <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                        @L["Tips_CheckBackLater"]
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+        }
+        else
+        {
+            <MudGrid>
+                @foreach (var tip in _filteredTips)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <TipCard TipId="@tip.Id.ToString()" 
+                                 Title="@tip.Title" 
+                                 Content="@tip.Description" 
+                                 Icon="@GetCategoryIcon(tip.Category)" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    }
+    
+    <HelpButton Title="@L["Tips_HelpTitle"]"
+                Description="@L["Tips_HelpDescription"]"
+                Features="@(new[] { 
+                    L["Tips_HelpFeature1"].Value,
+                    L["Tips_HelpFeature2"].Value,
+                    L["Tips_HelpFeature3"].Value
+                })"
+                HowToUse="@(new[] {
+                    L["Tips_HelpHowTo1"].Value,
+                    L["Tips_HelpHowTo2"].Value
+                })"
+                Tips="@(new[] {
+                    L["Tips_HelpTip1"].Value,
+                    L["Tips_HelpTip2"].Value
+                })" />
+</div>
+
+@code {
+    private bool _loading = true;
+    private string? _userId;
+    private List<EducationalTipDto> _allTips = [];
+    private List<EducationalTipDto> _filteredTips = [];
+    private string? _selectedCategory = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _allTips = await EducationalTipService.GetActiveTipsAsync(_userId);
+            FilterTips();
+        }
+
+        _loading = false;
+    }
+
+    private void FilterTips()
+    {
+        if (!string.IsNullOrEmpty(_selectedCategory))
+        {
+            _filteredTips = _allTips.Where(t => t.Category == _selectedCategory).ToList();
+        }
+        else
+        {
+            _filteredTips = _allTips;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        FilterTips();
+    }
+
+    private string GetCategoryIcon(string category) => category switch
+    {
+        "Saving" => Icons.Material.Filled.Savings,
+        "Spending" => Icons.Material.Filled.ShoppingCart,
+        "Investing" => Icons.Material.Filled.TrendingUp,
+        "Budgeting" => Icons.Material.Filled.AccountBalanceWallet,
+        "General" => Icons.Material.Filled.Lightbulb,
+        _ => Icons.Material.Filled.Lightbulb
+    };
+}

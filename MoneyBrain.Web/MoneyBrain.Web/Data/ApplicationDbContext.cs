@@ -97,6 +97,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<SavedQuery> SavedQueries => Set<SavedQuery>();
 
+    /// <summary>
+    /// Educational tips for user guidance
+    /// </summary>
+    public DbSet<EducationalTip> EducationalTips => Set<EducationalTip>();
+
+    /// <summary>
+    /// User preferences for educational tips
+    /// </summary>
+    public DbSet<UserTipPreference> UserTipPreferences => Set<UserTipPreference>();
+
+    /// <summary>
+    /// User app usage logs for behavioral insights
+    /// </summary>
+    public DbSet<UserAppUsageLog> UserAppUsageLogs => Set<UserAppUsageLog>();
+
+    /// <summary>
+    /// Feature disclaimers for legal/compliance
+    /// </summary>
+    public DbSet<FeatureDisclaimer> FeatureDisclaimers => Set<FeatureDisclaimer>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -212,6 +232,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             // Unique index on UserId (one settings per user)
             entity.HasIndex(us => us.UserId).IsUnique();
+
+            // Set default values for boolean properties
+            entity.Property(us => us.ShowTipsAndInsights).HasDefaultValue(true);
+            entity.Property(us => us.ShowEducationalTips).HasDefaultValue(true);
+            entity.Property(us => us.ShowSpendingInsights).HasDefaultValue(true);
+            entity.Property(us => us.ShowBehavioralInsights).HasDefaultValue(true);
         });
 
         // Configure CategoryGroup entity
@@ -492,6 +518,74 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithMany()
                 .HasForeignKey(sq => sq.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure EducationalTip entity
+        modelBuilder.Entity<EducationalTip>(entity =>
+        {
+            entity.HasKey(et => et.Id);
+
+            entity.HasIndex(et => et.Category);
+            entity.HasIndex(et => et.IsActive);
+            entity.HasIndex(et => et.DisplayOrder);
+        });
+
+        // Configure UserTipPreference entity
+        modelBuilder.Entity<UserTipPreference>(entity =>
+        {
+            entity.HasKey(utp => utp.Id);
+
+            // Unique constraint on (UserId, EducationalTipId)
+            entity.HasIndex(utp => new { utp.UserId, utp.EducationalTipId }).IsUnique();
+
+            entity.HasIndex(utp => utp.UserId);
+            entity.HasIndex(utp => utp.EducationalTipId);
+
+            // Relationship: UserTipPreference belongs to one ApplicationUser
+            entity.HasOne(utp => utp.User)
+                .WithMany()
+                .HasForeignKey(utp => utp.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship: UserTipPreference references one EducationalTip
+            entity.HasOne(utp => utp.EducationalTip)
+                .WithMany()
+                .HasForeignKey(utp => utp.EducationalTipId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Set default values
+            entity.Property(utp => utp.IsEnabled).HasDefaultValue(true);
+            entity.Property(utp => utp.IsDismissed).HasDefaultValue(false);
+        });
+
+        // Configure UserAppUsageLog entity
+        modelBuilder.Entity<UserAppUsageLog>(entity =>
+        {
+            entity.HasKey(ual => ual.Id);
+
+            // Composite index on (UserId, OccurredAt DESC) for time-series queries
+            entity.HasIndex(ual => new { ual.UserId, ual.OccurredAt }).IsDescending(false, true);
+
+            entity.HasIndex(ual => ual.UserId);
+            entity.HasIndex(ual => ual.ActivityType);
+
+            // Relationship: UserAppUsageLog belongs to one ApplicationUser
+            entity.HasOne(ual => ual.User)
+                .WithMany()
+                .HasForeignKey(ual => ual.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure FeatureDisclaimer entity
+        modelBuilder.Entity<FeatureDisclaimer>(entity =>
+        {
+            entity.HasKey(fd => fd.Id);
+
+            entity.HasIndex(fd => fd.Feature);
+            entity.HasIndex(fd => fd.IsActive);
+
+            // Set default value
+            entity.Property(fd => fd.IsActive).HasDefaultValue(true);
         });
     }
 }

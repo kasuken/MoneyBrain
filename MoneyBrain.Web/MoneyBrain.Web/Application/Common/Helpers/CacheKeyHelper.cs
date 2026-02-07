@@ -56,6 +56,78 @@ public static class CacheKeyHelper
         $"user:{userId}:budgetcomparison:{year}:{month}";
 
     /// <summary>
+    /// Generates a cache key for educational tips.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <returns>Cache key in format "user:{userId}:educationaltips"</returns>
+    public static string ForEducationalTips(string userId) => $"user:{userId}:educationaltips";
+
+    /// <summary>
+    /// Generates a cache key for tip preferences.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <returns>Cache key in format "user:{userId}:tippreferences"</returns>
+    public static string ForTipPreferences(string userId) => $"user:{userId}:tippreferences";
+
+    /// <summary>
+    /// Generates a cache key for spending insights.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="year">The year.</param>
+    /// <param name="month">The month.</param>
+    /// <returns>Cache key in format "user:{userId}:spendinginsight:{year}:{month}"</returns>
+    public static string ForSpendingInsight(string userId, int year, int month) =>
+        $"user:{userId}:spendinginsight:{year}:{month}";
+
+    /// <summary>
+    /// Generates a cache key for comparative spending insights.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="year">The year.</param>
+    /// <param name="month">The month.</param>
+    /// <returns>Cache key in format "user:{userId}:comparativespendinginsight:{year}:{month}"</returns>
+    public static string ForComparativeSpendingInsight(string userId, int year, int month) =>
+        $"user:{userId}:comparativespendinginsight:{year}:{month}";
+
+    /// <summary>
+    /// Generates a cache key for budget insights.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="year">The year.</param>
+    /// <param name="month">The month.</param>
+    /// <returns>Cache key in format "user:{userId}:budgetinsight:{year}:{month}"</returns>
+    public static string ForBudgetInsight(string userId, int year, int month) =>
+        $"user:{userId}:budgetinsight:{year}:{month}";
+
+    /// <summary>
+    /// Generates a cache key for net worth insights.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="asOfDate">The date for the insight.</param>
+    /// <returns>Cache key in format "user:{userId}:networthinsight:{date:yyyy-MM-dd}"</returns>
+    public static string ForNetWorthInsight(string userId, DateTime asOfDate) =>
+        $"user:{userId}:networthinsight:{asOfDate:yyyy-MM-dd}";
+
+    /// <summary>
+    /// Generates a cache key for net worth trend data.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="months">Number of months in the trend.</param>
+    /// <returns>Cache key in format "user:{userId}:networthtrend:{months}"</returns>
+    public static string ForNetWorthTrend(string userId, int months) =>
+        $"user:{userId}:networthtrend:{months}";
+
+    /// <summary>
+    /// Generates a cache key for behavior insights.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="startDate">The start date of the analysis period.</param>
+    /// <param name="endDate">The end date of the analysis period.</param>
+    /// <returns>Cache key in format "user:{userId}:behaviorinsights:{startDate:yyyy-MM-dd}:{endDate:yyyy-MM-dd}"</returns>
+    public static string ForBehaviorInsights(string userId, DateTime startDate, DateTime endDate) =>
+        $"user:{userId}:behaviorinsights:{startDate:yyyy-MM-dd}:{endDate:yyyy-MM-dd}";
+
+    /// <summary>
     /// Generates a pattern to invalidate all cache entries for a user.
     /// </summary>
     /// <param name="userId">The user ID.</param>

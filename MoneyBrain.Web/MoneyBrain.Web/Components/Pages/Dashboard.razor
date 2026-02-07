@@ -6,6 +6,8 @@
 @using MoneyBrain.Web.Application.Reporting.NetWorth
 @using MoneyBrain.Web.Application.Reporting.BudgetComparison
 @using MoneyBrain.Web.Application.Budgets
+@using MoneyBrain.Web.Application.Tips
+@using MoneyBrain.Web.Application.Tips.DTOs
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Domain.Enums
 @using Microsoft.Extensions.Localization
@@ -19,6 +21,8 @@
 @inject INetWorthService NetWorthService
 @inject IBudgetComparisonService BudgetComparisonService
 @inject IBudgetService BudgetService
+@inject IEducationalTipService EducationalTipService
+@inject ITipPreferenceService TipPreferenceService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
@@ -280,7 +284,34 @@
                         </div>
                     }
                 </div>
+                }
             </div>
+        }
+        
+        <!-- Tips & Insights Section -->
+        @if (_userSettings?.ShowTipsAndInsights == true && _userSettings.ShowEducationalTips && _educationalTips.Any())
+        {
+            <div class="mb-section-header mt-6">
+                <h2 class="mb-section-title">@L["Dashboard_TipsInsights"]</h2>
+                <MudButton Variant="Variant.Text" 
+                           Color="Color.Primary" 
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           OnClick="@(() => NavigationManager.NavigateTo("/tips"))">
+                    @L["Dashboard_ViewAllTips"]
+                </MudButton>
+            </div>
+            
+            <MudGrid>
+                @foreach (var tip in _educationalTips.Take(2))
+                {
+                    <MudItem xs="12" md="6">
+                        <TipCard TipId="@tip.Id.ToString()" 
+                                 Title="@tip.Title" 
+                                 Content="@tip.Description" 
+                                 Icon="@GetCategoryIcon(tip.Category)" />
+                    </MudItem>
+                }
+            </MudGrid>
         }
     }
     
@@ -311,6 +342,7 @@
     private bool _loading = true;
     private string? _userId;
     private string _currencyCode = "USD";
+    private UserSettings? _userSettings;
     
     private DateTime _periodStart;
     private DateTime _periodEnd;
@@ -333,6 +365,9 @@
     private string[] _incomeExpenseChartLabels = [];
     private double[] _categoryPieData = [];
     private string[] _categoryPieLabels = [];
+    
+    // Tips & Insights
+    private List<EducationalTipDto> _educationalTips = [];
     
     // Trend chart data
     private List<ChartSeries> _netWorthTrendSeries = [];
@@ -364,10 +399,18 @@
         if (string.IsNullOrEmpty(_userId)) return;
         
         // Load user settings
-        var settings = await SettingsService.GetSettingsAsync(_userId);
-        if (settings != null)
+        _userSettings = await SettingsService.GetSettingsAsync(_userId);
+        if (_userSettings != null)
         {
-            _currencyCode = settings.CurrencyCode;
+            _currencyCode = _userSettings.CurrencyCode;
+        }
+        
+        // Load educational tips if enabled
+        if (_userSettings?.ShowTipsAndInsights == true && _userSettings.ShowEducationalTips)
+        {
+            var allTips = await EducationalTipService.GetActiveTipsAsync(_userId);
+            // Randomize and take 2 tips
+            _educationalTips = allTips.OrderBy(_ => Guid.NewGuid()).Take(2).ToList();
         }
         
         // Calculate net worth for total balance
@@ -552,5 +595,15 @@
         <= 90 => "info",
         <= 100 => "",
         _ => "expense"
+    };
+    
+    private string GetCategoryIcon(string category) => category switch
+    {
+        "Saving" => Icons.Material.Filled.Savings,
+        "Spending" => Icons.Material.Filled.ShoppingCart,
+        "Investing" => Icons.Material.Filled.TrendingUp,
+        "Budgeting" => Icons.Material.Filled.AccountBalanceWallet,
+        "General" => Icons.Material.Filled.Lightbulb,
+        _ => Icons.Material.Filled.Lightbulb
     };
 }

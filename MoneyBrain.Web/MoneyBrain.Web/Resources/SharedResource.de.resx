@@ -3442,4 +3442,176 @@
   <data name="Pwa_IosStep3" xml:space="preserve">
     <value>Tippen Sie auf "Hinzufügen" zum Bestätigen</value>
   </data>
+  <!-- Educational Tips -->
+  <data name="Tip_Saving_Emergency_Title" xml:space="preserve">
+    <value>Grundlagen des Notfallfonds</value>
+  </data>
+  <data name="Tip_Saving_Emergency_Content" xml:space="preserve">
+    <value>Ein Notfallfonds deckt in der Regel 3-6 Monate der wesentlichen Lebenshaltungskosten ab. Dieses Sicherheitsnetz hilft, unerwartete Kosten wie Arztrechnungen oder dringende Reparaturen zu bewältigen, ohne langfristige finanzielle Ziele zu gefährden.</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Title" xml:space="preserve">
+    <value>Vorteile der Ausgabenverfolgung</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Content" xml:space="preserve">
+    <value>Regelmäßige Ausgabenverfolgung zeigt Ausgabenmuster auf und hilft dabei, Bereiche zu identifizieren, in denen sich kleine, häufige Käufe im Laufe der Zeit zu erheblichen Beträgen summieren.</value>
+  </data>
+  <data name="Tip_Investing_Compound_Title" xml:space="preserve">
+    <value>Zinseszins verstehen</value>
+  </data>
+  <data name="Tip_Investing_Compound_Content" xml:space="preserve">
+    <value>Zinseszins ermöglicht es Investitionen, exponentiell über die Zeit zu wachsen, da Renditen zusätzliche Renditen erzeugen. Ein früher Beginn, selbst mit kleineren Beträgen, kann über Jahrzehnte einen erheblichen Einfluss haben.</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Title" xml:space="preserve">
+    <value>Umschlag-Budgetierungsmethode</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Content" xml:space="preserve">
+    <value>Die Umschlag-Budgetierung weist jeder Ausgabenkategorie jeden Monat einen festen Betrag zu. Wenn die Zuteilung einer Kategorie aufgebraucht ist, werden in dieser Kategorie bis zur nächsten Periode keine weiteren Ausgaben getätigt.</value>
+  </data>
+  <data name="Tip_General_Automation_Title" xml:space="preserve">
+    <value>Finanzielle Automatisierung</value>
+  </data>
+  <data name="Tip_General_Automation_Content" xml:space="preserve">
+    <value>Die Automatisierung von Sparüberweisungen und Rechnungszahlungen reduziert den mentalen Aufwand für das Finanzmanagement und trägt dazu bei, konsistenten Fortschritt bei finanziellen Zielen sicherzustellen.</value>
+  </data>
+  <data name="Tip_Saving_Goals_Title" xml:space="preserve">
+    <value>Sparziele setzen</value>
+  </data>
+  <data name="Tip_Saving_Goals_Content" xml:space="preserve">
+    <value>Spezifische, messbare Sparziele mit definierten Zeitplänen erhöhen die Wahrscheinlichkeit, gewünschte finanzielle Ergebnisse zu erreichen. Das Aufteilen größerer Ziele in kleinere Meilensteine macht den Fortschritt sichtbarer.</value>
+  </data>
+  <data name="Tip_Spending_Needs_Title" xml:space="preserve">
+    <value>Bedürfnisse vs. Wünsche-Analyse</value>
+  </data>
+  <data name="Tip_Spending_Needs_Content" xml:space="preserve">
+    <value>Die Unterscheidung zwischen wesentlichen Ausgaben und frei wählbaren Ausgaben bietet Klarheit darüber, wo Budgetanpassungen vorgenommen werden können, ohne die grundlegende Lebensqualität zu beeinträchtigen.</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Title" xml:space="preserve">
+    <value>Investitionsdiversifizierung</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Content" xml:space="preserve">
+    <value>Die Verteilung von Investitionen über verschiedene Anlageklassen und Sektoren hilft, Risiken zu managen. Ein diversifiziertes Portfolio reduziert die Auswirkungen schlechter Performance einer einzelnen Investition.</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Title" xml:space="preserve">
+    <value>Nullbasierte Budgetierung</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Content" xml:space="preserve">
+    <value>Nullbasierte Budgetierung weist jeden Dollar des Einkommens einem bestimmten Zweck zu – Ausgaben, Ersparnisse oder Schuldenrückzahlung – um eine absichtliche Nutzung der verfügbaren Ressourcen sicherzustellen.</value>
+  </data>
+  <data name="Tip_General_Debt_Title" xml:space="preserve">
+    <value>Strategien zur Schuldenrückzahlung</value>
+  </data>
+  <data name="Tip_General_Debt_Content" xml:space="preserve">
+    <value>Gängige Ansätze zur Schuldenrückzahlung umfassen die Lawinenmethode (höchste Zinsen zuerst) und die Schneeballmethode (kleinster Saldo zuerst). Jede hat unterschiedliche psychologische und finanzielle Vorteile.</value>
+  </data>
+  <data name="Tip_Saving_Interest_Title" xml:space="preserve">
+    <value>Hochverzinsliche Sparkonten</value>
+  </data>
+  <data name="Tip_Saving_Interest_Content" xml:space="preserve">
+    <value>Hochverzinsliche Sparkonten bieten höhere Zinssätze als traditionelle Sparkonten bei gleichzeitiger Aufrechterhaltung von Liquidität und Sicherheit. Der Vergleich von Zinssätzen verschiedener Institute kann das Sparvermögen steigern.</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Title" xml:space="preserve">
+    <value>Abonnementverwaltung</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Content" xml:space="preserve">
+    <value>Die regelmäßige Überprüfung wiederkehrender Abonnements hilft dabei, Dienste zu identifizieren, die nicht mehr genutzt oder geschätzt werden. Kleine monatliche Gebühren können sich zu erheblichen jährlichen Ausgaben summieren.</value>
+  </data>
+  <data name="Disclaimer_EducationalTips" xml:space="preserve">
+    <value>Bildungstipps werden nur zu Informationszwecken bereitgestellt und stellen keine Finanzberatung dar. Bitte konsultieren Sie einen qualifizierten Finanzberater für persönliche Beratung.</value>
+  </data>
+  <data name="Nav_Tips" xml:space="preserve">
+    <value>Tipps</value>
+  </data>
+  <data name="Tips_PageTitle" xml:space="preserve">
+    <value>Tipps &amp; Einblicke</value>
+  </data>
+  <data name="Tips_Loading" xml:space="preserve">
+    <value>Tipps werden geladen...</value>
+  </data>
+  <data name="Tips_NoTips" xml:space="preserve">
+    <value>Keine Tipps verfügbar</value>
+  </data>
+  <data name="Tips_FilterByCategory" xml:space="preserve">
+    <value>Nach Kategorie filtern</value>
+  </data>
+  <data name="Tips_CategoryAll" xml:space="preserve">
+    <value>Alle Kategorien</value>
+  </data>
+  <data name="Tips_ViewAll" xml:space="preserve">
+    <value>Alle Tipps anzeigen</value>
+  </data>
+  <data name="Tips_DismissButton" xml:space="preserve">
+    <value>Verwerfen</value>
+  </data>
+  <data name="Tips_DismissSuccess" xml:space="preserve">
+    <value>Tipp verworfen</value>
+  </data>
+  <data name="Tips_DismissError" xml:space="preserve">
+    <value>Fehler beim Verwerfen des Tipps</value>
+  </data>
+  <data name="Tips_LoadError" xml:space="preserve">
+    <value>Fehler beim Laden der Tipps</value>
+  </data>
+  <data name="TipCategory_Saving" xml:space="preserve">
+    <value>Sparen</value>
+  </data>
+  <data name="TipCategory_Spending" xml:space="preserve">
+    <value>Ausgaben</value>
+  </data>
+  <data name="TipCategory_Investing" xml:space="preserve">
+    <value>Investieren</value>
+  </data>
+  <data name="TipCategory_Budgeting" xml:space="preserve">
+    <value>Budgetierung</value>
+  </data>
+  <data name="TipCategory_General" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Settings_TipsAndInsights" xml:space="preserve">
+    <value>Tipps &amp; Einblicke</value>
+  </data>
+  <data name="Settings_EnableTips" xml:space="preserve">
+    <value>Tipps und Einblicke anzeigen</value>
+  </data>
+  <data name="Settings_EnableEducationalTips" xml:space="preserve">
+    <value>Bildungstipps anzeigen</value>
+  </data>
+  <data name="Settings_EnableSpendingInsights" xml:space="preserve">
+    <value>Ausgaben-Einblicke anzeigen</value>
+  </data>
+  <data name="Settings_EnableBehavioralInsights" xml:space="preserve">
+    <value>Verhaltens-Einblicke anzeigen</value>
+  </data>
+  <data name="Settings_TipsPreferencesUpdated" xml:space="preserve">
+    <value>Tipps-Einstellungen aktualisiert</value>
+  </data>
+  <data name="Dashboard_TipsSection" xml:space="preserve">
+    <value>Tipps &amp; Einblicke</value>
+  </data>
+  <data name="Dashboard_NoTipsEnabled" xml:space="preserve">
+    <value>Tipps sind derzeit in den Einstellungen deaktiviert</value>
+  </data>
+  <data name="Disclaimer_TipsNotAdvisory" xml:space="preserve">
+    <value>Die hier gezeigten Einblicke und Tipps basieren auf Ihren Finanzdaten und App-Nutzungsmustern. Sie dienen nur zur Information und sollten nicht als Finanzberatung angesehen werden.</value>
+  </data>
+  <data name="Disclaimer_Label" xml:space="preserve">
+    <value>Wichtiger Hinweis</value>
+  </data>
+  <data name="Action_Dismiss" xml:space="preserve">
+    <value>Verwerfen</value>
+  </data>
+  <data name="Message_TipDismissed" xml:space="preserve">
+    <value>Tipp wurde verworfen</value>
+  </data>
+  <data name="Message_PreferencesSaved" xml:space="preserve">
+    <value>Einstellungen erfolgreich gespeichert</value>
+  </data>
+  <data name="Message_ErrorOccurred" xml:space="preserve">
+    <value>Ein Fehler ist aufgetreten</value>
+  </data>
+  <data name="Settings_TipsSettings" xml:space="preserve">
+    <value>Tipps-Einstellungen</value>
+  </data>
+  <data name="Nav_TipsInsights" xml:space="preserve">
+    <value>Tipps &amp; Einblicke</value>
+  </data>
 </root>

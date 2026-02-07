@@ -82,6 +82,37 @@
                             <MudSelectItem T="string" Value="@("dd.MM.yyyy")">25.01.2026</MudSelectItem>
                         </MudSelect>
 
+                         <MudDivider Class="my-2" />
+
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color: var(--mb-text-secondary); font-weight: 600;">
+                                @L["Settings_TipsInsights"]
+                            </MudText>
+                        </div>
+
+                        <MudCheckBox T="bool" 
+                                     @bind-Checked="_showTipsAndInsights" 
+                                     Label="@L["Settings_ShowTipsAndInsights"]" 
+                                     Color="Color.Primary" />
+                        
+                        <MudCheckBox T="bool" 
+                                     @bind-Checked="_showEducationalTips" 
+                                     Label="@L["Settings_ShowEducationalTips"]" 
+                                     Color="Color.Primary"
+                                     Disabled="@(!_showTipsAndInsights)" />
+                        
+                        <MudCheckBox T="bool" 
+                                     @bind-Checked="_showSpendingInsights" 
+                                     Label="@L["Settings_ShowSpendingInsights"]" 
+                                     Color="Color.Primary"
+                                     Disabled="@(!_showTipsAndInsights)" />
+                        
+                        <MudCheckBox T="bool" 
+                                     @bind-Checked="_showBehavioralInsights" 
+                                     Label="@L["Settings_ShowBehavioralInsights"]" 
+                                     Color="Color.Primary"
+                                     Disabled="@(!_showTipsAndInsights)" />
+
                         <MudDivider Class="my-2" />
 
                         <MudButton Variant="Variant.Filled"
@@ -180,6 +211,10 @@
     private string _currencyCode = "USD";
     private string _timeZoneId = TimeZoneInfo.Local.Id;
     private string _dateFormat = "yyyy-MM-dd";
+    private bool _showTipsAndInsights = true;
+    private bool _showEducationalTips = true;
+    private bool _showSpendingInsights = true;
+    private bool _showBehavioralInsights = true;
 
     private IReadOnlyList<CurrencyInfo> _currencies = [];
     private IReadOnlyList<TimeZoneInfo> _timeZones = [];
@@ -200,6 +235,10 @@
                 _currencyCode = settings.CurrencyCode;
                 _timeZoneId = settings.TimeZoneId;
                 _dateFormat = settings.DateFormat;
+                _showTipsAndInsights = settings.ShowTipsAndInsights;
+                _showEducationalTips = settings.ShowEducationalTips;
+                _showSpendingInsights = settings.ShowSpendingInsights;
+                _showBehavioralInsights = settings.ShowBehavioralInsights;
             }
         }
 
@@ -227,6 +266,12 @@
             }
 
             await SettingsService.SaveSettingsAsync(userId, _currencyCode, _timeZoneId, _dateFormat);
+            await SettingsService.UpdateTipsPreferencesAsync(
+                userId,
+                _showTipsAndInsights,
+                _showEducationalTips,
+                _showSpendingInsights,
+                _showBehavioralInsights);
             Snackbar.Add(L["Settings_SavedSuccess"], Severity.Success);
         }
         catch (Exception ex)
