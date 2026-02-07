@@ -15,6 +15,7 @@
 @inject IDialogService DialogService
 @inject IUserSettingsService SettingsService
 @inject IStringLocalizer<SharedResource> L
+@inject IJSRuntime JS
 
 <MudDialog @bind-IsVisible="_isVisible" Options="@(FullScreen ? _fullScreenOptions : _defaultOptions)">
     <DialogContent>
@@ -47,7 +48,7 @@
             <MudNumericField @bind-Value="_amount" Label="@L["Col_Amount"]" Required="true" Format="F2"
                              Adornment="Adornment.Start" AdornmentText="@_currencySymbol"
                              HelperText="@L["TxnDlg_AmountHelper"]"
-                             SelectOnClick="true"
+                             @onfocus="SelectAmountOnFocus"
                              Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudAutocomplete T="string" @bind-Value="_payeeName" Label="@L["Col_Payee"]"
@@ -389,5 +390,10 @@
     {
         var currencies = SettingsService.GetAvailableCurrencies();
         return currencies.FirstOrDefault(c => c.Code == currencyCode)?.Symbol ?? "$";
+    }
+
+    private async Task SelectAmountOnFocus(FocusEventArgs args)
+    {
+        await JS.InvokeVoidAsync("moneyBrain.selectOnFocus");
     }
 }
