@@ -4224,4 +4224,176 @@
   <data name="Pwa_IosStep3" xml:space="preserve">
     <value>Toca "Añadir" para confirmar</value>
   </data>
+  <!-- Educational Tips -->
+  <data name="Tip_Saving_Emergency_Title" xml:space="preserve">
+    <value>Conceptos Básicos del Fondo de Emergencia</value>
+  </data>
+  <data name="Tip_Saving_Emergency_Content" xml:space="preserve">
+    <value>Un fondo de emergencia normalmente cubre de 3 a 6 meses de gastos esenciales de vida. Esta red de seguridad ayuda a gestionar costos inesperados como facturas médicas o reparaciones urgentes sin interrumpir los objetivos financieros a largo plazo.</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Title" xml:space="preserve">
+    <value>Beneficios del Seguimiento de Gastos</value>
+  </data>
+  <data name="Tip_Spending_Tracking_Content" xml:space="preserve">
+    <value>El seguimiento regular de gastos revela patrones de gasto y ayuda a identificar áreas donde las compras pequeñas y frecuentes se acumulan en cantidades significativas con el tiempo.</value>
+  </data>
+  <data name="Tip_Investing_Compound_Title" xml:space="preserve">
+    <value>Comprender el Interés Compuesto</value>
+  </data>
+  <data name="Tip_Investing_Compound_Content" xml:space="preserve">
+    <value>El interés compuesto permite que las inversiones crezcan exponencialmente con el tiempo, ya que los rendimientos generan rendimientos adicionales. Comenzar temprano, incluso con cantidades más pequeñas, puede tener un impacto sustancial a lo largo de décadas.</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Title" xml:space="preserve">
+    <value>Método de Presupuesto de Sobres</value>
+  </data>
+  <data name="Tip_Budgeting_Envelope_Content" xml:space="preserve">
+    <value>El presupuesto de sobres asigna una cantidad fija a cada categoría de gasto cada mes. Cuando se agota la asignación de una categoría, no se realizan gastos adicionales en esa categoría hasta el próximo período.</value>
+  </data>
+  <data name="Tip_General_Automation_Title" xml:space="preserve">
+    <value>Automatización Financiera</value>
+  </data>
+  <data name="Tip_General_Automation_Content" xml:space="preserve">
+    <value>Automatizar las transferencias de ahorro y los pagos de facturas reduce el esfuerzo mental requerido para la gestión financiera y ayuda a garantizar un progreso constante hacia los objetivos financieros.</value>
+  </data>
+  <data name="Tip_Saving_Goals_Title" xml:space="preserve">
+    <value>Establecer Objetivos de Ahorro</value>
+  </data>
+  <data name="Tip_Saving_Goals_Content" xml:space="preserve">
+    <value>Los objetivos de ahorro específicos y medibles con plazos definidos aumentan la probabilidad de lograr los resultados financieros deseados. Dividir objetivos más grandes en hitos más pequeños hace que el progreso sea más visible.</value>
+  </data>
+  <data name="Tip_Spending_Needs_Title" xml:space="preserve">
+    <value>Análisis de Necesidades vs Deseos</value>
+  </data>
+  <data name="Tip_Spending_Needs_Content" xml:space="preserve">
+    <value>Distinguir entre gastos esenciales y gastos discrecionales proporciona claridad sobre dónde se pueden realizar ajustes presupuestarios sin afectar la calidad de vida básica.</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Title" xml:space="preserve">
+    <value>Diversificación de Inversiones</value>
+  </data>
+  <data name="Tip_Investing_Diversification_Content" xml:space="preserve">
+    <value>Distribuir las inversiones entre diferentes tipos de activos y sectores ayuda a gestionar el riesgo. Una cartera diversificada reduce el impacto del bajo rendimiento de cualquier inversión individual.</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Title" xml:space="preserve">
+    <value>Presupuesto Base Cero</value>
+  </data>
+  <data name="Tip_Budgeting_ZeroBased_Content" xml:space="preserve">
+    <value>El presupuesto base cero asigna cada dólar de ingresos a un propósito específico: gastos, ahorros o pago de deudas, garantizando el uso intencional de los recursos disponibles.</value>
+  </data>
+  <data name="Tip_General_Debt_Title" xml:space="preserve">
+    <value>Estrategias de Pago de Deudas</value>
+  </data>
+  <data name="Tip_General_Debt_Content" xml:space="preserve">
+    <value>Los enfoques comunes de pago de deudas incluyen el método de avalancha (interés más alto primero) y el método de bola de nieve (saldo más pequeño primero). Cada uno tiene diferentes beneficios psicológicos y financieros.</value>
+  </data>
+  <data name="Tip_Saving_Interest_Title" xml:space="preserve">
+    <value>Cuentas de Ahorro de Alto Rendimiento</value>
+  </data>
+  <data name="Tip_Saving_Interest_Content" xml:space="preserve">
+    <value>Las cuentas de ahorro de alto rendimiento ofrecen tasas de interés más altas que las cuentas de ahorro tradicionales mientras mantienen liquidez y seguridad. Comparar tasas entre instituciones puede aumentar el crecimiento de los ahorros.</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Title" xml:space="preserve">
+    <value>Gestión de Suscripciones</value>
+  </data>
+  <data name="Tip_Spending_Subscriptions_Content" xml:space="preserve">
+    <value>Revisar regularmente las suscripciones recurrentes ayuda a identificar servicios que ya no se usan o valoran. Los pequeños cargos mensuales pueden acumularse en gastos anuales significativos.</value>
+  </data>
+  <data name="Disclaimer_EducationalTips" xml:space="preserve">
+    <value>Los consejos educativos se proporcionan solo con fines informativos y no constituyen asesoramiento financiero. Consulte con un asesor financiero calificado para obtener orientación personalizada.</value>
+  </data>
+  <data name="Nav_Tips" xml:space="preserve">
+    <value>Consejos</value>
+  </data>
+  <data name="Tips_PageTitle" xml:space="preserve">
+    <value>Consejos e Información</value>
+  </data>
+  <data name="Tips_Loading" xml:space="preserve">
+    <value>Cargando consejos...</value>
+  </data>
+  <data name="Tips_NoTips" xml:space="preserve">
+    <value>No hay consejos disponibles</value>
+  </data>
+  <data name="Tips_FilterByCategory" xml:space="preserve">
+    <value>Filtrar por categoría</value>
+  </data>
+  <data name="Tips_CategoryAll" xml:space="preserve">
+    <value>Todas las categorías</value>
+  </data>
+  <data name="Tips_ViewAll" xml:space="preserve">
+    <value>Ver todos los consejos</value>
+  </data>
+  <data name="Tips_DismissButton" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="Tips_DismissSuccess" xml:space="preserve">
+    <value>Consejo descartado</value>
+  </data>
+  <data name="Tips_DismissError" xml:space="preserve">
+    <value>Error al descartar el consejo</value>
+  </data>
+  <data name="Tips_LoadError" xml:space="preserve">
+    <value>Error al cargar los consejos</value>
+  </data>
+  <data name="TipCategory_Saving" xml:space="preserve">
+    <value>Ahorro</value>
+  </data>
+  <data name="TipCategory_Spending" xml:space="preserve">
+    <value>Gastos</value>
+  </data>
+  <data name="TipCategory_Investing" xml:space="preserve">
+    <value>Inversión</value>
+  </data>
+  <data name="TipCategory_Budgeting" xml:space="preserve">
+    <value>Presupuesto</value>
+  </data>
+  <data name="TipCategory_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_TipsAndInsights" xml:space="preserve">
+    <value>Consejos e Información</value>
+  </data>
+  <data name="Settings_EnableTips" xml:space="preserve">
+    <value>Mostrar consejos e información</value>
+  </data>
+  <data name="Settings_EnableEducationalTips" xml:space="preserve">
+    <value>Mostrar consejos educativos</value>
+  </data>
+  <data name="Settings_EnableSpendingInsights" xml:space="preserve">
+    <value>Mostrar información de gastos</value>
+  </data>
+  <data name="Settings_EnableBehavioralInsights" xml:space="preserve">
+    <value>Mostrar información de comportamiento</value>
+  </data>
+  <data name="Settings_TipsPreferencesUpdated" xml:space="preserve">
+    <value>Preferencias de consejos actualizadas</value>
+  </data>
+  <data name="Dashboard_TipsSection" xml:space="preserve">
+    <value>Consejos e Información</value>
+  </data>
+  <data name="Dashboard_NoTipsEnabled" xml:space="preserve">
+    <value>Los consejos están actualmente deshabilitados en la configuración</value>
+  </data>
+  <data name="Disclaimer_TipsNotAdvisory" xml:space="preserve">
+    <value>La información y los consejos mostrados aquí se basan en sus datos financieros y patrones de uso de la aplicación. Son solo información descriptiva y no deben considerarse asesoramiento financiero.</value>
+  </data>
+  <data name="Disclaimer_Label" xml:space="preserve">
+    <value>Aviso importante</value>
+  </data>
+  <data name="Action_Dismiss" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="Message_TipDismissed" xml:space="preserve">
+    <value>El consejo ha sido descartado</value>
+  </data>
+  <data name="Message_PreferencesSaved" xml:space="preserve">
+    <value>Preferencias guardadas exitosamente</value>
+  </data>
+  <data name="Message_ErrorOccurred" xml:space="preserve">
+    <value>Ocurrió un error</value>
+  </data>
+  <data name="Settings_TipsSettings" xml:space="preserve">
+    <value>Configuración de consejos</value>
+  </data>
+  <data name="Nav_TipsInsights" xml:space="preserve">
+    <value>Consejos e Información</value>
+  </data>
 </root>
