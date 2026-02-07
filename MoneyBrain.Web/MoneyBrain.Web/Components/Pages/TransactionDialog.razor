@@ -394,6 +394,14 @@
 
     private async Task SelectAmountOnFocus(FocusEventArgs args)
     {
-        await JS.InvokeVoidAsync("moneyBrain.selectOnFocus");
+        try
+        {
+            await JS.InvokeVoidAsync("moneyBrain.selectOnFocus");
+        }
+        catch (JSException)
+        {
+            // Silently fail if JavaScript is not available
+            // This ensures the form remains functional even if the JS file fails to load
+        }
     }
 }
