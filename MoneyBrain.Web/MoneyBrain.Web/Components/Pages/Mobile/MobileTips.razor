@@ -1,0 +1,142 @@
+#nullable enable
+@page "/mobile/tips"
+@layout MobileLayout
+@using Microsoft.AspNetCore.Components.Authorization
+@using MoneyBrain.Web.Application.Tips
+@using MoneyBrain.Web.Application.Tips.DTOs
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
+
+@inject IEducationalTipService EducationalTipService
+@inject IStringLocalizer<SharedResource> L
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>@L["Mobile_Tips"] | MoneyBrain</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.False" Class="pa-4" Style="padding-bottom: 80px !important;">
+            <!-- Header -->
+            <MudText Typo="Typo.h5" Style="font-weight: 600;" Class="mb-2">@L["Tips_Title"]</MudText>
+            <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);" Class="mb-4">@L["Tips_Subtitle"]</MudText>
+
+            @if (_loading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+            }
+            else
+            {
+                <!-- Category Filter - Horizontal Chip Scroll -->
+                <div class="mb-4" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <MudChipSet @bind-SelectedChip="_selectedChip" 
+                                Filter="true" 
+                                Mandatory="true"
+                                Style="flex-wrap: nowrap; white-space: nowrap;">
+                        <MudChip Text="@L["Tips_AllCategories"]" Tag="@((string?)null)" Default="true" />
+                        <MudChip Text="@L["Category_Saving"]" Tag="@("Saving")" />
+                        <MudChip Text="@L["Category_Spending"]" Tag="@("Spending")" />
+                        <MudChip Text="@L["Category_Investing"]" Tag="@("Investing")" />
+                        <MudChip Text="@L["Category_Budgeting"]" Tag="@("Budgeting")" />
+                        <MudChip Text="@L["Category_General"]" Tag="@("General")" />
+                    </MudChipSet>
+                </div>
+
+                @if (!_filteredTips.Any())
+                {
+                    <MudPaper Class="pa-6 text-center">
+                        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Outlined.Lightbulb" Style="font-size: 4rem; opacity: 0.5;" />
+                            <MudText Typo="Typo.h6">@L["Tips_NoTipsAvailable"]</MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                @L["Tips_CheckBackLater"]
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+                }
+                else
+                {
+                    <!-- Tips List - Vertical Stack -->
+                    <MudStack Spacing="3">
+                        @foreach (var tip in _filteredTips)
+                        {
+                            <TipCard TipId="@tip.Id.ToString()" 
+                                     Title="@tip.Title" 
+                                     Content="@tip.Description" 
+                                     Icon="@GetCategoryIcon(tip.Category)" />
+                        }
+                    </MudStack>
+                }
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="pa-4">
+            <MudPaper Class="pa-8" Style="text-align: center;">
+                <MudText Typo="Typo.h6">@L["Mobile_PleaseSignIn"]</MudText>
+            </MudPaper>
+        </MudContainer>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _loading = true;
+    private string? _userId;
+    private List<EducationalTipDto> _allTips = [];
+    private List<EducationalTipDto> _filteredTips = [];
+    private MudChip? _selectedChip;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (!string.IsNullOrEmpty(_userId))
+            {
+                _allTips = await EducationalTipService.GetActiveTipsAsync(_userId);
+                FilterTips();
+            }
+        }
+
+        _loading = false;
+    }
+
+    private void FilterTips()
+    {
+        var selectedCategory = _selectedChip?.Tag as string;
+        
+        if (!string.IsNullOrEmpty(selectedCategory))
+        {
+            _filteredTips = _allTips.Where(t => t.Category == selectedCategory).ToList();
+        }
+        else
+        {
+            _filteredTips = _allTips;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        FilterTips();
+    }
+
+    private string GetCategoryIcon(string category) => category switch
+    {
+        "Saving" => Icons.Material.Filled.Savings,
+        "Spending" => Icons.Material.Filled.ShoppingCart,
+        "Investing" => Icons.Material.Filled.TrendingUp,
+        "Budgeting" => Icons.Material.Filled.AccountBalanceWallet,
+        "General" => Icons.Material.Filled.Lightbulb,
+        _ => Icons.Material.Filled.Lightbulb
+    };
+}
+
+<style>
+    /* Card touch feedback for mobile */
+    .mud-card:active {
+        transform: scale(0.98);
+    }
+</style>
