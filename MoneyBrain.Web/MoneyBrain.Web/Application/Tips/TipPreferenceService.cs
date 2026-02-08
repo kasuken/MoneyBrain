@@ -1,33 +1,20 @@
-using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
-using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Tips;
 
 /// <summary>
 /// Service implementation for managing user tip preferences.
 /// </summary>
-public class TipPreferenceService : ITipPreferenceService
+public class TipPreferenceService(ICacheService cacheService) : ITipPreferenceService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ICacheService _cacheService;
-
-    public TipPreferenceService(
-        ApplicationDbContext context,
-        ICacheService cacheService)
-    {
-        _context = context;
-        _cacheService = cacheService;
-    }
-
     /// <inheritdoc />
     public async Task<Dictionary<string, bool>> GetPreferencesAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForTipPreferences(userId);
-        var cached = await _cacheService.GetAsync<Dictionary<string, bool>>(cacheKey);
+        var cached = await cacheService.GetAsync<Dictionary<string, bool>>(cacheKey);
         if (cached != null)
             return cached;
 
@@ -47,7 +34,7 @@ public class TipPreferenceService : ITipPreferenceService
         // For Phase 2, we're using default preferences for all users
         // Future enhancement: Store preferences in database and query here
 
-        await _cacheService.SetAsync(cacheKey, preferences, TimeSpan.FromHours(24));
+        await cacheService.SetAsync(cacheKey, preferences, TimeSpan.FromHours(24));
         return preferences;
     }
 
@@ -64,9 +51,9 @@ public class TipPreferenceService : ITipPreferenceService
 
         // Invalidate cache
         var cacheKey = CacheKeyHelper.ForTipPreferences(userId);
-        await _cacheService.RemoveAsync(cacheKey);
+        await cacheService.RemoveAsync(cacheKey);
 
-        return await Task.FromResult(true);
+        return true;
     }
 
     /// <inheritdoc />
