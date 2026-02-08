@@ -114,8 +114,16 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@((!IsNew && Transaction?.IsReconciled == true) ? L["Btn_Close"] : L["Btn_Cancel"])</MudButton>
-        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid || (!IsNew && Transaction?.IsReconciled == true))">
-            @(IsNew ? L["Btn_Create"] : L["Btn_Update"])
+        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid || (!IsNew && Transaction?.IsReconciled == true) || _isSaving)">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ml-2">@L["Msg_Saving"]</MudText>
+            }
+            else
+            {
+                @(IsNew ? L["Btn_Create"] : L["Btn_Update"])
+            }
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -152,6 +160,7 @@
     private RecurrenceFrequency? _recurrenceFrequency;
     private DateTime? _recurrenceStartDate;
     private bool _isVisible = true;
+    private bool _isSaving;
     
     private DialogOptions _fullScreenOptions = new() { FullScreen = true, CloseButton = true };
     private DialogOptions _defaultOptions = new() { CloseButton = true };
@@ -280,6 +289,7 @@
         if (!_isValid)
             return;
 
+        _isSaving = true;
         try
         {
             // Handle payee creation if needed
@@ -372,6 +382,10 @@
                 L["TxnDlg_CannotModifyTitle"],
                 ex.Message,
                 yesText: L["Btn_OK"]);
+        }
+        finally
+        {
+            _isSaving = false;
         }
     }
 

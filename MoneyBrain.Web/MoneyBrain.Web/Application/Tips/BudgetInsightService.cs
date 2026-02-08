@@ -2,29 +2,16 @@ using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Reporting.BudgetComparison;
 using MoneyBrain.Web.Application.Tips.DTOs;
-using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Tips;
 
 /// <summary>
 /// Service implementation for generating budget performance insights.
 /// </summary>
-public class BudgetInsightService : IBudgetInsightService
+public class BudgetInsightService(
+    ICacheService cacheService,
+    IBudgetComparisonService budgetComparisonService) : IBudgetInsightService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ICacheService _cacheService;
-    private readonly IBudgetComparisonService _budgetComparisonService;
-
-    public BudgetInsightService(
-        ApplicationDbContext context,
-        ICacheService cacheService,
-        IBudgetComparisonService budgetComparisonService)
-    {
-        _context = context;
-        _cacheService = cacheService;
-        _budgetComparisonService = budgetComparisonService;
-    }
-
     /// <inheritdoc />
     public async Task<BudgetInsightDto> GetMonthlyBudgetInsightAsync(
         string userId,
@@ -33,11 +20,11 @@ public class BudgetInsightService : IBudgetInsightService
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForBudgetInsight(userId, year, month);
-        var cached = await _cacheService.GetAsync<BudgetInsightDto>(cacheKey);
+        var cached = await cacheService.GetAsync<BudgetInsightDto>(cacheKey);
         if (cached != null)
             return cached;
 
-        var budgetComparison = await _budgetComparisonService.GetMonthlyBudgetComparisonAsync(
+        var budgetComparison = await budgetComparisonService.GetMonthlyBudgetComparisonAsync(
             userId,
             year,
             month,
@@ -78,7 +65,7 @@ public class BudgetInsightService : IBudgetInsightService
             GeneratedAt = DateTime.UtcNow
         };
 
-        await _cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
+        await cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
         return insight;
     }
 
