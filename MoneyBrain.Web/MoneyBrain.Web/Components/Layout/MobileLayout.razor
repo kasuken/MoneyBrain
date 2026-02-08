@@ -3,12 +3,9 @@
 @using MoneyBrain.Web.Resources
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Components.Shared
-@using MoneyBrain.Web.Application.Tips
 @inject NavigationManager NavigationManager
 @inject IMobileDetectionService MobileDetection
 @inject IStringLocalizer<SharedResource> L
-@inject IEducationalTipService EducationalTipService
-@inject AuthenticationStateProvider AuthStateProvider
 
 <MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
@@ -49,9 +46,6 @@
                 <MudNavLink Href="/account-balance-history" Icon="@Icons.Material.Filled.History">@L["Nav_BalanceHistory"]</MudNavLink>
             </MudNavGroup>
             <MudNavLink Href="/insights" Icon="@Icons.Material.Filled.Lightbulb">@L["Nav_Insights"]</MudNavLink>
-            <MudBadge Content="@_unseenTipsCount" Visible="@(_unseenTipsCount > 0)" Color="Color.Error" Overlap="true" Class="pulse">
-                <MudNavLink Href="/tips" Icon="@Icons.Material.Filled.Lightbulb">@L["Nav_Tips"]</MudNavLink>
-            </MudBadge>
             <MudNavLink Href="/accounts" Icon="@Icons.Material.Filled.AccountBalanceWallet">@L["Nav_Accounts"]</MudNavLink>
             <MudDivider Class="my-2" />
             <MudNavLink Href="/Account/Manage" Icon="@Icons.Material.Outlined.Person">@L["Nav_Profile"]</MudNavLink>
@@ -86,11 +80,17 @@
     <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: 100vh; padding-top: 56px; padding-bottom: 72px;">
         @Body
     </MudMainContent>
+
+    <!-- Tips Button -->
+    <AuthorizeView>
+        <Authorized>
+            <TipsButton />
+        </Authorized>
+    </AuthorizeView>
 </MudLayout>
 
 @code {
     private bool _drawerOpen = false;
-    private int _unseenTipsCount;
 
     private MudTheme _theme = new MudTheme
     {
@@ -123,26 +123,7 @@
         if (firstRender)
         {
             await MobileDetection.InitializeAsync();
-            await LoadUnseenTipsCountAsync();
             StateHasChanged();
-        }
-    }
-
-    private async Task LoadUnseenTipsCountAsync()
-    {
-        try
-        {
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            
-            if (!string.IsNullOrEmpty(userId))
-            {
-                _unseenTipsCount = await EducationalTipService.GetUnseenTipCountAsync(userId);
-            }
-        }
-        catch
-        {
-            _unseenTipsCount = 0;
         }
     }
 }
