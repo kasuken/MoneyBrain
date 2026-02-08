@@ -1767,9 +1767,6 @@
   <data name="Btn_Update" xml:space="preserve">
     <value>Update</value>
   </data>
-  <data name="Btn_OK" xml:space="preserve">
-    <value>OK</value>
-  </data>
   <data name="Btn_Merge" xml:space="preserve">
     <value>Merge</value>
   </data>
@@ -4183,9 +4180,6 @@
   </data>
   <data name="Trans_NewTransaction" xml:space="preserve">
     <value>New Transaction</value>
-  </data>
-  <data name="Trans_EditTransaction" xml:space="preserve">
-    <value>Edit Transaction</value>
   </data>
   <!-- Account Dialog Keys -->
   <data name="AcctDlg_AccountName" xml:space="preserve">

@@ -3424,9 +3424,6 @@
   <data name="Pwa_QuickAccess" xml:space="preserve">
     <value>Schneller Zugriff von Ihrem Startbildschirm</value>
   </data>
-  <data name="Pwa_NotNow" xml:space="preserve">
-    <value>Nicht jetzt</value>
-  </data>
   <data name="Pwa_Install" xml:space="preserve">
     <value>Installieren</value>
   </data>

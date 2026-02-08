@@ -1691,9 +1691,6 @@
   <data name="Btn_Update" xml:space="preserve">
     <value>Actualizar</value>
   </data>
-  <data name="Btn_OK" xml:space="preserve">
-    <value>Aceptar</value>
-  </data>
   <data name="Btn_Merge" xml:space="preserve">
     <value>Fusionar</value>
   </data>
@@ -4096,9 +4093,6 @@
   <data name="Trans_NewTransaction" xml:space="preserve">
     <value>Nueva Transacción</value>
   </data>
-  <data name="Trans_EditTransaction" xml:space="preserve">
-    <value>Editar Transacción</value>
-  </data>
   <!-- Account Dialog Keys -->
   <data name="AcctDlg_AccountName" xml:space="preserve">
     <value>Nombre de Cuenta</value>
@@ -4200,18 +4194,6 @@
     <value>Ahorro</value>
   </data>
   <!-- PWA Install Prompt -->
-  <data name="Pwa_InstallMoneyBrain" xml:space="preserve">
-    <value>Instalar MoneyBrain</value>
-  </data>
-  <data name="Pwa_QuickAccess" xml:space="preserve">
-    <value>Acceso rápido desde tu pantalla de inicio</value>
-  </data>
-  <data name="Pwa_NotNow" xml:space="preserve">
-    <value>Ahora no</value>
-  </data>
-  <data name="Pwa_Install" xml:space="preserve">
-    <value>Instalar</value>
-  </data>
   <data name="Pwa_IosInstructions" xml:space="preserve">
     <value>Instala MoneyBrain en tu iPhone para acceso rápido:</value>
   </data>
