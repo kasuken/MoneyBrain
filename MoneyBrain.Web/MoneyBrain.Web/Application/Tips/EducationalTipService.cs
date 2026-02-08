@@ -110,4 +110,13 @@ public class EducationalTipService(ICacheService cacheService) : IEducationalTip
         var allTips = await GetActiveTipsAsync(userId, cancellationToken);
         return allTips.FirstOrDefault(t => t.Id == tipId);
     }
+
+    /// <inheritdoc />
+    public async Task<int> GetUnseenTipCountAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        var allTips = await GetActiveTipsAsync(userId, cancellationToken);
+        return allTips.Count;
+    }
 }

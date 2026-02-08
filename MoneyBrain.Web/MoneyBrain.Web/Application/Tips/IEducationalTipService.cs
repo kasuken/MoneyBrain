@@ -40,4 +40,14 @@ public interface IEducationalTipService
         string userId,
         int tipId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the count of unseen educational tips for a user.
+    /// </summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Count of unseen tips.</returns>
+    Task<int> GetUnseenTipCountAsync(
+        string userId,
+        CancellationToken cancellationToken = default);
 }

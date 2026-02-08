@@ -1,7 +1,10 @@
-﻿@implements IDisposable
+﻿@using MoneyBrain.Web.Application.Tips
+@implements IDisposable
 
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> L
+@inject IEducationalTipService EducationalTipService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <div class="mb-header-nav ms-6">
     <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">@L["Nav_Dashboard"]</a>
@@ -26,17 +29,41 @@
     </MudMenu>
 
     <a href="/insights" class="mb-header-nav-link @(IsActive("/insights") ? "active" : "")">@L["Nav_Insights"]</a>
+    <MudBadge Content="@_unseenTipsCount" Visible="@(_unseenTipsCount > 0)" Color="Color.Error" Overlap="true" Class="pulse">
+        <a href="/tips" class="mb-header-nav-link @(IsActive("/tips") ? "active" : "")">@L["Nav_Tips"]</a>
+    </MudBadge>
 
     <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">@L["Nav_Accounts"]</a>
 </div>
 
 @code {
     private string? currentUrl;
+    private int _unseenTipsCount;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
+        
+        await LoadUnseenTipsCountAsync();
+    }
+
+    private async Task LoadUnseenTipsCountAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (!string.IsNullOrEmpty(userId))
+            {
+                _unseenTipsCount = await EducationalTipService.GetUnseenTipCountAsync(userId);
+            }
+        }
+        catch
+        {
+            _unseenTipsCount = 0;
+        }
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
