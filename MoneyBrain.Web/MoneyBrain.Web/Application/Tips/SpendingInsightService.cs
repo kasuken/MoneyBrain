@@ -2,7 +2,6 @@ using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Reporting.CategorySpending;
 using MoneyBrain.Web.Application.Tips.DTOs;
-using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Tips;
 
@@ -11,16 +10,13 @@ namespace MoneyBrain.Web.Application.Tips;
 /// </summary>
 public class SpendingInsightService : ISpendingInsightService
 {
-    private readonly ApplicationDbContext _context;
     private readonly ICacheService _cacheService;
     private readonly ICategorySpendingService _categorySpendingService;
 
     public SpendingInsightService(
-        ApplicationDbContext context,
         ICacheService cacheService,
         ICategorySpendingService categorySpendingService)
     {
-        _context = context;
         _cacheService = cacheService;
         _categorySpendingService = categorySpendingService;
     }

@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
-using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Tips;
 
@@ -10,14 +8,10 @@ namespace MoneyBrain.Web.Application.Tips;
 /// </summary>
 public class TipPreferenceService : ITipPreferenceService
 {
-    private readonly ApplicationDbContext _context;
     private readonly ICacheService _cacheService;
 
-    public TipPreferenceService(
-        ApplicationDbContext context,
-        ICacheService cacheService)
+    public TipPreferenceService(ICacheService cacheService)
     {
-        _context = context;
         _cacheService = cacheService;
     }
 

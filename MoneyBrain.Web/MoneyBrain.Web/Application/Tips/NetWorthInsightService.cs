@@ -2,7 +2,6 @@ using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Reporting.NetWorth;
 using MoneyBrain.Web.Application.Tips.DTOs;
-using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Tips;
 
@@ -11,16 +10,13 @@ namespace MoneyBrain.Web.Application.Tips;
 /// </summary>
 public class NetWorthInsightService : INetWorthInsightService
 {
-    private readonly ApplicationDbContext _context;
     private readonly ICacheService _cacheService;
     private readonly INetWorthService _netWorthService;
 
     public NetWorthInsightService(
-        ApplicationDbContext context,
         ICacheService cacheService,
         INetWorthService netWorthService)
     {
-        _context = context;
         _cacheService = cacheService;
         _netWorthService = netWorthService;
     }
