@@ -60,7 +60,7 @@ public class TipPreferenceService : ITipPreferenceService
         var cacheKey = CacheKeyHelper.ForTipPreferences(userId);
         await _cacheService.RemoveAsync(cacheKey);
 
-        return await Task.FromResult(true);
+        return true;
     }
 
     /// <inheritdoc />
