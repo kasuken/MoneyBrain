@@ -91,24 +91,24 @@
                         </div>
 
                         <MudCheckBox T="bool" 
-                                     @bind-Checked="_showTipsAndInsights" 
+                                     @bind-checked="_showTipsAndInsights" 
                                      Label="@L["Settings_ShowTipsAndInsights"]" 
                                      Color="Color.Primary" />
                         
                         <MudCheckBox T="bool" 
-                                     @bind-Checked="_showEducationalTips" 
+                                     @bind-checked="_showEducationalTips" 
                                      Label="@L["Settings_ShowEducationalTips"]" 
                                      Color="Color.Primary"
                                      Disabled="@(!_showTipsAndInsights)" />
                         
                         <MudCheckBox T="bool" 
-                                     @bind-Checked="_showSpendingInsights" 
+                                     @bind-checked="_showSpendingInsights" 
                                      Label="@L["Settings_ShowSpendingInsights"]" 
                                      Color="Color.Primary"
                                      Disabled="@(!_showTipsAndInsights)" />
                         
                         <MudCheckBox T="bool" 
-                                     @bind-Checked="_showBehavioralInsights" 
+                                     @bind-checked="_showBehavioralInsights" 
                                      Label="@L["Settings_ShowBehavioralInsights"]" 
                                      Color="Color.Primary"
                                      Disabled="@(!_showTipsAndInsights)" />

@@ -241,7 +241,7 @@
         });
 
         var result = await dialog.Result;
-        if (!result.Canceled && result.Data is Domain.Entities.Reconciliation reconciliation)
+        if (result is not null && !result.Canceled && result.Data is not null && result.Data is Domain.Entities.Reconciliation reconciliation)
         {
             // Navigate to the reconciliation workspace
             NavigationManager.NavigateTo($"/reconciliations/{reconciliation.Id}");

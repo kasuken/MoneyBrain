@@ -14,10 +14,10 @@
                     @bind-ActiveIndex="_activeStep"
                     Vertical="false"
                     Class="mb-setup-wizard"
-                    ActionContent="@(context => null)">
+                    ActionContent="@(new RenderFragment<MudBlazor.MudStepper>(context => builder => { }))">
             
             <!-- Step 1: Welcome -->
-            <MudStep Title="@L["Setup_StepWelcome"]" Icon="@Icons.Material.Filled.WavingHand">
+            <MudStep Title="@L["Setup_StepWelcome"]" icon="@Icons.Material.Filled.WavingHand">
                 <div class="pa-4">
                     <div class="mb-logo" style="justify-content: center; margin-bottom: 2rem;">
                         <div class="mb-logo-icon" style="width: 64px; height: 64px; font-size: 1.75rem;">M</div>
@@ -66,7 +66,7 @@
             </MudStep>
 
             <!-- Step 2: Settings -->
-            <MudStep Title="@L["Setup_StepSettings"]" Icon="@Icons.Material.Filled.Settings">
+            <MudStep Title="@L["Setup_StepSettings"]" icon="@Icons.Material.Filled.Settings">
                 <div class="pa-4">
                     <MudText Typo="Typo.h6" Class="mb-2">@L["Setup_ConfigurePreferences"]</MudText>
                     <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
@@ -121,7 +121,7 @@
             </MudStep>
 
             <!-- Step 3: First Account -->
-            <MudStep Title="@L["Setup_StepFirstAccount"]" Icon="@Icons.Material.Filled.AccountBalance">
+            <MudStep Title="@L["Setup_StepFirstAccount"]" icon="@Icons.Material.Filled.AccountBalance">
                 <div class="pa-4">
                     <MudText Typo="Typo.h6" Class="mb-2">@L["Setup_CreateFirstAccount"]</MudText>
                     <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
@@ -213,7 +213,7 @@
             </MudStep>
 
             <!-- Step 4: Categories -->
-            <MudStep Title="@L["Setup_StepCategories"]" Icon="@Icons.Material.Filled.Category">
+            <MudStep Title="@L["Setup_StepCategories"]" icon="@Icons.Material.Filled.Category">
                 <div class="pa-4">
                     <MudText Typo="Typo.h6" Class="mb-2">@L["Setup_SetupCategories"]</MudText>
                     <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-secondary);">
@@ -253,7 +253,7 @@
             </MudStep>
 
             <!-- Step 5: Complete -->
-            <MudStep Title="@L["Setup_StepComplete"]" Icon="@Icons.Material.Filled.CheckCircle">
+            <MudStep Title="@L["Setup_StepComplete"]" icon="@Icons.Material.Filled.CheckCircle">
                 <div class="text-center pa-6">
                     <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
                              Color="Color.Success" 
@@ -402,7 +402,6 @@
     private AccountSubType _accountSubType = AccountSubType.Checking;
     private decimal _openingBalance;
     private List<Account> _createdAccounts = new();
-    private bool _addingAnother;
     private bool _categoriesSeeded = false;
 
     private string GetNextButtonText()
@@ -521,12 +520,10 @@
         _accountSubType = AccountSubType.Checking;
         _openingBalance = 0;
         _accountValid = false;
-        _addingAnother = false;
     }
 
     private void AddAnotherAccount()
     {
-        _addingAnother = true;
         ResetAccountForm();
     }
 

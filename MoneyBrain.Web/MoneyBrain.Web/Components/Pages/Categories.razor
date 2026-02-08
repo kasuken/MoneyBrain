@@ -297,7 +297,7 @@
 
                     @if (group.Categories.Any(c => c.IsActive))
                     {
-                        <MudList T="string" Dense="true" DisablePadding="true">
+                        <MudList T="string" Dense="true" disablePadding="true">
                             @foreach (var category in group.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name))
                             {
                                 <MudListItem T="string" Class="px-0">

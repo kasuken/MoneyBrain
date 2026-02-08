@@ -269,6 +269,8 @@
         _actualSpendingByBudget.Clear();
         foreach (var budget in _allBudgets.Where(b => !b.IsDefault && b.Year.HasValue && b.Month.HasValue))
         {
+            if (!budget.Year.HasValue || !budget.Month.HasValue) continue;
+            
             var key = $"{budget.Id}";
             var spending = await CategoryService.GetAllCategoriesActualSpendingAsync(_userId, budget.Year.Value, budget.Month.Value);
             _actualSpendingByBudget[key] = spending;
