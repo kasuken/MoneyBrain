@@ -1,8 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Tips.DTOs;
-using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Tips;
 
@@ -11,12 +9,10 @@ namespace MoneyBrain.Web.Application.Tips;
 /// </summary>
 public class EducationalTipService : IEducationalTipService
 {
-    private readonly ApplicationDbContext _context;
     private readonly ICacheService _cacheService;
 
-    public EducationalTipService(ApplicationDbContext context, ICacheService cacheService)
+    public EducationalTipService(ICacheService cacheService)
     {
-        _context = context;
         _cacheService = cacheService;
     }
 
