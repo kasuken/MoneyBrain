@@ -28,16 +28,16 @@
             {
                 <!-- Category Filter - Horizontal Chip Scroll -->
                 <div class="mb-4" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <MudChipSet @bind-SelectedChip="_selectedChip" 
+                    <MudChipSet T="string" @bind-SelectedChip="_selectedChip" 
                                 Filter="true" 
                                 Mandatory="true"
                                 Style="flex-wrap: nowrap; white-space: nowrap;">
-                        <MudChip Text="@L["Tips_AllCategories"]" Tag="@((string?)null)" Default="true" />
-                        <MudChip Text="@L["Category_Saving"]" Tag="@("Saving")" />
-                        <MudChip Text="@L["Category_Spending"]" Tag="@("Spending")" />
-                        <MudChip Text="@L["Category_Investing"]" Tag="@("Investing")" />
-                        <MudChip Text="@L["Category_Budgeting"]" Tag="@("Budgeting")" />
-                        <MudChip Text="@L["Category_General"]" Tag="@("General")" />
+                        <MudChip T="string" Text="@L["Tips_AllCategories"]" Tag="@((string?)null)" Default="true" />
+                        <MudChip T="string" Text="@L["Category_Saving"]" Tag="@("Saving")" />
+                        <MudChip T="string" Text="@L["Category_Spending"]" Tag="@("Spending")" />
+                        <MudChip T="string" Text="@L["Category_Investing"]" Tag="@("Investing")" />
+                        <MudChip T="string" Text="@L["Category_Budgeting"]" Tag="@("Budgeting")" />
+                        <MudChip T="string" Text="@L["Category_General"]" Tag="@("General")" />
                     </MudChipSet>
                 </div>
 
@@ -83,7 +83,7 @@
     private string? _userId;
     private List<EducationalTipDto> _allTips = [];
     private List<EducationalTipDto> _filteredTips = [];
-    private MudChip? _selectedChip;
+    private MudChip<string>? _selectedChip;
 
     protected override async Task OnInitializedAsync()
     {
