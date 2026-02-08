@@ -7,22 +7,15 @@ namespace MoneyBrain.Web.Application.Tips;
 /// <summary>
 /// Service implementation for managing educational financial tips.
 /// </summary>
-public class EducationalTipService : IEducationalTipService
+public class EducationalTipService(ICacheService cacheService) : IEducationalTipService
 {
-    private readonly ICacheService _cacheService;
-
-    public EducationalTipService(ICacheService cacheService)
-    {
-        _cacheService = cacheService;
-    }
-
     /// <inheritdoc />
     public async Task<List<EducationalTipDto>> GetActiveTipsAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForEducationalTips(userId);
-        var cached = await _cacheService.GetAsync<List<EducationalTipDto>>(cacheKey);
+        var cached = await cacheService.GetAsync<List<EducationalTipDto>>(cacheKey);
         if (cached != null)
             return cached;
 
@@ -92,7 +85,7 @@ public class EducationalTipService : IEducationalTipService
             }
         };
 
-        await _cacheService.SetAsync(cacheKey, tips, TimeSpan.FromHours(24));
+        await cacheService.SetAsync(cacheKey, tips, TimeSpan.FromHours(24));
         return tips;
     }
 

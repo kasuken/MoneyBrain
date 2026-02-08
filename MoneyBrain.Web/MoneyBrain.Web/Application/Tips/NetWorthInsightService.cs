@@ -8,19 +8,10 @@ namespace MoneyBrain.Web.Application.Tips;
 /// <summary>
 /// Service implementation for generating net worth trend insights.
 /// </summary>
-public class NetWorthInsightService : INetWorthInsightService
+public class NetWorthInsightService(
+    ICacheService cacheService,
+    INetWorthService netWorthService) : INetWorthInsightService
 {
-    private readonly ICacheService _cacheService;
-    private readonly INetWorthService _netWorthService;
-
-    public NetWorthInsightService(
-        ICacheService cacheService,
-        INetWorthService netWorthService)
-    {
-        _cacheService = cacheService;
-        _netWorthService = netWorthService;
-    }
-
     /// <inheritdoc />
     public async Task<NetWorthInsightDto> GetNetWorthInsightAsync(
         string userId,
@@ -28,18 +19,18 @@ public class NetWorthInsightService : INetWorthInsightService
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForNetWorthInsight(userId, asOfDate);
-        var cached = await _cacheService.GetAsync<NetWorthInsightDto>(cacheKey);
+        var cached = await cacheService.GetAsync<NetWorthInsightDto>(cacheKey);
         if (cached != null)
             return cached;
 
-        var currentSnapshot = await _netWorthService.GetNetWorthSnapshotAsync(
+        var currentSnapshot = await netWorthService.GetNetWorthSnapshotAsync(
             userId,
             asOfDate,
             cancellationToken);
 
         // Get previous month for comparison
         var previousDate = asOfDate.AddMonths(-1);
-        var previousSnapshot = await _netWorthService.GetNetWorthSnapshotAsync(
+        var previousSnapshot = await netWorthService.GetNetWorthSnapshotAsync(
             userId,
             previousDate,
             cancellationToken);
@@ -58,7 +49,7 @@ public class NetWorthInsightService : INetWorthInsightService
             GeneratedAt = DateTime.UtcNow
         };
 
-        await _cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
+        await cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
         return insight;
     }
 
@@ -77,7 +68,7 @@ public class NetWorthInsightService : INetWorthInsightService
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForNetWorthTrend(userId, months);
-        var cached = await _cacheService.GetAsync<List<NetWorthTrendDto>>(cacheKey);
+        var cached = await cacheService.GetAsync<List<NetWorthTrendDto>>(cacheKey);
         if (cached != null)
             return cached;
 
@@ -87,7 +78,7 @@ public class NetWorthInsightService : INetWorthInsightService
         for (int i = 0; i < months; i++)
         {
             var snapshotDate = currentDate.AddMonths(-i);
-            var snapshot = await _netWorthService.GetNetWorthSnapshotAsync(
+            var snapshot = await netWorthService.GetNetWorthSnapshotAsync(
                 userId,
                 snapshotDate,
                 cancellationToken);
@@ -104,7 +95,7 @@ public class NetWorthInsightService : INetWorthInsightService
         // Reverse to show oldest first
         trendData.Reverse();
 
-        await _cacheService.SetAsync(cacheKey, trendData, TimeSpan.FromHours(1));
+        await cacheService.SetAsync(cacheKey, trendData, TimeSpan.FromHours(1));
         return trendData;
     }
 

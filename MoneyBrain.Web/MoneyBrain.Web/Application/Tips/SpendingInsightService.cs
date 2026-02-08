@@ -8,19 +8,10 @@ namespace MoneyBrain.Web.Application.Tips;
 /// <summary>
 /// Service implementation for generating spending pattern insights.
 /// </summary>
-public class SpendingInsightService : ISpendingInsightService
+public class SpendingInsightService(
+    ICacheService cacheService,
+    ICategorySpendingService categorySpendingService) : ISpendingInsightService
 {
-    private readonly ICacheService _cacheService;
-    private readonly ICategorySpendingService _categorySpendingService;
-
-    public SpendingInsightService(
-        ICacheService cacheService,
-        ICategorySpendingService categorySpendingService)
-    {
-        _cacheService = cacheService;
-        _categorySpendingService = categorySpendingService;
-    }
-
     /// <inheritdoc />
     public async Task<SpendingInsightDto> GetMonthlySpendingInsightAsync(
         string userId,
@@ -29,14 +20,14 @@ public class SpendingInsightService : ISpendingInsightService
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForSpendingInsight(userId, year, month);
-        var cached = await _cacheService.GetAsync<SpendingInsightDto>(cacheKey);
+        var cached = await cacheService.GetAsync<SpendingInsightDto>(cacheKey);
         if (cached != null)
             return cached;
 
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
 
-        var categorySpendingSummary = await _categorySpendingService.GetCategorySpendingSummaryAsync(
+        var categorySpendingSummary = await categorySpendingService.GetCategorySpendingSummaryAsync(
             userId,
             startDate,
             endDate,
@@ -60,7 +51,7 @@ public class SpendingInsightService : ISpendingInsightService
             GeneratedAt = DateTime.UtcNow
         };
 
-        await _cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
+        await cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
         return insight;
     }
 
@@ -72,14 +63,14 @@ public class SpendingInsightService : ISpendingInsightService
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForComparativeSpendingInsight(userId, year, month);
-        var cached = await _cacheService.GetAsync<SpendingInsightDto>(cacheKey);
+        var cached = await cacheService.GetAsync<SpendingInsightDto>(cacheKey);
         if (cached != null)
             return cached;
 
         // Get current month spending
         var currentDate = new DateTime(year, month, 1);
         var currentEndDate = currentDate.AddMonths(1).AddDays(-1);
-        var currentSpendingSummary = await _categorySpendingService.GetCategorySpendingSummaryAsync(
+        var currentSpendingSummary = await categorySpendingService.GetCategorySpendingSummaryAsync(
             userId,
             currentDate,
             currentEndDate,
@@ -88,7 +79,7 @@ public class SpendingInsightService : ISpendingInsightService
         // Get previous month spending
         var previousDate = currentDate.AddMonths(-1);
         var previousEndDate = previousDate.AddMonths(1).AddDays(-1);
-        var previousSpendingSummary = await _categorySpendingService.GetCategorySpendingSummaryAsync(
+        var previousSpendingSummary = await categorySpendingService.GetCategorySpendingSummaryAsync(
             userId,
             previousDate,
             previousEndDate,
@@ -132,7 +123,7 @@ public class SpendingInsightService : ISpendingInsightService
             GeneratedAt = DateTime.UtcNow
         };
 
-        await _cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
+        await cacheService.SetAsync(cacheKey, insight, TimeSpan.FromHours(1));
         return insight;
     }
 
