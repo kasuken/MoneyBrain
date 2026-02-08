@@ -1,3 +1,4 @@
+#nullable enable
 @page "/insights"
 @using Microsoft.AspNetCore.Authorization
 @using MoneyBrain.Web.Application.InsightExplorer
@@ -119,13 +120,13 @@
                             else if (filter.DataType == PropertyDataType.DateTime)
                             {
                                 <MudDatePicker Date="@(_filterDates.GetValueOrDefault(index))" Label="@L["Insight_Value"]"
-                                               Variant="Variant.Outlined" Dense="true"
+                                               Variant="Variant.Outlined" dense="true"
                                                DateChanged="@(d => OnDateFilterChanged(index, d))" />
                             }
                             else
                             {
                                 <MudTextField T="string" Value="filter.Value"
-                                              Label="@L["Insight_Value"]" Variant="Variant.Outlined" Dense="true"
+                                              Label="@L["Insight_Value"]" Variant="Variant.Outlined" dense="true"
                                               ValueChanged="@(v => OnValueChanged(index, v))" />
                             }
 
@@ -134,13 +135,13 @@
                                 @if (filter.DataType == PropertyDataType.DateTime)
                                 {
                                     <MudDatePicker Date="@(_filterSecondDates.GetValueOrDefault(index))" Label="@L["Insight_ToValue"]"
-                                                   Variant="Variant.Outlined" Dense="true" Class="mt-2"
+                                                   Variant="Variant.Outlined" dense="true" Class="mt-2"
                                                    DateChanged="@(d => OnSecondDateFilterChanged(index, d))" />
                                 }
                                 else
                                 {
                                     <MudTextField T="string" Value="filter.SecondValue"
-                                                  Label="@L["Insight_ToValue"]" Variant="Variant.Outlined" Dense="true" Class="mt-2"
+                                                  Label="@L["Insight_ToValue"]" Variant="Variant.Outlined" dense="true" Class="mt-2"
                                                   ValueChanged="@(v => OnSecondValueChanged(index, v))" />
                                 }
                             }
@@ -370,9 +371,9 @@
                             </div>
                             <div>
                                 <MudIconButton Icon="@Icons.Material.Filled.FileOpen" Color="Color.Primary"
-                                               OnClick="@(() => LoadQuery(sq))" Title="@L["Insight_Load"]" />
+                                               OnClick="@(() => LoadQuery(sq))" title="@L["Insight_Load"]" />
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
-                                               OnClick="@(() => DeleteSavedQuery(sq))" Title="@L["Btn_Delete"]" />
+                                               OnClick="@(() => DeleteSavedQuery(sq))" title="@L["Btn_Delete"]" />
                             </div>
                         </div>
                     </MudListItem>

@@ -214,7 +214,7 @@
         var dialog = await DialogService.ShowAsync<TransactionDialog>(L["Trans_NewTransaction"], parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             await LoadDataAsync();
         }
@@ -240,7 +240,7 @@
         var dialog = await DialogService.ShowAsync<TransactionDialog>(L["Trans_EditTransaction"], parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             await LoadDataAsync();
         }

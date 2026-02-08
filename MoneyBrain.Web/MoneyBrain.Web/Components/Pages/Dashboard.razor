@@ -121,23 +121,23 @@
             <div class="mb-grid-stats mb-4">
                 <div class="mb-card-stat">
                     <div class="mb-label">@L["Dashboard_BudgetedThisMonth"]</div>
-                    <div class="mb-amount neutral">@FormatCurrency(_budgetComparison.TotalBudgeted)</div>
+                    <div class="mb-amount neutral">@FormatCurrency(_budgetComparison?.TotalBudgeted ?? 0)</div>
                 </div>
-                <div class="mb-card-stat @(_budgetComparison.IsOverBudget ? "expense" : "income")">
+                <div class="mb-card-stat @((_budgetComparison?.IsOverBudget ?? false) ? "expense" : "income")">
                     <div class="mb-label">@L["Dashboard_ActualSpending"]</div>
-                    <div class="mb-amount @(_budgetComparison.IsOverBudget ? "negative" : "positive")">@FormatCurrency(_budgetComparison.TotalActual)</div>
+                    <div class="mb-amount @((_budgetComparison?.IsOverBudget ?? false) ? "negative" : "positive")">@FormatCurrency(_budgetComparison?.TotalActual ?? 0)</div>
                 </div>
-                <div class="mb-card-stat @(_budgetComparison.Remaining >= 0 ? "income" : "expense")">
+                <div class="mb-card-stat @((_budgetComparison?.Remaining ?? 0) >= 0 ? "income" : "expense")">
                     <div class="mb-label">@L["Dashboard_Remaining"]</div>
-                    <div class="mb-amount @GetBalanceClass(_budgetComparison.Remaining)">@FormatCurrency(_budgetComparison.Remaining)</div>
+                    <div class="mb-amount @GetBalanceClass(_budgetComparison?.Remaining ?? 0)">@FormatCurrency(_budgetComparison?.Remaining ?? 0)</div>
                 </div>
-                <div class="mb-card-stat @GetBudgetHealthClass(_budgetComparison.PercentageUsed)">
+                <div class="mb-card-stat @GetBudgetHealthClass(_budgetComparison?.PercentageUsed ?? 0)">
                     <div class="mb-label">@L["Dashboard_BudgetUsed"]</div>
-                    <div class="mb-amount">@_budgetComparison.PercentageUsed.ToString("F1")%</div>
+                    <div class="mb-amount">@((_budgetComparison?.PercentageUsed ?? 0).ToString("F1"))%</div>
                 </div>
             </div>
             
-            @if (_budgetComparison.Categories.Any())
+            @if (_budgetComparison?.Categories?.Any() == true)
             {
                 <MudPaper Class="pa-4 mb-4">
                     <div class="d-flex justify-space-between align-center mb-3">

@@ -178,10 +178,10 @@
         var dialog = await DialogService.ShowAsync<OpeningBalanceAdjustmentDialog>(L["OpenBal_AdjustDialogTitle"], parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             await LoadAccounts();
-            Snackbar.Add(L["OpenBal_BalanceAdjusted", account.Name], Severity.Success);
+            Snackbar.Add(L["OpenBal_BalanceAdjusted", account?.Name ?? string.Empty], Severity.Success);
         }
     }
 

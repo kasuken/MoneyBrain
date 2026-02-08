@@ -187,8 +187,8 @@
                      SelectOnRowClick="false"
                      Groupable="true"
                      GroupExpanded="true"
-                     Pagination="true"
-                     PageSize="100">
+                     pagination="true"
+                     pageSize="100">
             <Columns>
                 <SelectColumn T="Transaction" />
                 <PropertyColumn Property="t => t.Date" Title="@L["Col_Date"]" Format="yyyy-MM-dd" Grouping>
@@ -270,13 +270,13 @@
                                            Size="MudBlazor.Size.Small"
                                            OnClick="@(() => OpenEditTransferDialog(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@L["Trans_EditTransfer"]" />
+                                           title="@L["Trans_EditTransfer"]" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Size="MudBlazor.Size.Small"
                                            Color="MudBlazor.Color.Error"
                                            OnClick="@(() => DeleteTransfer(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@L["Trans_DeleteTransfer"]" />
+                                           title="@L["Trans_DeleteTransfer"]" />
                         }
                         else
                         {
@@ -293,18 +293,18 @@
                                            Color="@(context.Item.IsCleared ? MudBlazor.Color.Info : MudBlazor.Color.Default)"
                                            OnClick="@(() => ToggleCleared(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@(context.Item.IsReconciled ? L["Trans_CannotClearReconciled"] : L["Trans_ToggleCleared"])" />
+                                           title="@(context.Item.IsReconciled ? L["Trans_CannotClearReconciled"] : L["Trans_ToggleCleared"])" />
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                            Size="MudBlazor.Size.Small"
                                            OnClick="@(() => OpenEditTransactionDialog(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@(context.Item.IsReconciled ? L["Trans_CannotEditReconciled"] : L["Trans_EditTransaction"])" />
+                                           title="@(context.Item.IsReconciled ? L["Trans_CannotEditReconciled"] : L["Trans_EditTransaction"])" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                            Size="MudBlazor.Size.Small"
                                            Color="MudBlazor.Color.Error"
                                            OnClick="@(() => DeleteTransaction(context.Item))"
                                            Disabled="@context.Item.IsReconciled"
-                                           Title="@(context.Item.IsReconciled ? L["Trans_CannotDeleteReconciled"] : L["Trans_DeleteTransaction"])" />
+                                           title="@(context.Item.IsReconciled ? L["Trans_CannotDeleteReconciled"] : L["Trans_DeleteTransaction"])" />
                         }
                     </CellTemplate>
                 </TemplateColumn>
@@ -597,7 +597,7 @@
                     SnackbarService.Add(L["Trans_DeleteFailed"], Severity.Error);
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 SnackbarService.Add(L["Trans_CannotDeleteReconciledError"], Severity.Error);
             }

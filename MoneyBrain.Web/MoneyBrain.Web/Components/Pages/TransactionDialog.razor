@@ -17,7 +17,7 @@
 @inject IStringLocalizer<SharedResource> L
 @inject IJSRuntime JS
 
-<MudDialog @bind-IsVisible="_isVisible" Options="@(FullScreen ? _fullScreenOptions : _defaultOptions)">
+<MudDialog @bind-isVisible="_isVisible" Options="@(FullScreen ? _fullScreenOptions : _defaultOptions)">
     <DialogContent>
         @if (!IsNew && Transaction?.IsReconciled == true)
         {
