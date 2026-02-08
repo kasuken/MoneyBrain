@@ -267,10 +267,10 @@
         var dialog = await DialogService.ShowAsync<ManualAdjustmentDialog>(L["ManAdj_CreateDialogTitle"], parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result is not null && !result.Canceled)
         {
             await LoadAdjustments();
-            Snackbar.Add(L["ManAdj_AdjustmentCreated", _selectedAccount.Name], Severity.Success);
+            Snackbar.Add(L["ManAdj_AdjustmentCreated", _selectedAccount?.Name ?? string.Empty], Severity.Success);
         }
     }
 

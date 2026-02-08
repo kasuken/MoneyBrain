@@ -92,7 +92,7 @@
     [Parameter] public EventCallback OnSplitsChanged { get; set; }
 
     private List<CategoryGroup> _categoryGroups = [];
-    private string? _errorMessage;
+    private string? _errorMessage = null;
     private string _currencySymbol = "$";
 
     protected override async Task OnInitializedAsync()
