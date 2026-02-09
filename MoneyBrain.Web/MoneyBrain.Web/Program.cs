@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
+using MoneyBrain.Web.Application.Common.Configuration;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Common.Services;
 using MoneyBrain.Web.Application.CreditCardBilling;
@@ -27,6 +28,7 @@ using MoneyBrain.Web.Components;
 using MoneyBrain.Web.Components.Account;
 using MoneyBrain.Web.Data;
 using MudBlazor.Services;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,8 +86,51 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 // Cache service
-builder.Services.AddMemoryCache();
-builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+var cacheSettings = builder.Configuration.GetSection("CacheSettings").Get<CacheSettings>() ?? new CacheSettings();
+
+if (cacheSettings.Provider.Equals("Redis", StringComparison.OrdinalIgnoreCase))
+{
+    // Redis cache
+    if (cacheSettings.Redis == null || string.IsNullOrWhiteSpace(cacheSettings.Redis.ConnectionString))
+    {
+        throw new InvalidOperationException("Redis connection string is required when using Redis cache provider.");
+    }
+
+    var redisOptions = ConfigurationOptions.Parse(cacheSettings.Redis.ConnectionString);
+    redisOptions.ConnectTimeout = cacheSettings.Redis.ConnectTimeout;
+    redisOptions.SyncTimeout = cacheSettings.Redis.SyncTimeout;
+    redisOptions.Ssl = cacheSettings.Redis.SslEnabled;
+    redisOptions.AbortOnConnectFail = false; // Resilient connection
+
+    builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    {
+        var logger = sp.GetRequiredService<ILogger<Program>>();
+        try
+        {
+            var redis = ConnectionMultiplexer.Connect(redisOptions);
+            logger.LogInformation("Redis connection established successfully");
+            return redis;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to connect to Redis");
+            throw;
+        }
+    });
+
+    builder.Services.AddSingleton<ICacheService>(sp =>
+    {
+        var redis = sp.GetRequiredService<IConnectionMultiplexer>();
+        var logger = sp.GetRequiredService<ILogger<RedisCacheService>>();
+        return new RedisCacheService(redis, logger, cacheSettings.Redis.InstanceName);
+    });
+}
+else
+{
+    // Memory cache (default)
+    builder.Services.AddMemoryCache();
+    builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+}
 
 // MoneyBrain application services
 builder.Services.AddScoped<IAccountService, AccountService>();
