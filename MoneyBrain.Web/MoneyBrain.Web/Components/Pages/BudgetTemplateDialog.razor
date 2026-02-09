@@ -9,7 +9,7 @@
     <DialogContent>
         <MudStack Spacing="3">
             <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
-                Choose a pre-configured budget template to get started quickly. Templates include common expense categories with suggested amounts.
+                @L["Budget_TemplateDescription"]
             </MudText>
 
             <div class="d-flex gap-2">
@@ -95,7 +95,7 @@
             </MudRadioGroup>
 
             <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
-                Categories that don't exist in your account will be skipped automatically.
+                @L["Budget_TemplateSkipInfo"]
             </MudAlert>
         </MudStack>
 
@@ -114,7 +114,7 @@
             {
                 <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
             }
-            Create Budget
+            @L["Budget_CreateBudget"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -148,7 +148,7 @@
 
         if (string.IsNullOrWhiteSpace(_selectedTemplate))
         {
-            _errorMessage = "Please select a template";
+            _errorMessage = L["Budget_TemplateSelectError"].Value;
             return;
         }
 

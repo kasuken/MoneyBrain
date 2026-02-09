@@ -1633,6 +1633,24 @@
   <data name="Budget_ConfirmDelete" xml:space="preserve">
     <value>Are you sure you want to delete this budget?</value>
   </data>
+  <data name="Budget_QuickStartTemplate" xml:space="preserve">
+    <value>Quick Start with Template</value>
+  </data>
+  <data name="Budget_TemplateCreatedSuccess" xml:space="preserve">
+    <value>Budget created from template successfully!</value>
+  </data>
+  <data name="Budget_TemplateDescription" xml:space="preserve">
+    <value>Choose a pre-configured budget template to get started quickly. Templates include common expense categories with suggested amounts.</value>
+  </data>
+  <data name="Budget_TemplateSkipInfo" xml:space="preserve">
+    <value>Categories that don't exist in your account will be skipped automatically.</value>
+  </data>
+  <data name="Budget_CreateBudget" xml:space="preserve">
+    <value>Create Budget</value>
+  </data>
+  <data name="Budget_TemplateSelectError" xml:space="preserve">
+    <value>Please select a template</value>
+  </data>
   <!-- Import Page -->
   <data name="Import_UploadTitle" xml:space="preserve">
     <value>Upload CSV File</value>

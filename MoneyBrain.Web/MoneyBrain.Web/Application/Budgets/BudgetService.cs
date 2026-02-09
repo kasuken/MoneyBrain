@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
@@ -10,11 +11,13 @@ public class BudgetService : IBudgetService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICacheService _cacheService;
+    private readonly ILogger<BudgetService> _logger;
 
-    public BudgetService(ApplicationDbContext context, ICacheService cacheService)
+    public BudgetService(ApplicationDbContext context, ICacheService cacheService, ILogger<BudgetService> logger)
     {
         _context = context;
         _cacheService = cacheService;
+        _logger = logger;
     }
 
     public async Task<List<Budget>> GetBudgetsAsync(string userId)
@@ -277,9 +280,16 @@ public class BudgetService : IBudgetService
                 {
                     await AddCategoryToBudgetAsync(budget.Id, userId, category.Id, amount, false);
                 }
-                catch
+                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("duplicate") == true || 
+                                                     ex.InnerException?.Message.Contains("UNIQUE") == true)
                 {
-                    // Skip if category already exists
+                    // Skip if category already exists in budget (duplicate constraint violation)
+                    _logger.LogDebug("Category {CategoryId} already exists in budget {BudgetId}, skipping", category.Id, budget.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unexpected error adding category {CategoryId} to budget {BudgetId} from template", category.Id, budget.Id);
+                    throw;
                 }
             }
         }

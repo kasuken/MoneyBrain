@@ -60,7 +60,7 @@
             <div class="d-flex gap-2 justify-center">
                 <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@OpenTemplateDialog">
                     <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Class="me-2" />
-                    Quick Start with Template
+                    @L["Budget_QuickStartTemplate"]
                 </MudButton>
                 <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateBudgetDialog">
                     <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
@@ -393,13 +393,13 @@
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<BudgetTemplateDialog>("Quick Start with Template", parameters, options);
+        var dialog = await DialogService.ShowAsync<BudgetTemplateDialog>(L["Budget_QuickStartTemplate"].Value, parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })
         {
             await LoadBudgets();
-            SnackbarService.Add("Budget created from template successfully!", Severity.Success);
+            SnackbarService.Add(L["Budget_TemplateCreatedSuccess"].Value, Severity.Success);
         }
     }
 }
