@@ -3611,4 +3611,151 @@
   <data name="Nav_TipsInsights" xml:space="preserve">
     <value>Tipps &amp; Einblicke</value>
   </data>
+  <!-- Budget Dialog -->
+  <data name="BudgetDlg_BudgetName" xml:space="preserve">
+    <value>Budgetname</value>
+  </data>
+  <data name="BudgetDlg_NamePlaceholder" xml:space="preserve">
+    <value>Budgetnamen eingeben</value>
+  </data>
+  <data name="BudgetDlg_Description" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="BudgetDlg_DefaultBudget" xml:space="preserve">
+    <value>Als Standardbudget festlegen</value>
+  </data>
+  <data name="BudgetDlg_DefaultBudgetDesc" xml:space="preserve">
+    <value>Dieses Budget wird als Vorlage für neue monatliche Budgets verwendet</value>
+  </data>
+  <data name="BudgetDlg_Month" xml:space="preserve">
+    <value>Monat</value>
+  </data>
+  <data name="BudgetDlg_Year" xml:space="preserve">
+    <value>Jahr</value>
+  </data>
+  <data name="BudgetDlg_CopyFromDefault" xml:space="preserve">
+    <value>Kategorien aus Standardbudget kopieren</value>
+  </data>
+  <data name="BudgetDlg_CopyFromDefaultDesc" xml:space="preserve">
+    <value>Kategorien automatisch aus Ihrem Standardbudget übernehmen</value>
+  </data>
+  <data name="BudgetDlg_SelectDefaultBudget" xml:space="preserve">
+    <value>Standardbudget auswählen</value>
+  </data>
+  <data name="BudgetDlg_CopyCategories" xml:space="preserve">
+    <value>Kategorien kopieren</value>
+  </data>
+  <data name="BudgetDlg_CategoriesCopied" xml:space="preserve">
+    <value>Kategorien wurden erfolgreich kopiert</value>
+  </data>
+  <data name="BudgetDlg_Categories" xml:space="preserve">
+    <value>Budgetkategorien</value>
+  </data>
+  <data name="BudgetDlg_AddCategory" xml:space="preserve">
+    <value>Kategorie hinzufügen</value>
+  </data>
+  <data name="BudgetDlg_NoCategoriesYet" xml:space="preserve">
+    <value>Noch keine Kategorien hinzugefügt</value>
+  </data>
+  <data name="BudgetDlg_Amount" xml:space="preserve">
+    <value>Betrag</value>
+  </data>
+  <data name="BudgetDlg_Rollover" xml:space="preserve">
+    <value>Übertrag</value>
+  </data>
+  <data name="BudgetDlg_NoNotes" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="BudgetDlg_Total" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="BudgetDlg_NameRequired" xml:space="preserve">
+    <value>Budgetname ist erforderlich</value>
+  </data>
+  <data name="BudgetDlg_NotFound" xml:space="preserve">
+    <value>Budget nicht gefunden</value>
+  </data>
+  <data name="BudgetDlg_CreateBudget" xml:space="preserve">
+    <value>Budget erstellen</value>
+  </data>
+  <data name="BudgetDlg_UpdateBudget" xml:space="preserve">
+    <value>Budget aktualisieren</value>
+  </data>
+  <data name="BudgetDlg_AddCategoriesTitle" xml:space="preserve">
+    <value>Kategorien zum Budget hinzufügen</value>
+  </data>
+  <data name="BudgetDlg_AllCategoriesAdded" xml:space="preserve">
+    <value>Alle verfügbaren Kategorien wurden zu diesem Budget hinzugefügt</value>
+  </data>
+  <data name="BudgetDlg_RemoveFailed" xml:space="preserve">
+    <value>Kategorie konnte nicht aus dem Budget entfernt werden</value>
+  </data>
+  <data name="BudgetDlg_DefaultNotFound" xml:space="preserve">
+    <value>Standardbudget nicht gefunden</value>
+  </data>
+  <data name="BudgetDlg_CopiedCategories" xml:space="preserve">
+    <value>{0} Kategorien von {1} kopiert</value>
+  </data>
+  <data name="BudgetDlg_CopyError" xml:space="preserve">
+    <value>Fehler beim Kopieren der Kategorien: {0}</value>
+  </data>
+  <!-- Add Category to Budget Dialog -->
+  <data name="AddCatBudgetDlg_SelectCategories" xml:space="preserve">
+    <value>Wählen Sie die Kategorien aus, die zu diesem Budget hinzugefügt werden sollen</value>
+  </data>
+  <data name="AddCatBudgetDlg_CategoryCount" xml:space="preserve">
+    <value>{0} Kategorien</value>
+  </data>
+  <data name="AddCatBudgetDlg_ShowCategories" xml:space="preserve">
+    <value>Kategorien anzeigen</value>
+  </data>
+  <data name="AddCatBudgetDlg_HideCategories" xml:space="preserve">
+    <value>Kategorien ausblenden</value>
+  </data>
+  <data name="AddCatBudgetDlg_DefaultAmount" xml:space="preserve">
+    <value>Standardbetrag</value>
+  </data>
+  <data name="AddCatBudgetDlg_DefaultAmountHelper" xml:space="preserve">
+    <value>Betrag, der für alle ausgewählten Kategorien verwendet werden soll</value>
+  </data>
+  <data name="AddCatBudgetDlg_Notes" xml:space="preserve">
+    <value>Notizen</value>
+  </data>
+  <data name="AddCatBudgetDlg_NotesHelper" xml:space="preserve">
+    <value>Optionale Notizen für diese Kategoriezuweisungen</value>
+  </data>
+  <data name="AddCatBudgetDlg_SelectedCount" xml:space="preserve">
+    <value>{0} Kategorien ausgewählt</value>
+  </data>
+  <data name="AddCatBudgetDlg_SelectAtLeastOne" xml:space="preserve">
+    <value>Bitte wählen Sie mindestens eine Kategorie aus</value>
+  </data>
+  <data name="AddCatBudgetDlg_AddButton" xml:space="preserve">
+    <value>{0} Kategorien hinzufügen</value>
+  </data>
+  <!-- Budget Assignment Dialog -->
+  <data name="BudgetAsgnDlg_BudgetPeriod" xml:space="preserve">
+    <value>Budgetzeitraum</value>
+  </data>
+  <data name="BudgetAsgnDlg_BudgetType" xml:space="preserve">
+    <value>Budgettyp</value>
+  </data>
+  <data name="BudgetAsgnDlg_DefaultType" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="BudgetAsgnDlg_PlannedAmount" xml:space="preserve">
+    <value>Geplanter Betrag</value>
+  </data>
+  <data name="BudgetAsgnDlg_AllowRollover" xml:space="preserve">
+    <value>Ungenutztes Budget übertragen</value>
+  </data>
+  <data name="BudgetAsgnDlg_RolloverDesc" xml:space="preserve">
+    <value>Ungenutzter Budgetbetrag wird in die nächste Periode übertragen</value>
+  </data>
+  <data name="BudgetAsgnDlg_AmountNegative" xml:space="preserve">
+    <value>Betrag darf nicht negativ sein</value>
+  </data>
+  <data name="Col_Notes" xml:space="preserve">
+    <value>Notizen</value>
+  </data>
 </root>

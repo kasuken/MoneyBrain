@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
@@ -10,11 +11,13 @@ public class BudgetService : IBudgetService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICacheService _cacheService;
+    private readonly ILogger<BudgetService> _logger;
 
-    public BudgetService(ApplicationDbContext context, ICacheService cacheService)
+    public BudgetService(ApplicationDbContext context, ICacheService cacheService, ILogger<BudgetService> logger)
     {
         _context = context;
         _cacheService = cacheService;
+        _logger = logger;
     }
 
     public async Task<List<Budget>> GetBudgetsAsync(string userId)
@@ -250,6 +253,102 @@ public class BudgetService : IBudgetService
             return 0;
 
         return budget.BudgetCategories.Sum(bc => bc.PlannedAmount);
+    }
+
+    public async Task<Budget> CreateBudgetFromTemplateAsync(string userId, string templateName, int year, int month)
+    {
+        // Get template allocations
+        var templateAllocations = GetTemplateAllocations(templateName);
+        if (templateAllocations == null)
+            throw new InvalidOperationException($"Template '{templateName}' not found");
+
+        // Create budget for the period
+        var budget = await CreateBudgetAsync(userId, templateName, $"Budget created from {templateName} template", false, year, month);
+
+        // Get user's categories to match template allocations
+        var userCategories = await _context.Categories
+            .Where(c => c.UserId == userId && c.IsActive)
+            .ToListAsync();
+
+        // Add categories to budget
+        foreach (var (categoryName, amount) in templateAllocations)
+        {
+            var category = userCategories.FirstOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
+            if (category != null)
+            {
+                try
+                {
+                    await AddCategoryToBudgetAsync(budget.Id, userId, category.Id, amount, false);
+                }
+                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("duplicate") == true || 
+                                                     ex.InnerException?.Message.Contains("UNIQUE") == true)
+                {
+                    // Skip if category already exists in budget (duplicate constraint violation)
+                    _logger.LogDebug("Category {CategoryId} already exists in budget {BudgetId}, skipping", category.Id, budget.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unexpected error adding category {CategoryId} to budget {BudgetId} from template", category.Id, budget.Id);
+                    throw;
+                }
+            }
+        }
+
+        return budget;
+    }
+
+    private Dictionary<string, decimal>? GetTemplateAllocations(string templateName)
+    {
+        var templates = new Dictionary<string, Dictionary<string, decimal>>
+        {
+            ["Basic Essentials"] = new()
+            {
+                ["Housing"] = 900m,
+                ["Food"] = 500m,
+                ["Transportation"] = 300m,
+                ["Utilities"] = 300m,
+                ["Personal"] = 200m
+            },
+            ["Standard Living"] = new()
+            {
+                ["Housing"] = 1400m,
+                ["Food"] = 700m,
+                ["Transportation"] = 500m,
+                ["Shopping"] = 400m,
+                ["Entertainment"] = 300m,
+                ["Health"] = 300m,
+                ["Personal"] = 200m
+            },
+            ["Savings Focused"] = new()
+            {
+                ["Housing"] = 1200m,
+                ["Food"] = 600m,
+                ["Transportation"] = 400m,
+                ["Savings"] = 600m,
+                ["Health"] = 250m,
+                ["Personal"] = 150m
+            },
+            ["Family Budget"] = new()
+            {
+                ["Housing"] = 2000m,
+                ["Food"] = 1200m,
+                ["Transportation"] = 700m,
+                ["Education"] = 500m,
+                ["Health"] = 500m,
+                ["Entertainment"] = 400m,
+                ["Shopping"] = 200m
+            },
+            ["Student Budget"] = new()
+            {
+                ["Housing"] = 700m,
+                ["Food"] = 400m,
+                ["Transportation"] = 200m,
+                ["Education"] = 300m,
+                ["Personal"] = 200m
+            }
+        };
+
+        return templates.TryGetValue(templateName, out var template) ? template : null;
     }
 
     private async Task InvalidateBudgetComparisonCacheAsync(string userId, Budget budget)
