@@ -4377,4 +4377,64 @@
   <data name="Nav_TipsInsights" xml:space="preserve">
     <value>Tips &amp; Insights</value>
   </data>
+  <data name="Tips_Title" xml:space="preserve">
+    <value>Financial Tips</value>
+  </data>
+  <data name="Tips_Subtitle" xml:space="preserve">
+    <value>Learn ways to manage your money better</value>
+  </data>
+  <data name="Tips_AllCategories" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Tips_NoTipsAvailable" xml:space="preserve">
+    <value>No tips available</value>
+  </data>
+  <data name="Tips_CheckBackLater" xml:space="preserve">
+    <value>Check back later for new tips</value>
+  </data>
+  <data name="Tips_HelpTitle" xml:space="preserve">
+    <value>About Tips</value>
+  </data>
+  <data name="Tips_HelpDescription" xml:space="preserve">
+    <value>Get personalized financial advice</value>
+  </data>
+  <data name="Tips_HelpFeature1" xml:space="preserve">
+    <value>Category-based filtering</value>
+  </data>
+  <data name="Tips_HelpFeature2" xml:space="preserve">
+    <value>Expert advice</value>
+  </data>
+  <data name="Tips_HelpFeature3" xml:space="preserve">
+    <value>Actionable insights</value>
+  </data>
+  <data name="Tips_HelpHowTo1" xml:space="preserve">
+    <value>Browse tips by category</value>
+  </data>
+  <data name="Tips_HelpHowTo2" xml:space="preserve">
+    <value>Tap to read full details</value>
+  </data>
+  <data name="Tips_HelpTip1" xml:space="preserve">
+    <value>Tips are updated regularly</value>
+  </data>
+  <data name="Tips_HelpTip2" xml:space="preserve">
+    <value>Apply what you learn</value>
+  </data>
+  <data name="Category_Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Category_Spending" xml:space="preserve">
+    <value>Spending</value>
+  </data>
+  <data name="Category_Investing" xml:space="preserve">
+    <value>Investing</value>
+  </data>
+  <data name="Category_Budgeting" xml:space="preserve">
+    <value>Budgeting</value>
+  </data>
+  <data name="Category_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Mobile_Tips" xml:space="preserve">
+    <value>Tips</value>
+  </data>
 </root>
