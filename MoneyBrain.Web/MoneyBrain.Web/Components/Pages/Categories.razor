@@ -14,6 +14,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["Nav_Categories"] | @L["App_MoneyBrain"]</PageTitle>
 
@@ -135,7 +136,7 @@
                                             if (budget != null)
                                             {
                                                 <div class="d-flex align-center justify-end gap-1">
-                                                    <MudText>@budget.PlannedAmount.ToString("C2")</MudText>
+                                                    <MudText>@CurrencyFormattingService.FormatCurrency(budget.PlannedAmount, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                                     @if (hasOverride)
                                                     {
                                                         <MudTooltip Text="@L["Cat_MonthSpecificOverride"]">
@@ -166,7 +167,7 @@
                                                 var isOverspent = actualSpent > budget.PlannedAmount;
                                                 
                                                 <MudText Color="@(isOverspent ? Color.Error : Color.Default)">
-                                                    @actualSpent.ToString("C2")
+                                                    @CurrencyFormattingService.FormatCurrency(actualSpent, _userSettings?.CurrencyCode ?? "USD")
                                                 </MudText>
                                             }
                                             else
@@ -188,7 +189,7 @@
                                                 
                                                 <div class="d-flex align-center justify-end gap-2">
                                                     <MudText Color="@(isOverspent ? Color.Error : remaining < budget.PlannedAmount * 0.1m ? Color.Warning : Color.Success)">
-                                                        @remaining.ToString("C2")
+                                                        @CurrencyFormattingService.FormatCurrency(remaining, _userSettings?.CurrencyCode ?? "USD")
                                                     </MudText>
                                                     @if (isOverspent)
                                                     {
@@ -377,6 +378,7 @@
     private int _selectedMonth = DateTime.UtcNow.Month;
     private string _selectedMonthName = string.Empty;
     private bool _showingDefaults = false;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {

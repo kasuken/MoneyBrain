@@ -11,6 +11,7 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 @attribute [Authorize]
 
 <PageTitle>@L["Cashflow_PageTitle"]</PageTitle>
@@ -60,7 +61,7 @@
                 <MudCard>
                     <MudCardContent>
                         <MudText Typo="Typo.h6" Color="Color.Success">@L["Cashflow_TotalIncome"]</MudText>
-                        <MudText Typo="Typo.h4">@_totalIncome.ToString("C")</MudText>
+                        <MudText Typo="Typo.h4">@CurrencyFormattingService.FormatCurrency(_totalIncome, _userSettings?.CurrencyCode ?? "USD")</MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count @L["Cashflow_Months"]</MudText>
                     </MudCardContent>
                 </MudCard>
@@ -69,7 +70,7 @@
                 <MudCard>
                     <MudCardContent>
                         <MudText Typo="Typo.h6" Color="Color.Error">@L["Cashflow_TotalExpenses"]</MudText>
-                        <MudText Typo="Typo.h4">@_totalExpenses.ToString("C")</MudText>
+                        <MudText Typo="Typo.h4">@CurrencyFormattingService.FormatCurrency(_totalExpenses, _userSettings?.CurrencyCode ?? "USD")</MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">@_cashflowData.Count @L["Cashflow_Months"]</MudText>
                     </MudCardContent>
                 </MudCard>
@@ -81,7 +82,7 @@
                             @L["Cashflow_NetCashflow"]
                         </MudText>
                         <MudText Typo="Typo.h4" Color="@(_netCashflow >= 0 ? Color.Success : Color.Error)">
-                            @_netCashflow.ToString("C")
+                            @CurrencyFormattingService.FormatCurrency(_netCashflow, _userSettings?.CurrencyCode ?? "USD")
                         </MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
                             @((_netCashflow >= 0 ? L["Cashflow_Positive"] : L["Cashflow_Negative"]))
@@ -119,14 +120,14 @@
                         @GetMonthName(context.Year, context.Month)
                     </MudTd>
                     <MudTd DataLabel="@L["Cashflow_Income"]" Style="text-align: right">
-                        <MudText Color="Color.Success">@context.TotalIncome.ToString("C")</MudText>
+                        <MudText Color="Color.Success">@CurrencyFormattingService.FormatCurrency(context.TotalIncome, _userSettings?.CurrencyCode ?? "USD")</MudText>
                     </MudTd>
                     <MudTd DataLabel="@L["Cashflow_Expenses"]" Style="text-align: right">
-                        <MudText Color="Color.Error">@context.TotalExpenses.ToString("C")</MudText>
+                        <MudText Color="Color.Error">@CurrencyFormattingService.FormatCurrency(context.TotalExpenses, _userSettings?.CurrencyCode ?? "USD")</MudText>
                     </MudTd>
                     <MudTd DataLabel="@L["Cashflow_NetCashflow"]" Style="text-align: right">
                         <MudText Color="@(context.NetCashflow >= 0 ? Color.Success : Color.Error)">
-                            @context.NetCashflow.ToString("C")
+                            @CurrencyFormattingService.FormatCurrency(context.NetCashflow, _userSettings?.CurrencyCode ?? "USD")
                         </MudText>
                     </MudTd>
                     <MudTd DataLabel="@L["Col_Transactions"]" Style="text-align: center">
@@ -174,7 +175,7 @@
                                                                     @cat.CategoryName
                                                                 </td>
                                                                 <td style="text-align: right">
-                                                                    <MudText Color="Color.Success">@cat.Amount.ToString("C")</MudText>
+                                                                    <MudText Color="Color.Success">@CurrencyFormattingService.FormatCurrency(cat.Amount, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                                                 </td>
                                                                 <td style="text-align: right">@cat.Percentage.ToString("F1")%</td>
                                                             </tr>
@@ -216,7 +217,7 @@
                                                                     @cat.CategoryName
                                                                 </td>
                                                                 <td style="text-align: right">
-                                                                    <MudText Color="Color.Error">@cat.Amount.ToString("C")</MudText>
+                                                                    <MudText Color="Color.Error">@CurrencyFormattingService.FormatCurrency(cat.Amount, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                                                 </td>
                                                                 <td style="text-align: right">@cat.Percentage.ToString("F1")%</td>
                                                             </tr>
@@ -275,6 +276,7 @@
     private DateTime? _startDate = DateTime.Today.AddMonths(-5);
     private DateTime? _endDate = DateTime.Today;
     private string _userId = string.Empty;
+    private UserSettings? _userSettings;
 
     private decimal _totalIncome;
     private decimal _totalExpenses;

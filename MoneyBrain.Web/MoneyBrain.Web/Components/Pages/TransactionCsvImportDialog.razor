@@ -10,6 +10,7 @@
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog>
     <DialogContent>
@@ -152,7 +153,7 @@
                             @(context.Date?.ToString("MM/dd/yyyy") ?? L["Import_ParseError"])
                         </MudTd>
                         <MudTd DataLabel="@L["Col_Amount"]" Style="@(context.HasErrors && !context.Amount.HasValue ? "color: red;" : "")">
-                            @(context.Amount?.ToString("C") ?? L["Import_ParseError"])
+                            @(context.Amount.HasValue ? CurrencyFormattingService.FormatCurrency(context.Amount.Value, _userSettings?.CurrencyCode ?? "USD") : L["Import_ParseError"])
                         </MudTd>
                         <MudTd DataLabel="@L["Col_Payee"]">@context.Payee</MudTd>
                         <MudTd DataLabel="@L["Col_Category"]">@context.Category</MudTd>
@@ -269,6 +270,7 @@
     private TransactionCsvImportResult? _importResult;
     private List<Account> _accounts = new();
     private bool _isImporting = false;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {

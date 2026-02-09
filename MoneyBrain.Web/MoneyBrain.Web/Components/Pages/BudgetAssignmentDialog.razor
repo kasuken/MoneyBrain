@@ -5,6 +5,7 @@
 @inject ICategoryService CategoryService
 @inject ISnackbar SnackbarService
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog>
     <DialogContent>
@@ -50,7 +51,7 @@
             @if (!IsDefaultMode && _defaultBudget != null)
             {
                 <MudAlert Severity="Severity.Info" Dense="true">
-                    @L["BudgetAsgnDlg_DefaultBudget"]: @_defaultBudget.PlannedAmount.ToString("C2")
+                    @L["BudgetAsgnDlg_DefaultBudget"]: @CurrencyFormattingService.FormatCurrency(_defaultBudget.PlannedAmount, _userSettings?.CurrencyCode ?? "USD")
                     <br />
                     <small>@L["BudgetAsgnDlg_OverrideInfo"]</small>
                 </MudAlert>
@@ -110,6 +111,7 @@
     private string? _errorMessage;
     private string _monthName = string.Empty;
     private bool _hasOverrides = false;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {

@@ -12,6 +12,8 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
+@inject IUserSettingsService SettingsService
 
 <PageTitle>@L["NetWorth_PageTitle"]</PageTitle>
 
@@ -67,27 +69,27 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_CurrentNetWorth"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_history.CurrentNetWorth >= 0 ? Color.Success : Color.Error)">
-                        @_history.CurrentNetWorth.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_history.CurrentNetWorth, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_TotalAssets"]</MudText>
-                    <MudText Typo="Typo.h5" Color="Color.Primary">@_history.CurrentTotalAssets.ToString("C2")</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">@CurrencyFormattingService.FormatCurrency(_history.CurrentTotalAssets, _userSettings?.CurrencyCode ?? "USD")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_TotalLiabilities"]</MudText>
-                    <MudText Typo="Typo.h5" Color="Color.Secondary">@_history.CurrentTotalLiabilities.ToString("C2")</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Secondary">@CurrencyFormattingService.FormatCurrency(_history.CurrentTotalLiabilities, _userSettings?.CurrencyCode ?? "USD")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["NetWorth_ChangeOverPeriod"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_history.TotalChange >= 0 ? Color.Success : Color.Error)">
-                        @_history.TotalChange.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_history.TotalChange, _userSettings?.CurrencyCode ?? "USD")
                         <MudChip T="string" Size="Size.Small" Color="@(_history.TotalChange >= 0 ? Color.Success : Color.Error)">
                             @(_history.TotalChange >= 0 ? "+" : "")@_history.PercentageChange.ToString("F1")%
                         </MudChip>
@@ -102,7 +104,7 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["NetWorth_PeakNetWorth"]</MudText>
                     <MudText Typo="Typo.h6" Color="Color.Success">
-                        @_history.PeakNetWorth.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_history.PeakNetWorth, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                     @if (_history.PeakDate.HasValue)
                     {
@@ -116,7 +118,7 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["NetWorth_LowestNetWorth"]</MudText>
                     <MudText Typo="Typo.h6" Color="@(_history.LowestNetWorth >= 0 ? Color.Info : Color.Error)">
-                        @_history.LowestNetWorth.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_history.LowestNetWorth, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                     @if (_history.LowestDate.HasValue)
                     {
@@ -160,18 +162,18 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="@L["Col_Date"]">@context.DateDisplay</MudTd>
-                    <MudTd DataLabel="@L["NetWorth_Assets"]" Style="text-align: right;">@context.TotalAssets.ToString("C2")</MudTd>
-                    <MudTd DataLabel="@L["NetWorth_Liabilities"]" Style="text-align: right;">@context.TotalLiabilities.ToString("C2")</MudTd>
+                    <MudTd DataLabel="@L["NetWorth_Assets"]" Style="text-align: right;">@CurrencyFormattingService.FormatCurrency(context.TotalAssets, _userSettings?.CurrencyCode ?? "USD")</MudTd>
+                    <MudTd DataLabel="@L["NetWorth_Liabilities"]" Style="text-align: right;">@CurrencyFormattingService.FormatCurrency(context.TotalLiabilities, _userSettings?.CurrencyCode ?? "USD")</MudTd>
                     <MudTd DataLabel="@L["NetWorth_NetWorth"]" Style="text-align: right;">
                         <span style="color: @(context.NetWorth >= 0 ? "green" : "red")">
-                            @context.NetWorth.ToString("C2")
+                            @CurrencyFormattingService.FormatCurrency(context.NetWorth, _userSettings?.CurrencyCode ?? "USD")
                         </span>
                     </MudTd>
                     <MudTd DataLabel="@L["NetWorth_Change"]" Style="text-align: right;">
                         @if (context.ChangeFromPrevious.HasValue)
                         {
                             <span style="color: @(context.ChangeFromPrevious.Value >= 0 ? "green" : "red")">
-                                @(context.ChangeFromPrevious.Value >= 0 ? "+" : "")@context.ChangeFromPrevious.Value.ToString("C2")
+                                @(context.ChangeFromPrevious.Value >= 0 ? "+" : "")@CurrencyFormattingService.FormatCurrency(context.ChangeFromPrevious.Value, _userSettings?.CurrencyCode ?? "USD")
                                 (@(context.PercentageChange >= 0 ? "+" : "")@context.PercentageChange?.ToString("F1")%)
                             </span>
                         }
@@ -220,7 +222,7 @@
                                                                             <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">@L["Status_Inactive"]</MudChip>
                                                                         }
                                                                     </td>
-                                                                    <td style="text-align: right;">@account.Balance.ToString("C2")</td>
+                                                                    <td style="text-align: right;">@CurrencyFormattingService.FormatCurrency(account.Balance, _userSettings?.CurrencyCode ?? "USD")</td>
                                                                 </tr>
                                                             }
                                                         </tbody>
@@ -246,7 +248,7 @@
                                                                             <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined">@L["Status_Inactive"]</MudChip>
                                                                         }
                                                                     </td>
-                                                                    <td style="text-align: right;">@account.Balance.ToString("C2")</td>
+                                                                    <td style="text-align: right;">@CurrencyFormattingService.FormatCurrency(account.Balance, _userSettings?.CurrencyCode ?? "USD")</td>
                                                                 </tr>
                                                             }
                                                         </tbody>
@@ -308,6 +310,7 @@
     private NetWorthHistoryDto? _history;
     private List<NetWorthSnapshotDto> _chartData = [];
     private HashSet<NetWorthSnapshotDto> _expandedSnapshots = [];
+    private UserSettings? _userSettings;
 
     private List<ChartSeries> _chartSeries = [];
     private ChartOptions _chartOptions = new()
@@ -320,6 +323,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (!string.IsNullOrEmpty(userId))
+        {
+            _userSettings = await SettingsService.GetSettingsAsync(userId);
+        }
+        
         await LoadDataAsync();
     }
 

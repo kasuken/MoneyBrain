@@ -15,6 +15,7 @@
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["Nav_Budgets"] | @L["App_MoneyBrain"]</PageTitle>
 
@@ -102,7 +103,7 @@
                                     <strong>@categoryCount</strong> @L["Budget_CategoryCount", categoryCount]
                                 </MudText>
                                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">
-                                    <strong>@totalBudgeted.ToString("C2")</strong> @L["Budget_TotalBudgeted"]
+                                    <strong>@CurrencyFormattingService.FormatCurrency(totalBudgeted, _userSettings?.CurrencyCode ?? "USD")</strong> @L["Budget_TotalBudgeted"]
                                 </MudText>
                             </div>
                         </div>
@@ -140,7 +141,7 @@
                                     </div>
                                 </MudTd>
                                 <MudTd Style="text-align: right;">
-                                    <MudText Typo="Typo.body2">@context.PlannedAmount.ToString("C2")</MudText>
+                                    <MudText Typo="Typo.body2">@CurrencyFormattingService.FormatCurrency(context.PlannedAmount, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                 </MudTd>
                                 <MudTd Style="text-align: right;">
                                     @{
@@ -148,7 +149,7 @@
                                         var isOverspent = actualSpent > context.PlannedAmount;
                                         
                                         <MudText Color="@(isOverspent ? Color.Error : Color.Default)">
-                                            @actualSpent.ToString("C2")
+                                            @CurrencyFormattingService.FormatCurrency(actualSpent, _userSettings?.CurrencyCode ?? "USD")
                                         </MudText>
                                     }
                                 </MudTd>
@@ -161,7 +162,7 @@
                                         
                                         <div class="d-flex align-center justify-end gap-2">
                                             <MudText Color="@(isOverspent ? Color.Error : remaining < context.PlannedAmount * 0.1m ? Color.Warning : Color.Success)">
-                                                @remaining.ToString("C2")
+                                                @CurrencyFormattingService.FormatCurrency(remaining, _userSettings?.CurrencyCode ?? "USD")
                                             </MudText>
                                             @if (isOverspent)
                                             {
@@ -244,6 +245,7 @@
     private bool _isLoading = true;
     private string? _userId;
     private string _viewMode = "all"; // "all" or "defaults"
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {

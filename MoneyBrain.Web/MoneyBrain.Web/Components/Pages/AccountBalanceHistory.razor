@@ -15,6 +15,7 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["BalHistory_PageTitle"]</PageTitle>
 
@@ -84,21 +85,21 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_CurrentBalance"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_singleAccountHistory.CurrentBalance >= 0 ? Color.Success : Color.Error)">
-                        @_singleAccountHistory.CurrentBalance.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_singleAccountHistory.CurrentBalance, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_OpeningBalance"]</MudText>
-                    <MudText Typo="Typo.h5">@_singleAccountHistory.OpeningBalance.ToString("C2")</MudText>
+                    <MudText Typo="Typo.h5">@CurrencyFormattingService.FormatCurrency(_singleAccountHistory.OpeningBalance, _userSettings?.CurrencyCode ?? "USD")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_Change"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_singleAccountHistory.BalanceChange >= 0 ? Color.Success : Color.Error)">
-                        @(_singleAccountHistory.BalanceChange >= 0 ? "+" : "")@_singleAccountHistory.BalanceChange.ToString("C2")
+                        @(_singleAccountHistory.BalanceChange >= 0 ? "+" : "")@CurrencyFormattingService.FormatCurrency(Math.Abs(_singleAccountHistory.BalanceChange), _userSettings?.CurrencyCode ?? "USD")
                         <MudChip T="string" Size="Size.Small" Color="@(_singleAccountHistory.BalanceChange >= 0 ? Color.Success : Color.Error)">
                             @(_singleAccountHistory.PercentageChange >= 0 ? "+" : "")@_singleAccountHistory.PercentageChange.ToString("F1")%
                         </MudChip>
@@ -108,7 +109,7 @@
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_AverageBalance"]</MudText>
-                    <MudText Typo="Typo.h5">@_singleAccountHistory.AverageBalance.ToString("C2")</MudText>
+                    <MudText Typo="Typo.h5">@CurrencyFormattingService.FormatCurrency(_singleAccountHistory.AverageBalance, _userSettings?.CurrencyCode ?? "USD")</MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
@@ -119,7 +120,7 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["BalHistory_PeakBalance"]</MudText>
                     <MudText Typo="Typo.h6" Color="Color.Success">
-                        @_singleAccountHistory.PeakBalance.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_singleAccountHistory.PeakBalance, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -127,7 +128,7 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.subtitle2" Color="Color.Default">@L["BalHistory_LowestBalance"]</MudText>
                     <MudText Typo="Typo.h6" Color="@(_singleAccountHistory.LowestBalance >= 0 ? Color.Info : Color.Error)">
-                        @_singleAccountHistory.LowestBalance.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_singleAccountHistory.LowestBalance, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -165,14 +166,14 @@
                     <MudTd DataLabel="@L["Col_Date"]">@context.DateDisplay</MudTd>
                     <MudTd DataLabel="@L["Col_Balance"]" Style="text-align: right;">
                         <span style="color: @(context.Balance >= 0 ? "green" : "red")">
-                            @context.Balance.ToString("C2")
+                            @CurrencyFormattingService.FormatCurrency(context.Balance, _userSettings?.CurrencyCode ?? "USD")
                         </span>
                     </MudTd>
                     <MudTd DataLabel="@L["BalHistory_Change"]" Style="text-align: right;">
                         @if (context.ChangeFromPrevious.HasValue)
                         {
                             <span style="color: @(context.ChangeFromPrevious.Value >= 0 ? "green" : "red")">
-                                @(context.ChangeFromPrevious.Value >= 0 ? "+" : "")@context.ChangeFromPrevious.Value.ToString("C2")
+                                @(context.ChangeFromPrevious.Value >= 0 ? "+" : "")@CurrencyFormattingService.FormatCurrency(Math.Abs(context.ChangeFromPrevious.Value), _userSettings?.CurrencyCode ?? "USD")
                             </span>
                         }
                         else
@@ -204,21 +205,21 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_TotalCurrentBalance"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_multiAccountHistory.TotalCurrentBalance >= 0 ? Color.Success : Color.Error)">
-                        @_multiAccountHistory.TotalCurrentBalance.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_multiAccountHistory.TotalCurrentBalance, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_TotalOpeningBalance"]</MudText>
-                    <MudText Typo="Typo.h5">@_multiAccountHistory.TotalOpeningBalance.ToString("C2")</MudText>
+                    <MudText Typo="Typo.h5">@CurrencyFormattingService.FormatCurrency(_multiAccountHistory.TotalOpeningBalance, _userSettings?.CurrencyCode ?? "USD")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BalHistory_TotalChange"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_multiAccountHistory.TotalChange >= 0 ? Color.Success : Color.Error)">
-                        @(_multiAccountHistory.TotalChange >= 0 ? "+" : "")@_multiAccountHistory.TotalChange.ToString("C2")
+                        @(_multiAccountHistory.TotalChange >= 0 ? "+" : "")@CurrencyFormattingService.FormatCurrency(Math.Abs(_multiAccountHistory.TotalChange), _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -255,22 +256,22 @@
                                 <MudItem xs="6">
                                     <MudText Typo="Typo.body2">@L["BalHistory_Current"]:</MudText>
                                     <MudText Typo="Typo.body1" Color="@(account.CurrentBalance >= 0 ? Color.Success : Color.Error)">
-                                        @account.CurrentBalance.ToString("C2")
+                                        @CurrencyFormattingService.FormatCurrency(account.CurrentBalance, _userSettings?.CurrencyCode ?? "USD")
                                     </MudText>
                                 </MudItem>
                                 <MudItem xs="6">
                                     <MudText Typo="Typo.body2">@L["BalHistory_Change"]:</MudText>
                                     <MudText Typo="Typo.body1" Color="@(account.BalanceChange >= 0 ? Color.Success : Color.Error)">
-                                        @(account.BalanceChange >= 0 ? "+" : "")@account.BalanceChange.ToString("C2")
+                                        @(account.BalanceChange >= 0 ? "+" : "")@CurrencyFormattingService.FormatCurrency(Math.Abs(account.BalanceChange), _userSettings?.CurrencyCode ?? "USD")
                                     </MudText>
                                 </MudItem>
                                 <MudItem xs="6">
                                     <MudText Typo="Typo.body2">@L["BalHistory_Peak"]:</MudText>
-                                    <MudText Typo="Typo.body1">@account.PeakBalance.ToString("C2")</MudText>
+                                    <MudText Typo="Typo.body1">@CurrencyFormattingService.FormatCurrency(account.PeakBalance, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                 </MudItem>
                                 <MudItem xs="6">
                                     <MudText Typo="Typo.body2">@L["BalHistory_Average"]:</MudText>
-                                    <MudText Typo="Typo.body1">@account.AverageBalance.ToString("C2")</MudText>
+                                    <MudText Typo="Typo.body1">@CurrencyFormattingService.FormatCurrency(account.AverageBalance, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                 </MudItem>
                             </MudGrid>
                         </MudCardContent>
@@ -300,6 +301,7 @@
     private int _intervalDays = 7; // Weekly by default
     private int? _selectedAccountId;
     private bool _loading = true;
+    private UserSettings? _userSettings;
     
     private List<Account> _accounts = [];
     private AccountBalanceHistoryDto? _singleAccountHistory;

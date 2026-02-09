@@ -17,6 +17,7 @@
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["ReconcileWs_PageTitle"] | MoneyBrain</PageTitle>
 
@@ -216,6 +217,7 @@
     private int _reconciledCount;
     private bool _allChecked;
     private bool _isBalanced;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {
@@ -383,7 +385,7 @@
 
     private string FormatCurrency(decimal amount)
     {
-        return amount.ToString("C2");
+        return CurrencyFormattingService.FormatCurrency(amount, _userSettings?.CurrencyCode ?? "USD");
     }
 
     private string GetBalanceClass(decimal balance)

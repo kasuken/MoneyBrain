@@ -11,6 +11,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["ManAdj_PageTitle"] - MoneyBrain</PageTitle>
 
@@ -81,17 +82,17 @@
                         <MudGrid>
                             <MudItem xs="12" md="3">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@L["ManAdj_OpeningBalance"]</MudText>
-                                <MudText Typo="Typo.h6">@_selectedAccount.OpeningBalance.ToString("C2")</MudText>
+                                <MudText Typo="Typo.h6">@CurrencyFormattingService.FormatCurrency(_selectedAccount.OpeningBalance, _userSettings?.CurrencyCode ?? "USD")</MudText>
                             </MudItem>
                             <MudItem xs="12" md="3">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@L["ManAdj_TotalAdjustments"]</MudText>
                                 <MudText Typo="Typo.h6" Color="@(_totalAdjustments >= 0 ? Color.Success : Color.Error)">
-                                    @_totalAdjustments.ToString("C2")
+                                    @CurrencyFormattingService.FormatCurrency(_totalAdjustments, _userSettings?.CurrencyCode ?? "USD")
                                 </MudText>
                             </MudItem>
                             <MudItem xs="12" md="3">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@L["ManAdj_CurrentBalance"]</MudText>
-                                <MudText Typo="Typo.h6" Color="Color.Primary">@_currentBalance.ToString("C2")</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Primary">@CurrencyFormattingService.FormatCurrency(_currentBalance, _userSettings?.CurrencyCode ?? "USD")</MudText>
                             </MudItem>
                             <MudItem xs="12" md="3" Class="d-flex align-end justify-end">
                                 <MudButton Variant="Variant.Filled" 
@@ -142,7 +143,7 @@
                                         <MudChip T="string" 
                                                 Size="Size.Small" 
                                                 Color="@(context.Amount >= 0 ? Color.Success : Color.Error)">
-                                            @(context.Amount >= 0 ? "+" : "")@context.Amount.ToString("C2")
+                                            @(context.Amount >= 0 ? "+" : "")@CurrencyFormattingService.FormatCurrency(Math.Abs(context.Amount), _userSettings?.CurrencyCode ?? "USD")
                                         </MudChip>
                                     </MudTd>
                                     <MudTd DataLabel="@L["Col_Category"]">
@@ -198,6 +199,7 @@
     private bool _isLoading = true;
     private bool _isLoadingAdjustments = false;
     private string _userId = string.Empty;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {
@@ -278,7 +280,7 @@
     {
         var result = await DialogService.ShowMessageBox(
             L["ManAdj_DeleteDialogTitle"],
-            L["ManAdj_DeleteDialogMessage", adjustment.Amount.ToString("C2")],
+            L["ManAdj_DeleteDialogMessage", CurrencyFormattingService.FormatCurrency(adjustment.Amount, _userSettings?.CurrencyCode ?? "USD")],
             yesText: L["Btn_Delete"],
             cancelText: L["Btn_Cancel"]);
 

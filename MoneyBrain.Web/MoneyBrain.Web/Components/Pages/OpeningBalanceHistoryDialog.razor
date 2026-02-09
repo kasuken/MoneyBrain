@@ -5,6 +5,7 @@
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog>
     <DialogContent>
@@ -39,15 +40,15 @@
                                             @GetAdjustmentText(adjustment.AdjustmentAmount)
                                         </MudText>
                                         <MudChip T="string" Size="Size.Small" Color="@GetChipColor(adjustment.AdjustmentAmount)">
-                                            @adjustment.AdjustmentAmount.ToString("C2")
+                                            @CurrencyFormattingService.FormatCurrency(adjustment.AdjustmentAmount, _userSettings?.CurrencyCode ?? "USD")
                                         </MudChip>
                                     </div>
                                     <div class="d-flex gap-4 mb-1">
                                         <MudText Typo="Typo.caption">
-                                            @L["OpenBalHistDlg_From"]: <strong>@adjustment.PreviousBalance.ToString("C2")</strong>
+                                            @L["OpenBalHistDlg_From"]: <strong>@CurrencyFormattingService.FormatCurrency(adjustment.PreviousBalance, _userSettings?.CurrencyCode ?? "USD")</strong>
                                         </MudText>
                                         <MudText Typo="Typo.caption">
-                                            @L["OpenBalHistDlg_To"]: <strong>@adjustment.NewBalance.ToString("C2")</strong>
+                                            @L["OpenBalHistDlg_To"]: <strong>@CurrencyFormattingService.FormatCurrency(adjustment.NewBalance, _userSettings?.CurrencyCode ?? "USD")</strong>
                                         </MudText>
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(adjustment.Reason))
@@ -81,6 +82,7 @@
 
     private List<OpeningBalanceAdjustment> _adjustments = new();
     private bool _isLoading = true;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,8 +130,8 @@
 
     private string GetAdjustmentText(decimal amount) => amount switch
     {
-        > 0 => string.Format(L["OpenBalHistDlg_IncreasedBy"], amount.ToString("C2")),
-        < 0 => string.Format(L["OpenBalHistDlg_DecreasedBy"], Math.Abs(amount).ToString("C2")),
+        > 0 => string.Format(L["OpenBalHistDlg_IncreasedBy"], CurrencyFormattingService.FormatCurrency(amount, _userSettings?.CurrencyCode ?? "USD")),
+        < 0 => string.Format(L["OpenBalHistDlg_DecreasedBy"], CurrencyFormattingService.FormatCurrency(Math.Abs(amount), _userSettings?.CurrencyCode ?? "USD")),
         _ => L["OpenBalHistDlg_NoChange"]
     };
 }

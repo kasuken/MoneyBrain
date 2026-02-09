@@ -11,6 +11,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["OpenBal_PageTitle"] - MoneyBrain</PageTitle>
 
@@ -53,7 +54,7 @@
                                         <div class="d-flex justify-space-between align-center">
                                             <MudText Typo="Typo.caption" Color="Color.Secondary">@L["OpenBal_OpeningBalance"]:</MudText>
                                             <MudText Typo="Typo.subtitle1" Color="@(account.OpeningBalance >= 0 ? Color.Success : Color.Error)">
-                                                @account.OpeningBalance.ToString("C2")
+                                                @CurrencyFormattingService.FormatCurrency(account.OpeningBalance, _userSettings?.CurrencyCode ?? "USD")
                                             </MudText>
                                         </div>
                                     </MudCardContent>
@@ -102,7 +103,7 @@
                                         <div class="d-flex justify-space-between align-center">
                                             <MudText Typo="Typo.caption" Color="Color.Secondary">@L["OpenBal_OpeningBalance"]:</MudText>
                                             <MudText Typo="Typo.subtitle1" Color="@(account.OpeningBalance >= 0 ? Color.Success : Color.Error)">
-                                                @account.OpeningBalance.ToString("C2")
+                                                @CurrencyFormattingService.FormatCurrency(account.OpeningBalance, _userSettings?.CurrencyCode ?? "USD")
                                             </MudText>
                                         </div>
                                     </MudCardContent>
@@ -136,6 +137,7 @@
     private List<Account> _liabilityAccounts = new();
     private bool _isLoading = true;
     private string _userId = string.Empty;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {

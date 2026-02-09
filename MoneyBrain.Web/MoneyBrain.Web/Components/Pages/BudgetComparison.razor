@@ -12,6 +12,7 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["BudgetVsActual_PageTitle"]</PageTitle>
 
@@ -58,20 +59,20 @@
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BudgetVsActual_TotalBudgeted"]</MudText>
-                    <MudText Typo="Typo.h5" Color="Color.Primary">@_summary.TotalBudgeted.ToString("C2")</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">@CurrencyFormattingService.FormatCurrency(_summary.TotalBudgeted, _userSettings?.CurrencyCode ?? "USD")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BudgetVsActual_TotalActual"]</MudText>
-                    <MudText Typo="Typo.h5" Color="Color.Secondary">@_summary.TotalActual.ToString("C2")</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Secondary">@CurrencyFormattingService.FormatCurrency(_summary.TotalActual, _userSettings?.CurrencyCode ?? "USD")</MudText>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudText Typo="Typo.body2" Color="Color.Default">@L["BudgetVsActual_Remaining"]</MudText>
                     <MudText Typo="Typo.h5" Color="@(_summary.TotalRemaining >= 0 ? Color.Success : Color.Error)">
-                        @_summary.TotalRemaining.ToString("C2")
+                        @CurrencyFormattingService.FormatCurrency(_summary.TotalRemaining, _userSettings?.CurrencyCode ?? "USD")
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -121,11 +122,11 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="@L["Col_Month"]">@context.MonthName</MudTd>
-                    <MudTd DataLabel="@L["BudgetVsActual_Budgeted"]" Style="text-align: right;">@context.TotalBudgeted.ToString("C2")</MudTd>
-                    <MudTd DataLabel="@L["BudgetVsActual_Actual"]" Style="text-align: right;">@context.TotalActual.ToString("C2")</MudTd>
+                    <MudTd DataLabel="@L["BudgetVsActual_Budgeted"]" Style="text-align: right;">@CurrencyFormattingService.FormatCurrency(context.TotalBudgeted, _userSettings?.CurrencyCode ?? "USD")</MudTd>
+                    <MudTd DataLabel="@L["BudgetVsActual_Actual"]" Style="text-align: right;">@CurrencyFormattingService.FormatCurrency(context.TotalActual, _userSettings?.CurrencyCode ?? "USD")</MudTd>
                     <MudTd DataLabel="@L["BudgetVsActual_Remaining"]" Style="text-align: right;">
                         <span style="color: @(context.Remaining >= 0 ? "green" : "red")">
-                            @context.Remaining.ToString("C2")
+                            @CurrencyFormattingService.FormatCurrency(context.Remaining, _userSettings?.CurrencyCode ?? "USD")
                         </span>
                     </MudTd>
                     <MudTd DataLabel="@L["BudgetVsActual_PercentUsed"]" Style="text-align: right;">@context.PercentageUsed.ToString("F1")%</MudTd>
@@ -171,11 +172,11 @@
                                                         <strong>@category.CategoryName</strong>
                                                     </MudTd>
                                                     <MudTd DataLabel="@L["Lbl_Group"]">@(category.CategoryGroupName ?? "-")</MudTd>
-                                                    <MudTd DataLabel="@L["BudgetVsActual_Budgeted"]" Style="text-align: right;">@category.Budgeted.ToString("C2")</MudTd>
-                                                    <MudTd DataLabel="@L["BudgetVsActual_Actual"]" Style="text-align: right;">@category.Actual.ToString("C2")</MudTd>
+                                                    <MudTd DataLabel="@L["BudgetVsActual_Budgeted"]" Style="text-align: right;">@CurrencyFormattingService.FormatCurrency(category.Budgeted, _userSettings?.CurrencyCode ?? "USD")</MudTd>
+                                                    <MudTd DataLabel="@L["BudgetVsActual_Actual"]" Style="text-align: right;">@CurrencyFormattingService.FormatCurrency(category.Actual, _userSettings?.CurrencyCode ?? "USD")</MudTd>
                                                     <MudTd DataLabel="@L["BudgetVsActual_Remaining"]" Style="text-align: right;">
                                                         <span style="color: @(category.Remaining >= 0 ? "green" : "red")">
-                                                            @category.Remaining.ToString("C2")
+                                                            @CurrencyFormattingService.FormatCurrency(category.Remaining, _userSettings?.CurrencyCode ?? "USD")
                                                         </span>
                                                     </MudTd>
                                                     <MudTd DataLabel="@L["BudgetVsActual_PercentUsed"]" Style="text-align: right;">
@@ -240,6 +241,7 @@
     private BudgetComparisonSummaryDto? _summary;
     private List<MonthlyBudgetComparisonDto> _chartData = [];
     private HashSet<MonthlyBudgetComparisonDto> _expandedMonths = [];
+    private UserSettings? _userSettings;
 
     private List<ChartSeries> _chartSeries = [];
     private ChartOptions _chartOptions = new()

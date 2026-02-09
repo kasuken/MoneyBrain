@@ -117,6 +117,9 @@ builder.Services.AddScoped<IBehaviorInsightService, BehaviorInsightService>();
 // Mobile detection service
 builder.Services.AddScoped<MoneyBrain.Web.Services.IMobileDetectionService, MoneyBrain.Web.Services.MobileDetectionService>();
 
+// Currency formatting service
+builder.Services.AddScoped<MoneyBrain.Web.Services.ICurrencyFormattingService, MoneyBrain.Web.Services.CurrencyFormattingService>();
+
 // Licensing services
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 builder.Services.Configure<LicensingSettings>(builder.Configuration.GetSection("Licensing"));
