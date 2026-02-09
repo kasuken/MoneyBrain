@@ -11,6 +11,7 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 @attribute [Authorize]
 
 <PageTitle>@L["CatSpend_PageTitle"]</PageTitle>
@@ -60,7 +61,7 @@
                 <MudCard>
                     <MudCardContent>
                         <MudText Typo="Typo.h6" Color="Color.Error">@L["CatSpend_TotalSpending"]</MudText>
-                        <MudText Typo="Typo.h4">@_summary.TotalSpending.ToString("C")</MudText>
+                        <MudText Typo="Typo.h4">@CurrencyFormattingService.FormatCurrency(_summary.TotalSpending, _userSettings?.CurrencyCode ?? "USD")</MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
                             @_summary.StartDate.ToString("MMM d") - @_summary.EndDate.ToString("MMM d, yyyy")
                         </MudText>
@@ -82,7 +83,7 @@
                         <MudText Typo="Typo.h6" Color="Color.Success">@L["CatSpend_Transactions"]</MudText>
                         <MudText Typo="Typo.h4">@_summary.TotalTransactions</MudText>
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
-                            @L["CatSpend_Avg"]: @(_summary.TotalTransactions > 0 ? (_summary.TotalSpending / _summary.TotalTransactions).ToString("C") : "$0")
+                            @L["CatSpend_Avg"]: @(_summary.TotalTransactions > 0 ? CurrencyFormattingService.FormatCurrency(_summary.TotalSpending / _summary.TotalTransactions, _userSettings?.CurrencyCode ?? "USD") : "$0")
                         </MudText>
                     </MudCardContent>
                 </MudCard>
@@ -122,7 +123,7 @@
                         <strong>@context.CategoryName</strong>
                     </MudTd>
                     <MudTd DataLabel="@L["Lbl_Total"]" Style="text-align: right">
-                        <MudText Color="Color.Error"><strong>@context.TotalSpending.ToString("C")</strong></MudText>
+                        <MudText Color="Color.Error"><strong>@CurrencyFormattingService.FormatCurrency(context.TotalSpending, _userSettings?.CurrencyCode ?? "USD")</strong></MudText>
                     </MudTd>
                     <MudTd DataLabel="%" Style="text-align: right">
                         <MudChip T="string" Size="Size.Small" Color="Color.Primary">@context.PercentageOfTotal.ToString("F1")%</MudChip>
@@ -131,7 +132,7 @@
                         @context.TransactionCount
                     </MudTd>
                     <MudTd DataLabel="@L["CatSpend_Average"]" Style="text-align: right">
-                        @context.AverageTransactionAmount.ToString("C")
+                        @CurrencyFormattingService.FormatCurrency(context.AverageTransactionAmount, _userSettings?.CurrencyCode ?? "USD")
                     </MudTd>
                     <MudTd>
                         <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown"
@@ -176,11 +177,11 @@
                                                     <tr>
                                                         <td>@month.MonthName</td>
                                                         <td style="text-align: right">
-                                                            <MudText Color="Color.Error">@month.Amount.ToString("C")</MudText>
+                                                            <MudText Color="Color.Error">@CurrencyFormattingService.FormatCurrency(month.Amount, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                                         </td>
                                                         <td style="text-align: center">@month.TransactionCount</td>
                                                         <td style="text-align: right">
-                                                            @((month.TransactionCount > 0 ? month.Amount / month.TransactionCount : 0).ToString("C"))
+                                                            @CurrencyFormattingService.FormatCurrency((month.TransactionCount > 0 ? month.Amount / month.TransactionCount : 0), _userSettings?.CurrencyCode ?? "USD")
                                                         </td>
                                                     </tr>
                                                 }
@@ -237,6 +238,7 @@
     private DateTime? _endDate = DateTime.Today;
     private string _userId = string.Empty;
     private int _topCount = 10;
+    private UserSettings? _userSettings;
 
     private CategorySpendingDto? _expandedCategory;
 

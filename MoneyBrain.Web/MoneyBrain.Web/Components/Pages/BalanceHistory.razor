@@ -11,6 +11,7 @@
 @inject IStringLocalizer<SharedResource> L
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["BalHist_PageTitle"] - MoneyBrain</PageTitle>
 
@@ -112,7 +113,7 @@
                                 </MudTd>
                                 <MudTd DataLabel="@L["Col_Balance"]">
                                     <MudText Color="@(context.Balance >= 0 ? Color.Success : Color.Error)">
-                                        @context.Balance.ToString("C2")
+                                        @CurrencyFormattingService.FormatCurrency(context.Balance, _userSettings?.CurrencyCode ?? "USD")
                                     </MudText>
                                 </MudTd>
                                 <MudTd DataLabel="@L["BalHist_Change"]">
@@ -123,7 +124,7 @@
                                             <MudChip T="string" 
                                                     Size="Size.Small" 
                                                     Color="@(change.Value >= 0 ? Color.Success : Color.Error)">
-                                                @(change.Value >= 0 ? "+" : "")@change.Value.ToString("C2")
+                                                @(change.Value >= 0 ? "+" : "")@CurrencyFormattingService.FormatCurrency(change.Value, _userSettings?.CurrencyCode ?? "USD")
                                             </MudChip>
                                         }
                                         else
@@ -193,6 +194,7 @@
     private bool _isLoading = true;
     private bool _isLoadingSnapshots = false;
     private string _userId = string.Empty;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {
