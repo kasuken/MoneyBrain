@@ -27,6 +27,9 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj
 
+      - name: Create bin/Debug directory (workaround for .NET 10.0 SDK MSB3552)
+        run: mkdir -p MoneyBrain.Web/MoneyBrain.Web/bin/Debug
+
       - name: Build
         run: dotnet build MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj --configuration Release --no-restore
 

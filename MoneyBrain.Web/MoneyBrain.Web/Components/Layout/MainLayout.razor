@@ -98,6 +98,13 @@
 <!-- PWA Install Prompt -->
 <PwaInstallPrompt />
 
+<!-- Tips Button -->
+<AuthorizeView>
+    <Authorized>
+        <TipsButton />
+    </Authorized>
+</AuthorizeView>
+
 @code {
     private MudTheme _theme = new()
     {
@@ -160,7 +167,7 @@
         var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         
         // Redirect based on viewport size
-        if (isMobile && !currentPath.StartsWith("mobile/") && !currentPath.StartsWith("Account/"))
+        if (isMobile && !currentPath.StartsWith("mobile/") && !currentPath.StartsWith("Account/") && !currentPath.StartsWith("tips"))
         {
             NavigationManager.NavigateTo("/mobile/overview");
         }

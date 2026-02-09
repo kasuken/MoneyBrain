@@ -1,0 +1,55 @@
+@* Floating tips button that appears on the bottom-right of pages *@
+@rendermode InteractiveServer
+
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Application.Tips
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> L
+@inject IEducationalTipService EducationalTipService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudBadge Content="@_unseenTipsCount" 
+          Visible="@(_unseenTipsCount > 0)" 
+          Color="Color.Error" 
+          Overlap="true" 
+          Class="pulse"
+          Style="position: fixed; bottom: 80px; right: 96px; z-index: 1300;">
+    <MudFab StartIcon="@Icons.Material.Filled.Lightbulb"
+            Color="Color.Primary"
+            Size="Size.Medium"
+            OnClick="NavigateToTips"
+            aria-label="@L["Nav_Tips"]" />
+</MudBadge>
+
+@code {
+    private int _unseenTipsCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUnseenTipsCountAsync();
+    }
+
+    private async Task LoadUnseenTipsCountAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (!string.IsNullOrEmpty(userId))
+            {
+                _unseenTipsCount = await EducationalTipService.GetUnseenTipCountAsync(userId);
+            }
+        }
+        catch
+        {
+            _unseenTipsCount = 0;
+        }
+    }
+
+    private void NavigateToTips()
+    {
+        NavigationManager.NavigateTo("/tips");
+    }
+}

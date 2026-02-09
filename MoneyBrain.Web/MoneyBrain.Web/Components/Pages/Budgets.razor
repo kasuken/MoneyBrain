@@ -57,10 +57,16 @@
             <MudText Typo="Typo.body2" Class="mb-4" Style="color: var(--mb-text-muted);">
                 @L["Budget_CreateFirstDescription"]
             </MudText>
-            <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateBudgetDialog">
-                <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
-                @L["Budget_CreateFirstBudget"]
-            </MudButton>
+            <div class="d-flex gap-2 justify-center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@OpenTemplateDialog">
+                    <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Class="me-2" />
+                    @L["Budget_QuickStartTemplate"]
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Class="mb-btn-primary" OnClick="@OpenCreateBudgetDialog">
+                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="me-2" />
+                    @L["Budget_CreateFirstBudget"]
+                </MudButton>
+            </div>
         </div>
     }
     else
@@ -376,6 +382,24 @@
             {
                 SnackbarService.Add(L["Budget_DeleteFailed"].Value, Severity.Error);
             }
+        }
+    }
+
+    private async Task OpenTemplateDialog()
+    {
+        var parameters = new DialogParameters<BudgetTemplateDialog>
+        {
+            { x => x.UserId, _userId }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<BudgetTemplateDialog>(L["Budget_QuickStartTemplate"].Value, parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            await LoadBudgets();
+            SnackbarService.Add(L["Budget_TemplateCreatedSuccess"].Value, Severity.Success);
         }
     }
 }

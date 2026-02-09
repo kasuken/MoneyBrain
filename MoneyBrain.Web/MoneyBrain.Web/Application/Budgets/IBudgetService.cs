@@ -21,4 +21,7 @@ public interface IBudgetService
     
     // Reporting
     Task<decimal> GetTotalBudgetedAsync(int budgetId, string userId);
+    
+    // Templates
+    Task<Budget> CreateBudgetFromTemplateAsync(string userId, string templateName, int year, int month);
 }

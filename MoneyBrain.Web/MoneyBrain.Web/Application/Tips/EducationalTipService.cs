@@ -1,32 +1,21 @@
-using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Tips.DTOs;
-using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Application.Tips;
 
 /// <summary>
 /// Service implementation for managing educational financial tips.
 /// </summary>
-public class EducationalTipService : IEducationalTipService
+public class EducationalTipService(ICacheService cacheService) : IEducationalTipService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ICacheService _cacheService;
-
-    public EducationalTipService(ApplicationDbContext context, ICacheService cacheService)
-    {
-        _context = context;
-        _cacheService = cacheService;
-    }
-
     /// <inheritdoc />
     public async Task<List<EducationalTipDto>> GetActiveTipsAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
         var cacheKey = CacheKeyHelper.ForEducationalTips(userId);
-        var cached = await _cacheService.GetAsync<List<EducationalTipDto>>(cacheKey);
+        var cached = await cacheService.GetAsync<List<EducationalTipDto>>(cacheKey);
         if (cached != null)
             return cached;
 
@@ -96,7 +85,7 @@ public class EducationalTipService : IEducationalTipService
             }
         };
 
-        await _cacheService.SetAsync(cacheKey, tips, TimeSpan.FromHours(24));
+        await cacheService.SetAsync(cacheKey, tips, TimeSpan.FromHours(24));
         return tips;
     }
 
@@ -120,5 +109,14 @@ public class EducationalTipService : IEducationalTipService
     {
         var allTips = await GetActiveTipsAsync(userId, cancellationToken);
         return allTips.FirstOrDefault(t => t.Id == tipId);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> GetUnseenTipCountAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        var allTips = await GetActiveTipsAsync(userId, cancellationToken);
+        return allTips.Count;
     }
 }
