@@ -7,6 +7,7 @@
 @using MoneyBrain.Web.Resources
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog Options="@(new DialogOptions { CloseButton = false, BackdropClick = false, MaxWidth = MaxWidth.Medium, FullWidth = true })">
     <DialogContent>
@@ -195,7 +196,7 @@
                                         </div>
                                     </div>
                                     <MudText Typo="Typo.body2" Class="@(account.OpeningBalance >= 0 ? "mb-amount positive" : "mb-amount negative")">
-                                        @account.OpeningBalance.ToString("C2")
+                                        @CurrencyFormattingService.FormatCurrency(account.OpeningBalance, _userSettings?.CurrencyCode ?? "USD")
                                     </MudText>
                                 </MudPaper>
                             }
@@ -403,6 +404,7 @@
     private decimal _openingBalance;
     private List<Account> _createdAccounts = new();
     private bool _categoriesSeeded = false;
+    private UserSettings? _userSettings;
 
     private string GetNextButtonText()
     {

@@ -4,6 +4,7 @@
 @using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog>
     <DialogContent>
@@ -41,20 +42,20 @@
                         <MudItem xs="6" sm="3">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_TotalIncome"]</MudText>
-                                <MudText Typo="Typo.h6" Color="Color.Success">@_stats.TotalIncome.ToString("C2")</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Success">@CurrencyFormattingService.FormatCurrency(_stats.TotalIncome, _userSettings?.CurrencyCode ?? "USD")</MudText>
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_TotalExpenses"]</MudText>
-                                <MudText Typo="Typo.h6" Color="Color.Error">@_stats.TotalExpense.ToString("C2")</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Error">@CurrencyFormattingService.FormatCurrency(_stats.TotalExpense, _userSettings?.CurrencyCode ?? "USD")</MudText>
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Style="color: var(--mb-text-muted);">@L["CatUsageDlg_NetAmount"]</MudText>
                                 <MudText Typo="Typo.h6" Color="@(_stats.NetAmount >= 0 ? Color.Success : Color.Error)">
-                                    @_stats.NetAmount.ToString("C2")
+                                    @CurrencyFormattingService.FormatCurrency(_stats.NetAmount, _userSettings?.CurrencyCode ?? "USD")
                                 </MudText>
                             </MudStack>
                         </MudItem>
@@ -106,14 +107,14 @@
                             <RowTemplate>
                                 <MudTd>@(new DateTime(context.Year, context.Month, 1).ToString("MMM yyyy"))</MudTd>
                                 <MudTd Style="text-align: right;">
-                                    <MudText Color="Color.Success">@context.Income.ToString("C2")</MudText>
+                                    <MudText Color="Color.Success">@CurrencyFormattingService.FormatCurrency(context.Income, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                 </MudTd>
                                 <MudTd Style="text-align: right;">
-                                    <MudText Color="Color.Error">@context.Expense.ToString("C2")</MudText>
+                                    <MudText Color="Color.Error">@CurrencyFormattingService.FormatCurrency(context.Expense, _userSettings?.CurrencyCode ?? "USD")</MudText>
                                 </MudTd>
                                 <MudTd Style="text-align: right;">
                                     <MudText Color="@(context.Net >= 0 ? Color.Success : Color.Error)">
-                                        @context.Net.ToString("C2")
+                                        @CurrencyFormattingService.FormatCurrency(context.Net, _userSettings?.CurrencyCode ?? "USD")
                                     </MudText>
                                 </MudTd>
                                 <MudTd Style="text-align: right;">@context.TransactionCount</MudTd>
@@ -151,7 +152,7 @@
                                 </MudTd>
                                 <MudTd Style="text-align: right;">
                                     <MudText Color="@(context.Amount >= 0 ? Color.Success : Color.Error)">
-                                        @context.Amount.ToString("C2")
+                                        @CurrencyFormattingService.FormatCurrency(context.Amount, _userSettings?.CurrencyCode ?? "USD")
                                     </MudText>
                                 </MudTd>
                                 <MudTd>
@@ -197,6 +198,7 @@
     private List<MonthlySpending> _monthlySpending = [];
     private bool _isLoading = true;
     private string? _errorMessage;
+    private UserSettings? _userSettings;
 
     // Chart data
     private List<ChartSeries> _chartSeries = [];

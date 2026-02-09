@@ -8,6 +8,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog>
     <DialogContent>
@@ -132,7 +133,7 @@
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd>@context.Category.Name</MudTd>
-                        <MudTd Style="text-align: right;">@context.PlannedAmount.ToString("C2")</MudTd>
+                        <MudTd Style="text-align: right;">@CurrencyFormattingService.FormatCurrency(context.PlannedAmount, _userSettings?.CurrencyCode ?? "USD")</MudTd>
                         <MudTd Style="text-align: center;">
                             @if (context.AllowRollover)
                             {
@@ -157,7 +158,7 @@
                 </MudTable>
 
                 <MudText Typo="Typo.body2" Class="mt-2">
-                    <strong>@L["BudgetDlg_Total"]:</strong> @_budgetCategories.Sum(bc => bc.PlannedAmount).ToString("C2")
+                    <strong>@L["BudgetDlg_Total"]:</strong> @CurrencyFormattingService.FormatCurrency(_budgetCategories.Sum(bc => bc.PlannedAmount), _userSettings?.CurrencyCode ?? "USD")
                 </MudText>
             }
         </MudStack>
@@ -202,6 +203,7 @@
     private List<Budget> _defaultBudgets = [];
     private bool _copyFromDefault = false;
     private int _selectedDefaultBudgetId = 0;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {

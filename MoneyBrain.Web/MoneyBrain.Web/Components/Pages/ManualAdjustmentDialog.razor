@@ -5,6 +5,7 @@
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog>
     <DialogContent>
@@ -63,7 +64,7 @@
                               HelperText="@L["AdjustDlg_DescriptionHelper"]" />
 
                 <MudAlert Severity="Severity.Success" Dense="true">
-                    @L["AdjustDlg_NewBalance"]: <strong>@(_currentBalance + _amount).ToString("C2")</strong>
+                    @L["AdjustDlg_NewBalance"]: <strong>@CurrencyFormattingService.FormatCurrency(_currentBalance + _amount, _userSettings?.CurrencyCode ?? "USD")</strong>
                 </MudAlert>
             </MudStack>
         </MudForm>
@@ -105,6 +106,7 @@
     private DateTime? _adjustmentDate = DateTime.Today;
     private string? _category;
     private string _description = string.Empty;
+    private UserSettings? _userSettings;
 
     protected override async Task OnInitializedAsync()
     {

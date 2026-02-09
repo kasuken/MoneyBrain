@@ -5,6 +5,7 @@
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <MudDialog>
     <DialogContent>
@@ -32,7 +33,7 @@
                                  Variant="Variant.Outlined"
                                  Format="C2" />
 
-                <MudTextField Value="@_adjustmentAmount.ToString("C2")"
+                <MudTextField Value="@CurrencyFormattingService.FormatCurrency(_adjustmentAmount, _userSettings?.CurrencyCode ?? "USD")"
                               Label="@L["OpenBalAdjDlg_AdjustmentAmount"]"
                               ReadOnly="true"
                               Variant="Variant.Filled"
@@ -83,12 +84,13 @@
     private bool _isSaving;
     private decimal _newBalance;
     private string? _reason;
+    private UserSettings? _userSettings;
 
     private decimal _adjustmentAmount => _newBalance - Account.OpeningBalance;
     private string _adjustmentHelperText => _adjustmentAmount switch
     {
-        > 0 => string.Format(L["OpenBalAdjDlg_IncreaseOf"], _adjustmentAmount.ToString("C2")),
-        < 0 => string.Format(L["OpenBalAdjDlg_DecreaseOf"], Math.Abs(_adjustmentAmount).ToString("C2")),
+        > 0 => string.Format(L["OpenBalAdjDlg_IncreaseOf"], CurrencyFormattingService.FormatCurrency(_adjustmentAmount, _userSettings?.CurrencyCode ?? "USD")),
+        < 0 => string.Format(L["OpenBalAdjDlg_DecreaseOf"], CurrencyFormattingService.FormatCurrency(Math.Abs(_adjustmentAmount), _userSettings?.CurrencyCode ?? "USD")),
         _ => L["OpenBalAdjDlg_NoChange"]
     };
 
