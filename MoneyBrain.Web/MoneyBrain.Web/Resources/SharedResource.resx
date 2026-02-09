@@ -577,6 +577,12 @@
   <data name="Msg_DeleteFailed" xml:space="preserve">
     <value>Failed to delete</value>
   </data>
+  <data name="Msg_ErrorDismissingTip" xml:space="preserve">
+    <value>Failed to dismiss tip</value>
+  </data>
+  <data name="Msg_TipDismissed" xml:space="preserve">
+    <value>Tip dismissed successfully</value>
+  </data>
   <data name="Msg_UnsavedChanges" xml:space="preserve">
     <value>You have unsaved changes. Do you want to save before leaving?</value>
   </data>

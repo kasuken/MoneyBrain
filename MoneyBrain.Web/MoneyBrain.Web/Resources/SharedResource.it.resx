@@ -577,6 +577,12 @@
   <data name="Msg_DeleteFailed" xml:space="preserve">
     <value>Eliminazione non riuscita</value>
   </data>
+  <data name="Msg_ErrorDismissingTip" xml:space="preserve">
+    <value>Errore durante la rimozione del consiglio</value>
+  </data>
+  <data name="Msg_TipDismissed" xml:space="preserve">
+    <value>Consiglio nascosto con successo</value>
+  </data>
   <data name="Msg_UnsavedChanges" xml:space="preserve">
     <value>Hai modifiche non salvate. Vuoi salvare prima di uscire?</value>
   </data>
@@ -4329,6 +4335,63 @@
   </data>
   <data name="TipCategory_General" xml:space="preserve">
     <value>Generale</value>
+  </data>
+  <data name="Category_Budgeting" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="Category_General" xml:space="preserve">
+    <value>Generale</value>
+  </data>
+  <data name="Category_Investing" xml:space="preserve">
+    <value>Investimenti</value>
+  </data>
+  <data name="Category_Saving" xml:space="preserve">
+    <value>Risparmio</value>
+  </data>
+  <data name="Category_Spending" xml:space="preserve">
+    <value>Spese</value>
+  </data>
+  <data name="Tips_AllCategories" xml:space="preserve">
+    <value>Tutte le Categorie</value>
+  </data>
+  <data name="Tips_CheckBackLater" xml:space="preserve">
+    <value>Torna più tardi per nuovi consigli!</value>
+  </data>
+  <data name="Tips_HelpDescription" xml:space="preserve">
+    <value>Scopri come utilizzare i consigli finanziari per migliorare la tua educazione finanziaria</value>
+  </data>
+  <data name="Tips_HelpFeature1" xml:space="preserve">
+    <value>Consigli personalizzati in base alle tue abitudini finanziarie</value>
+  </data>
+  <data name="Tips_HelpFeature2" xml:space="preserve">
+    <value>Filtra per categoria per una guida mirata</value>
+  </data>
+  <data name="Tips_HelpFeature3" xml:space="preserve">
+    <value>Nascondi i consigli che già conosci</value>
+  </data>
+  <data name="Tips_HelpHowTo1" xml:space="preserve">
+    <value>Sfoglia i consigli per categoria o visualizza tutti</value>
+  </data>
+  <data name="Tips_HelpHowTo2" xml:space="preserve">
+    <value>Tocca 'Nascondi' per rimuovere i consigli che non vuoi più vedere</value>
+  </data>
+  <data name="Tips_HelpTip1" xml:space="preserve">
+    <value>Nuovi consigli vengono aggiunti regolarmente</value>
+  </data>
+  <data name="Tips_HelpTip2" xml:space="preserve">
+    <value>Applica almeno un consiglio a settimana per migliorare la tua salute finanziaria</value>
+  </data>
+  <data name="Tips_HelpTitle" xml:space="preserve">
+    <value>Informazioni sui Consigli Finanziari</value>
+  </data>
+  <data name="Tips_NoTipsAvailable" xml:space="preserve">
+    <value>Nessun consiglio disponibile</value>
+  </data>
+  <data name="Tips_Subtitle" xml:space="preserve">
+    <value>Suggerimenti utili per migliorare la tua salute finanziaria</value>
+  </data>
+  <data name="Tips_Title" xml:space="preserve">
+    <value>Consigli Finanziari</value>
   </data>
   <data name="Settings_TipsAndInsights" xml:space="preserve">
     <value>Suggerimenti e Approfondimenti</value>

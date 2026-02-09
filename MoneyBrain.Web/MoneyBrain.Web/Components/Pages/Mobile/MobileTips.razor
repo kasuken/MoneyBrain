@@ -28,7 +28,8 @@
             {
                 <!-- Category Filter - Horizontal Chip Scroll -->
                 <div class="mb-4" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <MudChipSet T="string" @bind-SelectedChip="_selectedChip" 
+                    <MudChipSet T="string" SelectedChip="_selectedChip" 
+                                SelectedChipChanged="@OnChipChanged"
                                 Filter="true" 
                                 Mandatory="true"
                                 Style="flex-wrap: nowrap; white-space: nowrap;">
@@ -102,6 +103,12 @@
         }
 
         _loading = false;
+    }
+
+    private void OnChipChanged(MudChip<string>? chip)
+    {
+        _selectedChip = chip;
+        FilterTips();
     }
 
     private void FilterTips()

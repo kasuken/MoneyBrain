@@ -34,7 +34,8 @@
         <div class="mb-4">
             <MudSelect T="string?" 
                        Label="@L["Tips_FilterByCategory"]" 
-                       @bind-Value="_selectedCategory"
+                       Value="_selectedCategory"
+                       ValueChanged="@OnCategoryChanged"
                        Variant="Variant.Outlined"
                        AnchorOrigin="Origin.BottomCenter"
                        Style="max-width: 300px;">
@@ -111,6 +112,12 @@
         }
 
         _loading = false;
+    }
+
+    private void OnCategoryChanged(string? category)
+    {
+        _selectedCategory = category;
+        FilterTips();
     }
 
     private void FilterTips()
