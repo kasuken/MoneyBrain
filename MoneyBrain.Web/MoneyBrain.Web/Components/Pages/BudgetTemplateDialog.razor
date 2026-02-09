@@ -1,0 +1,171 @@
+@using MoneyBrain.Web.Application.Budgets
+@using MoneyBrain.Web.Domain.Entities
+@using MoneyBrain.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IBudgetService BudgetService
+@inject IStringLocalizer<SharedResource> L
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                Choose a pre-configured budget template to get started quickly. Templates include common expense categories with suggested amounts.
+            </MudText>
+
+            <div class="d-flex gap-2">
+                <MudSelect @bind-Value="_selectedMonth" 
+                           Label="Month" 
+                           Variant="Variant.Outlined"
+                           Required="true">
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        var month = i;
+                        var monthName = new DateTime(2000, month, 1).ToString("MMMM");
+                        <MudSelectItem Value="@month">@monthName</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudNumericField @bind-Value="_selectedYear" 
+                                 Label="Year" 
+                                 Variant="Variant.Outlined"
+                                 Required="true"
+                                 Min="2000"
+                                 Max="2100" />
+            </div>
+
+            <MudDivider Class="my-2" />
+
+            <MudText Typo="Typo.h6">Select a Template</MudText>
+
+            <MudRadioGroup @bind-Value="_selectedTemplate">
+                <MudCard Outlined="true" Class="mb-2 pa-3" Style="@GetCardStyle("Basic Essentials")">
+                    <MudRadio T="string" Value="@("Basic Essentials")" Color="Color.Primary">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1"><strong>Basic Essentials</strong> - $2,200/month</MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                Housing (900), Food (500), Transportation (300), Utilities (300), Personal (200)
+                            </MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudCard>
+
+                <MudCard Outlined="true" Class="mb-2 pa-3" Style="@GetCardStyle("Standard Living")">
+                    <MudRadio T="string" Value="@("Standard Living")" Color="Color.Primary">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1"><strong>Standard Living</strong> - $3,800/month</MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                Housing (1400), Food (700), Transportation (500), Shopping (400), Entertainment (300), Health (300), Personal (200)
+                            </MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudCard>
+
+                <MudCard Outlined="true" Class="mb-2 pa-3" Style="@GetCardStyle("Savings Focused")">
+                    <MudRadio T="string" Value="@("Savings Focused")" Color="Color.Primary">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1"><strong>Savings Focused</strong> - $3,200/month</MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                Housing (1200), Food (600), Transportation (400), Savings (600), Health (250), Personal (150)
+                            </MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudCard>
+
+                <MudCard Outlined="true" Class="mb-2 pa-3" Style="@GetCardStyle("Family Budget")">
+                    <MudRadio T="string" Value="@("Family Budget")" Color="Color.Primary">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1"><strong>Family Budget</strong> - $5,500/month</MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                Housing (2000), Food (1200), Transportation (700), Education (500), Health (500), Entertainment (400), Shopping (200)
+                            </MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudCard>
+
+                <MudCard Outlined="true" Class="mb-2 pa-3" Style="@GetCardStyle("Student Budget")">
+                    <MudRadio T="string" Value="@("Student Budget")" Color="Color.Primary">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1"><strong>Student Budget</strong> - $1,800/month</MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mb-text-muted);">
+                                Housing (700), Food (400), Transportation (200), Education (300), Personal (200)
+                            </MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudCard>
+            </MudRadioGroup>
+
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
+                Categories that don't exist in your account will be skipped automatically.
+            </MudAlert>
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit" 
+                   Disabled="_isSubmitting || string.IsNullOrWhiteSpace(_selectedTemplate)">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            Create Budget
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter] public string UserId { get; set; } = string.Empty;
+
+    private string? _selectedTemplate;
+    private int _selectedYear = DateTime.UtcNow.Year;
+    private int _selectedMonth = DateTime.UtcNow.Month;
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    private string GetCardStyle(string templateName)
+    {
+        return _selectedTemplate == templateName 
+            ? "border: 2px solid var(--mud-palette-primary); cursor: pointer;" 
+            : "cursor: pointer;";
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_selectedTemplate))
+        {
+            _errorMessage = "Please select a template";
+            return;
+        }
+
+        _isSubmitting = true;
+
+        try
+        {
+            var budget = await BudgetService.CreateBudgetFromTemplateAsync(UserId, _selectedTemplate, _selectedYear, _selectedMonth);
+            MudDialog.Close(DialogResult.Ok(budget));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error creating budget: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}
