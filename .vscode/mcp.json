@@ -3,17 +3,20 @@
     "sequential-thinking": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "tools": ["*"]
     },
     "context7": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": ["-y", "@upstash/context7-mcp"],
+      "tools": ["*"]
     },
     "memory": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "tools": ["*"]
     },
     "serena": {
       "type": "stdio",
@@ -29,7 +32,8 @@
         "False",
         "--project",
         "${workspaceFolder}"
-      ]
+      ],
+      "tools": ["*"]
     }
   }
 }
