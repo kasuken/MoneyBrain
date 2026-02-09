@@ -4378,4 +4378,151 @@
   <data name="Nav_TipsInsights" xml:space="preserve">
     <value>Consejos e Información</value>
   </data>
+  <!-- Budget Dialog -->
+  <data name="BudgetDlg_BudgetName" xml:space="preserve">
+    <value>Nombre del Presupuesto</value>
+  </data>
+  <data name="BudgetDlg_NamePlaceholder" xml:space="preserve">
+    <value>Ingrese el nombre del presupuesto</value>
+  </data>
+  <data name="BudgetDlg_Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="BudgetDlg_DefaultBudget" xml:space="preserve">
+    <value>Establecer como Presupuesto Predeterminado</value>
+  </data>
+  <data name="BudgetDlg_DefaultBudgetDesc" xml:space="preserve">
+    <value>Este presupuesto se utilizará como plantilla para nuevos presupuestos mensuales</value>
+  </data>
+  <data name="BudgetDlg_Month" xml:space="preserve">
+    <value>Mes</value>
+  </data>
+  <data name="BudgetDlg_Year" xml:space="preserve">
+    <value>Año</value>
+  </data>
+  <data name="BudgetDlg_CopyFromDefault" xml:space="preserve">
+    <value>Copiar Categorías del Presupuesto Predeterminado</value>
+  </data>
+  <data name="BudgetDlg_CopyFromDefaultDesc" xml:space="preserve">
+    <value>Poblar automáticamente las categorías de su presupuesto predeterminado</value>
+  </data>
+  <data name="BudgetDlg_SelectDefaultBudget" xml:space="preserve">
+    <value>Seleccionar Presupuesto Predeterminado</value>
+  </data>
+  <data name="BudgetDlg_CopyCategories" xml:space="preserve">
+    <value>Copiar Categorías</value>
+  </data>
+  <data name="BudgetDlg_CategoriesCopied" xml:space="preserve">
+    <value>Las categorías se han copiado exitosamente</value>
+  </data>
+  <data name="BudgetDlg_Categories" xml:space="preserve">
+    <value>Categorías del Presupuesto</value>
+  </data>
+  <data name="BudgetDlg_AddCategory" xml:space="preserve">
+    <value>Agregar Categoría</value>
+  </data>
+  <data name="BudgetDlg_NoCategoriesYet" xml:space="preserve">
+    <value>Aún no se han agregado categorías</value>
+  </data>
+  <data name="BudgetDlg_Amount" xml:space="preserve">
+    <value>Monto</value>
+  </data>
+  <data name="BudgetDlg_Rollover" xml:space="preserve">
+    <value>Transferir</value>
+  </data>
+  <data name="BudgetDlg_NoNotes" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="BudgetDlg_Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="BudgetDlg_NameRequired" xml:space="preserve">
+    <value>El nombre del presupuesto es obligatorio</value>
+  </data>
+  <data name="BudgetDlg_NotFound" xml:space="preserve">
+    <value>Presupuesto no encontrado</value>
+  </data>
+  <data name="BudgetDlg_CreateBudget" xml:space="preserve">
+    <value>Crear Presupuesto</value>
+  </data>
+  <data name="BudgetDlg_UpdateBudget" xml:space="preserve">
+    <value>Actualizar Presupuesto</value>
+  </data>
+  <data name="BudgetDlg_AddCategoriesTitle" xml:space="preserve">
+    <value>Agregar Categorías al Presupuesto</value>
+  </data>
+  <data name="BudgetDlg_AllCategoriesAdded" xml:space="preserve">
+    <value>Todas las categorías disponibles se han agregado a este presupuesto</value>
+  </data>
+  <data name="BudgetDlg_RemoveFailed" xml:space="preserve">
+    <value>Error al eliminar la categoría del presupuesto</value>
+  </data>
+  <data name="BudgetDlg_DefaultNotFound" xml:space="preserve">
+    <value>Presupuesto predeterminado no encontrado</value>
+  </data>
+  <data name="BudgetDlg_CopiedCategories" xml:space="preserve">
+    <value>{0} categorías copiadas de {1}</value>
+  </data>
+  <data name="BudgetDlg_CopyError" xml:space="preserve">
+    <value>Error al copiar las categorías: {0}</value>
+  </data>
+  <!-- Add Category to Budget Dialog -->
+  <data name="AddCatBudgetDlg_SelectCategories" xml:space="preserve">
+    <value>Seleccione las categorías para agregar a este presupuesto</value>
+  </data>
+  <data name="AddCatBudgetDlg_CategoryCount" xml:space="preserve">
+    <value>{0} categorías</value>
+  </data>
+  <data name="AddCatBudgetDlg_ShowCategories" xml:space="preserve">
+    <value>Mostrar Categorías</value>
+  </data>
+  <data name="AddCatBudgetDlg_HideCategories" xml:space="preserve">
+    <value>Ocultar Categorías</value>
+  </data>
+  <data name="AddCatBudgetDlg_DefaultAmount" xml:space="preserve">
+    <value>Monto Predeterminado</value>
+  </data>
+  <data name="AddCatBudgetDlg_DefaultAmountHelper" xml:space="preserve">
+    <value>Monto a utilizar para todas las categorías seleccionadas</value>
+  </data>
+  <data name="AddCatBudgetDlg_Notes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="AddCatBudgetDlg_NotesHelper" xml:space="preserve">
+    <value>Notas opcionales para estas asignaciones de categorías</value>
+  </data>
+  <data name="AddCatBudgetDlg_SelectedCount" xml:space="preserve">
+    <value>{0} categorías seleccionadas</value>
+  </data>
+  <data name="AddCatBudgetDlg_SelectAtLeastOne" xml:space="preserve">
+    <value>Por favor seleccione al menos una categoría</value>
+  </data>
+  <data name="AddCatBudgetDlg_AddButton" xml:space="preserve">
+    <value>Agregar {0} Categorías</value>
+  </data>
+  <!-- Budget Assignment Dialog -->
+  <data name="BudgetAsgnDlg_BudgetPeriod" xml:space="preserve">
+    <value>Período del Presupuesto</value>
+  </data>
+  <data name="BudgetAsgnDlg_BudgetType" xml:space="preserve">
+    <value>Tipo de Presupuesto</value>
+  </data>
+  <data name="BudgetAsgnDlg_DefaultType" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="BudgetAsgnDlg_PlannedAmount" xml:space="preserve">
+    <value>Monto Planificado</value>
+  </data>
+  <data name="BudgetAsgnDlg_AllowRollover" xml:space="preserve">
+    <value>Permitir Transferencia del Presupuesto No Utilizado</value>
+  </data>
+  <data name="BudgetAsgnDlg_RolloverDesc" xml:space="preserve">
+    <value>El monto del presupuesto no utilizado se transferirá al siguiente período</value>
+  </data>
+  <data name="BudgetAsgnDlg_AmountNegative" xml:space="preserve">
+    <value>El monto no puede ser negativo</value>
+  </data>
+  <data name="Col_Notes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
 </root>
