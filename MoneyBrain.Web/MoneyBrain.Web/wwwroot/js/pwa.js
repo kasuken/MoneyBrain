@@ -84,11 +84,21 @@ window.moneybrainPwa = {
                 }
             }
             
-            // Show prompt immediately - user can dismiss if not interested
-            // No artificial delay needed as this doesn't block app initialization
-            if (this.dotNetRef) {
-                this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt')
-                    .catch(error => console.error('[PWA] iOS prompt error:', error));
+            // Show prompt when browser is idle to ensure Blazor circuit is ready
+            // Use requestIdleCallback to avoid blocking and ensure proper initialization
+            const showIosPrompt = () => {
+                if (this.dotNetRef && !this.isInstalled) {
+                    this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt')
+                        .catch(error => console.error('[PWA] iOS prompt error:', error));
+                }
+            };
+            
+            // Use requestIdleCallback for better performance, fallback to setTimeout
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(showIosPrompt, { timeout: 2000 });
+            } else {
+                // Fallback with minimal delay to ensure Blazor is ready
+                setTimeout(showIosPrompt, 1000);
             }
         } else if (device.isAndroid && !this.isInstalled) {
             // Android - use shorter delay, beforeinstallprompt will override if available
