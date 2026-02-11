@@ -161,11 +161,25 @@ Before the MCP servers will work, ensure you have the required tools installed:
 
 After setting up the MCP configuration:
 
-1. **Restart GitHub Copilot Workspace/CLI** if it's already running
+1. **Run the validation script** to verify everything is configured correctly:
+   
+   **Linux/macOS:**
+   ```bash
+   cd /path/to/MoneyBrain
+   ./.github/validate-mcp-config.sh
+   ```
+   
+   **Windows (PowerShell):**
+   ```powershell
+   cd C:\path\to\MoneyBrain
+   .\.github\validate-mcp-config.ps1
+   ```
 
-2. **Verify MCP servers load** by checking the logs (if available)
+2. **Restart GitHub Copilot Workspace/CLI** if it's already running
 
-3. **Test in a Copilot session** by asking questions that would require MCP capabilities:
+3. **Verify MCP servers load** by checking the logs (if available)
+
+4. **Test in a Copilot session** by asking questions that would require MCP capabilities:
    - "Use sequential thinking to analyze this problem"
    - "Look up documentation for [library name]" (uses context7)
    - "Remember this pattern for future reference" (uses memory)

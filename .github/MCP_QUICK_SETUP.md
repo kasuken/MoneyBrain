@@ -130,6 +130,22 @@ After creating the config:
 1. Close and restart GitHub Copilot Workspace
 2. Or restart VS Code if using Copilot there
 
+## Validate Your Setup
+
+Run the validation script to check everything is configured correctly:
+
+**Linux/macOS:**
+```bash
+cd /path/to/MoneyBrain
+./.github/validate-mcp-config.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+cd C:\path\to\MoneyBrain
+.\.github\validate-mcp-config.ps1
+```
+
 ## Full Documentation
 
 See [COPILOT_WORKSPACE_MCP_SETUP.md](COPILOT_WORKSPACE_MCP_SETUP.md) for:
