@@ -113,6 +113,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  
+  // Cache URL parts for efficient pattern matching
+  const urlPath = url.pathname;
+  const urlPathSearch = urlPath + url.search;
 
   // Skip non-http(s) requests
   if (!url.protocol.startsWith('http')) {
@@ -120,14 +124,14 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Skip SignalR and other real-time connections
-  if (url.pathname.includes('/_blazor') || 
-      url.pathname.includes('/signalr') ||
-      url.pathname.includes('/Identity/Account')) {
+  if (urlPath.includes('/_blazor') || 
+      urlPath.includes('/signalr') ||
+      urlPath.includes('/Identity/Account')) {
     return;
   }
 
-  // Find matching strategy
-  const routeConfig = ROUTE_CONFIG.find(config => config.pattern.test(url.pathname + url.search));
+  // Find matching strategy (using cached urlPathSearch)
+  const routeConfig = ROUTE_CONFIG.find(config => config.pattern.test(urlPathSearch));
   const strategy = routeConfig?.strategy || CACHE_STRATEGIES.NETWORK_FIRST;
   const cacheName = routeConfig?.cache || RUNTIME_CACHE;
 
