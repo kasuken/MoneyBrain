@@ -1,74 +1,74 @@
 # MCP Server Documentation Index
 
-This directory contains comprehensive documentation for configuring Model Context Protocol (MCP) servers with GitHub Copilot Workspace.
+This directory contains documentation for configuring Model Context Protocol (MCP) servers with GitHub Copilot.
 
 ## 🎯 Start Here
 
-**Are you new to MCP configuration?** Start with the **Quick Setup** guide:
+**Repository Administrators**: Configure MCP servers in repository settings  
+➡️ **[MCP_QUICK_SETUP.md](MCP_QUICK_SETUP.md)** - Quick configuration guide
 
-➡️ **[MCP_QUICK_SETUP.md](MCP_QUICK_SETUP.md)** - Copy-paste commands to get started immediately
+**VS Code Users**: MCP configuration already included  
+➡️ `.vscode/mcp.json` - Works automatically
 
 ## 📚 Documentation Suite
 
-### For End Users
+### For Repository Administrators
 
 1. **[MCP_QUICK_SETUP.md](MCP_QUICK_SETUP.md)** ⚡
-   - Quick copy-paste setup commands
-   - OS-specific (Linux/macOS/Windows)
-   - Prerequisites checklist
-   - **Best for**: Getting up and running fast
+   - Repository settings configuration steps
+   - JSON configuration to copy-paste
+   - Prerequisites and validation
+   - **Best for**: Quick setup (repository admins)
 
 2. **[MCP_COMPARISON.md](MCP_COMPARISON.md)** 📊
-   - VS Code vs Copilot Workspace side-by-side
-   - One-command setup
-   - Troubleshooting one-liners
-   - **Best for**: Understanding the difference
+   - VS Code vs Copilot Coding Agent side-by-side
+   - Configuration format differences
+   - Common mistakes to avoid
+   - **Best for**: Understanding the differences
 
 3. **[COPILOT_WORKSPACE_MCP_SETUP.md](COPILOT_WORKSPACE_MCP_SETUP.md)** 📖
    - Detailed step-by-step instructions
    - Comprehensive troubleshooting
-   - Alternative configuration methods
-   - **Best for**: Deep dive and problem solving
+   - Format conversion guide
+   - **Best for**: In-depth understanding
 
 ### For Understanding
 
 4. **[MCP_ARCHITECTURE.md](MCP_ARCHITECTURE.md)** 🏗️
    - Visual diagrams and flow charts
    - Architecture explanation
-   - Execution context differences
-   - **Best for**: Visual learners and architects
-
-### For Maintainers
+   - Configuration differences
+   - **Best for**: Visual learners
 
 5. **[MCP_CONFIGURATION_CHECKLIST.md](MCP_CONFIGURATION_CHECKLIST.md)** ✅
-   - Pre-setup checklist
    - Configuration verification steps
    - Testing procedures
-   - Common issues and solutions
-   - **Best for**: Repository maintainers
+   - **Best for**: Verification
 
 ## 🚀 Quick Reference
 
-### The Problem
-`.vscode/mcp.json` works in VS Code but not in GitHub Copilot Workspace.
+### The Issue
+`.vscode/mcp.json` works in VS Code but GitHub Copilot Coding Agent needs repository settings configuration.
 
-### The Solution
-Copy the configuration to your user home directory:
+### The Solution (Repository Admins Only)
+1. Go to repository **Settings** on GitHub.com
+2. Click **Copilot** → **Coding agent**
+3. Paste MCP configuration JSON
+4. Click **Save**
 
-**Linux/macOS:**
-```bash
-mkdir -p ~/.config/copilot && cp .vscode/mcp.json ~/.config/copilot/mcp.json
+See [MCP_QUICK_SETUP.md](MCP_QUICK_SETUP.md) for the JSON configuration.
+
+### Configuration Formats
+
+**VS Code** (`.vscode/mcp.json`):
+```json
+{ "servers": { "name": { "type": "stdio", ... } } }
 ```
 
-**Windows (PowerShell):**
-```powershell
-New-Item -ItemType Directory -Force -Path "$env:APPDATA\GitHub\Copilot" | Out-Null
-Copy-Item -Path ".vscode\mcp.json" -Destination "$env:APPDATA\GitHub\Copilot\mcp.json"
+**Copilot Coding Agent** (Repository Settings):
+```json
+{ "mcpServers": { "name": { "type": "local", "tools": [...], ... } } }
 ```
-
-### Why Two Locations?
-- **VS Code**: Uses workspace-local `.vscode/mcp.json` ✅
-- **Copilot Workspace**: Uses user-level config in home directory ⚠️
 
 ## 🔍 MCP Servers in This Repository
 
@@ -79,44 +79,48 @@ Copy-Item -Path ".vscode\mcp.json" -Destination "$env:APPDATA\GitHub\Copilot\mcp
 | **memory** | Persistent context storage |
 | **serena** | Code analysis and symbol operations |
 
-## 📋 Workflow
+## 📋 Setup Workflow
 
 ```
-1. Read Quick Setup guide
-   ↓
-2. Install prerequisites (Node.js, npm, Python, uvx)
-   ↓
-3. Copy configuration to user directory
-   ↓
-4. Restart Copilot Workspace
-   ↓
-5. Verify MCP servers load
-   ↓
-6. If issues → Check Troubleshooting section
+Repository Administrator
+    ↓
+Access GitHub.com Settings
+    ↓
+Navigate to Copilot → Coding agent
+    ↓
+Paste MCP configuration JSON
+    ↓
+Save & validate
+    ↓
+Test with Copilot issue assignment
 ```
 
 ## 🆘 Need Help?
 
-1. **Quick answer**: See [MCP_COMPARISON.md](MCP_COMPARISON.md#troubleshooting-one-liners)
-2. **Detailed help**: See [COPILOT_WORKSPACE_MCP_SETUP.md](COPILOT_WORKSPACE_MCP_SETUP.md#troubleshooting)
-3. **Verify setup**: Use [MCP_CONFIGURATION_CHECKLIST.md](MCP_CONFIGURATION_CHECKLIST.md)
+1. **Quick answer**: See [MCP_COMPARISON.md](MCP_COMPARISON.md#common-mistakes-to-avoid)
+2. **Setup help**: See [MCP_QUICK_SETUP.md](MCP_QUICK_SETUP.md)
+3. **Detailed help**: See [COPILOT_WORKSPACE_MCP_SETUP.md](COPILOT_WORKSPACE_MCP_SETUP.md#troubleshooting)
 
 ## 🔗 Related Files
 
 - **Repository root**: [../agents.md](../agents.md) - AI agent guidance
 - **Main README**: [../README.md](../README.md) - Project overview
-- **VS Code config**: [../.vscode/mcp.json](../.vscode/mcp.json) - Source of truth for MCP servers
+- **VS Code config**: [../.vscode/mcp.json](../.vscode/mcp.json) - VS Code MCP configuration
 
 ## 💡 Key Takeaways
 
 1. ✅ `.vscode/mcp.json` works automatically in VS Code
-2. ⚠️ GitHub Copilot Workspace needs user-level configuration
-3. 📋 Same servers, same format, different location
-4. 🔄 Copy once, works everywhere (same user account)
-5. 🚀 Setup takes < 1 minute with quick setup guide
+2. ⚠️ GitHub Copilot Coding Agent requires repository settings configuration
+3. 📋 Different formats: `"servers"` vs `"mcpServers"`, `"stdio"` vs `"local"`
+4. 👤 Only repository administrators can configure Copilot Coding Agent
+5. 🚀 Setup takes < 5 minutes with admin access
+
+## ❌ Previous Incorrect Approach
+
+Earlier versions of this documentation incorrectly suggested copying files to `~/.config/copilot/`. This is **not the correct approach**. The proper method is to configure MCP servers in the repository settings on GitHub.com.
 
 ---
 
-**Documentation Version**: 1.0  
+**Documentation Version**: 2.0 (Corrected)  
 **Last Updated**: 2026-02-11  
-**Maintained by**: MoneyBrain Contributors
+**Reference**: [GitHub Copilot MCP Documentation](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp)
