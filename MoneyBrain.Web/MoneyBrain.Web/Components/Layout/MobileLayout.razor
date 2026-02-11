@@ -3,9 +3,12 @@
 @using MoneyBrain.Web.Resources
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Components.Shared
+@using MoneyBrain.Web.Application.Tips
 @inject NavigationManager NavigationManager
 @inject IMobileDetectionService MobileDetection
 @inject IStringLocalizer<SharedResource> L
+@inject IEducationalTipService EducationalTipService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
@@ -73,6 +76,21 @@
                 <MudIcon Icon="@Icons.Material.Filled.Dashboard" />
                 <MudText Typo="Typo.caption" Style="margin-top: 2px;">Overview</MudText>
             </MudButton>
+            
+            <MudBadge Content="@_unseenTipsCount" 
+                      Visible="@(_unseenTipsCount > 0)" 
+                      Color="Color.Error" 
+                      Overlap="true" 
+                      Class="pulse">
+                <MudButton Href="/mobile/tips" 
+                           Variant="Variant.Text" 
+                           Color="@(IsActive("/mobile/tips") ? Color.Primary : Color.Default)"
+                           Class="mobile-nav-btn"
+                           Style="flex-direction: column; min-width: 80px; height: 56px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Lightbulb" />
+                    <MudText Typo="Typo.caption" Style="margin-top: 2px;">Tips</MudText>
+                </MudButton>
+            </MudBadge>
         </MudStack>
     </MudAppBar>
 
@@ -80,17 +98,11 @@
     <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: 100vh; padding-top: 56px; padding-bottom: 72px;">
         @Body
     </MudMainContent>
-
-    <!-- Tips Button -->
-    <AuthorizeView>
-        <Authorized>
-            <TipsButton />
-        </Authorized>
-    </AuthorizeView>
 </MudLayout>
 
 @code {
     private bool _drawerOpen = false;
+    private int _unseenTipsCount = 0;
 
     private MudTheme _theme = new MudTheme
     {
@@ -123,7 +135,26 @@
         if (firstRender)
         {
             await MobileDetection.InitializeAsync();
+            await LoadUnseenTipsCountAsync();
             StateHasChanged();
+        }
+    }
+
+    private async Task LoadUnseenTipsCountAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (!string.IsNullOrEmpty(userId))
+            {
+                _unseenTipsCount = await EducationalTipService.GetUnseenTipCountAsync(userId);
+            }
+        }
+        catch
+        {
+            _unseenTipsCount = 0;
         }
     }
 }

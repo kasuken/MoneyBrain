@@ -50,6 +50,10 @@
 
     private void NavigateToTips()
     {
-        NavigationManager.NavigateTo("/tips");
+        // Navigate to mobile or desktop Tips based on current context
+        var currentUrl = NavigationManager.Uri;
+        var isMobileView = currentUrl.Contains("/mobile/");
+        
+        NavigationManager.NavigateTo(isMobileView ? "/mobile/tips" : "/tips");
     }
 }
