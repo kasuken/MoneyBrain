@@ -69,7 +69,8 @@
                         <TipCard TipId="@tip.Id.ToString()" 
                                  Title="@tip.Title" 
                                  Content="@tip.Description" 
-                                 Icon="@GetCategoryIcon(tip.Category)" />
+                                 Icon="@GetCategoryIcon(tip.Category)"
+                                 OnDismissed="@RefreshTipsAsync" />
                     </MudItem>
                 }
             </MudGrid>
@@ -146,4 +147,14 @@
         "General" => Icons.Material.Filled.Lightbulb,
         _ => Icons.Material.Filled.Lightbulb
     };
+
+    private async Task RefreshTipsAsync()
+    {
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _allTips = await EducationalTipService.GetActiveTipsAsync(_userId);
+            FilterTips();
+            StateHasChanged();
+        }
+    }
 }
