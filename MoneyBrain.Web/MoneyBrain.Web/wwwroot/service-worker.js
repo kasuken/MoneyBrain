@@ -1,7 +1,7 @@
 // MoneyBrain Service Worker - Advanced PWA Implementation
-// Version: 1.1.0 - Performance optimized for mobile
+// Version: 1.2.0 - Performance optimized for mobile + iOS popup timing fix
 
-const CACHE_VERSION = 'moneybrain-v1.1';
+const CACHE_VERSION = 'moneybrain-v1.2';
 const RUNTIME_CACHE = 'moneybrain-runtime-v1.1';
 const DATA_CACHE = 'moneybrain-data-v1.1';
 
