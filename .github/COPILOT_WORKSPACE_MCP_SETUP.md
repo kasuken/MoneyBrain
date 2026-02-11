@@ -1,5 +1,12 @@
 # GitHub Copilot Workspace MCP Server Setup
 
+> 📚 **Documentation Suite**
+> - 🚀 **Quick Setup** - [MCP_QUICK_SETUP.md](MCP_QUICK_SETUP.md) - Copy-paste commands
+> - 📊 **Comparison** - [MCP_COMPARISON.md](MCP_COMPARISON.md) - VS Code vs Copilot Workspace
+> - 🏗️ **Architecture** - [MCP_ARCHITECTURE.md](MCP_ARCHITECTURE.md) - Visual diagrams
+> - ✅ **Checklist** - [MCP_CONFIGURATION_CHECKLIST.md](MCP_CONFIGURATION_CHECKLIST.md) - Verification steps
+> - 📖 **You are here** - Full setup guide with troubleshooting
+
 ## Overview
 
 This repository uses Model Context Protocol (MCP) servers to enhance GitHub Copilot's capabilities. While the MCP configuration in `.vscode/mcp.json` works perfectly in VS Code, **GitHub Copilot Workspace requires a different configuration approach**.
