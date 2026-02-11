@@ -2,42 +2,48 @@
 
 ## ⚠️ Important: Repository Administrator Required
 
-Configuring MCP servers for GitHub Copilot Coding Agent requires **repository administrator access** and must be done in the **GitHub repository settings**, not on your local machine.
+Configuring MCP servers for GitHub Copilot Coding Agent requires **repository administrator access** and must be done in the **GitHub repository settings**.
 
 ## TL;DR - For Repository Administrators
 
+**Good news**: You can reuse the existing `.vscode/mcp.json` configuration!
+
 1. Go to repository **Settings** on GitHub.com
 2. Click **Copilot** → **Coding agent** 
-3. Paste the JSON configuration below into **MCP configuration**
+3. Copy the content from `.vscode/mcp.json` and paste it into **MCP configuration**
 4. Click **Save**
+
+That's it! The VS Code configuration already has the required `"tools"` key and can be used as-is.
 
 ## MCP Configuration JSON
 
-Copy this entire block into the repository settings:
+The repository already has a complete MCP configuration in `.vscode/mcp.json`. 
+
+Simply copy this entire file content into the repository settings:
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "sequential-thinking": {
-      "type": "local",
+      "type": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "tools": ["*"]
     },
     "context7": {
-      "type": "local",
+      "type": "stdio",
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"],
       "tools": ["*"]
     },
     "memory": {
-      "type": "local",
+      "type": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "tools": ["*"]
     },
     "serena": {
-      "type": "local",
+      "type": "stdio",
       "command": "uvx",
       "args": [
         "--from",
@@ -56,6 +62,17 @@ Copy this entire block into the repository settings:
   }
 }
 ```
+
+## Why This Works
+
+According to the [official GitHub documentation](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp#reusing-your-mcp-configuration-from-visual-studio-code), you can reuse VS Code MCP configuration directly as long as:
+
+✅ Each server has a `"tools"` key (already present in `.vscode/mcp.json`)  
+✅ No `inputs` or `envFile` are used (not applicable here)
+
+The configuration works with both:
+- `"servers"` (VS Code format) - **This is what we have**
+- `"mcpServers"` (alternative format)
 
 ## Setup Dependencies (Optional)
 
@@ -99,33 +116,24 @@ After configuring in repository settings:
    - Expand **Start MCP Servers** step
    - Verify all servers are listed
 
-## Key Differences from VS Code
+## Key Points
 
-| Aspect | VS Code | Copilot Coding Agent |
-|--------|---------|---------------------|
-| **Config Location** | `.vscode/mcp.json` (in repo) | Repository Settings (on GitHub.com) |
-| **JSON Format** | `"servers"` | `"mcpServers"` |
-| **Type Value** | `"stdio"` | `"local"` |
-| **Who Configures** | Anyone with repo access | Repository administrators only |
-| **Scope** | Local development only | Entire repository |
-
-## Common Mistakes
-
-❌ **Don't** copy files to `~/.config/copilot/` (old/incorrect approach)  
-❌ **Don't** use `"servers"` (VS Code format)  
-❌ **Don't** use `"type": "stdio"` (use `"local"` instead)  
-✅ **Do** configure in repository settings on GitHub.com  
-✅ **Do** use `"mcpServers"` format  
-✅ **Do** include `"tools"` array for each server  
+| Aspect | Details |
+|--------|---------|
+| **Config Source** | Copy from `.vscode/mcp.json` |
+| **Config Destination** | Repository Settings → Copilot → Coding agent |
+| **Format** | Use as-is (already has `"tools"` key) |
+| **Who Configures** | Repository administrators only |
+| **Scope** | Entire repository |
 
 ## Full Documentation
 
 See [COPILOT_WORKSPACE_MCP_SETUP.md](COPILOT_WORKSPACE_MCP_SETUP.md) for:
 - Detailed step-by-step instructions
 - Troubleshooting
-- Format conversion guide
+- Alternative configuration options
 
 ## References
 
-- [Official GitHub Documentation](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp)
+- [Official GitHub Documentation - Reusing VS Code MCP Configuration](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp#reusing-your-mcp-configuration-from-visual-studio-code)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
