@@ -29,6 +29,13 @@ MoneyBrain is a lightweight, self-hosted personal finance system focused on corr
 - EF Core with SQLite by default (encrypted DB optional later)
 - ASP.NET Core Identity for single-user authentication
 
+## Caching & Performance
+- Use in-memory caching for reference data (categories, accounts, payees).
+- Cache budget summaries and net worth calculations with appropriate invalidation.
+- Lazy-load transaction details; prefer list views with minimal projections.
+- Use EF Core query splitting for complex includes to avoid cartesian explosion.
+- Consider response caching for static reports/exports.
+
 ## Architectural guidance
 - Prefer a clean separation of concerns:
   - UI (Blazor + MudBlazor components)
@@ -38,6 +45,13 @@ MoneyBrain is a lightweight, self-hosted personal finance system focused on corr
 - Enforce business rules in the domain/application layer (not only in the UI).
 - Keep behavior deterministic (especially rules engine and imports).
 - Avoid over-engineering: ship v1 features with simple, clear code.
+
+## Caching Strategy
+- **Reference Data**: Cache categories, accounts, account groups in memory (invalidate on mutation).
+- **Budget Data**: Cache monthly budget summaries; invalidate on budget edits or transaction posts.
+- **Aggregations**: Cache net worth snapshots, category totals with time-based or explicit invalidation.
+- **Transaction Lists**: Do NOT cache; always fetch fresh from DB with server-side paging.
+- Use distributed cache abstractions (IDistributedCache) for future multi-instance scenarios.
 
 ## Domain model (high-level)
 Model features around these concepts:
@@ -50,6 +64,20 @@ Model features around these concepts:
 - **Budget (monthly envelope)**: planned amounts per category per month; remaining = planned − activity; rollover optional.
 - **Reconciliation**: statement-based per account; reconciliation periods; lock reconciled transactions.
 - **Reporting**: cashflow, category spending, budget vs actual, net worth; export to CSV.
+
+## Tips & Insights
+- Track upcoming bills/subscriptions using scheduled transactions.
+- Use tags for cross-category tracking (e.g., "Tax-Deductible", "Reimbursable").
+- Monthly net worth snapshots help visualize long-term progress.
+- Category groups allow flexible reporting while maintaining granular categorization.
+- Reconciliation locks prevent accidental modifications to verified data.
+
+## Saved Queries & Common Filters
+- Recent uncleared transactions: status == posted AND cleared == false.
+- This month's spending by category: posted, current month, grouped by category.
+- All transfers: type == transfer (excluded from budgets/reports automatically).
+- Budget variance: planned vs actual per category for selected month.
+- Reconciliation candidates: uncleared transactions within statement date range.
 
 ## Invariants to preserve (acceptance criteria)
 Treat these as must-not-break rules:
@@ -72,6 +100,13 @@ Treat these as must-not-break rules:
   - Avoid loading everything into memory.
 - Keep UI “data-first”: clear tables, filters, and predictable dialogs.
 
+## PWA / Mobile-First Considerations
+- Blazor WASM works offline with service workers and local storage.
+- Sync strategy: store transactions locally, sync when online (conflict resolution TBD).
+- Touch-friendly UI: larger tap targets, swipe gestures for common actions.
+- Progressive enhancement: core features work offline, advanced features require connectivity.
+- Use responsive MudBlazor breakpoints for mobile/tablet/desktop layouts.
+
 ## Data access & performance
 - Prefer read models/queries that project only needed columns (avoid heavy entity graphs).
 - Avoid N+1 queries; use explicit includes only when needed.
@@ -90,6 +125,13 @@ Treat these as must-not-break rules:
 - No telemetry.
 - Keep secrets/config via environment-based configuration.
 - Prefer least-privilege, secure defaults; validate and sanitize all user input.
+
+## Localization & Currency
+- Default currency is configurable per user/account (USD, EUR, GBP, etc.).
+- Use .NET localization (IStringLocalizer) for UI text.
+- Format currency amounts per locale (e.g., 1.234,56 vs 1,234.56).
+- Support multi-currency accounts (with exchange rates) in future versions.
+- Date formats should respect user locale preferences.
 
 ## Coding standards (C#)
 - Use nullable reference types and avoid null-forgiving unless justified.
