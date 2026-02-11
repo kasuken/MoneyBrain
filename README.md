@@ -194,3 +194,17 @@ There’s a small sample file at `sample-transactions.csv`.
 ## What’s next
 
 MoneyBrain is evolving toward the PRD in `.github/prd.instructions.md`. Some areas are planned but may not be fully implemented yet (for example: a full rules engine with preview).
+## 🤖 Development with AI Agents
+
+This repository is configured with GitHub Copilot and Model Context Protocol (MCP) servers for enhanced development capabilities:
+
+- **In VS Code**: MCP servers load automatically from `.vscode/mcp.json`
+- **In GitHub Copilot Workspace**: Requires user-level setup
+
+📖 **Setup Guide**: See [.github/COPILOT_WORKSPACE_MCP_SETUP.md](.github/COPILOT_WORKSPACE_MCP_SETUP.md) for instructions on configuring MCP servers for GitHub Copilot Workspace.
+
+**Configured MCP Servers:**
+- `sequential-thinking` - Advanced reasoning and analysis
+- `context7` - Library documentation lookup
+- `memory` - Persistent context storage
+- `serena` - Code analysis and symbol operations
