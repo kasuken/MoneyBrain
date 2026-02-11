@@ -21,6 +21,22 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 - **Recurring transactions**: generate upcoming transactions automatically.
 - **Progressive Web App (PWA)**: install on any device, works offline, app-like experience.
 
+## 🛠️ Tech Stack
+
+- **Frontend**: Blazor Server (.NET 10) with MudBlazor UI components
+- **Backend**: ASP.NET Core (.NET 10)
+- **Database**: PostgreSQL 17 (Docker), SQL Server (optional), SQLite (development)
+- **ORM**: Entity Framework Core
+- **Caching**: In-memory (default), Redis (optional for distributed scenarios)
+- **PWA**: Service Workers, manifest.json, offline-first architecture
+- **Containerization**: Docker + Docker Compose
+
+**Why this stack:**
+- **Self-hosted**: No external dependencies, full data ownership
+- **Deterministic**: Server-side rendering ensures consistent behavior
+- **Performance**: Blazor Server with SignalR for real-time updates
+- **Reliability**: Mature, well-supported technologies with long-term viability
+
 > [!IMPORTANT]
 > No bank sync / PSD2 integrations (by design, v1). MoneyBrain is a tool — not a financial advisor.
 
@@ -49,8 +65,50 @@ MoneyBrain is a full-featured PWA with:
 
 See [PWA_IMPLEMENTATION.md](PWA_IMPLEMENTATION.md) for complete setup guide.
 
-> [!IMPORTANT]
-> No bank sync / PSD2 integrations (by design, v1). MoneyBrain is a tool — not a financial advisor.
+### Advanced PWA Features
+
+MoneyBrain's PWA implementation includes advanced capabilities:
+
+- **Smart caching strategies** - Different cache policies for static assets, API calls, and dynamic content
+- **Background sync** - Queue transactions offline, sync when connection returns
+- **Update notifications** - Get notified when new versions are available
+- **Cache management** - Automatic cleanup and version control
+- **Performance optimization** - Precaching critical resources for instant load times
+
+**Caching behavior:**
+- Static assets (CSS, JS, icons): cached indefinitely, updated on version change
+- API responses: network-first with cache fallback
+- Offline fallback: custom offline page when network unavailable
+
+**Managing updates:**
+1. Updates download automatically in the background
+2. You'll see a notification when a new version is ready
+3. Refresh the app to activate the update
+4. Old cache is cleared automatically
+
+For technical details and troubleshooting, see [PWA_IMPLEMENTATION.md](PWA_IMPLEMENTATION.md).
+
+### Mobile & Responsive Design
+
+MoneyBrain is fully responsive and optimized for mobile devices:
+
+**Mobile-friendly features:**
+- **Touch-optimized UI** - Large tap targets, swipe gestures for common actions
+- **Responsive layouts** - Adapts to phone, tablet, and desktop screen sizes
+- **Fast load times** - Optimized bundle sizes and lazy loading
+- **Offline-first** - Core features work without internet connection
+- **Install on any device** - Add to home screen on iOS, Android, desktop
+
+**Device-specific optimizations:**
+- **Mobile (< 600px)**: Single-column layouts, bottom navigation, simplified tables
+- **Tablet (600-960px)**: Two-column layouts, side navigation, compact tables
+- **Desktop (> 960px)**: Multi-column layouts, full navigation, detailed tables
+
+**Touch interactions:**
+- Swipe left on transactions to quickly access edit/delete actions
+- Pull down to refresh transaction lists
+- Long-press for bulk selection mode
+- Tap-and-hold on categories to see quick stats
 
 ## Quickstart (local)
 
@@ -167,6 +225,73 @@ docker compose exec postgres pg_dump -U moneybrain moneybrain > backup.sql
 cat backup.sql | docker compose exec -T postgres psql -U moneybrain -d moneybrain
 ```
 
+### Advanced configuration
+
+#### Redis caching (optional)
+
+Enable Redis for distributed caching in multi-instance deployments:
+
+```yaml
+services:
+  moneybrain:
+    environment:
+      - Redis__Enabled=true
+      - Redis__ConnectionString=redis:6379
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:7-alpine
+    container_name: moneybrain-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - moneybrain-network
+
+volumes:
+  redis-data:
+```
+
+**What gets cached:**
+- Reference data (categories, accounts, payees)
+- Budget summaries and calculations
+- Net worth snapshots
+- Report aggregations
+
+**Cache invalidation:**
+- Automatic on data mutations (category edits, transaction posts)
+- Manual flush via admin endpoint (if enabled)
+
+#### Currency configuration
+
+MoneyBrain supports multiple currencies with configurable defaults:
+
+```yaml
+services:
+  moneybrain:
+    environment:
+      - Currency__Default=USD
+      - Currency__Format=en-US
+      - Currency__SupportedCurrencies=USD,EUR,GBP,CAD,AUD
+```
+
+**Currency options:**
+- `Currency__Default`: Default currency code (ISO 4217)
+- `Currency__Format`: Locale for formatting (e.g., `en-US`, `de-DE`, `fr-FR`)
+- `Currency__SupportedCurrencies`: Comma-separated list of enabled currencies
+
+**Formatting examples:**
+- `en-US`: $1,234.56
+- `de-DE`: 1.234,56 €
+- `fr-FR`: 1 234,56 €
+- `en-GB`: £1,234.56
+
+> [!NOTE]
+> Multi-currency accounts with exchange rates are planned for future versions.
+
 ## Import sample data
 
 There’s a small sample file at `sample-transactions.csv`.
@@ -177,6 +302,58 @@ There’s a small sample file at `sample-transactions.csv`.
 
 > [!TIP]
 > If categories in the CSV don’t exist yet, create them first (Categories) to get cleaner matches.
+
+
+## 💡 Tips & Insights
+
+### Financial management tips
+
+- **Track recurring expenses**: Use scheduled transactions for bills, subscriptions, and regular payments
+- **Category organization**: Group similar categories (e.g., "Food" → "Groceries", "Dining Out") for better reporting
+- **Net worth tracking**: Take monthly snapshots to visualize long-term financial progress
+- **Reconciliation routine**: Reconcile accounts monthly against statements to catch errors early
+- **Budget realism**: Start conservative with budget amounts, adjust based on actual spending patterns
+
+### Power user features
+
+- **Bulk edits**: Select multiple transactions to update categories, tags, or payees at once
+- **Split transactions**: Break a single expense across multiple categories (e.g., shopping trip with groceries + household items)
+- **Transfer tracking**: Mark transfers between accounts to prevent double-counting in reports
+- **Custom date ranges**: Use flexible date filters in reports for quarterly, yearly, or custom period analysis
+- **CSV round-trip**: Export transactions, make bulk edits in Excel, re-import (be careful!)
+
+### Data insights
+
+- **Budget variance**: Compare planned vs. actual spending to identify over/under-budget categories
+- **Spending trends**: Use category reports over time to spot seasonal patterns
+- **Account balance history**: Track how balances change to identify cash flow issues
+- **Cleared vs. pending**: Monitor pending transactions to forecast actual vs. projected balances
+
+
+## 🔍 Insight Explorer
+
+### Common queries and filters
+
+MoneyBrain's search and filter capabilities enable powerful transaction analysis:
+
+**Filter examples:**
+- Recent uncleared: `status:posted cleared:false`
+- This month's spending: Posted transactions in current month, grouped by category
+- All transfers: `type:transfer` (automatically excluded from budgets)
+- Budget variance: Planned vs. actual per category for selected month
+- Reconciliation candidates: Uncleared transactions within statement date range
+
+**Reporting capabilities:**
+- **Cashflow report**: Income vs. expenses over time
+- **Category spending**: Breakdown by category with group subtotals
+- **Budget vs. actual**: Compare planned amounts to real spending
+- **Net worth**: Assets minus liabilities, with historical trend
+- **Account balance history**: Track balance changes for any account
+
+**Export & analysis:**
+- All reports exportable to CSV for further analysis
+- Transaction exports include all fields (date, payee, category, amount, tags, notes)
+- Import column mapping for flexible CSV formats
 
 ## Data ownership & backups
 
