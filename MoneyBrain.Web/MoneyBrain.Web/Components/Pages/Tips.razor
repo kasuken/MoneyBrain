@@ -34,7 +34,8 @@
         <div class="mb-4">
             <MudSelect T="string?" 
                        Label="@L["Tips_FilterByCategory"]" 
-                       @bind-Value="_selectedCategory"
+                       Value="_selectedCategory"
+                       ValueChanged="@OnCategoryChanged"
                        Variant="Variant.Outlined"
                        AnchorOrigin="Origin.BottomCenter"
                        Style="max-width: 300px;">
@@ -68,7 +69,8 @@
                         <TipCard TipId="@tip.Id.ToString()" 
                                  Title="@tip.Title" 
                                  Content="@tip.Description" 
-                                 Icon="@GetCategoryIcon(tip.Category)" />
+                                 Icon="@GetCategoryIcon(tip.Category)"
+                                 OnDismissed="@RefreshTipsAsync" />
                     </MudItem>
                 }
             </MudGrid>
@@ -113,6 +115,12 @@
         _loading = false;
     }
 
+    private void OnCategoryChanged(string? category)
+    {
+        _selectedCategory = category;
+        FilterTips();
+    }
+
     private void FilterTips()
     {
         if (!string.IsNullOrEmpty(_selectedCategory))
@@ -139,4 +147,14 @@
         "General" => Icons.Material.Filled.Lightbulb,
         _ => Icons.Material.Filled.Lightbulb
     };
+
+    private async Task RefreshTipsAsync()
+    {
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _allTips = await EducationalTipService.GetActiveTipsAsync(_userId);
+            FilterTips();
+            StateHasChanged();
+        }
+    }
 }

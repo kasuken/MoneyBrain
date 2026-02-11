@@ -28,7 +28,8 @@
             {
                 <!-- Category Filter - Horizontal Chip Scroll -->
                 <div class="mb-4" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <MudChipSet T="string" @bind-SelectedChip="_selectedChip" 
+                    <MudChipSet T="string" SelectedChip="_selectedChip" 
+                                SelectedChipChanged="@OnChipChanged"
                                 Filter="true" 
                                 Mandatory="true"
                                 Style="flex-wrap: nowrap; white-space: nowrap;">
@@ -62,7 +63,8 @@
                             <TipCard TipId="@tip.Id.ToString()" 
                                      Title="@tip.Title" 
                                      Content="@tip.Description" 
-                                     Icon="@GetCategoryIcon(tip.Category)" />
+                                     Icon="@GetCategoryIcon(tip.Category)"
+                                     OnDismissed="@RefreshTipsAsync" />
                         }
                     </MudStack>
                 }
@@ -104,6 +106,12 @@
         _loading = false;
     }
 
+    private void OnChipChanged(MudChip<string>? chip)
+    {
+        _selectedChip = chip;
+        FilterTips();
+    }
+
     private void FilterTips()
     {
         var selectedCategory = _selectedChip?.Tag as string;
@@ -132,6 +140,16 @@
         "General" => Icons.Material.Filled.Lightbulb,
         _ => Icons.Material.Filled.Lightbulb
     };
+
+    private async Task RefreshTipsAsync()
+    {
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _allTips = await EducationalTipService.GetActiveTipsAsync(_userId);
+            FilterTips();
+            StateHasChanged();
+        }
+    }
 }
 
 <style>

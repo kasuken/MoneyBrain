@@ -7,7 +7,9 @@ namespace MoneyBrain.Web.Application.Tips;
 /// <summary>
 /// Service implementation for managing educational financial tips.
 /// </summary>
-public class EducationalTipService(ICacheService cacheService) : IEducationalTipService
+public class EducationalTipService(
+    ICacheService cacheService,
+    ITipPreferenceService tipPreferenceService) : IEducationalTipService
 {
     /// <inheritdoc />
     public async Task<List<EducationalTipDto>> GetActiveTipsAsync(
@@ -17,7 +19,11 @@ public class EducationalTipService(ICacheService cacheService) : IEducationalTip
         var cacheKey = CacheKeyHelper.ForEducationalTips(userId);
         var cached = await cacheService.GetAsync<List<EducationalTipDto>>(cacheKey);
         if (cached != null)
-            return cached;
+        {
+            // Filter out dismissed tips
+            var userDismissedIds = await tipPreferenceService.GetDismissedTipIdsAsync(userId, cancellationToken);
+            return cached.Where(t => !userDismissedIds.Contains(t.Id)).ToList();
+        }
 
         // For now, return a curated list of educational tips
         // In a production system, this would query a Tips table in the database
@@ -86,7 +92,10 @@ public class EducationalTipService(ICacheService cacheService) : IEducationalTip
         };
 
         await cacheService.SetAsync(cacheKey, tips, TimeSpan.FromHours(24));
-        return tips;
+        
+        // Filter out dismissed tips before returning
+        var dismissedIds = await tipPreferenceService.GetDismissedTipIdsAsync(userId, cancellationToken);
+        return tips.Where(t => !dismissedIds.Contains(t.Id)).ToList();
     }
 
     /// <inheritdoc />

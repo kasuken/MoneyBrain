@@ -1,12 +1,17 @@
+using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
+using MoneyBrain.Web.Data;
+using MoneyBrain.Web.Domain.Entities;
 
 namespace MoneyBrain.Web.Application.Tips;
 
 /// <summary>
 /// Service implementation for managing user tip preferences.
 /// </summary>
-public class TipPreferenceService(ICacheService cacheService) : ITipPreferenceService
+public class TipPreferenceService(
+    ICacheService cacheService,
+    ApplicationDbContext dbContext) : ITipPreferenceService
 {
     /// <inheritdoc />
     public async Task<Dictionary<string, bool>> GetPreferencesAsync(
@@ -65,5 +70,63 @@ public class TipPreferenceService(ICacheService cacheService) : ITipPreferenceSe
         var preferences = await GetPreferencesAsync(userId, cancellationToken);
         var key = $"Show{category}";
         return preferences.TryGetValue(key, out var isEnabled) && isEnabled;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DismissTipAsync(
+        string userId,
+        int tipId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Check if preference already exists
+            var existing = await dbContext.UserTipPreferences
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.EducationalTipId == tipId, cancellationToken);
+
+            if (existing != null)
+            {
+                // Update existing preference
+                existing.IsDismissed = true;
+                existing.DismissedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // Create new preference
+                var preference = new UserTipPreference
+                {
+                    UserId = userId,
+                    EducationalTipId = tipId,
+                    IsDismissed = true,
+                    DismissedAt = DateTime.UtcNow,
+                    IsEnabled = false
+                };
+                dbContext.UserTipPreferences.Add(preference);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Invalidate cache to reflect the change
+            var cacheKey = CacheKeyHelper.ForTipPreferences(userId);
+            await cacheService.RemoveAsync(cacheKey);
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<List<int>> GetDismissedTipIdsAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.UserTipPreferences
+            .Where(p => p.UserId == userId && p.IsDismissed)
+            .Select(p => p.EducationalTipId ?? 0)
+            .Where(id => id > 0)
+            .ToListAsync(cancellationToken);
     }
 }
