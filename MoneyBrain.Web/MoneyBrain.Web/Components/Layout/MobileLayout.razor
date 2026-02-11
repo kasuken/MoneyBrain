@@ -9,6 +9,7 @@
 @inject IStringLocalizer<SharedResource> L
 @inject IEducationalTipService EducationalTipService
 @inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<MobileLayout> Logger
 
 <MudThemeProvider Theme="_theme" />
 <MudPopoverProvider />
@@ -77,6 +78,7 @@
                 <MudText Typo="Typo.caption" Style="margin-top: 2px;">Overview</MudText>
             </MudButton>
             
+            <!-- Tips button with unseen tips badge (pulse animation defined in wwwroot/css/theme.css) -->
             <MudBadge Content="@_unseenTipsCount" 
                       Visible="@(_unseenTipsCount > 0)" 
                       Color="Color.Error" 
@@ -152,8 +154,10 @@
                 _unseenTipsCount = await EducationalTipService.GetUnseenTipCountAsync(userId);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            // Log error but gracefully degrade - tips badge won't show but app continues to work
+            Logger.LogWarning(ex, "Failed to load unseen tips count for mobile navigation badge");
             _unseenTipsCount = 0;
         }
     }

@@ -50,10 +50,12 @@
 
     private void NavigateToTips()
     {
-        // Navigate to mobile or desktop Tips based on current context
+        // Detect current page context (mobile vs desktop) based on URL path
+        // This checks if the user is currently on a /mobile/* page, not device type
+        // Routes to the appropriate Tips view to maintain consistent user experience
         var currentUrl = NavigationManager.Uri;
-        var isMobileView = currentUrl.Contains("/mobile/");
+        var isMobilePage = currentUrl.Contains("/mobile/", StringComparison.OrdinalIgnoreCase);
         
-        NavigationManager.NavigateTo(isMobileView ? "/mobile/tips" : "/tips");
+        NavigationManager.NavigateTo(isMobilePage ? "/mobile/tips" : "/tips");
     }
 }
