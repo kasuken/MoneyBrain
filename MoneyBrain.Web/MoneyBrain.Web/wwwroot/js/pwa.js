@@ -148,15 +148,22 @@ window.moneybrainPwa = {
                 }
             }
 
-            // Show the install prompt with mobile-optimized timing
-            const device = this.detectMobileDevice();
-            const delay = device.isMobile ? 5000 : 3000; // 5s for mobile, 3s for desktop
-            
-            setTimeout(() => {
+            // Show install prompt when browser is idle to avoid blocking
+            const showPrompt = () => {
                 if (this.dotNetRef && !this.isInstalled) {
                     this.dotNetRef.invokeMethodAsync('ShowInstallPrompt');
                 }
-            }, delay);
+            };
+            
+            // Use requestIdleCallback for better performance, fallback to setTimeout
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(showPrompt, { timeout: 5000 });
+            } else {
+                // Fallback for browsers without requestIdleCallback
+                const device = this.detectMobileDevice();
+                const delay = device.isMobile ? 5000 : 3000;
+                setTimeout(showPrompt, delay);
+            }
         });
     },
 
