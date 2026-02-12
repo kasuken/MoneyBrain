@@ -4,6 +4,7 @@
 @using MoneyBrain.Web.Resources
 @inject IJSRuntime JS
 @inject IStringLocalizer<SharedResource> L
+@implements IDisposable
 
 <div class="pwa-install-prompt" style="display: @(_showPrompt ? "block" : "none");">
     <MudPaper Class="pwa-prompt-card" Elevation="8">
