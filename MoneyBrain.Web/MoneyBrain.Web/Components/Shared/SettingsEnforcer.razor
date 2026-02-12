@@ -2,7 +2,9 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
+@using Microsoft.Extensions.DependencyInjection
 
+@inject IServiceScopeFactory ScopeFactory
 @inject IUserSettingsService SettingsService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
@@ -51,7 +53,15 @@ else
             return;
         }
 
-        var hasSetup = await SettingsService.HasCompletedSetupAsync(userId);
+        bool hasSetup;
+        // Use a dedicated scope to avoid DbContext concurrency with other components
+        // (e.g., TipsButton) that may run in parallel during the first render.
+        await using (var scope = ScopeFactory.CreateAsyncScope())
+        {
+            var settingsService = scope.ServiceProvider.GetRequiredService<IUserSettingsService>();
+            hasSetup = await settingsService.HasCompletedSetupAsync(userId);
+        }
+
         if (!hasSetup && !_dialogShown)
         {
             _dialogShown = true;
