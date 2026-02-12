@@ -1,18 +1,14 @@
 // MoneyBrain Service Worker - Advanced PWA Implementation
 // Version: 1.2.0 - Performance optimized for mobile + iOS popup timing fix
 
-const CACHE_VERSION = 'moneybrain-v1.2';
-const RUNTIME_CACHE = 'moneybrain-runtime-v1.1';
-const DATA_CACHE = 'moneybrain-data-v1.1';
+const CACHE_VERSION = 'moneybrain-v1.3';
+const RUNTIME_CACHE = 'moneybrain-runtime-v1.2';
+const DATA_CACHE = 'moneybrain-data-v1.2';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
   '/',
-  '/index.html',
   '/manifest.json',
-  '/app.css',
-  '/css/bootstrap/bootstrap.min.css',
-  '/css/open-iconic/font/css/open-iconic-bootstrap.min.css',
   '/_framework/blazor.web.js',
   '/offline.html'
 ];
@@ -262,8 +258,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'MoneyBrain';
   const options = {
     body: data.body || 'You have a new notification',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: '/icons/192.png',
+    badge: '/icons/72.png',
     vibrate: [200, 100, 200],
     tag: data.tag || 'moneybrain-notification',
     requireInteraction: false,
