@@ -216,6 +216,9 @@
   <data name="Msg_DeleteError" xml:space="preserve">
     <value>Fehler beim Löschen</value>
   </data>
+  <data name="Msg_ErrorDismissingTip" xml:space="preserve">
+    <value>Fehler beim Ausblenden des Tipps</value>
+  </data>
   <data name="Msg_LoadError" xml:space="preserve">
     <value>Fehler beim Laden der Daten</value>
   </data>
@@ -224,6 +227,9 @@
   </data>
   <data name="Msg_Required" xml:space="preserve">
     <value>Dieses Feld ist erforderlich</value>
+  </data>
+  <data name="Msg_TipDismissed" xml:space="preserve">
+    <value>Tipp erfolgreich ausgeblendet</value>
   </data>
   <data name="Msg_InvalidEmail" xml:space="preserve">
     <value>Ungültige E-Mail-Adresse</value>
@@ -3562,6 +3568,63 @@
   </data>
   <data name="TipCategory_General" xml:space="preserve">
     <value>Allgemein</value>
+  </data>
+  <data name="Category_Budgeting" xml:space="preserve">
+    <value>Budgetierung</value>
+  </data>
+  <data name="Category_General" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Category_Investing" xml:space="preserve">
+    <value>Investieren</value>
+  </data>
+  <data name="Category_Saving" xml:space="preserve">
+    <value>Sparen</value>
+  </data>
+  <data name="Category_Spending" xml:space="preserve">
+    <value>Ausgaben</value>
+  </data>
+  <data name="Tips_AllCategories" xml:space="preserve">
+    <value>Alle Kategorien</value>
+  </data>
+  <data name="Tips_CheckBackLater" xml:space="preserve">
+    <value>Schauen Sie später wieder vorbei für neue Tipps!</value>
+  </data>
+  <data name="Tips_HelpDescription" xml:space="preserve">
+    <value>Lernen Sie, wie Sie Finanz-Tipps nutzen können, um Ihre finanzielle Bildung zu verbessern</value>
+  </data>
+  <data name="Tips_HelpFeature1" xml:space="preserve">
+    <value>Personalisierte Tipps basierend auf Ihren Finanzgewohnheiten</value>
+  </data>
+  <data name="Tips_HelpFeature2" xml:space="preserve">
+    <value>Nach Kategorien filtern für gezielte Beratung</value>
+  </data>
+  <data name="Tips_HelpFeature3" xml:space="preserve">
+    <value>Tipps ausblenden, die Sie bereits kennen</value>
+  </data>
+  <data name="Tips_HelpHowTo1" xml:space="preserve">
+    <value>Durchsuchen Sie Tipps nach Kategorie oder zeigen Sie alle an</value>
+  </data>
+  <data name="Tips_HelpHowTo2" xml:space="preserve">
+    <value>Tippen Sie auf 'Ausblenden', um Tipps zu entfernen, die Sie nicht mehr sehen möchten</value>
+  </data>
+  <data name="Tips_HelpTip1" xml:space="preserve">
+    <value>Neue Tipps werden regelmäßig hinzugefügt</value>
+  </data>
+  <data name="Tips_HelpTip2" xml:space="preserve">
+    <value>Wenden Sie mindestens einen Tipp pro Woche an, um Ihre finanzielle Gesundheit zu verbessern</value>
+  </data>
+  <data name="Tips_HelpTitle" xml:space="preserve">
+    <value>Über Finanz-Tipps</value>
+  </data>
+  <data name="Tips_NoTipsAvailable" xml:space="preserve">
+    <value>Keine Tipps verfügbar</value>
+  </data>
+  <data name="Tips_Subtitle" xml:space="preserve">
+    <value>Nützliche Tipps zur Verbesserung Ihrer finanziellen Gesundheit</value>
+  </data>
+  <data name="Tips_Title" xml:space="preserve">
+    <value>Finanz-Tipps</value>
   </data>
   <data name="Settings_TipsAndInsights" xml:space="preserve">
     <value>Tipps &amp; Einblicke</value>

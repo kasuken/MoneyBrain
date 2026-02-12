@@ -43,6 +43,9 @@
     [Parameter]
     public string ColorClass { get; set; } = string.Empty;
 
+    [Parameter]
+    public EventCallback OnDismissed { get; set; }
+
     private async Task DismissTipAsync()
     {
         try
@@ -61,14 +64,26 @@
                 return;
             }
 
-            // Use preference key to track dismissed tips
-            var preferenceKey = $"DismissedTip_{TipId}";
-            await TipPreferenceService.UpdatePreferenceAsync(userId, preferenceKey, true);
-            Snackbar.Add(L["Msg_TipDismissed"], Severity.Info);
+            // Parse TipId to integer and dismiss the tip
+            if (int.TryParse(TipId, out var tipIdInt))
+            {
+                var success = await TipPreferenceService.DismissTipAsync(userId, tipIdInt);
+                if (success)
+                {
+                    Snackbar.Add(L["Msg_TipDismissed"], Severity.Success);
+                    // Trigger a page refresh to hide the dismissed tip
+                    await Task.Delay(500); // Short delay for snackbar visibility
+                    await OnDismissed.InvokeAsync();
+                }
+                else
+                {
+                    Snackbar.Add(L["Msg_ErrorDismissingTip"], Severity.Error);
+                }
+            }
         }
-        catch (Exception ex)
+        catch
         {
-            Snackbar.Add(L["Msg_ErrorDismissingTip", ex.Message], Severity.Error);
+            Snackbar.Add(L["Msg_ErrorDismissingTip"], Severity.Error);
         }
     }
 }
