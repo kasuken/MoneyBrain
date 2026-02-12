@@ -100,6 +100,16 @@
     <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: 100vh; padding-top: 56px; padding-bottom: 72px;">
         @Body
     </MudMainContent>
+
+    <!-- PWA Install Prompt -->
+    <PwaInstallPrompt />
+
+    <!-- Tips Button -->
+    <AuthorizeView>
+        <Authorized>
+            <TipsButton />
+        </Authorized>
+    </AuthorizeView>
 </MudLayout>
 
 @code {
