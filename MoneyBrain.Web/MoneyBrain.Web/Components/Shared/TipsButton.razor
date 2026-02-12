@@ -3,10 +3,11 @@
 
 @using MoneyBrain.Web.Resources
 @using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.DependencyInjection
 @using MoneyBrain.Web.Application.Tips
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> L
-@inject IEducationalTipService EducationalTipService
+@inject IServiceScopeFactory ScopeFactory
 @inject AuthenticationStateProvider AuthStateProvider
 
 <MudBadge Content="@_unseenTipsCount" 
@@ -39,7 +40,13 @@
             
             if (!string.IsNullOrEmpty(userId))
             {
-                _unseenTipsCount = await EducationalTipService.GetUnseenTipCountAsync(userId);
+                // Use a dedicated scope to avoid DbContext concurrency with other components
+                // (e.g., SettingsEnforcer) that may run in parallel during the first render.
+                await using (var scope = ScopeFactory.CreateAsyncScope())
+                {
+                    var tipService = scope.ServiceProvider.GetRequiredService<IEducationalTipService>();
+                    _unseenTipsCount = await tipService.GetUnseenTipCountAsync(userId);
+                }
             }
         }
         catch

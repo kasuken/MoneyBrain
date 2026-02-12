@@ -2,9 +2,10 @@
 @using MoneyBrain.Web.Application.Licensing
 @using Microsoft.Extensions.Options
 @using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.DependencyInjection
 @using MoneyBrain.Web.Resources
 
-@inject ILicenseService LicenseService
+@inject IServiceScopeFactory ScopeFactory
 @inject IOptions<LicensingSettings> LicensingSettings
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
@@ -79,6 +80,11 @@ else
             return;
         }
 
-        _hasValidLicense = await LicenseService.HasValidLicenseAsync(userId);
+        // Use a dedicated scope to avoid DbContext concurrency with other components.
+        await using (var scope = ScopeFactory.CreateAsyncScope())
+        {
+            var licenseService = scope.ServiceProvider.GetRequiredService<ILicenseService>();
+            _hasValidLicense = await licenseService.HasValidLicenseAsync(userId);
+        }
     }
 }
