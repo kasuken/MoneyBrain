@@ -6,6 +6,7 @@
 @inject NavigationManager NavigationManager
 @inject IMobileDetectionService MobileDetection
 @inject IStringLocalizer<SharedResource> L
+@inject ILogger<MainLayout> Logger
 @implements IDisposable
 
 @* Required *@
@@ -169,10 +170,11 @@
                         StateHasChanged();
                     });
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Silently fail if mobile detection unavailable
+                    // Log but don't rethrow - mobile detection is a convenience feature
                     // The app will still function, just without automatic mobile redirect
+                    Logger.LogWarning(ex, "Failed to initialize mobile detection. Mobile redirect will not be available.");
                 }
             });
         }
