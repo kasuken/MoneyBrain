@@ -151,14 +151,30 @@
         if (firstRender)
         {
             MobileDetection.OnViewportChanged += HandleViewportChange;  // Subscribe FIRST
-            await MobileDetection.InitializeAsync();  // Then initialize
             
-            // Handle initial state explicitly (in case event was missed)
-            if (MobileDetection.IsMobile)
+            // Initialize mobile detection asynchronously without blocking the layout
+            _ = Task.Run(async () =>
             {
-                HandleViewportChange(true);
-            }
-            StateHasChanged();
+                try
+                {
+                    await MobileDetection.InitializeAsync();
+                    
+                    // Handle initial state after initialization
+                    await InvokeAsync(() =>
+                    {
+                        if (MobileDetection.IsMobile)
+                        {
+                            HandleViewportChange(true);
+                        }
+                        StateHasChanged();
+                    });
+                }
+                catch
+                {
+                    // Silently fail if mobile detection unavailable
+                    // The app will still function, just without automatic mobile redirect
+                }
+            });
         }
     }
 
