@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
@@ -11,7 +12,8 @@ namespace MoneyBrain.Web.Application.Tips;
 /// </summary>
 public class TipPreferenceService(
     ICacheService cacheService,
-    ApplicationDbContext dbContext) : ITipPreferenceService
+    ApplicationDbContext dbContext,
+    ILogger<TipPreferenceService> logger) : ITipPreferenceService
 {
     /// <inheritdoc />
     public async Task<Dictionary<string, bool>> GetPreferencesAsync(
@@ -98,8 +100,7 @@ public class TipPreferenceService(
                     UserId = userId,
                     EducationalTipId = tipId,
                     IsDismissed = true,
-                    DismissedAt = DateTime.UtcNow,
-                    IsEnabled = false
+                    DismissedAt = DateTime.UtcNow
                 };
                 dbContext.UserTipPreferences.Add(preference);
             }
@@ -112,8 +113,9 @@ public class TipPreferenceService(
 
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Error dismissing tip {TipId} for user {UserId}", tipId, userId);
             return false;
         }
     }
@@ -125,8 +127,7 @@ public class TipPreferenceService(
     {
         return await dbContext.UserTipPreferences
             .Where(p => p.UserId == userId && p.IsDismissed)
-            .Select(p => p.EducationalTipId ?? 0)
-            .Where(id => id > 0)
+            .Select(p => p.EducationalTipId)
             .ToListAsync(cancellationToken);
     }
 }
