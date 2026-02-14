@@ -2,6 +2,11 @@
 window.moneybrainMobile = {
     // Mobile breakpoint (matches Bootstrap/MudBlazor md breakpoint)
     MOBILE_BREAKPOINT: 768,
+    
+    // Store reference for cleanup
+    _dotNetReference: null,
+    _resizeHandler: null,
+    _resizeTimeout: null,
 
     // Check if current viewport is mobile
     isMobile: function() {
@@ -10,20 +15,49 @@ window.moneybrainMobile = {
 
     // Initialize mobile detection with callback to Blazor
     initialize: function(dotNetReference) {
-        const notifyViewportChange = () => {
-            const isMobile = this.isMobile();
-            dotNetReference.invokeMethodAsync('NotifyViewportChanged', isMobile);
+        // Clean up any previous instance first
+        this.dispose();
+        
+        this._dotNetReference = dotNetReference;
+        
+        const self = this;
+        this._resizeHandler = function() {
+            clearTimeout(self._resizeTimeout);
+            self._resizeTimeout = setTimeout(function() {
+                if (self._dotNetReference) {
+                    const isMobile = self.isMobile();
+                    self._dotNetReference.invokeMethodAsync('NotifyViewportChanged', isMobile)
+                        .catch(function(err) {
+                            // Reference was disposed, clean up
+                            console.warn('Mobile detection reference disposed, cleaning up');
+                            self.dispose();
+                        });
+                }
+            }, 150);
         };
 
+        // Listen for resize events
+        window.addEventListener('resize', this._resizeHandler);
+        
         // Initial check
-        notifyViewportChange();
-
-        // Listen for resize events (debounced)
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(notifyViewportChange, 150);
-        });
+        if (this._dotNetReference) {
+            const isMobile = this.isMobile();
+            this._dotNetReference.invokeMethodAsync('NotifyViewportChanged', isMobile)
+                .catch(function(err) {
+                    console.warn('Initial mobile detection failed', err);
+                });
+        }
+    },
+    
+    // Dispose/cleanup resources
+    dispose: function() {
+        if (this._resizeHandler) {
+            window.removeEventListener('resize', this._resizeHandler);
+            this._resizeHandler = null;
+        }
+        clearTimeout(this._resizeTimeout);
+        this._resizeTimeout = null;
+        this._dotNetReference = null;
     },
 
     // Scroll to top (useful for mobile navigation)
