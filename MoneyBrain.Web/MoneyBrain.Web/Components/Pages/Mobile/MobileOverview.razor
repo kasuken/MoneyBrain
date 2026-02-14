@@ -20,6 +20,7 @@
 @inject ICashflowService CashflowService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
+@implements IDisposable
 
 <AuthorizeView>
     <Authorized>
@@ -181,6 +182,7 @@
     private bool _isLoading = true;
     private string? _userId;
     private string _currencyCode = "USD";
+    private CancellationTokenSource _cts = new();
     
     private decimal _totalBalance;
     private decimal _periodChange;
@@ -217,6 +219,8 @@
         _isLoading = true;
         StateHasChanged();
 
+        var cancellationToken = _cts.Token;
+
         try
         {
             // Load user settings for currency
@@ -226,14 +230,19 @@
                 _currencyCode = settings.CurrencyCode;
             }
 
-            // Calculate total balance from all accounts
-            var accounts = (await AccountService.GetUserAccountsAsync(_userId!)).ToList();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Calculate total balance from all accounts - SEQUENTIAL to avoid DbContext concurrency
+            var accounts = (await AccountService.GetUserAccountsAsync(_userId!, false, cancellationToken)).ToList();
             _totalBalance = 0;
             foreach (var account in accounts)
             {
-                var balance = await AccountService.CalculateCurrentBalanceAsync(account.Id, _userId!);
+                cancellationToken.ThrowIfCancellationRequested();
+                var balance = await AccountService.CalculateCurrentBalanceAsync(account.Id, _userId!, cancellationToken);
                 _totalBalance += balance;
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Get current month cashflow
             var currentMonth = await CashflowService.GetMonthCashflowAsync(
@@ -298,6 +307,12 @@
     private string FormatCurrencyCompact(decimal amount)
     {
         return $"{amount:N0} {_currencyCode}";
+    }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
     }
 }
 
