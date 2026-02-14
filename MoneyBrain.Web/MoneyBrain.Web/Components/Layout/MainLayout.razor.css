@@ -96,3 +96,36 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+/* Mobile drawer styles */
+::deep .mud-drawer {
+    width: 280px;
+}
+
+::deep .mud-drawer-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+::deep .mud-nav-link {
+    border-radius: 8px;
+    margin: 2px 8px;
+}
+
+::deep .mud-nav-link:hover {
+    background-color: rgba(29, 185, 84, 0.08);
+}
+
+::deep .mud-nav-link.active {
+    background-color: rgba(29, 185, 84, 0.12);
+    color: #1DB954;
+}
+
+::deep .mud-nav-link.active .mud-nav-link-icon {
+    color: #1DB954;
+}
+
+::deep .mud-nav-group .mud-nav-link {
+    padding-left: 48px;
+}
+
