@@ -3,7 +3,7 @@
 // without intercepting network requests or caching any resources.
 // All network requests are handled normally by the browser.
 
-const CACHE_VERSION = 'moneybrain-cleanup-v1';
+const CACHE_VERSION = 'moneybrain-v2-icon-fix';
 
 // Install: activate immediately, no precaching
 self.addEventListener('install', (event) => {
