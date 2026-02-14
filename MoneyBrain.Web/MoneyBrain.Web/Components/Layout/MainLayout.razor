@@ -158,8 +158,11 @@
     <Footer />
 </MudLayout>
 
-<!-- PWA Install Prompt -->
-@* <PwaInstallPrompt /> *@
+<!-- PWA Install Prompt - Mobile Only -->
+@if (_isMobile)
+{
+    <PwaInstallPrompt />
+}
 
 <!-- Tips Button -->
 <AuthorizeView>
