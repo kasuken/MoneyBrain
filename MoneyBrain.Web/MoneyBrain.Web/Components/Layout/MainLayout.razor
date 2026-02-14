@@ -1,4 +1,4 @@
-﻿﻿@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @using MoneyBrain.Web.Components.Shared
 @using MoneyBrain.Web.Services
 @using MoneyBrain.Web.Resources
@@ -21,14 +21,14 @@
 
 <MudLayout>
     <MudAppBar Elevation="0" Dense="false" Class="px-4">
-        @* Mobile hamburger menu button - visible on mobile via CSS, then controlled by JS *@
+        @* Mobile hamburger menu button - uses CSS for initial state, then JS for dynamic changes *@
         <AuthorizeView>
             <Authorized>
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" 
                                Color="Color.Inherit" 
                                Edge="Edge.Start" 
                                OnClick="@ToggleDrawer"
-                               Class="@(_isMobileInitialized ? (_isMobile ? "" : "d-none") : "d-md-none")" />
+                               Class="@GetMobileOnlyClass()" />
             </Authorized>
         </AuthorizeView>
         
@@ -36,10 +36,10 @@
             <img src="/icons/OnlyLogo.png" alt="MoneyBrain" style="max-height: 40px;" />
         </NavLink>
 
-        @* Desktop navigation - hidden on mobile via CSS, then controlled by JS *@
+        @* Desktop navigation - uses CSS for initial state, then JS for dynamic changes *@
         <AuthorizeView>
             <Authorized>
-                <div class="@(_isMobileInitialized ? (_isMobile ? "d-none" : "") : "d-none d-md-block")">
+                <div class="@GetDesktopOnlyClass()">
                     <NavMenu />
                 </div>
             </Authorized>
