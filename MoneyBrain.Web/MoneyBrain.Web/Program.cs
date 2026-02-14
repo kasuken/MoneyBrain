@@ -230,6 +230,28 @@ app.UseAntiforgery();
 app.UseRequestLocalization();
 
 app.MapStaticAssets();
+
+// Configure cache-control headers for static assets
+// Fingerprinted assets (via @Assets[]) get long-term immutable cache
+// Non-fingerprinted assets get short-term revalidation cache
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Check if the asset is fingerprinted (MapStaticAssets adds version parameter)
+        if (ctx.Context.Request.Query.ContainsKey("v"))
+        {
+            // Immutable cache for 1 year for fingerprinted assets
+            ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+        }
+        else
+        {
+            // Short cache with revalidation for non-fingerprinted assets (e.g., external fonts)
+            ctx.Context.Response.Headers.CacheControl = "public,max-age=3600,must-revalidate";
+        }
+    }
+});
+
 app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

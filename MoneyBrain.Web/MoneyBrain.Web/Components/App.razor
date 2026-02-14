@@ -8,7 +8,7 @@
     <ResourcePreloader/>
     
     <!-- PWA preload hints for faster installability detection -->
-    <link rel="preload" href="manifest.json" as="manifest" crossorigin="use-credentials" />
+    <link rel="preload" href="@Assets["manifest.json"]" as="manifest" crossorigin="use-credentials" />
     
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]"/>
     <link rel="stylesheet" href="@Assets["app.css"]"/>
@@ -19,10 +19,10 @@
     <link href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" rel="stylesheet" />
     <link href="@Assets["css/theme.css"]" rel="stylesheet" />
     
-    <link href="_content/Heron.MudCalendar/Heron.MudCalendar.min.css" rel="stylesheet" />
+    <link href="@Assets["_content/Heron.MudCalendar/Heron.MudCalendar.min.css"]" rel="stylesheet" />
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json" />
+    <link rel="manifest" href="@Assets["manifest.json"]" />
     <meta name="theme-color" content="#6366f1" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -41,7 +41,7 @@
 <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
 
 <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
-<script type="module" src="_content/Heron.MudCalendar/Heron.MudCalendar.min.js"></script>
+<script type="module" src="@Assets["_content/Heron.MudCalendar/Heron.MudCalendar.min.js"]"></script>
 <script src="@Assets["js/fileDownload.js"]"></script>
 <script src="@Assets["js/moneyBrain.js"]"></script>
 @* <script src="@Assets["js/pwa.js"]"></script> *@
