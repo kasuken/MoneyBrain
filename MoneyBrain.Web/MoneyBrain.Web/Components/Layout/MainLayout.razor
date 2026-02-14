@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+﻿﻿@inherits LayoutComponentBase
 @using MoneyBrain.Web.Components.Shared
 @using MoneyBrain.Web.Services
 @using MoneyBrain.Web.Resources
@@ -244,6 +244,34 @@
     private void CloseDrawer()
     {
         _drawerOpen = false;
+    }
+
+    /// <summary>
+    /// Returns CSS class for elements that should only be visible on mobile.
+    /// </summary>
+    private string GetMobileOnlyClass()
+    {
+        // If JS confirms desktop, hide completely
+        if (_isMobileInitialized && !_isMobile)
+        {
+            return "d-none";
+        }
+        // Otherwise use CSS media query: visible on xs/sm, hidden on md+
+        return "d-md-none";
+    }
+
+    /// <summary>
+    /// Returns CSS class for elements that should only be visible on desktop.
+    /// </summary>
+    private string GetDesktopOnlyClass()
+    {
+        // If JS confirms mobile, hide completely
+        if (_isMobileInitialized && _isMobile)
+        {
+            return "d-none";
+        }
+        // Otherwise use CSS media query: hidden on xs/sm, visible on md+
+        return "d-none d-md-flex";
     }
 
     public async ValueTask DisposeAsync()
