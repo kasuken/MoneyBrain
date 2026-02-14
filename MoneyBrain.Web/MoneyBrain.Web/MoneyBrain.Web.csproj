@@ -28,4 +28,10 @@
         <PackageReference Include="Stripe.net" Version="47.*" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Components\Pages\Mobile\MobileOverview.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Mobile\MobileTips.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Mobile\MobileTransactions.razor" />
+    </ItemGroup>
+
 </Project>
