@@ -7,7 +7,6 @@
 @inject IMobileDetectionService MobileDetection
 @inject IStringLocalizer<SharedResource> L
 @inject ILogger<MainLayout> Logger
-@implements IAsyncDisposable
 
 @* Required *@
 <MudThemeProvider Theme="_theme" />
@@ -139,7 +138,7 @@
         }
     };
     
-    private bool IsActive(string path)
+    /*private bool IsActive(string path)
     {
         var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         return currentPath.StartsWith(path.TrimStart('/'), StringComparison.OrdinalIgnoreCase) ||
@@ -167,10 +166,9 @@
                 Logger.LogError(ex, "Mobile detection failed");
             }
         }
-    }
+    }*/
 
-
-
+    /*
     private void HandleViewportChange(bool isMobile)
     {
         var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
@@ -199,5 +197,5 @@
                 await asyncDisposable.DisposeAsync();
             }
         }
-    }
+    }*/
 }
