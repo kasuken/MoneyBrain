@@ -21,16 +21,14 @@
 
 <MudLayout>
     <MudAppBar Elevation="0" Dense="false" Class="px-4">
-        @* Mobile hamburger menu button *@
+        @* Mobile hamburger menu button - visible on mobile via CSS, then controlled by JS *@
         <AuthorizeView>
             <Authorized>
-                @if (_isMobile)
-                {
-                    <MudIconButton Icon="@Icons.Material.Filled.Menu" 
-                                   Color="Color.Inherit" 
-                                   Edge="Edge.Start" 
-                                   OnClick="@ToggleDrawer" />
-                }
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                               Color="Color.Inherit" 
+                               Edge="Edge.Start" 
+                               OnClick="@ToggleDrawer"
+                               Class="@(_isMobileInitialized ? (_isMobile ? "" : "d-none") : "d-md-none")" />
             </Authorized>
         </AuthorizeView>
         
@@ -38,13 +36,12 @@
             <img src="/icons/OnlyLogo.png" alt="MoneyBrain" style="max-height: 40px;" />
         </NavLink>
 
-        @* Desktop navigation - hidden on mobile *@
+        @* Desktop navigation - hidden on mobile via CSS, then controlled by JS *@
         <AuthorizeView>
             <Authorized>
-                @if (!_isMobile)
-                {
+                <div class="@(_isMobileInitialized ? (_isMobile ? "d-none" : "") : "d-none d-md-block")">
                     <NavMenu />
-                }
+                </div>
             </Authorized>
         </AuthorizeView>
         
@@ -60,12 +57,9 @@
                             <div class="mb-user-avatar">
                                 @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
                             </div>
-                            @if (!_isMobile)
-                            {
-                                <MudText Typo="Typo.body2" Class="d-none d-sm-block" Style="font-weight: 500;">
-                                    @context.User.Identity?.Name
-                                </MudText>
-                            }
+                            <MudText Typo="Typo.body2" Class="d-none d-md-block" Style="font-weight: 500;">
+                                @context.User.Identity?.Name
+                            </MudText>
                             <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small" />
                         </div>
                     </ActivatorContent>
@@ -91,12 +85,9 @@
                 <MudButton Href="/Account/Login" Variant="Variant.Text" Color="Color.Default" Class="me-2">
                     @L["Nav_SignIn"]
                 </MudButton>
-                @if (!_isMobile)
-                {
-                    <MudButton Href="/Account/Register" Variant="Variant.Filled" Class="mb-btn-primary">
-                        @L["Nav_GetStarted"]
-                    </MudButton>
-                }
+                <MudButton Href="/Account/Register" Variant="Variant.Filled" Class="mb-btn-primary d-none d-md-flex">
+                    @L["Nav_GetStarted"]
+                </MudButton>
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
@@ -174,6 +165,7 @@
 @code {
     private bool _drawerOpen;
     private bool _isMobile;
+    private bool _isMobileInitialized;
     
     private MudTheme _theme = new()
     {
@@ -218,11 +210,14 @@
             {
                 await MobileDetection.InitializeAsync();
                 _isMobile = MobileDetection.IsMobile;
+                _isMobileInitialized = true;
                 StateHasChanged();
             }
             catch (Exception ex)
             {
                 Logger.LogWarning(ex, "Mobile detection initialization failed");
+                _isMobileInitialized = true; // Still mark as initialized so CSS takes over
+                StateHasChanged();
             }
         }
     }
@@ -230,6 +225,7 @@
     private void HandleViewportChange(bool isMobile)
     {
         _isMobile = isMobile;
+        _isMobileInitialized = true;
         
         // Close drawer when switching to desktop
         if (!isMobile)
