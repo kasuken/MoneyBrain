@@ -7,6 +7,7 @@
 @inject IMobileDetectionService MobileDetection
 @inject IStringLocalizer<SharedResource> L
 @inject ILogger<MainLayout> Logger
+@implements IAsyncDisposable
 
 @* Required *@
 <MudThemeProvider Theme="_theme" />
@@ -20,13 +21,30 @@
 
 <MudLayout>
     <MudAppBar Elevation="0" Dense="false" Class="px-4">
+        @* Mobile hamburger menu button *@
+        <AuthorizeView>
+            <Authorized>
+                @if (_isMobile)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                                   Color="Color.Inherit" 
+                                   Edge="Edge.Start" 
+                                   OnClick="@ToggleDrawer" />
+                }
+            </Authorized>
+        </AuthorizeView>
+        
         <NavLink href="/" class="mb-logo">
             <img src="/icons/OnlyLogo.png" alt="MoneyBrain" style="max-height: 40px;" />
         </NavLink>
 
+        @* Desktop navigation - hidden on mobile *@
         <AuthorizeView>
             <Authorized>
-                <NavMenu />
+                @if (!_isMobile)
+                {
+                    <NavMenu />
+                }
             </Authorized>
         </AuthorizeView>
         
@@ -42,9 +60,12 @@
                             <div class="mb-user-avatar">
                                 @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
                             </div>
-                            <MudText Typo="Typo.body2" Class="d-none d-sm-block" Style="font-weight: 500;">
-                                @context.User.Identity?.Name
-                            </MudText>
+                            @if (!_isMobile)
+                            {
+                                <MudText Typo="Typo.body2" Class="d-none d-sm-block" Style="font-weight: 500;">
+                                    @context.User.Identity?.Name
+                                </MudText>
+                            }
                             <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small" />
                         </div>
                     </ActivatorContent>
@@ -70,12 +91,55 @@
                 <MudButton Href="/Account/Login" Variant="Variant.Text" Color="Color.Default" Class="me-2">
                     @L["Nav_SignIn"]
                 </MudButton>
-                <MudButton Href="/Account/Register" Variant="Variant.Filled" Class="mb-btn-primary">
-                    @L["Nav_GetStarted"]
-                </MudButton>
+                @if (!_isMobile)
+                {
+                    <MudButton Href="/Account/Register" Variant="Variant.Filled" Class="mb-btn-primary">
+                        @L["Nav_GetStarted"]
+                    </MudButton>
+                }
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>
+    
+    @* Mobile drawer for navigation *@
+    <AuthorizeView>
+        <Authorized>
+            <MudDrawer @bind-Open="_drawerOpen" 
+                       Elevation="1" 
+                       Variant="@DrawerVariant.Temporary"
+                       ClipMode="DrawerClipMode.Always">
+                <MudDrawerHeader>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <img src="/icons/OnlyLogo.png" alt="MoneyBrain" style="max-height: 32px;" />
+                        <MudText Typo="Typo.h6" Style="font-weight: 600;">MoneyBrain</MudText>
+                    </MudStack>
+                </MudDrawerHeader>
+                <MudNavMenu>
+                    <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Dashboard"]</MudNavLink>
+                    <MudNavLink Href="/transactions" Icon="@Icons.Material.Filled.Receipt" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Transactions"]</MudNavLink>
+                    <MudNavLink Href="/budgets" Icon="@Icons.Material.Filled.PieChart" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Budgets"]</MudNavLink>
+                    <MudNavLink Href="/categories" Icon="@Icons.Material.Filled.Category" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Categories"]</MudNavLink>
+                    <MudNavLink Href="/accounts" Icon="@Icons.Material.Filled.AccountBalance" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Accounts"]</MudNavLink>
+                    <MudNavLink Href="/reconciliations" Icon="@Icons.Material.Filled.CheckCircle" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Reconciliations"]</MudNavLink>
+                    <MudNavLink Href="/payees" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Payees"]</MudNavLink>
+                    
+                    <MudNavGroup Title="@L["Nav_Reports"]" Icon="@Icons.Material.Filled.BarChart" Expanded="false">
+                        <MudNavLink Href="/cashflow" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Cashflow"]</MudNavLink>
+                        <MudNavLink Href="/category-spending" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_CategorySpending"]</MudNavLink>
+                        <MudNavLink Href="/budget-comparison" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_BudgetVsActual"]</MudNavLink>
+                        <MudNavLink Href="/net-worth" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_NetWorth"]</MudNavLink>
+                        <MudNavLink Href="/account-balance-history" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_BalanceHistory"]</MudNavLink>
+                    </MudNavGroup>
+                    
+                    <MudNavLink Href="/insights" Icon="@Icons.Material.Filled.Lightbulb" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Insights"]</MudNavLink>
+                    
+                    <MudDivider Class="my-2" />
+                    
+                    <MudNavLink Href="/settings" Icon="@Icons.Material.Outlined.Settings" Match="NavLinkMatch.Prefix" OnClick="@CloseDrawer">@L["Nav_Settings"]</MudNavLink>
+                </MudNavMenu>
+            </MudDrawer>
+        </Authorized>
+    </AuthorizeView>
     
     <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: calc(100vh - 64px);">
         <AuthorizeView>
@@ -105,6 +169,9 @@
 </AuthorizeView>
 
 @code {
+    private bool _drawerOpen;
+    private bool _isMobile;
+    
     private MudTheme _theme = new()
     {
         PaletteLight = new PaletteLight
@@ -137,4 +204,56 @@
             DefaultBorderRadius = "8px"
         }
     };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            MobileDetection.OnViewportChanged += HandleViewportChange;
+            
+            try
+            {
+                await MobileDetection.InitializeAsync();
+                _isMobile = MobileDetection.IsMobile;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Mobile detection initialization failed");
+            }
+        }
+    }
+
+    private void HandleViewportChange(bool isMobile)
+    {
+        _isMobile = isMobile;
+        
+        // Close drawer when switching to desktop
+        if (!isMobile)
+        {
+            _drawerOpen = false;
+        }
+        
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void CloseDrawer()
+    {
+        _drawerOpen = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        MobileDetection.OnViewportChanged -= HandleViewportChange;
+        
+        if (MobileDetection is IAsyncDisposable asyncDisposable)
+        {
+            await asyncDisposable.DisposeAsync();
+        }
+    }
 }
