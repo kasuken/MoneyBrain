@@ -2,8 +2,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <PageTitle>Loading - MoneyBrain</PageTitle>
@@ -31,43 +29,3 @@
         gap: 16px;
     }
 </style>
-
-@code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Non-blocking mobile detection and redirect
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(100); // Small delay to ensure JS is ready
-                    
-                    // Check if mobile using JS
-                    var isMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
-                    
-                    await InvokeAsync(() =>
-                    {
-                        if (isMobile)
-                        {
-                            NavigationManager.NavigateTo("/mobile/overview", forceLoad: false);
-                        }
-                        else
-                        {
-                            NavigationManager.NavigateTo("/dashboard", forceLoad: false);
-                        }
-                    });
-                }
-                catch (Exception)
-                {
-                    // On error, default to dashboard
-                    await InvokeAsync(() =>
-                    {
-                        NavigationManager.NavigateTo("/dashboard", forceLoad: false);
-                    });
-                }
-            });
-        }
-    }
-}
