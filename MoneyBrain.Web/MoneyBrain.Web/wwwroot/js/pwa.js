@@ -1,49 +1,21 @@
-// MoneyBrain PWA JavaScript Integration
+// MoneyBrain PWA JavaScript Integration - Installation Only
 window.moneybrainPwa = {
     deferredPrompt: null,
     dotNetRef: null,
     isInstalled: false,
-    performanceMarkers: {
-        startTime: 0,
-        initComplete: 0,
-        serviceWorkerReady: 0
-    },
 
-    initialize: async function (dotNetReference) {
-        this.performanceMarkers.startTime = performance.now();
+    initialize: function (dotNetReference) {
         this.dotNetRef = dotNetReference;
         
-        // Check installation status first (synchronous)
+        // Check installation status
         this.checkInstallation();
         
-        // Parallelize all async operations for faster startup
-        try {
-            await Promise.all([
-                this.registerServiceWorker(),
-                Promise.resolve(this.setupBeforeInstallPrompt()),
-                Promise.resolve(this.setupMobileInstallPrompt()),
-                Promise.resolve(this.setupAppInstalled()),
-                Promise.resolve(this.setupOnlineOfflineHandlers())
-            ]);
-            
-            // Check for updates after other initialization completes
-            this.checkForUpdates();
-            
-            this.performanceMarkers.initComplete = performance.now();
-            const initTime = this.performanceMarkers.initComplete - this.performanceMarkers.startTime;
-            console.log(`[PWA] Initialization complete in ${initTime.toFixed(2)}ms`);
-            
-            // Track when service worker is fully ready
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.ready.then(() => {
-                    this.performanceMarkers.serviceWorkerReady = performance.now();
-                    const swReadyTime = this.performanceMarkers.serviceWorkerReady - this.performanceMarkers.startTime;
-                    console.log(`[PWA] Service Worker ready in ${swReadyTime.toFixed(2)}ms`);
-                });
-            }
-        } catch (error) {
-            console.error('[PWA] Initialization error:', error);
-        }
+        // Only set up install prompt handlers (no service worker or caching)
+        this.setupBeforeInstallPrompt();
+        this.setupMobileInstallPrompt();
+        this.setupAppInstalled();
+        
+        console.log('[PWA] Install prompt initialized');
     },
 
     checkInstallation: function () {
@@ -71,8 +43,13 @@ window.moneybrainPwa = {
     setupMobileInstallPrompt: function () {
         const device = this.detectMobileDevice();
         
+        // Only show on mobile devices
+        if (!device.isMobile || this.isInstalled) {
+            return;
+        }
+        
         // iOS doesn't support beforeinstallprompt, show instructions proactively
-        if (device.isIOS && !this.isInstalled) {
+        if (device.isIOS) {
             console.log('[PWA] iOS detected - will show native install instructions');
             
             // Check if user has previously dismissed the prompt
@@ -84,66 +61,24 @@ window.moneybrainPwa = {
                 }
             }
             
-            // Show prompt when browser is idle to ensure Blazor circuit is ready
-            // Use requestIdleCallback to avoid blocking and ensure proper initialization
-            const showIosPrompt = () => {
+            // Show prompt after a short delay to ensure Blazor is ready
+            setTimeout(() => {
                 if (this.dotNetRef && !this.isInstalled) {
                     this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt')
                         .catch(error => console.error('[PWA] iOS prompt error:', error));
                 }
-            };
-            
-            // Use requestIdleCallback for better performance, fallback to setTimeout
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(showIosPrompt, { timeout: 2000 });
-            } else {
-                // Fallback with minimal delay to ensure Blazor is ready
-                setTimeout(showIosPrompt, 1000);
-            }
-        } else if (device.isAndroid && !this.isInstalled) {
-            // Android - use shorter delay, beforeinstallprompt will override if available
-            console.log('[PWA] Android detected - using mobile-optimized timing');
-        } else if (device.isMobile && !this.isInstalled) {
-            // Other mobile devices
-            console.log('[PWA] Other mobile device detected');
-        }
-    },
-
-    registerServiceWorker: function () {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-                .then((registration) => {
-                    console.log('[PWA] Service Worker registered:', registration.scope);
-
-                    // Check for updates when user returns to the app (more efficient than polling)
-                    document.addEventListener('visibilitychange', () => {
-                        if (!document.hidden && registration) {
-                            console.log('[PWA] Checking for updates (visibility change)');
-                            registration.update();
-                        }
-                    });
-                    
-                    // Also check on initial load
-                    registration.update();
-
-                    // Handle service worker updates
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('[PWA] New version available');
-                                this.showUpdateNotification();
-                            }
-                        });
-                    });
-                })
-                .catch((error) => {
-                    console.error('[PWA] Service Worker registration failed:', error);
-                });
+            }, 2000);
         }
     },
 
     setupBeforeInstallPrompt: function () {
+        const device = this.detectMobileDevice();
+        
+        // Only show on mobile devices
+        if (!device.isMobile) {
+            return;
+        }
+        
         window.addEventListener('beforeinstallprompt', (e) => {
             console.log('[PWA] beforeinstallprompt event fired');
             e.preventDefault();
@@ -158,22 +93,13 @@ window.moneybrainPwa = {
                 }
             }
 
-            // Show install prompt when browser is idle to avoid blocking
-            const showPrompt = () => {
+            // Show install prompt after a delay
+            setTimeout(() => {
                 if (this.dotNetRef && !this.isInstalled) {
-                    this.dotNetRef.invokeMethodAsync('ShowInstallPrompt');
+                    this.dotNetRef.invokeMethodAsync('ShowInstallPrompt')
+                        .catch(error => console.error('[PWA] Install prompt error:', error));
                 }
-            };
-            
-            // Use requestIdleCallback for better performance, fallback to setTimeout
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(showPrompt, { timeout: 5000 });
-            } else {
-                // Fallback for browsers without requestIdleCallback
-                const device = this.detectMobileDevice();
-                const delay = device.isMobile ? 5000 : 3000;
-                setTimeout(showPrompt, delay);
-            }
+            }, 3000);
         });
     },
 
@@ -183,13 +109,11 @@ window.moneybrainPwa = {
             this.isInstalled = true;
             this.deferredPrompt = null;
             
-            // Track installation
+            // Hide the prompt
             if (this.dotNetRef) {
-                this.dotNetRef.invokeMethodAsync('HideInstallPrompt');
+                this.dotNetRef.invokeMethodAsync('HideInstallPrompt')
+                    .catch(error => console.error('[PWA] Hide prompt error:', error));
             }
-
-            // Show success message
-            this.showToast('MoneyBrain has been installed!', 'success');
         });
     },
 
@@ -221,16 +145,15 @@ window.moneybrainPwa = {
     },
 
     showNativeInstallInstructions: function () {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isAndroid = /Android/.test(navigator.userAgent);
+        const device = this.detectMobileDevice();
 
         let message = 'To install MoneyBrain:\n\n';
 
-        if (isIOS) {
+        if (device.isIOS) {
             message += '1. Tap the Share button in Safari\n';
             message += '2. Select "Add to Home Screen"\n';
             message += '3. Tap "Add" to confirm';
-        } else if (isAndroid) {
+        } else if (device.isAndroid) {
             message += '1. Tap the menu button in your browser\n';
             message += '2. Select "Add to Home screen"\n';
             message += '3. Follow the prompts';
@@ -241,116 +164,12 @@ window.moneybrainPwa = {
 
         alert(message);
     },
-
-    setupOnlineOfflineHandlers: function () {
-        window.addEventListener('online', () => {
-            console.log('[PWA] Connection restored');
-            this.showToast('You are back online', 'info');
-        });
-
-        window.addEventListener('offline', () => {
-            console.log('[PWA] Connection lost');
-            this.showToast('You are offline - changes will sync when reconnected', 'warning');
-        });
-    },
-
-    checkForUpdates: function () {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then((registration) => {
-                registration.update();
-            });
-        }
-    },
-
-    showUpdateNotification: function () {
-        if (confirm('A new version of MoneyBrain is available. Reload to update?')) {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistration().then((registration) => {
-                    if (registration && registration.waiting) {
-                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                        window.location.reload();
-                    }
-                });
-            }
-        }
-    },
-
-    showToast: function (message, type = 'info') {
-        // This would integrate with MudBlazor's Snackbar
-        // For now, using console
-        console.log(`[PWA Toast - ${type}] ${message}`);
-    },
-
-    // Cache management
-    clearCache: async function () {
-        if ('serviceWorker' in navigator) {
-            const registration = await navigator.serviceWorker.getRegistration();
-            if (registration && registration.active) {
-                registration.active.postMessage({ type: 'CLEAR_CACHE' });
-            }
-        }
-        console.log('[PWA] Cache clear requested');
-    },
-
-    // Get cache size
-    getCacheSize: async function () {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            const estimate = await navigator.storage.estimate();
-            const usage = estimate.usage || 0;
-            const quota = estimate.quota || 0;
-            const percentUsed = (usage / quota * 100).toFixed(2);
-            
-            return {
-                usage: this.formatBytes(usage),
-                quota: this.formatBytes(quota),
-                percentUsed: percentUsed
-            };
-        }
-        return null;
-    },
-
-    formatBytes: function (bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    },
-
-    // Share API support
-    share: async function (title, text, url) {
-        if (navigator.share) {
-            try {
-                await navigator.share({ title, text, url });
-                console.log('[PWA] Shared successfully');
-                return true;
-            } catch (error) {
-                console.log('[PWA] Share cancelled or failed:', error);
-                return false;
-            }
-        } else {
-            console.log('[PWA] Web Share API not supported');
-            return false;
-        }
-    },
-
-    // Add to home screen badge (for supported browsers)
-    setBadge: function (count) {
-        if ('setAppBadge' in navigator) {
-            navigator.setAppBadge(count)
-                .then(() => console.log('[PWA] Badge set to:', count))
-                .catch((error) => console.error('[PWA] Badge error:', error));
-        }
-    },
-
-    clearBadge: function () {
-        if ('clearAppBadge' in navigator) {
-            navigator.clearAppBadge()
-                .then(() => console.log('[PWA] Badge cleared'))
-                .catch((error) => console.error('[PWA] Badge clear error:', error));
-        }
+    
+    dispose: function() {
+        this.dotNetRef = null;
+        this.deferredPrompt = null;
+        console.log('[PWA] Disposed');
     }
 };
 
-// Initialize on load
-console.log('[PWA] MoneyBrain PWA script loaded');
+console.log('[PWA] MoneyBrain PWA install script loaded');

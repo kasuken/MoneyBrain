@@ -1,10 +1,10 @@
-@* PWA Install Prompt Component *@
+@* PWA Install Prompt Component - Mobile Only *@
 @using MudBlazor
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
 @inject IJSRuntime JS
 @inject IStringLocalizer<SharedResource> L
-@implements IDisposable
+@implements IAsyncDisposable
 
 <div class="pwa-install-prompt" style="display: @(_showPrompt ? "block" : "none");">
     <MudPaper Class="pwa-prompt-card" Elevation="8">
@@ -131,19 +131,28 @@
     private bool _showPrompt = false;
     private bool _showIosPrompt = false;
     private DotNetObjectReference<PwaInstallPrompt>? _dotNetRef;
+    private bool _isDisposed = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _dotNetRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("window.moneybrainPwa.initialize", _dotNetRef);
+            try
+            {
+                _dotNetRef = DotNetObjectReference.Create(this);
+                await JS.InvokeVoidAsync("window.moneybrainPwa.initialize", _dotNetRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PWA] Initialization error: {ex.Message}");
+            }
         }
     }
 
     [JSInvokable]
     public void ShowInstallPrompt()
     {
+        if (_isDisposed) return;
         _showPrompt = true;
         StateHasChanged();
     }
@@ -151,6 +160,7 @@
     [JSInvokable]
     public void ShowIosInstallPrompt()
     {
+        if (_isDisposed) return;
         _showIosPrompt = true;
         StateHasChanged();
     }
@@ -158,6 +168,7 @@
     [JSInvokable]
     public void HideInstallPrompt()
     {
+        if (_isDisposed) return;
         _showPrompt = false;
         _showIosPrompt = false;
         StateHasChanged();
@@ -165,24 +176,57 @@
 
     private async Task InstallPwa()
     {
-        await JS.InvokeVoidAsync("window.moneybrainPwa.install");
+        try
+        {
+            await JS.InvokeVoidAsync("window.moneybrainPwa.install");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PWA] Install error: {ex.Message}");
+        }
         _showPrompt = false;
     }
 
     private async Task DismissPrompt()
     {
-        await JS.InvokeVoidAsync("window.moneybrainPwa.dismiss");
+        try
+        {
+            await JS.InvokeVoidAsync("window.moneybrainPwa.dismiss");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PWA] Dismiss error: {ex.Message}");
+        }
         _showPrompt = false;
     }
 
     private async Task DismissIosPrompt()
     {
-        await JS.InvokeVoidAsync("window.moneybrainPwa.dismiss");
+        try
+        {
+            await JS.InvokeVoidAsync("window.moneybrainPwa.dismiss");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PWA] Dismiss error: {ex.Message}");
+        }
         _showIosPrompt = false;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        
+        try
+        {
+            await JS.InvokeVoidAsync("window.moneybrainPwa.dispose");
+        }
+        catch
+        {
+            // Ignore errors during disposal
+        }
+        
         _dotNetRef?.Dispose();
     }
 }
