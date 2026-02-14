@@ -28,7 +28,8 @@ public class UserTipPreference
     /// <summary>
     /// The educational tip this preference is for.
     /// </summary>
-    public int? EducationalTipId { get; set; }
+    [Required]
+    public int EducationalTipId { get; set; }
 
     /// <summary>
     /// Navigation property to the educational tip.
