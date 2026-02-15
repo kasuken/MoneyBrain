@@ -200,6 +200,11 @@
         }
     };
 
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -220,6 +225,12 @@
                 StateHasChanged();
             }
         }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _drawerOpen = false;
+        StateHasChanged();
     }
 
     private void HandleViewportChange(bool isMobile)
@@ -276,6 +287,7 @@
 
     public async ValueTask DisposeAsync()
     {
+        NavigationManager.LocationChanged -= OnLocationChanged;
         MobileDetection.OnViewportChanged -= HandleViewportChange;
         
         if (MobileDetection is IAsyncDisposable asyncDisposable)
