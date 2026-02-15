@@ -100,6 +100,33 @@
   <data name="Nav_GetStarted" xml:space="preserve">
     <value>Erste Schritte</value>
   </data>
+  <data name="Nav_InstallApp" xml:space="preserve">
+    <value>App installieren</value>
+  </data>
+  <data name="InstallApp_Title" xml:space="preserve">
+    <value>MoneyBrain installieren</value>
+  </data>
+  <data name="InstallApp_Subtitle" xml:space="preserve">
+    <value>Holen Sie sich die App für schnellen Zugriff und Offline-Nutzung</value>
+  </data>
+  <data name="InstallApp_Benefits" xml:space="preserve">
+    <value>Vorteile</value>
+  </data>
+  <data name="InstallApp_OfflineAccess" xml:space="preserve">
+    <value>Zugriff auf Ihre Daten offline</value>
+  </data>
+  <data name="InstallApp_QuickLaunch" xml:space="preserve">
+    <value>Start vom Startbildschirm</value>
+  </data>
+  <data name="InstallApp_AppLikeExperience" xml:space="preserve">
+    <value>Native App-ähnliche Erfahrung</value>
+  </data>
+  <data name="InstallApp_AndroidInstructions" xml:space="preserve">
+    <value>Installieren Sie MoneyBrain für schnellen Zugriff vom Startbildschirm</value>
+  </data>
+  <data name="InstallApp_BrowserMenu" xml:space="preserve">
+    <value>Tippen Sie auf das Browser-Menü und wählen Sie 'App installieren' oder 'Zum Startbildschirm hinzufügen'</value>
+  </data>
   <!-- Common Actions -->
   <data name="Common_Save" xml:space="preserve">
     <value>Speichern</value>
