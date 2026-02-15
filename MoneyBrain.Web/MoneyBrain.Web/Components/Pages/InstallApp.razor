@@ -1,0 +1,71 @@
+@page "/install-app"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@using MoneyBrain.Web.Resources
+@using MudBlazor
+
+@attribute [Authorize]
+@inject IJSRuntime JS
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["InstallApp_Title"]</PageTitle>
+
+<div class="mb-page">
+    <div class="mb-section-header">
+        <MudText Typo="Typo.h4">@L["InstallApp_Title"]</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">@L["InstallApp_Subtitle"]</MudText>
+    </div>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-3">@L["InstallApp_Benefits"]</MudText>
+        <MudList T="string">
+            <MudListItem T="string" Icon="@Icons.Material.Filled.CloudOff">
+                <MudText>@L["InstallApp_OfflineAccess"]</MudText>
+            </MudListItem>
+            <MudListItem T="string" Icon="@Icons.Material.Filled.Launch">
+                <MudText>@L["InstallApp_QuickLaunch"]</MudText>
+            </MudListItem>
+            <MudListItem T="string" Icon="@Icons.Material.Filled.PhoneAndroid">
+                <MudText>@L["InstallApp_AppLikeExperience"]</MudText>
+            </MudListItem>
+        </MudList>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-3">
+            <MudIcon Icon="@Icons.Material.Filled.PhoneIphone" Class="mr-2" />
+            iPhone Instructions
+        </MudText>
+        <MudList T="string">
+            <MudListItem T="string">
+                <MudText>1. Tap the <strong>Share</strong> button <MudIcon Icon="@Icons.Material.Filled.IosShare" Size="Size.Small" /> in Safari</MudText>
+            </MudListItem>
+            <MudListItem T="string">
+                <MudText>2. Scroll down and tap <strong>Add to Home Screen</strong></MudText>
+            </MudListItem>
+            <MudListItem T="string">
+                <MudText>3. Tap <strong>Add</strong> in the top right corner</MudText>
+            </MudListItem>
+        </MudList>
+    </MudPaper>
+
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h6" Class="mb-3">
+            <MudIcon Icon="@Icons.Material.Filled.Android" Class="mr-2" />
+            Android Instructions
+        </MudText>
+        <MudText Class="mb-3">@L["InstallApp_AndroidInstructions"]</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.GetApp" OnClick="InstallPwa">
+            Install App
+        </MudButton>
+        <MudText Typo="Typo.caption" Class="mt-2">@L["InstallApp_BrowserMenu"]</MudText>
+    </MudPaper>
+</div>
+
+@code {
+    private async Task InstallPwa()
+    {
+        await JS.InvokeVoidAsync("window.moneybrainPwa.install");
+    }
+}

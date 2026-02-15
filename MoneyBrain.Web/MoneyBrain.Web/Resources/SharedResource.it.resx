@@ -95,6 +95,33 @@
   <data name="Nav_Insights" xml:space="preserve">
     <value>Analisi</value>
   </data>
+  <data name="Nav_InstallApp" xml:space="preserve">
+    <value>Installa App</value>
+  </data>
+  <data name="InstallApp_Title" xml:space="preserve">
+    <value>Installa MoneyBrain</value>
+  </data>
+  <data name="InstallApp_Subtitle" xml:space="preserve">
+    <value>Ottieni l'app per accesso rapido e utilizzo offline</value>
+  </data>
+  <data name="InstallApp_Benefits" xml:space="preserve">
+    <value>Vantaggi</value>
+  </data>
+  <data name="InstallApp_OfflineAccess" xml:space="preserve">
+    <value>Accedi ai tuoi dati offline</value>
+  </data>
+  <data name="InstallApp_QuickLaunch" xml:space="preserve">
+    <value>Avvia dalla schermata iniziale</value>
+  </data>
+  <data name="InstallApp_AppLikeExperience" xml:space="preserve">
+    <value>Esperienza simile a un'app nativa</value>
+  </data>
+  <data name="InstallApp_AndroidInstructions" xml:space="preserve">
+    <value>Installa MoneyBrain per accesso rapido dalla schermata iniziale</value>
+  </data>
+  <data name="InstallApp_BrowserMenu" xml:space="preserve">
+    <value>Tocca il menu del browser e seleziona 'Installa app' o 'Aggiungi alla schermata iniziale'</value>
+  </data>
   <!-- Report Submenu -->
   <data name="Nav_CategorySpending" xml:space="preserve">
     <value>Spese per Categoria</value>
