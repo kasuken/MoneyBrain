@@ -99,7 +99,15 @@ main {
 
 /* Mobile drawer styles */
 ::deep .mud-drawer {
-    width: 280px;
+    width: min(280px, 75vw);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    z-index: 1300;
+}
+
+::deep .mud-appbar {
+    z-index: 1200;
+    padding-top: env(safe-area-inset-top);
 }
 
 ::deep .mud-drawer-header {
