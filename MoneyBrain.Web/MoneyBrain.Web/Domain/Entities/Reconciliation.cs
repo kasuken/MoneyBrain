@@ -57,5 +57,5 @@ public class Reconciliation
     
     // Navigation properties
     public Account Account { get; set; } = null!;
-    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public ICollection<Transaction> Transactions { get; set; } = [];
 }
