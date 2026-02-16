@@ -225,8 +225,6 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         return grouped;
     }
 
-
-
     private async Task<QueryResult> ExecuteAccountQueryAsync(
         string userId,
         QueryDefinition query,

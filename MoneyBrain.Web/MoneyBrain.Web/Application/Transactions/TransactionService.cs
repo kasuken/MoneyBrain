@@ -1239,19 +1239,6 @@ public class TransactionService : ITransactionService
         return result;
     }
 
-    public async Task<FlagUpdateResult> BulkUpdateReconciledFlagAsync(
-        string userId,
-        ReconciledFlagRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        // This method is deprecated and should not be used.
-        // Reconciliation must be managed through ReconciliationService to maintain proper audit trail
-        // and link transactions to reconciliation sessions.
-        throw new InvalidOperationException(
-            "Direct manipulation of reconciled flag is not allowed. " +
-            "Use ReconciliationService to reconcile or unreconcile transactions.");
-    }
-
     public async Task<bool> ToggleClearedFlagAsync(
         string userId,
         int transactionId,
@@ -1272,20 +1259,6 @@ public class TransactionService : ITransactionService
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
-    }
-
-    public async Task<bool> ToggleReconciledFlagAsync(
-        string userId,
-        int transactionId,
-        bool allowUnreconcile = false,
-        CancellationToken cancellationToken = default)
-    {
-        // This method is deprecated and should not be used.
-        // Reconciliation must be managed through ReconciliationService to maintain proper audit trail
-        // and link transactions to reconciliation sessions.
-        throw new InvalidOperationException(
-            "Direct toggling of reconciled flag is not allowed. " +
-            "Use ReconciliationService to reconcile or unreconcile transactions.");
     }
 
     private async Task InvalidateRelatedCachesAsync(string userId, DateTime transactionDate)
