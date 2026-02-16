@@ -4615,4 +4615,228 @@
   <data name="Col_Notes" xml:space="preserve">
     <value>Notas</value>
   </data>
+  <!-- Categories Page - Spanish -->
+  <data name="Cat_Subtitle" xml:space="preserve">
+    <value>Organiza tus gastos e ingresos en categorías</value>
+  </data>
+  <data name="Cat_NewGroup" xml:space="preserve">
+    <value>Nuevo Grupo</value>
+  </data>
+  <data name="Cat_NewCategory" xml:space="preserve">
+    <value>Nueva Categoría</value>
+  </data>
+  <data name="Cat_Budgeted" xml:space="preserve">
+    <value>Presupuestado</value>
+  </data>
+  <data name="Cat_Actual" xml:space="preserve">
+    <value>Real</value>
+  </data>
+  <data name="Cat_Income" xml:space="preserve">
+    <value>Ingreso</value>
+  </data>
+  <data name="Cat_Expense" xml:space="preserve">
+    <value>Gasto</value>
+  </data>
+  <data name="Cat_CategoryCount" xml:space="preserve">
+    <value>{0} categorías</value>
+  </data>
+  <data name="Cat_Rename" xml:space="preserve">
+    <value>Renombrar</value>
+  </data>
+  <data name="Cat_MergeIntoAnother" xml:space="preserve">
+    <value>Fusionar en otra</value>
+  </data>
+  <data name="Cat_ViewUsageHistory" xml:space="preserve">
+    <value>Ver historial de uso</value>
+  </data>
+  <data name="Cat_NewCategoryGroupTitle" xml:space="preserve">
+    <value>Nuevo Grupo de Categorías</value>
+  </data>
+  <data name="Cat_EditCategoryGroupTitle" xml:space="preserve">
+    <value>Editar Grupo de Categorías</value>
+  </data>
+  <data name="Cat_DeleteCategoryGroupTitle" xml:space="preserve">
+    <value>Eliminar Grupo de Categorías</value>
+  </data>
+  <data name="Cat_NewCategoryTitle" xml:space="preserve">
+    <value>Nueva Categoría</value>
+  </data>
+  <data name="Cat_EditCategoryTitle" xml:space="preserve">
+    <value>Editar Categoría</value>
+  </data>
+  <data name="Cat_RenameCategoryTitle" xml:space="preserve">
+    <value>Renombrar Categoría</value>
+  </data>
+  <data name="Cat_DeleteCategoryTitle" xml:space="preserve">
+    <value>Eliminar Categoría</value>
+  </data>
+  <data name="Cat_MergeCategoryTitle" xml:space="preserve">
+    <value>Fusionar Categoría</value>
+  </data>
+  <data name="Cat_UsageHistoryTitle" xml:space="preserve">
+    <value>{0} - Historial de Uso</value>
+  </data>
+  <data name="Cat_SetDefaultBudget" xml:space="preserve">
+    <value>Establecer Presupuesto Predeterminado</value>
+  </data>
+  <data name="Cat_SetBudgetForMonth" xml:space="preserve">
+    <value>Establecer Presupuesto para {0} {1}</value>
+  </data>
+  <data name="Cat_GroupCreatedSuccess" xml:space="preserve">
+    <value>Grupo de categorías creado exitosamente</value>
+  </data>
+  <data name="Cat_GroupUpdatedSuccess" xml:space="preserve">
+    <value>Grupo de categorías actualizado exitosamente</value>
+  </data>
+  <data name="Cat_GroupDeletedSuccess" xml:space="preserve">
+    <value>Grupo de categorías eliminado exitosamente</value>
+  </data>
+  <data name="Cat_GroupDeleteFailed" xml:space="preserve">
+    <value>Error al eliminar el grupo de categorías</value>
+  </data>
+  <data name="Cat_CategoryCreatedSuccess" xml:space="preserve">
+    <value>Categoría creada exitosamente</value>
+  </data>
+  <data name="Cat_CategoryUpdatedSuccess" xml:space="preserve">
+    <value>Categoría actualizada exitosamente</value>
+  </data>
+  <data name="Cat_CategoryRenamedSuccess" xml:space="preserve">
+    <value>Categoría renombrada exitosamente</value>
+  </data>
+  <data name="Cat_CategoryDeletedSuccess" xml:space="preserve">
+    <value>Categoría eliminada exitosamente</value>
+  </data>
+  <data name="Cat_CategoryDeleteFailed" xml:space="preserve">
+    <value>Error al eliminar la categoría</value>
+  </data>
+  <data name="Cat_CategoryMergedSuccess" xml:space="preserve">
+    <value>{0} fusionada exitosamente</value>
+  </data>
+  <data name="Cat_BudgetUpdatedSuccess" xml:space="preserve">
+    <value>Presupuesto actualizado exitosamente</value>
+  </data>
+  <data name="Cat_ConfirmDeleteGroup" xml:space="preserve">
+    <value>¿Está seguro de que desea eliminar este grupo de categorías?</value>
+  </data>
+  <data name="Cat_ConfirmDeleteCategory" xml:space="preserve">
+    <value>¿Está seguro de que desea eliminar la categoría "{0}"?</value>
+  </data>
+  <data name="Cat_GroupHasActiveCategories" xml:space="preserve">
+    <value>Este grupo tiene {0} categorías activas. Por favor, elimínelas o muévalas primero.</value>
+  </data>
+  <data name="Cat_NoCategoriesYet" xml:space="preserve">
+    <value>Aún no hay categorías</value>
+  </data>
+  <data name="Cat_NoCategoryGroupsYet" xml:space="preserve">
+    <value>Aún no hay grupos de categorías</value>
+  </data>
+  <data name="Cat_NoCategoriesInGroup" xml:space="preserve">
+    <value>No hay categorías en este grupo</value>
+  </data>
+  <data name="Cat_NoCategoriesClickToAdd" xml:space="preserve">
+    <value>No hay categorías en este grupo. Haga clic en + para agregar una.</value>
+  </data>
+  <data name="Cat_CreateCategoriesFirstForBudgets" xml:space="preserve">
+    <value>Cree categorías primero para comenzar a presupuestar</value>
+  </data>
+  <data name="Cat_CreateGroupsDescription" xml:space="preserve">
+    <value>Los grupos de categorías ayudan a organizar sus categorías de gastos e ingresos</value>
+  </data>
+  <data name="Cat_CreateFirstGroup" xml:space="preserve">
+    <value>Crear Su Primer Grupo</value>
+  </data>
+  <data name="Cat_DefaultMonthlyBudgets" xml:space="preserve">
+    <value>Presupuestos Mensuales Predeterminados</value>
+  </data>
+  <data name="Cat_MonthBudgets" xml:space="preserve">
+    <value>Presupuestos de {0} {1}</value>
+  </data>
+  <data name="Cat_ViewDefaults" xml:space="preserve">
+    <value>Ver Predeterminados</value>
+  </data>
+  <data name="Cat_ViewingDefaults" xml:space="preserve">
+    <value>Viendo Predeterminados</value>
+  </data>
+  <data name="Cat_MonthSpecificOverride" xml:space="preserve">
+    <value>Anulación de presupuesto específica del mes</value>
+  </data>
+  <data name="Cat_RolloverEnabled" xml:space="preserve">
+    <value>Transferencia habilitada</value>
+  </data>
+  <data name="Cat_OverspentTooltip" xml:space="preserve">
+    <value>Sobregasto de {0} ({1:F1}% del presupuesto)</value>
+  </data>
+  <data name="Cat_BudgetUsedTooltip" xml:space="preserve">
+    <value>{0:F1}% del presupuesto utilizado</value>
+  </data>
+  <data name="Cat_HelpTitle" xml:space="preserve">
+    <value>Categorías y Presupuestos</value>
+  </data>
+  <data name="Cat_HelpDescription" xml:space="preserve">
+    <value>Organice sus transacciones en categorías y establezca presupuestos para rastrear sus gastos</value>
+  </data>
+  <data name="Cat_HelpFeature1" xml:space="preserve">
+    <value>Cree grupos de categorías para organizar categorías relacionadas (p. ej., Vivienda, Transporte)</value>
+  </data>
+  <data name="Cat_HelpFeature2" xml:space="preserve">
+    <value>Agregue categorías dentro de grupos para clasificar sus transacciones</value>
+  </data>
+  <data name="Cat_HelpFeature3" xml:space="preserve">
+    <value>Establezca presupuestos mensuales predeterminados para cada categoría</value>
+  </data>
+  <data name="Cat_HelpFeature4" xml:space="preserve">
+    <value>Anule presupuestos para meses específicos cuando sea necesario</value>
+  </data>
+  <data name="Cat_HelpFeature5" xml:space="preserve">
+    <value>Rastree el gasto real frente a los montos presupuestados</value>
+  </data>
+  <data name="Cat_HelpFeature6" xml:space="preserve">
+    <value>Habilite la transferencia para llevar el presupuesto no utilizado al próximo mes</value>
+  </data>
+  <data name="Cat_HelpHowTo1" xml:space="preserve">
+    <value>Haga clic en "Nuevo Grupo" para crear un grupo de categorías (Ingreso o Gasto)</value>
+  </data>
+  <data name="Cat_HelpHowTo2" xml:space="preserve">
+    <value>Haga clic en "Nueva Categoría" o el botón + en un grupo para agregar categorías</value>
+  </data>
+  <data name="Cat_HelpHowTo3" xml:space="preserve">
+    <value>Cambie a la vista "Presupuestos" para establecer montos de presupuesto para cada categoría</value>
+  </data>
+  <data name="Cat_HelpHowTo4" xml:space="preserve">
+    <value>Use "Ver Predeterminados" para establecer sus presupuestos mensuales estándar</value>
+  </data>
+  <data name="Cat_HelpHowTo5" xml:space="preserve">
+    <value>Navegue por los meses para ver y ajustar presupuestos para períodos específicos</value>
+  </data>
+  <data name="Cat_HelpTip1" xml:space="preserve">
+    <value>Comience con categorías amplias y refine según sea necesario</value>
+  </data>
+  <data name="Cat_HelpTip2" xml:space="preserve">
+    <value>Las categorías de ingresos requieren montos positivos, las categorías de gastos requieren negativos</value>
+  </data>
+  <data name="Cat_HelpTip3" xml:space="preserve">
+    <value>Use la función de fusión para consolidar categorías similares</value>
+  </data>
+  <data name="Cat_HelpTip4" xml:space="preserve">
+    <value>Vea el historial de uso para ver cómo se ha utilizado una categoría a lo largo del tiempo</value>
+  </data>
+  <data name="Cat_HelpTip5" xml:space="preserve">
+    <value>Habilite la transferencia para categorías donde desee ahorrar presupuesto no utilizado</value>
+  </data>
+  <!-- CategoryDialog -->
+  <data name="CatDlg_CategoryName" xml:space="preserve">
+    <value>Nombre de categoría</value>
+  </data>
+  <data name="CatDlg_CategoryGroup" xml:space="preserve">
+    <value>Grupo de categoría</value>
+  </data>
+  <data name="CatDlg_NameRequired" xml:space="preserve">
+    <value>El nombre de la categoría es obligatorio</value>
+  </data>
+  <data name="CatDlg_SelectGroup" xml:space="preserve">
+    <value>Por favor seleccione un grupo de categoría</value>
+  </data>
+  <data name="CatDlg_UpdateFailed" xml:space="preserve">
+    <value>No se pudo actualizar la categoría</value>
+  </data>
 </root>
