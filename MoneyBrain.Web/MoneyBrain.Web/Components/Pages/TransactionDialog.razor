@@ -52,7 +52,7 @@
                              Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudAutocomplete T="string" @bind-Value="_payeeName" Label="@L["Col_Payee"]"
-                             SearchFunc="@SearchPayees" Clearable="true" 
+                             SearchFunc="@SearchPayees" Clearable="true" CoerceValue="true"
                              Disabled="@(!IsNew && Transaction?.IsReconciled == true)" />
 
             <MudSwitch @bind-Value="_useSplits" Color="MudBlazor.Color.Primary" Class="my-2" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">@L["TxnDlg_SplitCategories"]</MudSwitch>

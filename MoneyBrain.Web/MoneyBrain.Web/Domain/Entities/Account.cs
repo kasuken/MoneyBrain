@@ -118,23 +118,23 @@ public class Account
     /// Navigation property for all opening balance adjustments made to this account.
     /// Provides audit trail of opening balance changes.
     /// </summary>
-    public ICollection<OpeningBalanceAdjustment> OpeningBalanceAdjustments { get; set; } = new List<OpeningBalanceAdjustment>();
+    public ICollection<OpeningBalanceAdjustment> OpeningBalanceAdjustments { get; set; } = [];
 
     /// <summary>
     /// Navigation property for all balance snapshots taken for this account.
     /// Used for tracking balance history over time.
     /// </summary>
-    public ICollection<AccountBalanceSnapshot> BalanceSnapshots { get; set; } = new List<AccountBalanceSnapshot>();
+    public ICollection<AccountBalanceSnapshot> BalanceSnapshots { get; set; } = [];
 
     /// <summary>
     /// Navigation property for all manual balance adjustments made to this account.
     /// These directly affect the calculated balance: Balance = OpeningBalance + Transactions + ManualAdjustments.
     /// </summary>
-    public ICollection<ManualBalanceAdjustment> ManualBalanceAdjustments { get; set; } = new List<ManualBalanceAdjustment>();
+    public ICollection<ManualBalanceAdjustment> ManualBalanceAdjustments { get; set; } = [];
 
     /// <summary>
     /// Navigation property for all transactions in this account.
     /// Every transaction belongs to exactly one account.
     /// </summary>
-    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public ICollection<Transaction> Transactions { get; set; } = [];
 }

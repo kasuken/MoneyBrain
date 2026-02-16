@@ -228,31 +228,11 @@ public interface ITransactionService
         CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Bulk update reconciled flag for multiple transactions
-    /// WARNING: Setting IsReconciled = true makes transactions immutable
-    /// Setting IsReconciled = false requires explicit AllowUnreconcile flag
-    /// </summary>
-    Task<FlagUpdateResult> BulkUpdateReconciledFlagAsync(
-        string userId,
-        ReconciledFlagRequest request,
-        CancellationToken cancellationToken = default);
-    
-    /// <summary>
     /// Toggle cleared flag for a single transaction
     /// Cannot toggle if reconciled
     /// </summary>
     Task<bool> ToggleClearedFlagAsync(
         string userId,
         int transactionId,
-        CancellationToken cancellationToken = default);
-    
-    /// <summary>
-    /// Toggle reconciled flag for a single transaction
-    /// Setting to true is allowed; setting to false requires allowUnreconcile = true
-    /// </summary>
-    Task<bool> ToggleReconciledFlagAsync(
-        string userId,
-        int transactionId,
-        bool allowUnreconcile = false,
         CancellationToken cancellationToken = default);
 }
