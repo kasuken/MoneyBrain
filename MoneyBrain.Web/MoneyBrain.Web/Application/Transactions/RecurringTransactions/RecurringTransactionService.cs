@@ -27,15 +27,15 @@ public class RecurringTransactionService : IRecurringTransactionService
     }
 
     /// <inheritdoc />
-    public DateTime CalculateNextRecurrenceDate(DateTime currentDate, Domain.Enums.RecurrenceFrequency frequency)
+    public DateTime CalculateNextRecurrenceDate(DateTime currentDate, RecurrenceFrequency frequency)
     {
         return frequency switch
         {
-            Domain.Enums.RecurrenceFrequency.Weekly => currentDate.AddDays(7),
-            Domain.Enums.RecurrenceFrequency.Monthly => currentDate.AddMonths(1),
-            Domain.Enums.RecurrenceFrequency.Quarterly => currentDate.AddMonths(3),
-            Domain.Enums.RecurrenceFrequency.SixMonths => currentDate.AddMonths(6),
-            Domain.Enums.RecurrenceFrequency.Yearly => currentDate.AddYears(1),
+            RecurrenceFrequency.Weekly => currentDate.AddDays(7),
+            RecurrenceFrequency.Monthly => currentDate.AddMonths(1),
+            RecurrenceFrequency.Quarterly => currentDate.AddMonths(3),
+            RecurrenceFrequency.SixMonths => currentDate.AddMonths(6),
+            RecurrenceFrequency.Yearly => currentDate.AddYears(1),
             _ => throw new ArgumentException($"Unknown recurrence frequency: {frequency}", nameof(frequency))
         };
     }

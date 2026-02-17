@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
+using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Application.Reporting.Cashflow;
 
@@ -51,12 +52,10 @@ public class CashflowService : ICashflowService
 
         foreach (var monthGroup in monthlyGroups)
         {
-            var monthData = await BuildMonthlyCashflowAsync(
-                userId,
+            var monthData = BuildMonthlyCashflow(
                 monthGroup.Key.Year,
                 monthGroup.Key.Month,
-                monthGroup.ToList(),
-                cancellationToken);
+                monthGroup.ToList());
 
             result.Add(monthData);
         }
@@ -64,10 +63,12 @@ public class CashflowService : ICashflowService
         // Fill in missing months with zero data
         var current = new DateTime(start.Year, start.Month, 1);
         var lastMonth = new DateTime(end.Year, end.Month, 1);
+        var existingMonths = result.Select(r => (r.Year, r.Month)).ToHashSet();
 
         while (current <= lastMonth)
         {
-            if (!result.Any(r => r.Year == current.Year && r.Month == current.Month))
+            var monthKey = (current.Year, current.Month);
+            if (!existingMonths.Contains(monthKey))
             {
                 result.Add(new MonthlyCashflowDto
                 {
@@ -77,6 +78,8 @@ public class CashflowService : ICashflowService
                     TotalExpenses = 0,
                     TransactionCount = 0
                 });
+
+                existingMonths.Add(monthKey);
             }
 
             current = current.AddMonths(1);
@@ -111,7 +114,7 @@ public class CashflowService : ICashflowService
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        var result = await BuildMonthlyCashflowAsync(userId, year, month, entries, cancellationToken);
+        var result = BuildMonthlyCashflow(year, month, entries);
 
         await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(30));
 
@@ -123,12 +126,10 @@ public class CashflowService : ICashflowService
     /// Income = Credits to category accounts (positive)
     /// Expenses = Debits to category accounts (positive)
     /// </summary>
-    private async Task<MonthlyCashflowDto> BuildMonthlyCashflowAsync(
-        string userId,
+    private static MonthlyCashflowDto BuildMonthlyCashflow(
         int year,
         int month,
-        List<Domain.Entities.LedgerEntry> entries,
-        CancellationToken cancellationToken)
+        List<Domain.Entities.LedgerEntry> entries)
     {
         var result = new MonthlyCashflowDto
         {
@@ -137,8 +138,8 @@ public class CashflowService : ICashflowService
         };
 
         // Split entries into posted and pending
-        var postedEntries = entries.Where(le => le.Transaction.Status == Domain.Enums.TransactionStatus.Posted).ToList();
-        var pendingEntries = entries.Where(le => le.Transaction.Status == Domain.Enums.TransactionStatus.Pending).ToList();
+        var postedEntries = entries.Where(le => le.Transaction.Status == TransactionStatus.Posted).ToList();
+        var pendingEntries = entries.Where(le => le.Transaction.Status == TransactionStatus.Pending).ToList();
 
         // Separate posted income (credits to categories) and expenses (debits to categories)
         var incomeEntries = postedEntries.Where(le => le.CreditAmount > 0).ToList();

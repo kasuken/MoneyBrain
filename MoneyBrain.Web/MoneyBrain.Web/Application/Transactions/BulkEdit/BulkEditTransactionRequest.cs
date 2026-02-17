@@ -1,5 +1,7 @@
 namespace MoneyBrain.Web.Application.Transactions.BulkEdit;
 
+using MoneyBrain.Web.Domain.Enums;
+
 /// <summary>
 /// Request model for bulk editing multiple transactions.
 /// Only non-null fields will be updated.
@@ -29,7 +31,7 @@ public class BulkEditTransactionRequest
     /// <summary>
     /// New status (null = no change)
     /// </summary>
-    public Domain.Enums.TransactionStatus? Status { get; set; }
+    public TransactionStatus? Status { get; set; }
 
     /// <summary>
     /// New cleared flag (null = no change)

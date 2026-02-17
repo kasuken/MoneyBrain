@@ -47,9 +47,7 @@ public class CategoryService : ICategoryService
             .Where(c => c.UserId == userId);
 
         if (!includeInactive)
-        {
             query = query.Where(c => c.IsActive);
-        }
 
         return await query
             .OrderBy(c => c.CategoryGroup.SortOrder)
@@ -142,9 +140,11 @@ public class CategoryService : ICategoryService
         if (groups.Count != orderedGroupIds.Count)
             return false;
 
+        var groupsById = groups.ToDictionary(g => g.Id);
+
         for (int i = 0; i < orderedGroupIds.Count; i++)
         {
-            var group = groups.First(cg => cg.Id == orderedGroupIds[i]);
+            var group = groupsById[orderedGroupIds[i]];
             group.SortOrder = i + 1;
             group.UpdatedAt = DateTime.UtcNow;
         }
@@ -162,9 +162,11 @@ public class CategoryService : ICategoryService
         if (categories.Count != orderedCategoryIds.Count)
             return false;
 
+        var categoriesById = categories.ToDictionary(c => c.Id);
+
         for (int i = 0; i < orderedCategoryIds.Count; i++)
         {
-            var category = categories.First(c => c.Id == orderedCategoryIds[i]);
+            var category = categoriesById[orderedCategoryIds[i]];
             category.SortOrder = i + 1;
             category.UpdatedAt = DateTime.UtcNow;
         }
@@ -623,13 +625,13 @@ public class CategoryService : ICategoryService
 
         // Get transaction stats
         var transactions = await _context.Transactions
-            .Where(t => t.CategoryId == categoryId && t.UserId == userId && t.Status == Domain.Enums.TransactionStatus.Posted)
+            .Where(t => t.CategoryId == categoryId && t.UserId == userId && t.Status == TransactionStatus.Posted)
             .ToListAsync(cancellationToken);
 
         // Get split stats
         var splits = await _context.TransactionSplits
             .Include(ts => ts.Transaction)
-            .Where(ts => ts.CategoryId == categoryId && ts.Transaction.UserId == userId && ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted)
+            .Where(ts => ts.CategoryId == categoryId && ts.Transaction.UserId == userId && ts.Transaction.Status == TransactionStatus.Posted)
             .ToListAsync(cancellationToken);
 
         var stats = new CategoryUsageStats
@@ -693,7 +695,7 @@ public class CategoryService : ICategoryService
         // Get transactions
         var transactions = await _context.Transactions
             .Where(t => t.CategoryId == categoryId && t.UserId == userId && 
-                       t.Status == Domain.Enums.TransactionStatus.Posted &&
+                       t.Status == TransactionStatus.Posted &&
                        t.Date >= startDate)
             .ToListAsync(cancellationToken);
 
@@ -702,7 +704,7 @@ public class CategoryService : ICategoryService
             .Include(ts => ts.Transaction)
             .Where(ts => ts.CategoryId == categoryId && 
                         ts.Transaction.UserId == userId &&
-                        ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted &&
+                        ts.Transaction.Status == TransactionStatus.Posted &&
                         ts.Transaction.Date >= startDate)
             .ToListAsync(cancellationToken);
 
@@ -774,7 +776,7 @@ public class CategoryService : ICategoryService
         var transactionExpenses = await _context.Transactions
             .Where(t => t.CategoryId == categoryId && 
                        t.UserId == userId && 
-                       t.Status == Domain.Enums.TransactionStatus.Posted &&
+                       t.Status == TransactionStatus.Posted &&
                        t.Date >= startDate && t.Date <= endDate &&
                        t.Amount < 0)
             .SumAsync(t => -t.Amount, cancellationToken);
@@ -784,7 +786,7 @@ public class CategoryService : ICategoryService
             .Include(ts => ts.Transaction)
             .Where(ts => ts.CategoryId == categoryId && 
                         ts.Transaction.UserId == userId &&
-                        ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted &&
+                        ts.Transaction.Status == TransactionStatus.Posted &&
                         ts.Transaction.Date >= startDate && ts.Transaction.Date <= endDate &&
                         ts.Amount < 0)
             .SumAsync(ts => -ts.Amount, cancellationToken);
@@ -803,7 +805,7 @@ public class CategoryService : ICategoryService
         var transactionExpenses = await _context.Transactions
             .Where(t => t.CategoryId != null &&
                        t.UserId == userId &&
-                       t.Status == Domain.Enums.TransactionStatus.Posted &&
+                       t.Status == TransactionStatus.Posted &&
                        t.Date >= startDate && t.Date <= endDate &&
                        t.Amount < 0)
             .GroupBy(t => t.CategoryId!.Value)
@@ -820,7 +822,7 @@ public class CategoryService : ICategoryService
             .Include(ts => ts.Transaction)
             .Where(ts => ts.CategoryId != null &&
                         ts.Transaction.UserId == userId &&
-                        ts.Transaction.Status == Domain.Enums.TransactionStatus.Posted &&
+                        ts.Transaction.Status == TransactionStatus.Posted &&
                         ts.Transaction.Date >= startDate && ts.Transaction.Date <= endDate &&
                         ts.Amount < 0)
             .GroupBy(ts => ts.CategoryId!.Value)

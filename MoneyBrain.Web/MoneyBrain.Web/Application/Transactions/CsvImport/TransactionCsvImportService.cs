@@ -164,8 +164,8 @@ public class TransactionCsvImportService : ITransactionCsvImportService
         var categoryLookup = (await _context.Categories
             .Where(c => c.UserId == userId && c.IsActive)
             .ToListAsync(cancellationToken))
-            .GroupBy(c => c.Name.ToLower())
-            .ToDictionary(g => g.Key, g => g.First().Id);
+            .GroupBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Id, StringComparer.OrdinalIgnoreCase);
         
         // Import transactions
         foreach (var previewRow in previewRows)
@@ -196,7 +196,7 @@ public class TransactionCsvImportService : ITransactionCsvImportService
                 
                 // Find category
                 int? categoryId = null;
-                if (!string.IsNullOrWhiteSpace(previewRow.Category) && categoryLookup.TryGetValue(previewRow.Category.ToLower(), out var foundCategoryId))
+                if (!string.IsNullOrWhiteSpace(previewRow.Category) && categoryLookup.TryGetValue(previewRow.Category, out var foundCategoryId))
                 {
                     categoryId = foundCategoryId;
                 }

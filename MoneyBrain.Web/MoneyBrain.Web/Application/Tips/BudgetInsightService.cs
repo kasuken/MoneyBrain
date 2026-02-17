@@ -30,22 +30,16 @@ public class BudgetInsightService(
             month,
             cancellationToken);
 
-        var categoryAnalysis = new List<CategoryBudgetAnalysisDto>();
-        var categoriesOverBudget = 0;
-
-        foreach (var category in budgetComparison.Categories)
-        {
-            var isOverBudget = category.Actual > category.Budgeted;
-            if (isOverBudget)
-                categoriesOverBudget++;
-
-            categoryAnalysis.Add(new CategoryBudgetAnalysisDto
+        var categoryAnalysis = budgetComparison.Categories
+            .Select(category => new CategoryBudgetAnalysisDto
             {
                 CategoryName = category.CategoryName,
                 Budgeted = category.Budgeted,
                 Actual = category.Actual
-            });
-        }
+            })
+            .ToList();
+
+        var categoriesOverBudget = budgetComparison.Categories.Count(category => category.Actual > category.Budgeted);
 
         var utilization = budgetComparison.TotalBudgeted > 0
             ? (budgetComparison.TotalActual / budgetComparison.TotalBudgeted) * 100

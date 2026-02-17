@@ -53,19 +53,30 @@ public class TransactionService : ITransactionService
             : -absoluteAmount; // Expense: always negative
     }
 
-    public async Task<List<Transaction>> GetAccountTransactionsAsync(int accountId, string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+    private static IQueryable<Transaction> ApplyDateRange(
+        IQueryable<Transaction> query,
+        DateTime? startDate,
+        DateTime? endDate)
     {
-        var query = _context.Transactions
-            .Include(t => t.Payee)
-            .Include(t => t.Category)
-            .ThenInclude(c => c!.CategoryGroup)
-            .Where(t => t.AccountId == accountId && t.UserId == userId);
-
         if (startDate.HasValue)
             query = query.Where(t => t.Date >= startDate.Value);
 
         if (endDate.HasValue)
             query = query.Where(t => t.Date <= endDate.Value);
+
+        return query;
+    }
+
+    public async Task<List<Transaction>> GetAccountTransactionsAsync(int accountId, string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+    {
+        var query = ApplyDateRange(
+            _context.Transactions
+            .Include(t => t.Payee)
+            .Include(t => t.Category)
+            .ThenInclude(c => c!.CategoryGroup)
+            .Where(t => t.AccountId == accountId && t.UserId == userId),
+            startDate,
+            endDate);
 
         return await query
             .OrderByDescending(t => t.Date)
@@ -75,18 +86,15 @@ public class TransactionService : ITransactionService
 
     public async Task<List<Transaction>> GetUserTransactionsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
-        var query = _context.Transactions
+        var query = ApplyDateRange(
+            _context.Transactions
             .Include(t => t.Account)
             .Include(t => t.Payee)
             .Include(t => t.Category)
             .ThenInclude(c => c!.CategoryGroup)
-            .Where(t => t.UserId == userId);
-
-        if (startDate.HasValue)
-            query = query.Where(t => t.Date >= startDate.Value);
-
-        if (endDate.HasValue)
-            query = query.Where(t => t.Date <= endDate.Value);
+            .Where(t => t.UserId == userId),
+            startDate,
+            endDate);
 
         return await query
             .OrderByDescending(t => t.Date)
@@ -429,23 +437,33 @@ public class TransactionService : ITransactionService
             .OrderBy(p => p.Name)
             .ToListAsync(cancellationToken);
 
-        var payeesWithUsage = new List<PayeeWithUsage>();
+        if (payees.Count == 0)
+            return new List<PayeeWithUsage>();
+
+        var payeeIds = payees.Select(p => p.Id).ToList();
+
+        var usageByPayeeId = await _context.Transactions
+            .Where(t => t.PayeeId.HasValue && payeeIds.Contains(t.PayeeId.Value))
+            .GroupBy(t => t.PayeeId!.Value)
+            .Select(g => new
+            {
+                PayeeId = g.Key,
+                TransactionCount = g.Count(),
+                LastUsedDate = g.Max(t => (DateTime?)t.Date)
+            })
+            .ToDictionaryAsync(x => x.PayeeId, cancellationToken);
+
+        var payeesWithUsage = new List<PayeeWithUsage>(payees.Count);
 
         foreach (var payee in payees)
         {
-            var transactionCount = await _context.Transactions
-                .CountAsync(t => t.PayeeId == payee.Id, cancellationToken);
-
-            var lastTransaction = await _context.Transactions
-                .Where(t => t.PayeeId == payee.Id)
-                .OrderByDescending(t => t.Date)
-                .FirstOrDefaultAsync(cancellationToken);
+            usageByPayeeId.TryGetValue(payee.Id, out var usage);
 
             payeesWithUsage.Add(new PayeeWithUsage
             {
                 Payee = payee,
-                TransactionCount = transactionCount,
-                LastUsedDate = lastTransaction?.Date
+                TransactionCount = usage?.TransactionCount ?? 0,
+                LastUsedDate = usage?.LastUsedDate
             });
         }
 
@@ -542,23 +560,11 @@ public class TransactionService : ITransactionService
 
     public async Task<int> DeleteUnusedPayeesAsync(string userId, CancellationToken cancellationToken = default)
     {
-        // Find payees with no transactions
-        var allPayees = await _context.Payees
-            .Where(p => p.UserId == userId && p.IsActive)
+        var unusedPayees = await _context.Payees
+            .Where(p => p.UserId == userId
+                        && p.IsActive
+                        && !_context.Transactions.Any(t => t.PayeeId == p.Id))
             .ToListAsync(cancellationToken);
-
-        var unusedPayees = new List<Payee>();
-
-        foreach (var payee in allPayees)
-        {
-            var hasTransactions = await _context.Transactions
-                .AnyAsync(t => t.PayeeId == payee.Id, cancellationToken);
-
-            if (!hasTransactions)
-            {
-                unusedPayees.Add(payee);
-            }
-        }
 
         // Soft delete unused payees
         foreach (var payee in unusedPayees)
@@ -653,12 +659,8 @@ public class TransactionService : ITransactionService
             // Update cleared flag
             if (request.IsCleared.HasValue)
             {
-                // Can only update cleared if not reconciled
-                if (!transaction.IsReconciled)
-                {
-                    transaction.IsCleared = request.IsCleared.Value;
-                    updated = true;
-                }
+                transaction.IsCleared = request.IsCleared.Value;
+                updated = true;
             }
 
             // Note: IsReconciled flag is intentionally not updated here.
@@ -1152,8 +1154,7 @@ public class TransactionService : ITransactionService
         CancellationToken cancellationToken = default)
     {
         return await _context.Transactions
-            .Where(t => t.UserId == userId && t.Status == TransactionStatus.Pending)
-            .CountAsync(cancellationToken);
+            .CountAsync(t => t.UserId == userId && t.Status == TransactionStatus.Pending, cancellationToken);
     }
 
     public async Task<StatusUpdateResult> PostAllPendingTransactionsAsync(

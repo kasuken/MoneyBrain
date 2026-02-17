@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Data;
+using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Application.Reporting.CategorySpending;
 
@@ -27,7 +28,7 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
                          le.EntryDate <= endDate &&
                          le.CategoryId != null &&
                          le.DebitAmount > 0 && // Expenses are debits
-                         le.Transaction.Status == Domain.Enums.TransactionStatus.Posted)
+                         le.Transaction.Status == TransactionStatus.Posted)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -53,6 +54,8 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
         foreach (var group in categoryGroups)
         {
             var categoryEntries = group.ToList();
+            var totalCategorySpending = categoryEntries.Sum(e => e.DebitAmount);
+            var categoryTransactionCount = categoryEntries.Select(e => e.TransactionId).Distinct().Count();
 
             // Group by month for this category
             var monthlyBreakdown = categoryEntries
@@ -73,11 +76,11 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
                 CategoryId = group.Key.CategoryId,
                 CategoryName = group.Key.CategoryName,
                 CategoryGroupName = group.Key.CategoryGroupName,
-                TotalSpending = categoryEntries.Sum(e => e.DebitAmount),
-                TransactionCount = categoryEntries.Select(e => e.TransactionId).Distinct().Count(),
+                TotalSpending = totalCategorySpending,
+                TransactionCount = categoryTransactionCount,
                 MonthlyBreakdown = monthlyBreakdown,
                 PercentageOfTotal = summary.TotalSpending > 0
-                    ? (categoryEntries.Sum(e => e.DebitAmount) / summary.TotalSpending * 100)
+                    ? (totalCategorySpending / summary.TotalSpending * 100)
                     : 0
             };
 
@@ -111,11 +114,11 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
                          le.EntryDate >= startDate &&
                          le.EntryDate <= endDate &&
                          le.DebitAmount > 0 &&
-                         le.Transaction.Status == Domain.Enums.TransactionStatus.Posted)
+                         le.Transaction.Status == TransactionStatus.Posted)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        if (!entries.Any())
+        if (entries.Count == 0)
         {
             return null;
         }
@@ -143,7 +146,7 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
                          le.EntryDate <= endDate &&
                          le.CategoryId != null &&
                          le.DebitAmount > 0 &&
-                         le.Transaction.Status == Domain.Enums.TransactionStatus.Posted)
+                         le.Transaction.Status == TransactionStatus.Posted)
             .SumAsync(le => le.DebitAmount, cancellationToken);
 
         var categorySpending = entries.Sum(e => e.DebitAmount);

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
+using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Application.Reconciliation;
 
@@ -80,7 +81,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
                        t.UserId == userId && 
                        !t.IsReconciled && 
                        t.Date <= upToDate &&
-                        t.Status == Domain.Enums.TransactionStatus.Posted)
+                        t.Status == TransactionStatus.Posted)
             .OrderBy(t => t.Date)
             .ThenBy(t => t.Id)
             .ToListAsync(cancellationToken);
@@ -108,10 +109,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
             transaction.UpdatedAt = DateTime.UtcNow;
         }
 
-        // Recalculate reconciled balance
-        reconciliation.ReconciledBalance = await CalculateReconciledBalanceAsync(reconciliationId, userId, cancellationToken);
-        reconciliation.Difference = reconciliation.StatementBalance - reconciliation.ReconciledBalance;
-        reconciliation.UpdatedAt = DateTime.UtcNow;
+        await UpdateReconciliationTotalsAsync(reconciliation, userId, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
         return true;
@@ -138,10 +136,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
             transaction.UpdatedAt = DateTime.UtcNow;
         }
 
-        // Recalculate reconciled balance
-        reconciliation.ReconciledBalance = await CalculateReconciledBalanceAsync(reconciliationId, userId, cancellationToken);
-        reconciliation.Difference = reconciliation.StatementBalance - reconciliation.ReconciledBalance;
-        reconciliation.UpdatedAt = DateTime.UtcNow;
+        await UpdateReconciliationTotalsAsync(reconciliation, userId, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
         return true;
@@ -205,5 +200,16 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
             .SumAsync(t => t.Amount, cancellationToken);
 
         return reconciliation.OpeningBalance + reconciledTransactions;
+    }
+
+    private async Task UpdateReconciliationTotalsAsync(Domain.Entities.Reconciliation reconciliation, string userId, CancellationToken cancellationToken)
+    {
+        var reconciledTransactions = await context.Transactions
+            .Where(t => t.ReconciliationId == reconciliation.Id && t.UserId == userId)
+            .SumAsync(t => t.Amount, cancellationToken);
+
+        reconciliation.ReconciledBalance = reconciliation.OpeningBalance + reconciledTransactions;
+        reconciliation.Difference = reconciliation.StatementBalance - reconciliation.ReconciledBalance;
+        reconciliation.UpdatedAt = DateTime.UtcNow;
     }
 }

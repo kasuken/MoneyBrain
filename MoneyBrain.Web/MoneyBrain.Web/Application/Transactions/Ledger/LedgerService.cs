@@ -119,9 +119,6 @@ public class LedgerService(ApplicationDbContext context) : ILedgerService
     {
         var entries = new List<LedgerEntry>();
 
-        // Get account type to determine debit/credit behavior
-        var accountType = transaction.Account?.Type ?? AccountType.Asset;
-
         // Check if this is a transfer (linked to another transaction)
         if (transaction.TransferTransactionId.HasValue)
         {

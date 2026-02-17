@@ -20,7 +20,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         WriteIndented = false
     };
 
-    public async Task<QueryResult> ExecuteQueryAsync(
+    public Task<QueryResult> ExecuteQueryAsync(
         string userId,
         QueryDefinition query,
         int page = 1,
@@ -29,12 +29,12 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
     {
         return query.TargetEntity switch
         {
-            QueryTargetEntity.Transaction => await ExecuteTransactionQueryAsync(userId, query, page, pageSize, cancellationToken),
-            QueryTargetEntity.Account => await ExecuteAccountQueryAsync(userId, query, page, pageSize, cancellationToken),
-            QueryTargetEntity.Category => await ExecuteCategoryQueryAsync(userId, query, page, pageSize, cancellationToken),
-            QueryTargetEntity.Payee => await ExecutePayeeQueryAsync(userId, query, page, pageSize, cancellationToken),
-            QueryTargetEntity.Budget => await ExecuteBudgetQueryAsync(userId, query, page, pageSize, cancellationToken),
-            _ => new QueryResult()
+            QueryTargetEntity.Transaction => ExecuteTransactionQueryAsync(userId, query, page, pageSize, cancellationToken),
+            QueryTargetEntity.Account => ExecuteAccountQueryAsync(userId, query, page, pageSize, cancellationToken),
+            QueryTargetEntity.Category => ExecuteCategoryQueryAsync(userId, query, page, pageSize, cancellationToken),
+            QueryTargetEntity.Payee => ExecutePayeeQueryAsync(userId, query, page, pageSize, cancellationToken),
+            QueryTargetEntity.Budget => ExecuteBudgetQueryAsync(userId, query, page, pageSize, cancellationToken),
+            _ => Task.FromResult(new QueryResult())
         };
     }
 
@@ -56,10 +56,9 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         // Apply filters
         baseQuery = ApplyFilters(baseQuery, query.Filters);
 
-        var result = new QueryResult();
-
         // Get total count
-        result.TotalCount = await baseQuery.CountAsync(cancellationToken);
+        var totalCount = await baseQuery.CountAsync(cancellationToken);
+        var result = new QueryResult { TotalCount = totalCount };
 
         // Apply sorting
         if (query.Sort != null)
@@ -74,9 +73,9 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         // Handle aggregation
         if (query.Aggregation != null)
         {
-            result = await ExecuteTransactionAggregationAsync(baseQuery, query.Aggregation, query.Chart, cancellationToken);
-            result.TotalCount = await baseQuery.CountAsync(cancellationToken);
-            return result;
+            var aggregatedResult = await ExecuteTransactionAggregationAsync(baseQuery, query.Aggregation, query.Chart, cancellationToken);
+            aggregatedResult.TotalCount = totalCount;
+            return aggregatedResult;
         }
 
         // Paginate and project to dictionary
@@ -184,16 +183,18 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         IQueryable<(string Key, decimal Amount)> projected = groupProperty switch
         {
             "Category.Name" => baseQuery.Select(t => new ValueTuple<string, decimal>(
-                t.Category != null ? t.Category.Name ?? "Uncategorized" : "Uncategorized", t.Amount)),
+                t.Category != null && t.Category.Name != null ? t.Category.Name : "Uncategorized", t.Amount)),
 
             "Category.CategoryGroup.Name" => baseQuery.Select(t => new ValueTuple<string, decimal>(
-                t.Category != null && t.Category.CategoryGroup != null ? t.Category.CategoryGroup.Name ?? "Uncategorized" : "Uncategorized", t.Amount)),
+                t.Category != null && t.Category.CategoryGroup != null && t.Category.CategoryGroup.Name != null
+                    ? t.Category.CategoryGroup.Name
+                    : "Uncategorized", t.Amount)),
 
             "Account.Name" => baseQuery.Select(t => new ValueTuple<string, decimal>(
-                t.Account != null ? t.Account.Name ?? "Unknown" : "Unknown", t.Amount)),
+                t.Account != null && t.Account.Name != null ? t.Account.Name : "Unknown", t.Amount)),
 
             "Payee.Name" => baseQuery.Select(t => new ValueTuple<string, decimal>(
-                t.Payee != null ? t.Payee.Name ?? "No Payee" : "No Payee", t.Amount)),
+                t.Payee != null && t.Payee.Name != null ? t.Payee.Name : "No Payee", t.Amount)),
 
             "Status" => baseQuery.Select(t => new ValueTuple<string, decimal>(
                 t.Status.ToString(), t.Amount)),

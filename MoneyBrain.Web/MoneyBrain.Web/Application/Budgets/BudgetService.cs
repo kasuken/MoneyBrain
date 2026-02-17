@@ -20,13 +20,18 @@ public class BudgetService : IBudgetService
         _logger = logger;
     }
 
-    public async Task<List<Budget>> GetBudgetsAsync(string userId)
+    private static IQueryable<Budget> IncludeBudgetCategoryDetails(IQueryable<Budget> query)
     {
-        return await _context.Budgets
-            .Where(b => b.UserId == userId)
+        return query
             .Include(b => b.BudgetCategories)
                 .ThenInclude(bc => bc.Category)
-                    .ThenInclude(c => c.CategoryGroup)
+                    .ThenInclude(c => c.CategoryGroup);
+    }
+
+    public async Task<List<Budget>> GetBudgetsAsync(string userId)
+    {
+        return await IncludeBudgetCategoryDetails(
+            _context.Budgets.Where(b => b.UserId == userId))
             .OrderByDescending(b => b.IsDefault)
             .ThenByDescending(b => b.Year)
             .ThenByDescending(b => b.Month)
@@ -36,32 +41,23 @@ public class BudgetService : IBudgetService
 
     public async Task<List<Budget>> GetDefaultBudgetsAsync(string userId)
     {
-        return await _context.Budgets
-            .Where(b => b.UserId == userId && b.IsDefault)
-            .Include(b => b.BudgetCategories)
-                .ThenInclude(bc => bc.Category)
-                    .ThenInclude(c => c.CategoryGroup)
+        return await IncludeBudgetCategoryDetails(
+            _context.Budgets.Where(b => b.UserId == userId && b.IsDefault))
             .OrderBy(b => b.Name)
             .ToListAsync();
     }
 
     public async Task<Budget?> GetBudgetByIdAsync(int budgetId, string userId)
     {
-        return await _context.Budgets
-            .Where(b => b.Id == budgetId && b.UserId == userId)
-            .Include(b => b.BudgetCategories)
-                .ThenInclude(bc => bc.Category)
-                    .ThenInclude(c => c.CategoryGroup)
+        return await IncludeBudgetCategoryDetails(
+            _context.Budgets.Where(b => b.Id == budgetId && b.UserId == userId))
             .FirstOrDefaultAsync();
     }
 
     public async Task<List<Budget>> GetBudgetsForPeriodAsync(string userId, int year, int month)
     {
-        return await _context.Budgets
-            .Where(b => b.UserId == userId && !b.IsDefault && b.Year == year && b.Month == month)
-            .Include(b => b.BudgetCategories)
-                .ThenInclude(bc => bc.Category)
-                    .ThenInclude(c => c.CategoryGroup)
+        return await IncludeBudgetCategoryDetails(
+            _context.Budgets.Where(b => b.UserId == userId && !b.IsDefault && b.Year == year && b.Month == month))
             .OrderBy(b => b.Name)
             .ToListAsync();
     }
@@ -69,22 +65,16 @@ public class BudgetService : IBudgetService
     public async Task<Budget?> GetEffectiveBudgetAsync(string userId, string budgetName, int year, int month)
     {
         // First check for period-specific budget
-        var periodSpecific = await _context.Budgets
-            .Where(b => b.UserId == userId && b.Name == budgetName && !b.IsDefault && b.Year == year && b.Month == month)
-            .Include(b => b.BudgetCategories)
-                .ThenInclude(bc => bc.Category)
-                    .ThenInclude(c => c.CategoryGroup)
+        var periodSpecific = await IncludeBudgetCategoryDetails(
+            _context.Budgets.Where(b => b.UserId == userId && b.Name == budgetName && !b.IsDefault && b.Year == year && b.Month == month))
             .FirstOrDefaultAsync();
 
         if (periodSpecific != null)
             return periodSpecific;
 
         // Fall back to default budget
-        return await _context.Budgets
-            .Where(b => b.UserId == userId && b.Name == budgetName && b.IsDefault)
-            .Include(b => b.BudgetCategories)
-                .ThenInclude(bc => bc.Category)
-                    .ThenInclude(c => c.CategoryGroup)
+        return await IncludeBudgetCategoryDetails(
+            _context.Budgets.Where(b => b.UserId == userId && b.Name == budgetName && b.IsDefault))
             .FirstOrDefaultAsync();
     }
 
@@ -244,15 +234,9 @@ public class BudgetService : IBudgetService
 
     public async Task<decimal> GetTotalBudgetedAsync(int budgetId, string userId)
     {
-        var budget = await _context.Budgets
-            .Where(b => b.Id == budgetId && b.UserId == userId)
-            .Include(b => b.BudgetCategories)
-            .FirstOrDefaultAsync();
-
-        if (budget == null)
-            return 0;
-
-        return budget.BudgetCategories.Sum(bc => bc.PlannedAmount);
+        return await _context.BudgetCategories
+            .Where(bc => bc.BudgetId == budgetId && bc.Budget.UserId == userId)
+            .SumAsync(bc => bc.PlannedAmount);
     }
 
     public async Task<Budget> CreateBudgetFromTemplateAsync(string userId, string templateName, int year, int month)

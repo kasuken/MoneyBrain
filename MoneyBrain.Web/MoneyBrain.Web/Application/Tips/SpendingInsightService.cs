@@ -38,11 +38,12 @@ public class SpendingInsightService(
         var averageDaily = totalSpending / daysInMonth;
 
         var topCategory = categorySpendingSummary.TopCategories.FirstOrDefault();
+        var period = startDate.ToString("MMMM yyyy");
 
         var insight = new SpendingInsightDto
         {
             Message = GenerateSpendingMessage(totalSpending, topCategory?.CategoryName ?? "Unknown"),
-            Period = new DateTime(year, month, 1).ToString("MMMM yyyy"),
+            Period = period,
             TotalSpending = totalSpending,
             AverageDailySpending = averageDaily,
             TopSpendingCategory = topCategory?.CategoryName ?? "None",
@@ -92,12 +93,15 @@ public class SpendingInsightService(
 
         var topCategory = currentSpendingSummary.TopCategories.FirstOrDefault();
 
+        var previousByCategory = previousSpendingSummary.Categories
+            .GroupBy(c => c.CategoryName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().TotalSpending, StringComparer.OrdinalIgnoreCase);
+
         // Build category comparisons
         var comparisons = new List<CategorySpendingComparisonDto>();
         foreach (var current in currentSpendingSummary.Categories)
         {
-            var previous = previousSpendingSummary.Categories.FirstOrDefault(p => p.CategoryName == current.CategoryName);
-            var previousAmount = previous?.TotalSpending ?? 0;
+            previousByCategory.TryGetValue(current.CategoryName, out var previousAmount);
             var percentageChange = previousAmount != 0
                 ? ((current.TotalSpending - previousAmount) / previousAmount) * 100
                 : (current.TotalSpending > 0 ? 100 : 0);
@@ -111,10 +115,12 @@ public class SpendingInsightService(
             });
         }
 
+        var period = currentDate.ToString("MMMM yyyy");
+
         var insight = new SpendingInsightDto
         {
             Message = GenerateComparativeMessage(totalCurrent, totalPrevious, topCategory?.CategoryName ?? "Unknown"),
-            Period = new DateTime(year, month, 1).ToString("MMMM yyyy"),
+            Period = period,
             TotalSpending = totalCurrent,
             AverageDailySpending = averageDaily,
             TopSpendingCategory = topCategory?.CategoryName ?? "None",

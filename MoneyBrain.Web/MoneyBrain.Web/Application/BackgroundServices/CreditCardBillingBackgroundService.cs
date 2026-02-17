@@ -50,19 +50,20 @@ public class CreditCardBillingBackgroundService : BackgroundService
 
         var results = await billingService.ProcessAllDueBillingCyclesAsync(cancellationToken);
 
-        if (!results.Any())
+        if (results.Count == 0)
         {
             _logger.LogDebug("No credit cards due for billing today");
             return;
         }
 
-        var successful = results.Count(r => r.Success);
-        var failed = results.Count(r => !r.Success);
+        var successful = 0;
+        var failed = 0;
 
         foreach (var result in results)
         {
             if (result.Success)
             {
+                successful++;
                 _logger.LogInformation(
                     "Processed billing cycle for credit card '{AccountName}': " +
                     "{TransactionCount} transactions posted, total {Amount:C}",
@@ -72,6 +73,7 @@ public class CreditCardBillingBackgroundService : BackgroundService
             }
             else
             {
+                failed++;
                 _logger.LogError(
                     "Failed to process billing cycle for credit card '{AccountName}': {Error}",
                     result.CreditCardAccountName,
