@@ -1,5 +1,7 @@
 namespace MoneyBrain.Web.Application.Transactions.CsvImport;
 
+using MoneyBrain.Web.Domain.Enums;
+
 /// <summary>
 /// Represents the mapping of CSV columns to transaction fields
 /// </summary>
@@ -63,5 +65,5 @@ public class TransactionCsvColumnMapping
     /// <summary>
     /// Default status for imported transactions
     /// </summary>
-    public Domain.Enums.TransactionStatus DefaultStatus { get; set; } = Domain.Enums.TransactionStatus.Posted;
+    public TransactionStatus DefaultStatus { get; set; } = TransactionStatus.Posted;
 }

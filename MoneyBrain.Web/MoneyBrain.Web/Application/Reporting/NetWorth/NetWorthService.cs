@@ -33,20 +33,24 @@ public class NetWorthService : INetWorthService
     {
         var snapshots = new List<NetWorthSnapshotDto>();
 
+        async Task AddSnapshotAsync(DateTime snapshotDate)
+        {
+            var snapshot = await GetNetWorthSnapshotAsync(userId, snapshotDate, cancellationToken);
+            snapshots.Add(snapshot);
+        }
+
         // Generate snapshots at regular intervals
         var currentDate = startDate;
         while (currentDate <= endDate)
         {
-            var snapshot = await GetNetWorthSnapshotAsync(userId, currentDate, cancellationToken);
-            snapshots.Add(snapshot);
+            await AddSnapshotAsync(currentDate);
             currentDate = currentDate.AddDays(intervalDays);
         }
 
         // Always include the end date if not already included
         if (snapshots.Count == 0 || snapshots[^1].Date != endDate)
         {
-            var endSnapshot = await GetNetWorthSnapshotAsync(userId, endDate, cancellationToken);
-            snapshots.Add(endSnapshot);
+            await AddSnapshotAsync(endDate);
         }
 
         // Calculate changes between snapshots

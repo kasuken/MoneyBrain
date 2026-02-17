@@ -41,19 +41,24 @@ public class AccountBalanceHistoryService : IAccountBalanceHistoryService
         var snapshots = new List<BalanceSnapshotDto>();
         var currentDate = startDate;
 
-        while (currentDate <= endDate)
+        async Task AddSnapshotAsync(DateTime snapshotDate)
         {
             var balance = await _ledgerService.GetAccountBalanceAsync(
                 accountId,
                 userId,
-                currentDate,
+                snapshotDate,
                 cancellationToken);
 
             snapshots.Add(new BalanceSnapshotDto
             {
-                Date = currentDate,
+                Date = snapshotDate,
                 Balance = balance
             });
+        }
+
+        while (currentDate <= endDate)
+        {
+            await AddSnapshotAsync(currentDate);
 
             currentDate = currentDate.AddDays(intervalDays);
         }
@@ -61,17 +66,7 @@ public class AccountBalanceHistoryService : IAccountBalanceHistoryService
         // Always include the end date if not already included
         if (snapshots.Count == 0 || snapshots[^1].Date != endDate)
         {
-            var endBalance = await _ledgerService.GetAccountBalanceAsync(
-                accountId,
-                userId,
-                endDate,
-                cancellationToken);
-
-            snapshots.Add(new BalanceSnapshotDto
-            {
-                Date = endDate,
-                Balance = endBalance
-            });
+            await AddSnapshotAsync(endDate);
         }
 
         // Calculate changes between snapshots

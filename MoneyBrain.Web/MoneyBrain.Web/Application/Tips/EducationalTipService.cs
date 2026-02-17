@@ -20,9 +20,7 @@ public class EducationalTipService(
         var cached = await cacheService.GetAsync<List<EducationalTipDto>>(cacheKey);
         if (cached != null)
         {
-            // Filter out dismissed tips
-            var userDismissedIds = await tipPreferenceService.GetDismissedTipIdsAsync(userId, cancellationToken);
-            return cached.Where(t => !userDismissedIds.Contains(t.Id)).ToList();
+            return await FilterDismissedTipsAsync(userId, cached, cancellationToken);
         }
 
         // For now, return a curated list of educational tips
@@ -92,10 +90,8 @@ public class EducationalTipService(
         };
 
         await cacheService.SetAsync(cacheKey, tips, TimeSpan.FromHours(24));
-        
-        // Filter out dismissed tips before returning
-        var dismissedIds = await tipPreferenceService.GetDismissedTipIdsAsync(userId, cancellationToken);
-        return tips.Where(t => !dismissedIds.Contains(t.Id)).ToList();
+
+        return await FilterDismissedTipsAsync(userId, tips, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -127,5 +123,18 @@ public class EducationalTipService(
     {
         var allTips = await GetActiveTipsAsync(userId, cancellationToken);
         return allTips.Count;
+    }
+
+    private async Task<List<EducationalTipDto>> FilterDismissedTipsAsync(
+        string userId,
+        IEnumerable<EducationalTipDto> tips,
+        CancellationToken cancellationToken)
+    {
+        var dismissedIds = await tipPreferenceService.GetDismissedTipIdsAsync(userId, cancellationToken);
+        if (dismissedIds.Count == 0)
+            return tips.ToList();
+
+        var dismissedSet = dismissedIds.ToHashSet();
+        return tips.Where(t => !dismissedSet.Contains(t.Id)).ToList();
     }
 }

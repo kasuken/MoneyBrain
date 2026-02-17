@@ -1,5 +1,7 @@
 namespace MoneyBrain.Web.Application.Transactions.StatusManagement;
 
+using MoneyBrain.Web.Domain.Enums;
+
 /// <summary>
 /// Request to update transaction status in bulk
 /// </summary>
@@ -13,7 +15,7 @@ public sealed class StatusUpdateRequest
     /// <summary>
     /// New status to apply
     /// </summary>
-    public Domain.Enums.TransactionStatus NewStatus { get; set; }
+    public TransactionStatus NewStatus { get; set; }
     
     /// <summary>
     /// Whether to skip reconciled transactions (recommended: true)

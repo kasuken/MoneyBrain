@@ -55,7 +55,7 @@ public class RecurringTransactionBackgroundService : BackgroundService
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        if (!usersWithRecurringTransactions.Any())
+        if (usersWithRecurringTransactions.Count == 0)
         {
             _logger.LogDebug("No users with recurring transactions found");
             return;

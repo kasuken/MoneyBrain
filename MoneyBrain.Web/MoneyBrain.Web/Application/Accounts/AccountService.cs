@@ -36,32 +36,29 @@ public class AccountService : IAccountService
         bool includeInactive = false, 
         CancellationToken cancellationToken = default)
     {
-        var cacheKey = CacheKeyHelper.ForUserAccounts(userId);
-
-        if (!includeInactive)
-        {
-            var cached = await _cacheService.GetAsync<IReadOnlyList<Account>>(cacheKey);
-            if (cached != null)
-                return cached;
-        }
-
         var query = _context.Accounts
             .Where(a => a.UserId == userId);
 
-        if (!includeInactive)
+        if (includeInactive)
         {
-            query = query.Where(a => a.IsActive);
+            return await query
+                .OrderBy(a => a.Name)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
         }
 
+        var cacheKey = CacheKeyHelper.ForUserAccounts(userId);
+        var cached = await _cacheService.GetAsync<IReadOnlyList<Account>>(cacheKey);
+        if (cached != null)
+            return cached;
+
         var result = await query
+            .Where(a => a.IsActive)
             .OrderBy(a => a.Name)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        if (!includeInactive)
-        {
-            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(24));
-        }
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(24));
 
         return result;
     }
@@ -588,17 +585,17 @@ public class AccountService : IAccountService
                         && t.Date >= startDate
                         && t.Date < endDate);
 
-        if (account.SubType == Domain.Enums.AccountSubType.CreditCard)
+        if (account.SubType == AccountSubType.CreditCard)
         {
             // Credit cards: Only count pending (unbilled) transactions
-            transactionQuery = transactionQuery.Where(t => t.Status == Domain.Enums.TransactionStatus.Pending);
+            transactionQuery = transactionQuery.Where(t => t.Status == TransactionStatus.Pending);
         }
         else
         {
             // Other accounts: Count both posted and pending
-            transactionQuery = transactionQuery.Where(t => 
-                t.Status == Domain.Enums.TransactionStatus.Posted 
-                || t.Status == Domain.Enums.TransactionStatus.Pending);
+            transactionQuery = transactionQuery.Where(t =>
+                t.Status == TransactionStatus.Posted
+                || t.Status == TransactionStatus.Pending);
         }
 
         var transactions = await transactionQuery
@@ -608,7 +605,7 @@ public class AccountService : IAccountService
         // Calculate spending based on account type
         decimal spentAmount;
 
-        if (account.Type == Domain.Enums.AccountType.Asset)
+        if (account.Type == AccountType.Asset)
         {
             // For assets (debit/checking): spending = sum of expenses (negative amounts)
             spentAmount = transactions.Where(a => a < 0).Sum(a => Math.Abs(a));
@@ -617,8 +614,21 @@ public class AccountService : IAccountService
         {
             // For liabilities (credit cards): net spending = charges minus credits/refunds
             // Charges are negative (money going out), credits/refunds are positive
-            var charges = transactions.Where(a => a < 0).Sum(a => Math.Abs(a));
-            var credits = transactions.Where(a => a > 0).Sum();
+            decimal charges = 0;
+            decimal credits = 0;
+
+            foreach (var transactionAmount in transactions)
+            {
+                if (transactionAmount < 0)
+                {
+                    charges += Math.Abs(transactionAmount);
+                }
+                else if (transactionAmount > 0)
+                {
+                    credits += transactionAmount;
+                }
+            }
+
             spentAmount = Math.Max(0, charges - credits);
         }
 

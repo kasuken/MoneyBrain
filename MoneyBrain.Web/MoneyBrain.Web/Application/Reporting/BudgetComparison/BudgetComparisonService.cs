@@ -117,13 +117,16 @@ public class BudgetComparisonService : IBudgetComparisonService
             })
             .ToListAsync(cancellationToken);
 
+        var actualSpendingByCategoryId = actualSpending
+            .ToDictionary(a => a.CategoryId);
+
         // Build category comparisons
-        var categoryComparisons = new List<CategoryBudgetComparisonDto>();
+        var categoryComparisons = new List<CategoryBudgetComparisonDto>(budgetedCategories.Count);
 
         // Only show categories that have a budget defined (exclude unbudgeted spending)
         foreach (var budgetedCategory in budgetedCategories)
         {
-            var spending = actualSpending.FirstOrDefault(a => a.CategoryId == budgetedCategory.CategoryId);
+            actualSpendingByCategoryId.TryGetValue(budgetedCategory.CategoryId, out var spending);
 
             categoryComparisons.Add(new CategoryBudgetComparisonDto
             {
