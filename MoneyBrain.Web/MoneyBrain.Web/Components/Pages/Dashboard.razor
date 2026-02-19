@@ -38,14 +38,21 @@
     {
         <!-- Overview Section -->
         <div class="mb-section-header mt-6">
-            <h2 class="mb-section-title">@L["Dashboard_Overview"]</h2>
+            <h1 class="mb-section-title">@L["Dashboard_Overview"]</h1>
             <div class="d-flex align-center gap-2">
-                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="MudBlazor.Size.Small" OnClick="PreviousMonth" />
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
+                               Size="MudBlazor.Size.Small" 
+                               OnClick="PreviousMonth"
+                               aria-label="@L["Accessibility_PreviousMonth"]" />
                 <div class="mb-date-range">
-                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="MudBlazor.Size.Small" />
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="MudBlazor.Size.Small" aria-hidden="true" />
                     @_periodStart.ToString("MMM dd, yyyy") – @_periodEnd.ToString("MMM dd, yyyy")
                 </div>
-                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="MudBlazor.Size.Small" OnClick="NextMonth" Disabled="@(_periodEnd >= DateTime.Today)" />
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
+                               Size="MudBlazor.Size.Small" 
+                               OnClick="NextMonth" 
+                               Disabled="@(_periodEnd >= DateTime.Today)"
+                               aria-label="@L["Accessibility_NextMonth"]" />
             </div>
         </div>
         

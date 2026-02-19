@@ -1,3 +1,21 @@
+/* Skip to main content link for accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #1DB954;
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 0 0 4px 0;
+    font-weight: 500;
+    z-index: 2000;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
 .page {
     position: relative;
     display: flex;
