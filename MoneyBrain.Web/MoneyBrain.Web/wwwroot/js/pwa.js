@@ -5,7 +5,9 @@ window.moneybrainPwa = {
     isInstalled: false,
 
     initialize: function (dotNetReference) {
+        console.log('[PWA] 🚀 Initializing PWA install prompt system');
         this.dotNetRef = dotNetReference;
+        console.log('[PWA] ✅ .NET reference registered');
         
         // Check installation status
         this.checkInstallation();
@@ -15,7 +17,11 @@ window.moneybrainPwa = {
         this.setupMobileInstallPrompt();
         this.setupAppInstalled();
         
-        console.log('[PWA] Install prompt initialized');
+        console.log('[PWA] ✅ Install prompt initialized');
+        console.log('[PWA] 💡 Manual commands available:');
+        console.log('[PWA]    - window.moneybrainPwa.forceShowPrompt()  // Force show popup');
+        console.log('[PWA]    - window.moneybrainPwa.clearDismissal()   // Clear 7-day block');
+        console.log('[PWA]    - window.moneybrainPwa.getDebugInfo()     // Show debug info');
     },
 
     checkInstallation: function () {
@@ -43,8 +49,23 @@ window.moneybrainPwa = {
     setupMobileInstallPrompt: function () {
         const device = this.detectMobileDevice();
         
+        console.log('[PWA] setupMobileInstallPrompt called');
+        console.log('[PWA] Device detection:', {
+            isMobile: device.isMobile,
+            isIOS: device.isIOS,
+            isAndroid: device.isAndroid,
+            isInstalled: this.isInstalled,
+            userAgent: navigator.userAgent
+        });
+        
         // Only show on mobile devices
-        if (!device.isMobile || this.isInstalled) {
+        if (!device.isMobile) {
+            console.log('[PWA] Not a mobile device - popup will not show');
+            return;
+        }
+        
+        if (this.isInstalled) {
+            console.log('[PWA] App already installed - popup will not show');
             return;
         }
         
@@ -56,16 +77,34 @@ window.moneybrainPwa = {
             const dismissedDate = localStorage.getItem('pwa-install-dismissed');
             if (dismissedDate) {
                 const daysSinceDismissed = (Date.now() - parseInt(dismissedDate)) / (1000 * 60 * 60 * 24);
+                console.log('[PWA] Dismissal check:', {
+                    dismissedDate: new Date(parseInt(dismissedDate)).toLocaleString(),
+                    daysSinceDismissed: Math.floor(daysSinceDismissed),
+                    willShow: daysSinceDismissed >= 7
+                });
+                
                 if (daysSinceDismissed < 7) {
+                    console.log('[PWA] Popup dismissed recently - will show again in', Math.ceil(7 - daysSinceDismissed), 'days');
                     return; // Don't show for 7 days after dismissal
                 }
+            } else {
+                console.log('[PWA] No dismissal recorded - popup can show');
             }
             
             // Show prompt after a short delay to ensure Blazor is ready
+            console.log('[PWA] Setting 2 second timeout to show iOS prompt...');
             setTimeout(() => {
+                console.log('[PWA] Timeout triggered - checking conditions...');
+                console.log('[PWA] dotNetRef exists:', !!this.dotNetRef);
+                console.log('[PWA] isInstalled:', this.isInstalled);
+                
                 if (this.dotNetRef && !this.isInstalled) {
+                    console.log('[PWA] ✅ Calling ShowIosInstallPrompt via .NET interop');
                     this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt')
-                        .catch(error => console.error('[PWA] iOS prompt error:', error));
+                        .then(() => console.log('[PWA] ✅ ShowIosInstallPrompt called successfully'))
+                        .catch(error => console.error('[PWA] ❌ iOS prompt error:', error));
+                } else {
+                    console.log('[PWA] ❌ Cannot show prompt - dotNetRef:', !!this.dotNetRef, 'isInstalled:', this.isInstalled);
                 }
             }, 2000);
         }
@@ -169,6 +208,62 @@ window.moneybrainPwa = {
         this.dotNetRef = null;
         this.deferredPrompt = null;
         console.log('[PWA] Disposed');
+    },
+    
+    // Manual trigger for testing - call from console: window.moneybrainPwa.forceShowPrompt()
+    forceShowPrompt: function() {
+        console.log('[PWA] 🔧 Manual trigger called');
+        const device = this.detectMobileDevice();
+        
+        if (!this.dotNetRef) {
+            console.error('[PWA] ❌ dotNetRef not initialized - component may not be loaded yet');
+            return;
+        }
+        
+        if (device.isIOS) {
+            console.log('[PWA] 🔧 Manually showing iOS prompt');
+            this.dotNetRef.invokeMethodAsync('ShowIosInstallPrompt')
+                .then(() => console.log('[PWA] ✅ iOS prompt shown'))
+                .catch(error => console.error('[PWA] ❌ Error:', error));
+        } else if (device.isAndroid) {
+            console.log('[PWA] 🔧 Manually showing Android prompt');
+            this.dotNetRef.invokeMethodAsync('ShowInstallPrompt')
+                .then(() => console.log('[PWA] ✅ Android prompt shown'))
+                .catch(error => console.error('[PWA] ❌ Error:', error));
+        } else {
+            console.log('[PWA] 🔧 Not a mobile device - showing install instructions anyway');
+            alert('PWA Install Test Mode\n\nDevice detection:\n- iOS: ' + device.isIOS + '\n- Android: ' + device.isAndroid + '\n- Mobile: ' + device.isMobile);
+        }
+    },
+    
+    // Clear dismissal flag - call from console: window.moneybrainPwa.clearDismissal()
+    clearDismissal: function() {
+        localStorage.removeItem('pwa-install-dismissed');
+        console.log('[PWA] 🔧 Dismissal flag cleared - popup will show on next page load');
+    },
+    
+    // Get debug info - call from console: window.moneybrainPwa.getDebugInfo()
+    getDebugInfo: function() {
+        const device = this.detectMobileDevice();
+        const dismissedDate = localStorage.getItem('pwa-install-dismissed');
+        const daysSince = dismissedDate ? (Date.now() - parseInt(dismissedDate)) / (1000 * 60 * 60 * 24) : null;
+        
+        const info = {
+            isInstalled: this.isInstalled,
+            dotNetRefExists: !!this.dotNetRef,
+            deferredPromptExists: !!this.deferredPrompt,
+            device: device,
+            userAgent: navigator.userAgent,
+            dismissal: dismissedDate ? {
+                date: new Date(parseInt(dismissedDate)).toLocaleString(),
+                daysAgo: Math.floor(daysSince),
+                canShow: daysSince >= 7
+            } : 'Not dismissed',
+            standalone: window.matchMedia('(display-mode: standalone)').matches
+        };
+        
+        console.log('[PWA] 🔍 Debug Info:', info);
+        return info;
     }
 };
 
