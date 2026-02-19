@@ -75,7 +75,8 @@
                     {
                         <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
                                        Size="Size.Small"
-                                       OnClick="@PreviousMonth" />
+                                       OnClick="@PreviousMonth"
+                                       aria-label="@L["Accessibility_PreviousMonth"]" />
                         <MudButton Variant="Variant.Text" 
                                    Size="Size.Small"
                                    OnClick="@CurrentMonth">
@@ -83,7 +84,8 @@
                         </MudButton>
                         <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
                                        Size="Size.Small"
-                                       OnClick="@NextMonth" />
+                                       OnClick="@NextMonth"
+                                       aria-label="@L["Accessibility_NextMonth"]" />
                         <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
                     }
                     <MudButton Variant="@(_showingDefaults ? Variant.Filled : Variant.Outlined)" 
