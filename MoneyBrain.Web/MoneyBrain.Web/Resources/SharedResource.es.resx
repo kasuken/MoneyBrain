@@ -4839,4 +4839,28 @@
   <data name="CatDlg_UpdateFailed" xml:space="preserve">
     <value>No se pudo actualizar la categoría</value>
   </data>
+  <data name="Accessibility_OpenMenu" xml:space="preserve">
+    <value>Abrir menú de navegación</value>
+  </data>
+  <data name="Accessibility_CloseMenu" xml:space="preserve">
+    <value>Cerrar menú de navegación</value>
+  </data>
+  <data name="Accessibility_PreviousMonth" xml:space="preserve">
+    <value>Mes anterior</value>
+  </data>
+  <data name="Accessibility_NextMonth" xml:space="preserve">
+    <value>Próximo mes</value>
+  </data>
+  <data name="Accessibility_UserMenu" xml:space="preserve">
+    <value>Menú de usuario</value>
+  </data>
+  <data name="Accessibility_SkipToMainContent" xml:space="preserve">
+    <value>Saltar al contenido principal</value>
+  </data>
+  <data name="Accessibility_MoneyBrainLogo" xml:space="preserve">
+    <value>Logo de MoneyBrain - Volver al inicio</value>
+  </data>
+  <data name="Nav_MainNavigation" xml:space="preserve">
+    <value>Navegación principal</value>
+  </data>
 </root>

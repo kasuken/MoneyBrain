@@ -28,11 +28,12 @@
                                Color="Color.Inherit" 
                                Edge="Edge.Start" 
                                OnClick="@ToggleDrawer"
-                               Class="@GetMobileOnlyClass()" />
+                               Class="@GetMobileOnlyClass()"
+                               aria-label="@L["Accessibility_OpenMenu"]" />
             </Authorized>
         </AuthorizeView>
         
-        <NavLink href="/" class="mb-logo">
+        <NavLink href="/" class="mb-logo" aria-label="@L["Accessibility_MoneyBrainLogo"]">
             <img src="/icons/OnlyLogo.png" alt="MoneyBrain" style="max-height: 40px;" />
         </NavLink>
 
@@ -51,16 +52,16 @@
         
         <AuthorizeView>
             <Authorized>
-                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" aria-label="@L["Accessibility_UserMenu"]">
                     <ActivatorContent>
-                        <div class="mb-user-menu">
+                        <div class="mb-user-menu" role="button" tabindex="0" aria-label="@L["Accessibility_UserMenu"]">
                             <div class="mb-user-avatar">
                                 @(context.User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
                             </div>
                             <MudText Typo="Typo.body2" Class="d-none d-md-block" Style="font-weight: 500;">
                                 @context.User.Identity?.Name
                             </MudText>
-                            <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small" />
+                            <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small" aria-hidden="true" />
                         </div>
                     </ActivatorContent>
                     <ChildContent>
@@ -134,27 +135,26 @@
     </AuthorizeView>
     
     <MudMainContent Style="background-color: var(--mb-bg-primary); min-height: calc(100vh - 64px);">
-        <AuthorizeView>
-            <Authorized>
-                <SettingsEnforcer>
-                    <LicenseEnforcer>
-                        @Body
-                    </LicenseEnforcer>
-                </SettingsEnforcer>
-            </Authorized>
-            <NotAuthorized>
-                @Body
-            </NotAuthorized>
-        </AuthorizeView>
+        <main id="main-content" tabindex="-1">
+            <AuthorizeView>
+                <Authorized>
+                    <SettingsEnforcer>
+                        <LicenseEnforcer>
+                            @Body
+                        </LicenseEnforcer>
+                    </SettingsEnforcer>
+                </Authorized>
+                <NotAuthorized>
+                    @Body
+                </NotAuthorized>
+            </AuthorizeView>
+        </main>
     </MudMainContent>
     <Footer />
 </MudLayout>
 
-<!-- PWA Install Prompt - Mobile Only -->
-@if (_isMobile)
-{
-    <PwaInstallPrompt />
-}
+<!-- PWA Install Prompt - Mobile Only (JS handles device detection) -->
+<PwaInstallPrompt />
 
 <!-- Tips Button -->
 <AuthorizeView>

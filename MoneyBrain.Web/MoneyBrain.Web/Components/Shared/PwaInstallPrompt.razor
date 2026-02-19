@@ -139,12 +139,16 @@
         {
             try
             {
+                Console.WriteLine("[PWA] PwaInstallPrompt component first render");
                 _dotNetRef = DotNetObjectReference.Create(this);
+                Console.WriteLine("[PWA] Created .NET reference");
                 await JS.InvokeVoidAsync("window.moneybrainPwa.initialize", _dotNetRef);
+                Console.WriteLine("[PWA] ✅ JavaScript initialization completed");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PWA] Initialization error: {ex.Message}");
+                Console.WriteLine($"[PWA] ❌ Initialization error: {ex.Message}");
+                Console.WriteLine($"[PWA] Stack trace: {ex.StackTrace}");
             }
         }
     }
@@ -152,16 +156,28 @@
     [JSInvokable]
     public void ShowInstallPrompt()
     {
-        if (_isDisposed) return;
+        Console.WriteLine("[PWA] ShowInstallPrompt called from JavaScript");
+        if (_isDisposed)
+        {
+            Console.WriteLine("[PWA] ⚠️ Component is disposed, ignoring");
+            return;
+        }
         _showPrompt = true;
+        Console.WriteLine("[PWA] ✅ Setting _showPrompt = true, calling StateHasChanged");
         StateHasChanged();
     }
 
     [JSInvokable]
     public void ShowIosInstallPrompt()
     {
-        if (_isDisposed) return;
+        Console.WriteLine("[PWA] 📱 ShowIosInstallPrompt called from JavaScript (iOS flow)");
+        if (_isDisposed)
+        {
+            Console.WriteLine("[PWA] ⚠️ Component is disposed, ignoring");
+            return;
+        }
         _showIosPrompt = true;
+        Console.WriteLine("[PWA] ✅ Setting _showIosPrompt = true, calling StateHasChanged");
         StateHasChanged();
     }
 
