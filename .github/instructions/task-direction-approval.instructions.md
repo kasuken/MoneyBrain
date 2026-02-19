@@ -1,6 +1,7 @@
 ---
 applyTo: '**'
 description: 'Prevents unauthorized direction changes by requiring user approval before deviating from original requirements.'
+excludeAgent: "coding-agent"
 ---
 
 # Task Direction Approval Guidelines
