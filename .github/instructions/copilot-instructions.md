@@ -1,5 +1,7 @@
 ---
 applyTo: '**'
+name: Copilot instructions — MoneyBrain
+description: This file provides detailed instructions for implementing features in the MoneyBrain project, including architectural guidance, domain model concepts, invariants, UI conventions, data access patterns, and coding standards.
 ---
 
 # Copilot instructions — MoneyBrain

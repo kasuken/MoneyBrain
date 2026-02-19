@@ -103,7 +103,7 @@ async function gitInit(directory: string) {
 
 If something appears during tests but you don't know which test:
 
-Ask a research subagent to use the bisection script: ~/.claude/skills/root-cause-tracing/find-polluter.sh (return a cited Context Package with the first polluter)
+Ask a research subagent to use the bisection script: ~/.github/skills/root-cause-tracing/find-polluter.sh (return a cited Context Package with the first polluter)
 
 ```bash
 # (subagent) ./find-polluter.sh '.git' 'src/**/*.test.ts'
