@@ -3,7 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> L
 
-<div class="mb-header-nav ms-6">
+<nav class="mb-header-nav ms-6" aria-label="@L["Nav_MainNavigation"]">
     <a href="/dashboard" class="mb-header-nav-link @(IsActive("/dashboard") ? "active" : "")">@L["Nav_Dashboard"]</a>
     <a href="/transactions" class="mb-header-nav-link @(IsActive("/transactions") ? "active" : "")">@L["Nav_Transactions"]</a>
     <a href="/budgets" class="mb-header-nav-link @(IsActive("/budgets") ? "active" : "")">@L["Nav_Budgets"]</a>
@@ -28,7 +28,7 @@
     <a href="/insights" class="mb-header-nav-link @(IsActive("/insights") ? "active" : "")">@L["Nav_Insights"]</a>
 
     <a href="/accounts" class="mb-header-nav-link @(IsActive("/accounts") ? "active" : "")">@L["Nav_Accounts"]</a>
-</div>
+</nav>
 
 @code {
     private string? currentUrl;
