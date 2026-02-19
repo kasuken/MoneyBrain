@@ -4865,4 +4865,28 @@
   <data name="Cat_HelpTip5" xml:space="preserve">
     <value>Enable rollover for categories where you want to save unused budget</value>
   </data>
+  <data name="Accessibility_OpenMenu" xml:space="preserve">
+    <value>Open navigation menu</value>
+  </data>
+  <data name="Accessibility_CloseMenu" xml:space="preserve">
+    <value>Close navigation menu</value>
+  </data>
+  <data name="Accessibility_PreviousMonth" xml:space="preserve">
+    <value>Previous month</value>
+  </data>
+  <data name="Accessibility_NextMonth" xml:space="preserve">
+    <value>Next month</value>
+  </data>
+  <data name="Accessibility_UserMenu" xml:space="preserve">
+    <value>User menu</value>
+  </data>
+  <data name="Accessibility_SkipToMainContent" xml:space="preserve">
+    <value>Skip to main content</value>
+  </data>
+  <data name="Accessibility_MoneyBrainLogo" xml:space="preserve">
+    <value>MoneyBrain logo - Return to home</value>
+  </data>
+  <data name="Nav_MainNavigation" xml:space="preserve">
+    <value>Main navigation</value>
+  </data>
 </root>
