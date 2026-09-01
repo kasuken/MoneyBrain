@@ -1,4 +1,5 @@
 @using MoneyBrain.Web.Application.Accounts
+@using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Application.Transactions
 @using MoneyBrain.Web.Application.Transactions.CsvImport
 @using MoneyBrain.Web.Domain.Entities
@@ -11,6 +12,7 @@
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
 @inject ICurrencyFormattingService CurrencyFormattingService
+@inject IUserSettingsService SettingsService
 
 <MudDialog>
     <DialogContent>
@@ -106,7 +108,7 @@
                         <MudSelect T="int" @bind-Value="_mapping.AccountId" Label="@(L["Import_TargetAccount"] + " *")" Variant="Variant.Outlined" Required>
                             @foreach (var account in _accounts)
                             {
-                                <MudSelectItem T="int" Value="@account.Id">@account.Name</MudSelectItem>
+                                <MudSelectItem @key="account.Id" T="int" Value="@account.Id">@account.Name</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -178,7 +180,7 @@
                         <ul>
                             @foreach (var row in _previewRows.Where(r => r.HasErrors).Take(5))
                             {
-                                <li>@L["Import_Row"] @row.RowNumber: @string.Join(", ", row.Errors)</li>
+                                <li @key="row.RowNumber">@L["Import_Row"] @row.RowNumber: @string.Join(", ", row.Errors)</li>
                             }
                         </ul>
                     </MudAlert>
@@ -207,7 +209,7 @@
                     <ul>
                         @foreach (var error in _importResult.Errors.Take(10))
                         {
-                            <li>@error</li>
+                            <li @key="error">@error</li>
                         }
                     </ul>
                 }
@@ -276,7 +278,8 @@
     {
         if (string.IsNullOrWhiteSpace(UserId))
             return;
-            
+
+        _userSettings = await SettingsService.GetSettingsAsync(UserId);
         _accounts = (await AccountService.GetUserAccountsAsync(UserId)).ToList();
         
         if (_accounts.Count > 0)

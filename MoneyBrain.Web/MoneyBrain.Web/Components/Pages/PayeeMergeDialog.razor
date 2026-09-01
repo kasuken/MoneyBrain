@@ -13,7 +13,7 @@
         <MudList T="string" Dense>
             @foreach (var source in SourcePayees)
             {
-                <MudListItem T="string">
+                <MudListItem @key="source.Payee.Id" T="string">
                     <MudText>
                         @source.Payee.Name
                         <MudText Typo="Typo.caption" Inline>

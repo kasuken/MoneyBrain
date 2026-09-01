@@ -1,14 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using MoneyBrain.Web.Application.Common.Helpers;
+using MoneyBrain.Web.Application.Common;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
 using MoneyBrain.Web.Application.Transactions.Filtering;
 using MoneyBrain.Web.Application.Transactions.FlagManagement;
 using MoneyBrain.Web.Application.Transactions.Ledger;
-using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Application.Transactions.Splits;
 using MoneyBrain.Web.Application.Transactions.StatusManagement;
-using MoneyBrain.Web.Application.Transactions.Transfers;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -17,6 +15,14 @@ namespace MoneyBrain.Web.Application.Transactions;
 
 public class TransactionService : ITransactionService
 {
+    /// <summary>
+    /// Tolerance used when validating that split amounts sum to the transaction total.
+    /// A value of 0.01 accommodates rounding in 2-decimal currencies (e.g. USD, EUR).
+    /// Currencies with more decimal places (e.g. KWD – 3 decimals) may accumulate
+    /// larger rounding errors and would require a tighter tolerance.
+    /// </summary>
+    private const decimal SplitAmountTolerance = 0.01m;
+
     private readonly ApplicationDbContext _context;
     private readonly ILedgerService _ledgerService;
     private readonly ICacheService _cacheService;
@@ -69,11 +75,10 @@ public class TransactionService : ITransactionService
 
     public async Task<List<Transaction>> GetAccountTransactionsAsync(int accountId, string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var query = ApplyDateRange(
             _context.Transactions
-            .Include(t => t.Payee)
-            .Include(t => t.Category)
-            .ThenInclude(c => c!.CategoryGroup)
+            .IncludeTransactionDetails()
             .Where(t => t.AccountId == accountId && t.UserId == userId),
             startDate,
             endDate);
@@ -86,12 +91,10 @@ public class TransactionService : ITransactionService
 
     public async Task<List<Transaction>> GetUserTransactionsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var query = ApplyDateRange(
             _context.Transactions
-            .Include(t => t.Account)
-            .Include(t => t.Payee)
-            .Include(t => t.Category)
-            .ThenInclude(c => c!.CategoryGroup)
+            .IncludeTransactionDetails()
             .Where(t => t.UserId == userId),
             startDate,
             endDate);
@@ -104,11 +107,9 @@ public class TransactionService : ITransactionService
 
     public async Task<Transaction?> GetTransactionByIdAsync(int transactionId, string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         return await _context.Transactions
-            .Include(t => t.Account)
-            .Include(t => t.Payee)
-            .Include(t => t.Category)
-                .ThenInclude(c => c!.CategoryGroup)
+            .IncludeTransactionDetails()
             .Include(t => t.Splits)
                 .ThenInclude(s => s.Category)
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
@@ -131,6 +132,7 @@ public class TransactionService : ITransactionService
         DateTime? recurrenceStartDate = null,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         // Verify account belongs to user
         var accountExists = await _context.Accounts
             .AnyAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);
@@ -171,7 +173,7 @@ public class TransactionService : ITransactionService
         // Generate ledger entries for double-entry bookkeeping
         await _ledgerService.GenerateLedgerEntriesAsync(transaction, cancellationToken);
 
-        await InvalidateRelatedCachesAsync(userId, date);
+        await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
 
         return transaction;
     }
@@ -193,6 +195,7 @@ public class TransactionService : ITransactionService
         DateTime? recurrenceStartDate = null,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var transaction = await _context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
@@ -241,13 +244,14 @@ public class TransactionService : ITransactionService
         // Regenerate ledger entries to reflect the updated transaction
         await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
 
-        await InvalidateRelatedCachesAsync(userId, date);
+        await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
 
         return true;
     }
 
     public async Task<bool> DeleteTransactionAsync(int transactionId, string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var transaction = await _context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
@@ -266,18 +270,17 @@ public class TransactionService : ITransactionService
         _context.Transactions.Remove(transaction);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await InvalidateRelatedCachesAsync(userId, transactionDate);
+        await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, transactionDate);
 
         return true;
     }
 
     public async Task<List<Transaction>> SearchTransactionsAsync(string userId, TransactionFilter filter, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(filter);
         var query = _context.Transactions
-            .Include(t => t.Account)
-            .Include(t => t.Payee)
-            .Include(t => t.Category)
-                .ThenInclude(c => c!.CategoryGroup)
+            .IncludeTransactionDetails()
             .Include(t => t.Splits)
                 .ThenInclude(s => s.Category)
             .Include(t => t.TransferTransaction)
@@ -391,194 +394,10 @@ public class TransactionService : ITransactionService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<Payee>> GetPayeesAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Payees
-            .Where(p => p.UserId == userId && p.IsActive)
-            .OrderBy(p => p.Name)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<Payee> CreateOrGetPayeeAsync(string userId, string name, int? defaultCategoryId = null, CancellationToken cancellationToken = default)
-    {
-        // Normalize the payee name
-        var normalizedName = PayeeNormalizer.Normalize(name);
-        var normalizedKey = PayeeNormalizer.GetNormalizedKey(normalizedName);
-
-        // Try to find existing payee by normalized key
-        var existingPayees = await _context.Payees
-            .Where(p => p.UserId == userId && p.IsActive)
-            .ToListAsync(cancellationToken);
-
-        var matchingPayee = existingPayees.FirstOrDefault(p => 
-            PayeeNormalizer.GetNormalizedKey(p.Name) == normalizedKey);
-
-        if (matchingPayee != null)
-            return matchingPayee;
-
-        // Create new payee with normalized name
-        var payee = new Payee
-        {
-            UserId = userId,
-            Name = normalizedName,
-            DefaultCategoryId = defaultCategoryId
-        };
-
-        _context.Payees.Add(payee);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return payee;
-    }
-
-    public async Task<List<PayeeWithUsage>> GetPayeesWithUsageAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        var payees = await _context.Payees
-            .Where(p => p.UserId == userId && p.IsActive)
-            .OrderBy(p => p.Name)
-            .ToListAsync(cancellationToken);
-
-        if (payees.Count == 0)
-            return new List<PayeeWithUsage>();
-
-        var payeeIds = payees.Select(p => p.Id).ToList();
-
-        var usageByPayeeId = await _context.Transactions
-            .Where(t => t.PayeeId.HasValue && payeeIds.Contains(t.PayeeId.Value))
-            .GroupBy(t => t.PayeeId!.Value)
-            .Select(g => new
-            {
-                PayeeId = g.Key,
-                TransactionCount = g.Count(),
-                LastUsedDate = g.Max(t => (DateTime?)t.Date)
-            })
-            .ToDictionaryAsync(x => x.PayeeId, cancellationToken);
-
-        var payeesWithUsage = new List<PayeeWithUsage>(payees.Count);
-
-        foreach (var payee in payees)
-        {
-            usageByPayeeId.TryGetValue(payee.Id, out var usage);
-
-            payeesWithUsage.Add(new PayeeWithUsage
-            {
-                Payee = payee,
-                TransactionCount = usage?.TransactionCount ?? 0,
-                LastUsedDate = usage?.LastUsedDate
-            });
-        }
-
-        return payeesWithUsage;
-    }
-
-    public async Task<List<PayeeDuplicateGroup>> FindDuplicatePayeesAsync(string userId, double similarityThreshold = 0.85, CancellationToken cancellationToken = default)
-    {
-        var payeesWithUsage = await GetPayeesWithUsageAsync(userId, cancellationToken);
-
-        // Group by normalized key
-        var groups = new Dictionary<string, PayeeDuplicateGroup>();
-
-        foreach (var payeeWithUsage in payeesWithUsage)
-        {
-            var normalizedKey = PayeeNormalizer.GetNormalizedKey(payeeWithUsage.Payee.Name);
-
-            if (!groups.ContainsKey(normalizedKey))
-            {
-                groups[normalizedKey] = new PayeeDuplicateGroup
-                {
-                    NormalizedKey = normalizedKey
-                };
-            }
-
-            groups[normalizedKey].Payees.Add(payeeWithUsage);
-        }
-
-        // Return only groups with duplicates
-        return groups.Values
-            .Where(g => g.HasDuplicates)
-            .OrderByDescending(g => g.Payees.Sum(p => p.TransactionCount))
-            .ToList();
-    }
-
-    public async Task<bool> MergePayeesAsync(string userId, int targetPayeeId, List<int> sourcePayeeIds, CancellationToken cancellationToken = default)
-    {
-        // Validate target payee
-        var targetPayee = await _context.Payees
-            .FirstOrDefaultAsync(p => p.Id == targetPayeeId && p.UserId == userId, cancellationToken);
-
-        if (targetPayee == null)
-            return false;
-
-        // Validate source payees
-        var sourcePayees = await _context.Payees
-            .Where(p => sourcePayeeIds.Contains(p.Id) && p.UserId == userId)
-            .ToListAsync(cancellationToken);
-
-        if (sourcePayees.Count != sourcePayeeIds.Count)
-            return false;
-
-        // Update all transactions from source payees to target payee
-        var transactionsToUpdate = await _context.Transactions
-            .Where(t => sourcePayeeIds.Contains(t.PayeeId!.Value) && t.UserId == userId)
-            .ToListAsync(cancellationToken);
-
-        foreach (var transaction in transactionsToUpdate)
-        {
-            // Don't modify reconciled transactions
-            if (!transaction.IsReconciled)
-            {
-                transaction.PayeeId = targetPayeeId;
-                transaction.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        // Soft delete source payees
-        foreach (var sourcePayee in sourcePayees)
-        {
-            sourcePayee.IsActive = false;
-            sourcePayee.UpdatedAt = DateTime.UtcNow;
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-        return true;
-    }
-
-    public async Task<bool> RenamePayeeAsync(int payeeId, string userId, string newName, CancellationToken cancellationToken = default)
-    {
-        var payee = await _context.Payees
-            .FirstOrDefaultAsync(p => p.Id == payeeId && p.UserId == userId, cancellationToken);
-
-        if (payee == null)
-            return false;
-
-        // Normalize the new name
-        payee.Name = PayeeNormalizer.Normalize(newName);
-        payee.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync(cancellationToken);
-        return true;
-    }
-
-    public async Task<int> DeleteUnusedPayeesAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        var unusedPayees = await _context.Payees
-            .Where(p => p.UserId == userId
-                        && p.IsActive
-                        && !_context.Transactions.Any(t => t.PayeeId == p.Id))
-            .ToListAsync(cancellationToken);
-
-        // Soft delete unused payees
-        foreach (var payee in unusedPayees)
-        {
-            payee.IsActive = false;
-            payee.UpdatedAt = DateTime.UtcNow;
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-        return unusedPayees.Count;
-    }
-
     public async Task<BulkEditResult> BulkUpdateTransactionsAsync(string userId, BulkEditTransactionRequest request, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(request);
         var result = new BulkEditResult();
 
         if (!request.HasUpdates || request.TransactionIds.Count == 0)
@@ -681,11 +500,33 @@ public class TransactionService : ITransactionService
             var affectedDates = transactionsToUpdate.Select(t => t.Date).Distinct();
             foreach (var date in affectedDates)
             {
-                await InvalidateRelatedCachesAsync(userId, date);
+                await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
             }
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Creates and adds <see cref="TransactionSplit"/> entities to the context for a given transaction.
+    /// Callers must call <see cref="Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(CancellationToken)"/>
+    /// after this method returns.
+    /// </summary>
+    /// <param name="transactionId">The owning transaction's database ID.</param>
+    /// <param name="splits">Pairs of (split DTO, already-normalized amount).</param>
+    private void AddTransactionSplits(int transactionId, IEnumerable<(TransactionSplitDto Dto, decimal NormalizedAmount)> splits)
+    {
+        foreach (var (splitDto, normalizedSplitAmount) in splits)
+        {
+            _context.TransactionSplits.Add(new TransactionSplit
+            {
+                TransactionId = transactionId,
+                CategoryId = splitDto.CategoryId,
+                Amount = normalizedSplitAmount,
+                Memo = splitDto.Memo,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
     }
 
     public SplitValidationResult ValidateSplits(decimal transactionAmount, List<TransactionSplitDto> splits)
@@ -699,7 +540,7 @@ public class TransactionService : ITransactionService
         var totalSplitAmount = splits.Sum(s => s.Amount);
 
         // Check if split amounts sum to transaction amount (with small tolerance for rounding)
-        if (Math.Abs(totalSplitAmount - transactionAmount) > 0.01m)
+        if (Math.Abs(totalSplitAmount - transactionAmount) > SplitAmountTolerance)
         {
             errors.Add($"Split amounts ({totalSplitAmount:N2}) must equal transaction amount ({transactionAmount:N2})");
         }
@@ -736,6 +577,8 @@ public class TransactionService : ITransactionService
         List<TransactionSplitDto> splits,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(splits);
         // Validate splits
         var validation = ValidateSplits(amount, splits);
         if (!validation.IsValid)
@@ -761,26 +604,23 @@ public class TransactionService : ITransactionService
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.Transactions.Add(transaction);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Create splits with normalized amounts based on category type
+        // Normalize split amounts before opening the DB transaction to keep I/O outside the transaction scope.
+        var normalizedSplits = new List<(TransactionSplitDto Dto, decimal NormalizedAmount)>(splits.Count);
         foreach (var splitDto in splits)
         {
-            // Normalize split amount based on category type
             var normalizedSplitAmount = await NormalizeAmountByCategoryTypeAsync(splitDto.Amount, splitDto.CategoryId, cancellationToken);
-
-            var split = new TransactionSplit
-            {
-                TransactionId = transaction.Id,
-                CategoryId = splitDto.CategoryId,
-                Amount = normalizedSplitAmount,
-                Memo = splitDto.Memo,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.TransactionSplits.Add(split);
+            normalizedSplits.Add((splitDto, normalizedSplitAmount));
         }
+
+        // Wrap both inserts and ledger generation in a single DB transaction so a
+        // partial failure never leaves an orphaned transaction or missing splits.
+        await using var dbTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        _context.Transactions.Add(transaction);
+        await _context.SaveChangesAsync(cancellationToken); // needed to obtain transaction.Id for the FK
+
+        // Create splits with normalized amounts based on category type
+        AddTransactionSplits(transaction.Id, normalizedSplits);
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -795,7 +635,10 @@ public class TransactionService : ITransactionService
         // Generate ledger entries for double-entry bookkeeping
         await _ledgerService.GenerateLedgerEntriesAsync(createdTransaction, cancellationToken);
 
-        await InvalidateRelatedCachesAsync(userId, date);
+        await dbTransaction.CommitAsync(cancellationToken);
+
+        // Cache invalidation must happen after commit so readers always see committed data.
+        await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
 
         return createdTransaction;
     }
@@ -814,6 +657,8 @@ public class TransactionService : ITransactionService
         List<TransactionSplitDto> splits,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(splits);
         // Validate splits
         var validation = ValidateSplits(amount, splits);
         if (!validation.IsValid)
@@ -847,23 +692,15 @@ public class TransactionService : ITransactionService
         // Remove existing splits
         _context.TransactionSplits.RemoveRange(transaction.Splits);
 
-        // Add new splits with normalized amounts based on category type
+        // Normalize new split amounts then add them via shared helper
+        var normalizedSplits = new List<(TransactionSplitDto Dto, decimal NormalizedAmount)>(splits.Count);
         foreach (var splitDto in splits)
         {
-            // Normalize split amount based on category type
-            var normalizedSplitAmount = await NormalizeAmountByCategoryTypeAsync(splitDto.Amount, splitDto.CategoryId, cancellationToken);
-
-            var split = new TransactionSplit
-            {
-                TransactionId = transaction.Id,
-                CategoryId = splitDto.CategoryId,
-                Amount = normalizedSplitAmount,
-                Memo = splitDto.Memo,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.TransactionSplits.Add(split);
+            var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(splitDto.Amount, splitDto.CategoryId, cancellationToken);
+            normalizedSplits.Add((splitDto, normalizedAmount));
         }
+
+        AddTransactionSplits(transaction.Id, normalizedSplits);
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -880,221 +717,9 @@ public class TransactionService : ITransactionService
         // Regenerate ledger entries to reflect the updated transaction with splits
         await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
 
-        await InvalidateRelatedCachesAsync(userId, date);
+        await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
 
         return true;
-    }
-
-    public async Task<TransferResult> CreateTransferAsync(
-        string userId,
-        TransferDto transfer,
-        CancellationToken cancellationToken = default)
-    {
-        // Validate accounts exist and belong to user
-        var fromAccount = await _context.Accounts
-            .FirstOrDefaultAsync(a => a.Id == transfer.FromAccountId && a.UserId == userId, cancellationToken);
-        var toAccount = await _context.Accounts
-            .FirstOrDefaultAsync(a => a.Id == transfer.ToAccountId && a.UserId == userId, cancellationToken);
-
-        if (fromAccount == null || toAccount == null)
-            throw new InvalidOperationException("One or both accounts not found or do not belong to user");
-
-        if (transfer.FromAccountId == transfer.ToAccountId)
-            throw new InvalidOperationException("Cannot transfer to the same account");
-
-        if (transfer.Amount <= 0)
-            throw new InvalidOperationException("Transfer amount must be positive");
-
-        // Create FROM transaction (negative amount - money leaving account)
-        var fromTransaction = new Transaction
-        {
-            UserId = userId,
-            AccountId = transfer.FromAccountId,
-            Date = transfer.Date,
-            Amount = -Math.Abs(transfer.Amount), // Always negative
-            PayeeId = null,
-            CategoryId = null, // Transfers have no category
-            Memo = transfer.Memo,
-            Status = TransactionStatus.Posted,
-            IsCleared = transfer.IsCleared,
-            ReferenceNumber = transfer.ReferenceNumber,
-            Tags = "transfer",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _context.Transactions.Add(fromTransaction);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Create TO transaction (positive amount - money entering account)
-        var toTransaction = new Transaction
-        {
-            UserId = userId,
-            AccountId = transfer.ToAccountId,
-            Date = transfer.Date,
-            Amount = Math.Abs(transfer.Amount), // Always positive
-            PayeeId = null,
-            CategoryId = null, // Transfers have no category
-            Memo = transfer.Memo,
-            Status = TransactionStatus.Posted,
-            IsCleared = transfer.IsCleared,
-            ReferenceNumber = transfer.ReferenceNumber,
-            Tags = "transfer",
-            TransferTransactionId = fromTransaction.Id, // Link to FROM transaction
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _context.Transactions.Add(toTransaction);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Link FROM transaction to TO transaction
-        fromTransaction.TransferTransactionId = toTransaction.Id;
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Reload with navigation properties
-        fromTransaction = await _context.Transactions
-            .Include(t => t.Account)
-            .FirstAsync(t => t.Id == fromTransaction.Id, cancellationToken);
-
-        toTransaction = await _context.Transactions
-            .Include(t => t.Account)
-            .FirstAsync(t => t.Id == toTransaction.Id, cancellationToken);
-
-        // Generate ledger entries for both sides of the transfer
-        await _ledgerService.GenerateLedgerEntriesAsync(fromTransaction, cancellationToken);
-        await _ledgerService.GenerateLedgerEntriesAsync(toTransaction, cancellationToken);
-
-        await InvalidateRelatedCachesAsync(userId, transfer.Date);
-
-        return new TransferResult
-        {
-            FromTransaction = fromTransaction,
-            ToTransaction = toTransaction,
-            Amount = Math.Abs(transfer.Amount),
-            Date = transfer.Date,
-            Memo = transfer.Memo
-        };
-    }
-
-    public async Task<bool> UpdateTransferAsync(
-        string userId,
-        int fromTransactionId,
-        TransferDto transfer,
-        CancellationToken cancellationToken = default)
-    {
-        // Get both transactions
-        var fromTransaction = await _context.Transactions
-            .FirstOrDefaultAsync(t => t.Id == fromTransactionId && t.UserId == userId, cancellationToken);
-
-        if (fromTransaction == null)
-            return false;
-
-        if (!fromTransaction.TransferTransactionId.HasValue)
-            throw new InvalidOperationException("Transaction is not a transfer");
-
-        var toTransaction = await _context.Transactions
-            .FirstOrDefaultAsync(t => t.Id == fromTransaction.TransferTransactionId.Value && t.UserId == userId, cancellationToken);
-
-        if (toTransaction == null)
-            throw new InvalidOperationException("Linked transfer transaction not found");
-
-        // Cannot modify reconciled transfers
-        if (fromTransaction.IsReconciled || toTransaction.IsReconciled)
-            throw new InvalidOperationException("Cannot modify reconciled transfer");
-
-        // Validate amount
-        if (transfer.Amount <= 0)
-            throw new InvalidOperationException("Transfer amount must be positive");
-
-        // Update FROM transaction
-        fromTransaction.Date = transfer.Date;
-        fromTransaction.Amount = -Math.Abs(transfer.Amount);
-        fromTransaction.Memo = transfer.Memo;
-        fromTransaction.IsCleared = transfer.IsCleared;
-        fromTransaction.ReferenceNumber = transfer.ReferenceNumber;
-        fromTransaction.UpdatedAt = DateTime.UtcNow;
-
-        // Update TO transaction
-        toTransaction.Date = transfer.Date;
-        toTransaction.Amount = Math.Abs(transfer.Amount);
-        toTransaction.Memo = transfer.Memo;
-        toTransaction.IsCleared = transfer.IsCleared;
-        toTransaction.ReferenceNumber = transfer.ReferenceNumber;
-        toTransaction.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        await InvalidateRelatedCachesAsync(userId, transfer.Date);
-
-        return true;
-    }
-
-    public async Task<bool> DeleteTransferAsync(
-        string userId,
-        int transactionId,
-        CancellationToken cancellationToken = default)
-    {
-        var transaction = await _context.Transactions
-            .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
-
-        if (transaction == null)
-            return false;
-
-        if (!transaction.TransferTransactionId.HasValue)
-            throw new InvalidOperationException("Transaction is not a transfer");
-
-        var linkedTransaction = await _context.Transactions
-            .FirstOrDefaultAsync(t => t.Id == transaction.TransferTransactionId.Value && t.UserId == userId, cancellationToken);
-
-        // Cannot delete reconciled transfers
-        if (transaction.IsReconciled || (linkedTransaction?.IsReconciled == true))
-            throw new InvalidOperationException("Cannot delete reconciled transfer");
-
-        var transactionDate = transaction.Date;
-
-        // Delete both transactions
-        _context.Transactions.Remove(transaction);
-        if (linkedTransaction != null)
-        {
-            _context.Transactions.Remove(linkedTransaction);
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        await InvalidateRelatedCachesAsync(userId, transactionDate);
-
-        return true;
-    }
-
-    public async Task<TransferResult?> GetTransferAsync(
-        string userId,
-        int transactionId,
-        CancellationToken cancellationToken = default)
-    {
-        var transaction = await _context.Transactions
-            .Include(t => t.Account)
-            .Include(t => t.TransferTransaction)
-                .ThenInclude(tt => tt!.Account)
-            .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
-
-        if (transaction == null || !transaction.TransferTransactionId.HasValue)
-            return null;
-
-        var linkedTransaction = transaction.TransferTransaction!;
-
-        // Determine which is FROM and which is TO based on amount sign
-        var fromTransaction = transaction.Amount < 0 ? transaction : linkedTransaction;
-        var toTransaction = transaction.Amount > 0 ? transaction : linkedTransaction;
-
-        return new TransferResult
-        {
-            FromTransaction = fromTransaction,
-            ToTransaction = toTransaction,
-            Amount = Math.Abs(transaction.Amount),
-            Date = transaction.Date,
-            Memo = transaction.Memo
-        };
     }
 
     public async Task<StatusUpdateResult> BulkUpdateStatusAsync(
@@ -1260,17 +885,6 @@ public class TransactionService : ITransactionService
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
-    }
-
-    private async Task InvalidateRelatedCachesAsync(string userId, DateTime transactionDate)
-    {
-        var cacheKey = CacheKeyHelper.ForMonthCashflow(userId, transactionDate.Year, transactionDate.Month);
-        await _cacheService.RemoveAsync(cacheKey);
-
-        var budgetComparisonKey = CacheKeyHelper.ForBudgetComparison(userId, transactionDate.Year, transactionDate.Month);
-        await _cacheService.RemoveAsync(budgetComparisonKey);
-
-        await _cacheService.RemoveByPatternAsync($"user:{userId}:networth:*");
     }
 }
 

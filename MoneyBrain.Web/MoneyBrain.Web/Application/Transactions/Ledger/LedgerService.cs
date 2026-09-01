@@ -67,6 +67,7 @@ public class LedgerService(ApplicationDbContext context) : ILedgerService
     public async Task<decimal> GetAccountBalanceAsync(int accountId, string userId, DateTime? asOfDate = null, CancellationToken cancellationToken = default)
     {
         var account = await context.Accounts
+            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);
 
         if (account == null)

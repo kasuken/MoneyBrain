@@ -1,10 +1,12 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
+
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
 /// Represents a single ledger entry in the double-entry bookkeeping system.
 /// Every transaction generates at least two ledger entries (debit and credit) to maintain balance.
 /// </summary>
-public class LedgerEntry
+public class LedgerEntry : IUserOwnedEntity
 {
     /// <summary>
     /// Unique identifier for the ledger entry.

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Domain.Entities;
@@ -6,7 +7,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// <summary>
 /// Track app usage patterns for behavioral insights.
 /// </summary>
-public class UserAppUsageLog
+public class UserAppUsageLog : IUserOwnedEntity
 {
     /// <summary>
     /// Unique identifier for the usage log entry.

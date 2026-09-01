@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Transactions.Ledger;
@@ -31,39 +32,24 @@ public class NetWorthService : INetWorthService
         int intervalDays = 30,
         CancellationToken cancellationToken = default)
     {
-        var snapshots = new List<NetWorthSnapshotDto>();
+        // Generate snapshots at regular intervals using shared helper
+        var snapshotDates = BalanceComputationHelper.BuildSnapshotDates(startDate, endDate, intervalDays);
 
-        async Task AddSnapshotAsync(DateTime snapshotDate)
+        var snapshots = new List<NetWorthSnapshotDto>(snapshotDates.Count);
+        foreach (var date in snapshotDates)
         {
-            var snapshot = await GetNetWorthSnapshotAsync(userId, snapshotDate, cancellationToken);
-            snapshots.Add(snapshot);
+            snapshots.Add(await GetNetWorthSnapshotAsync(userId, date, cancellationToken));
         }
 
-        // Generate snapshots at regular intervals
-        var currentDate = startDate;
-        while (currentDate <= endDate)
-        {
-            await AddSnapshotAsync(currentDate);
-            currentDate = currentDate.AddDays(intervalDays);
-        }
-
-        // Always include the end date if not already included
-        if (snapshots.Count == 0 || snapshots[^1].Date != endDate)
-        {
-            await AddSnapshotAsync(endDate);
-        }
-
-        // Calculate changes between snapshots
-        for (int i = 1; i < snapshots.Count; i++)
-        {
-            var current = snapshots[i];
-            var previous = snapshots[i - 1];
-
-            current.ChangeFromPrevious = current.NetWorth - previous.NetWorth;
-            current.PercentageChange = previous.NetWorth != 0
-                ? (current.ChangeFromPrevious.Value / Math.Abs(previous.NetWorth) * 100)
-                : 0;
-        }
+        // Annotate each snapshot with change from previous
+        BalanceComputationHelper.AnnotateChanges(
+            snapshots,
+            s => s.NetWorth,
+            (s, change, pct) =>
+            {
+                s.ChangeFromPrevious = change;
+                s.PercentageChange = pct;
+            });
 
         // Build summary
         var firstSnapshot = snapshots.First();
@@ -95,7 +81,7 @@ public class NetWorthService : INetWorthService
         // Get all user accounts
         var accounts = await _context.Accounts
             .AsNoTracking()
-            .Where(a => a.UserId == userId)
+            .ForUser(userId)
             .OrderBy(a => a.Type)
             .ThenBy(a => a.Name)
             .ToListAsync(cancellationToken);
@@ -152,3 +138,4 @@ public class NetWorthService : INetWorthService
         return result;
     }
 }
+

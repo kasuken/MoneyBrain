@@ -2,6 +2,7 @@
 @using MoneyBrain.Web.Application.Accounts
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Application.Transactions
+@using MoneyBrain.Web.Application.Transactions.PayeeNormalization
 @using MoneyBrain.Web.Application.Transactions.Splits
 @using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Domain.Entities
@@ -10,6 +11,7 @@
 @using Microsoft.Extensions.Localization
 @using MudBlazor
 @inject ITransactionService TransactionService
+@inject IPayeeService PayeeService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
@@ -39,7 +41,7 @@
             <MudSelect T="int" Value="_selectedAccountId" ValueChanged="@OnAccountChanged" Label="@L["Col_Account"]" Required="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                 @foreach (var account in _accounts)
                 {
-                    <MudSelectItem T="int" Value="@account.Id">@account.Name</MudSelectItem>
+                    <MudSelectItem @key="account.Id" T="int" Value="@account.Id">@account.Name</MudSelectItem>
                 }
             </MudSelect>
 
@@ -69,12 +71,12 @@
                 <MudSelect T="int?" @bind-Value="_selectedCategoryId" Label="@L["Col_Category"]" Clearable="true" Disabled="@(!IsNew && Transaction?.IsReconciled == true)">
                     @foreach (var group in _categoryGroups)
                     {
-                        <MudSelectItem T="int?" Value="@((int?)null)" Disabled="true">
+                        <MudSelectItem @key="group.Id" T="int?" Value="@((int?)null)" Disabled="true">
                             <strong>@group.Name</strong>
                         </MudSelectItem>
                         @foreach (var category in group.Categories)
                         {
-                            <MudSelectItem T="int?" Value="@category.Id">&nbsp;&nbsp;@category.Name</MudSelectItem>
+                            <MudSelectItem @key="category.Id" T="int?" Value="@category.Id">&nbsp;&nbsp;@category.Name</MudSelectItem>
                         }
                     }
                 </MudSelect>
@@ -184,7 +186,7 @@
         _categoryGroups = await CategoryService.GetCategoryGroupsAsync(UserId, includeCategories: true);
 
         // Load payees for autocomplete
-        var payees = await TransactionService.GetPayeesAsync(UserId);
+        var payees = await PayeeService.GetPayeesAsync(UserId);
         _payeeNames = payees.Select(p => p.Name).ToList();
 
         // If editing existing transaction
@@ -296,7 +298,7 @@
             int? payeeId = null;
             if (!string.IsNullOrWhiteSpace(_payeeName))
             {
-                var payee = await TransactionService.CreateOrGetPayeeAsync(UserId!, _payeeName, _selectedCategoryId);
+                var payee = await PayeeService.CreateOrGetPayeeAsync(UserId!, _payeeName, _selectedCategoryId);
                 payeeId = payee.Id;
             }
 

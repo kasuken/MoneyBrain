@@ -22,7 +22,7 @@
                 
                 if (groupCategories.Any())
                 {
-                    <MudPaper Class="pa-3" Outlined="true">
+                    <MudPaper @key="group.Id" Class="pa-3" Outlined="true">
                         <MudStack Spacing="2">
                             <div class="d-flex align-center justify-space-between">
                                 <MudCheckBox T="bool" 
@@ -41,7 +41,7 @@
                                 <MudStack Spacing="1" Class="ms-4">
                                     @foreach (var category in groupCategories.OrderBy(c => c.Name))
                                     {
-                                        <MudCheckBox T="bool"
+                                        <MudCheckBox @key="category.Id" T="bool"
                                                      Value="@_selectedCategoryIds.Contains(category.Id)"
                                                      ValueChanged="@((bool value) => ToggleCategory(category.Id, value))"
                                                      Label="@category.Name"

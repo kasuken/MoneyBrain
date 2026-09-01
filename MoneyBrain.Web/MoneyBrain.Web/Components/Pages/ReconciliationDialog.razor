@@ -23,7 +23,7 @@
                        Class="mb-3">
                 @foreach (var account in Accounts)
                 {
-                    <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                    <MudSelectItem @key="account.Id" T="int?" Value="@account.Id">@account.Name</MudSelectItem>
                 }
             </MudSelect>
 

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
@@ -20,13 +21,15 @@ public class CategoryService : ICategoryService
 
     public async Task<List<CategoryGroup>> GetCategoryGroupsAsync(string userId, bool includeCategories = false, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var cacheKey = CacheKeyHelper.ForUserCategories(userId);
         var cached = await _cacheService.GetAsync<List<CategoryGroup>>(cacheKey);
         if (cached != null)
             return cached;
 
         IQueryable<CategoryGroup> query = _context.CategoryGroups
-            .Where(cg => cg.UserId == userId && cg.IsActive)
+            .ForUser(userId)
+            .Where(cg => cg.IsActive)
             .OrderBy(cg => cg.SortOrder)
            .ThenBy(cg => cg.Name);
 
@@ -35,16 +38,17 @@ public class CategoryService : ICategoryService
             query = query.Include(cg => cg.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name));
         }
 
-        var result = await query.ToListAsync(cancellationToken);
+        var result = await query.AsNoTracking().ToListAsync(cancellationToken);
         await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(24));
         return result;
     }
 
     public async Task<List<Category>> GetCategoriesAsync(string userId, bool includeInactive = false, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var query = _context.Categories
             .Include(c => c.CategoryGroup)
-            .Where(c => c.UserId == userId);
+            .ForUser(userId);
 
         if (!includeInactive)
             query = query.Where(c => c.IsActive);
@@ -54,6 +58,7 @@ public class CategoryService : ICategoryService
             .ThenBy(c => c.CategoryGroup.Name)
             .ThenBy(c => c.SortOrder)
             .ThenBy(c => c.Name)
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
 
@@ -66,6 +71,8 @@ public class CategoryService : ICategoryService
 
     public async Task<CategoryGroup> CreateCategoryGroupAsync(string userId, string name, CategoryType type = CategoryType.Expense, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         var maxSortOrder = await _context.CategoryGroups
             .Where(cg => cg.UserId == userId)
             .MaxAsync(cg => (int?)cg.SortOrder, cancellationToken) ?? 0;
@@ -95,6 +102,8 @@ public class CategoryService : ICategoryService
 
     public async Task<bool> UpdateCategoryGroupAsync(int categoryGroupId, string userId, string name, CategoryType type, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         var group = await _context.CategoryGroups
             .FirstOrDefaultAsync(cg => cg.Id == categoryGroupId && cg.UserId == userId, cancellationToken);
 
@@ -112,6 +121,7 @@ public class CategoryService : ICategoryService
 
     public async Task<bool> DeleteCategoryGroupAsync(int categoryGroupId, string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var group = await _context.CategoryGroups
             .Include(cg => cg.Categories)
             .FirstOrDefaultAsync(cg => cg.Id == categoryGroupId && cg.UserId == userId, cancellationToken);
@@ -177,6 +187,8 @@ public class CategoryService : ICategoryService
 
     public async Task<Category> CreateCategoryAsync(string userId, string name, int categoryGroupId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         var maxSortOrder = await _context.Categories
             .Where(c => c.UserId == userId && c.CategoryGroupId == categoryGroupId)
             .MaxAsync(c => (int?)c.SortOrder, cancellationToken) ?? 0;
@@ -199,6 +211,8 @@ public class CategoryService : ICategoryService
 
     public async Task<bool> UpdateCategoryAsync(int categoryId, string userId, string name, int categoryGroupId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         var category = await _context.Categories
             .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
 
@@ -216,6 +230,7 @@ public class CategoryService : ICategoryService
 
     public async Task<bool> DeleteCategoryAsync(int categoryId, string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var category = await _context.Categories
             .FirstOrDefaultAsync(c => c.Id == categoryId && c.UserId == userId, cancellationToken);
 
@@ -232,6 +247,7 @@ public class CategoryService : ICategoryService
 
     public async Task SeedDefaultCategoriesAsync(string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         // Check if user already has categories
         var hasCategories = await _context.Categories.AnyAsync(c => c.UserId == userId, cancellationToken);
         if (hasCategories)
@@ -365,6 +381,25 @@ public class CategoryService : ICategoryService
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Updates a <see cref="MonthlyBudget"/> with new values and saves. Shared by
+    /// <see cref="SetDefaultBudgetAsync"/> and <see cref="SetMonthOverrideAsync"/>.
+    /// </summary>
+    private async Task<MonthlyBudget> UpdateExistingBudgetAsync(
+        MonthlyBudget budget,
+        decimal plannedAmount,
+        bool allowRollover,
+        string? notes,
+        CancellationToken cancellationToken)
+    {
+        budget.PlannedAmount = plannedAmount;
+        budget.AllowRollover = allowRollover;
+        budget.Notes = notes;
+        budget.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+        return budget;
+    }
+
     public async Task<MonthlyBudget> SetDefaultBudgetAsync(int categoryId, string userId, decimal plannedAmount, bool allowRollover = false, string? notes = null, CancellationToken cancellationToken = default)
     {
         // Verify the category belongs to the user
@@ -380,13 +415,7 @@ public class CategoryService : ICategoryService
 
         if (existingBudget != null)
         {
-            // Update existing default budget
-            existingBudget.PlannedAmount = plannedAmount;
-            existingBudget.AllowRollover = allowRollover;
-            existingBudget.Notes = notes;
-            existingBudget.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync(cancellationToken);
-            return existingBudget;
+            return await UpdateExistingBudgetAsync(existingBudget, plannedAmount, allowRollover, notes, cancellationToken);
         }
         else
         {
@@ -425,13 +454,7 @@ public class CategoryService : ICategoryService
 
         if (existingBudget != null)
         {
-            // Update existing override
-            existingBudget.PlannedAmount = plannedAmount;
-            existingBudget.AllowRollover = allowRollover;
-            existingBudget.Notes = notes;
-            existingBudget.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync(cancellationToken);
-            return existingBudget;
+            return await UpdateExistingBudgetAsync(existingBudget, plannedAmount, allowRollover, notes, cancellationToken);
         }
         else
         {

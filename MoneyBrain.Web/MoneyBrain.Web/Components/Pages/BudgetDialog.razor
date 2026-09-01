@@ -1,5 +1,6 @@
 @using MoneyBrain.Web.Application.Budgets
 @using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Resources
 @using Microsoft.Extensions.Localization
@@ -9,6 +10,7 @@
 @inject ISnackbar SnackbarService
 @inject IStringLocalizer<SharedResource> L
 @inject ICurrencyFormattingService CurrencyFormattingService
+@inject IUserSettingsService SettingsService
 
 <MudDialog>
     <DialogContent>
@@ -76,7 +78,7 @@
                                    Required="true">
                             @foreach (var defaultBudget in _defaultBudgets)
                             {
-                                <MudSelectItem Value="@defaultBudget.Id">@defaultBudget.Name</MudSelectItem>
+                                <MudSelectItem @key="defaultBudget.Id" Value="@defaultBudget.Id">@defaultBudget.Name</MudSelectItem>
                             }
                         </MudSelect>
                         
@@ -207,6 +209,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!string.IsNullOrEmpty(UserId))
+        {
+            _userSettings = await SettingsService.GetSettingsAsync(UserId);
+        }
+
         // Load all available categories
         var groups = await CategoryService.GetCategoryGroupsAsync(UserId, includeCategories: true);
         _allCategories = groups.SelectMany(g => g.Categories.Where(c => c.IsActive)).ToList();

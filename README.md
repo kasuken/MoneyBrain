@@ -63,7 +63,7 @@ MoneyBrain is a full-featured PWA with:
 - Tap menu (⋮) → "Add to Home screen"
 - Or use the in-app install prompt
 
-See [PWA_IMPLEMENTATION.md](PWA_IMPLEMENTATION.md) for complete setup guide.
+See [PWA_IMPLEMENTATION.md](docs/archive/PWA_IMPLEMENTATION.md) for complete setup guide.
 
 ### Advanced PWA Features
 
@@ -86,7 +86,7 @@ MoneyBrain's PWA implementation includes advanced capabilities:
 3. Refresh the app to activate the update
 4. Old cache is cleared automatically
 
-For technical details and troubleshooting, see [PWA_IMPLEMENTATION.md](PWA_IMPLEMENTATION.md).
+For technical details and troubleshooting, see [PWA_IMPLEMENTATION.md](docs/archive/PWA_IMPLEMENTATION.md).
 
 ### Mobile & Responsive Design
 

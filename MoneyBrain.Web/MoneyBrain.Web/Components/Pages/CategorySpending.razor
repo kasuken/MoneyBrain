@@ -6,7 +6,9 @@
 @using Microsoft.JSInterop
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
+@using MoneyBrain.Web.Application.Settings
 @inject ICategorySpendingService CategorySpendingService
+@inject IUserSettingsService SettingsService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -174,7 +176,7 @@
                                             <tbody>
                                                 @foreach (var month in context.MonthlyBreakdown.OrderByDescending(m => m.Year).ThenByDescending(m => m.Month))
                                                 {
-                                                    <tr>
+                                                    <tr @key="(month.Year, month.Month)">
                                                         <td>@month.MonthName</td>
                                                         <td style="text-align: right">
                                                             <MudText Color="Color.Error">@CurrencyFormattingService.FormatCurrency(month.Amount, _userSettings?.CurrencyCode ?? "USD")</MudText>
@@ -270,6 +272,10 @@
         if (user.Identity?.IsAuthenticated == true)
         {
             _userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            if (!string.IsNullOrEmpty(_userId))
+            {
+                _userSettings = await SettingsService.GetSettingsAsync(_userId);
+            }
             await LoadDataAsync();
         }
     }

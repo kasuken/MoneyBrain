@@ -34,7 +34,7 @@
                     <MudList T="string" Dense="true" disableGutters="true">
                         @foreach (var feature in Features)
                         {
-                            <MudListItem T="string" Dense="true">
+                            <MudListItem @key="feature" T="string" Dense="true">
                                 <div class="d-flex align-start gap-2">
                                     <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Color="Color.Primary" Style="margin-top: 2px;" />
                                     <MudText Typo="Typo.body2">@feature</MudText>
@@ -80,7 +80,7 @@
                     <MudStack Spacing="1">
                         @foreach (var tip in Tips)
                         {
-                            <MudText Typo="Typo.body2">• @tip</MudText>
+                            <MudText @key="tip" Typo="Typo.body2">• @tip</MudText>
                         }
                     </MudStack>
                 </MudPaper>

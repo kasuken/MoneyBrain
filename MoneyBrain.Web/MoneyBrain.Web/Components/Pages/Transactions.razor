@@ -4,6 +4,7 @@
 @using MoneyBrain.Web.Application.Transactions
 @using MoneyBrain.Web.Application.Transactions.Filtering
 @using MoneyBrain.Web.Application.Transactions.BulkEdit
+@using MoneyBrain.Web.Application.Transactions.Transfers
 @using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Application.Categories
 @using MoneyBrain.Web.Domain.Entities
@@ -16,12 +17,14 @@
 
 @inject IStringLocalizer<SharedResource> L
 @inject ITransactionService TransactionService
+@inject ITransferService TransferService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
 @inject IUserSettingsService SettingsService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["Nav_Transactions"] | @L["App_MoneyBrain"]</PageTitle>
 
@@ -110,7 +113,7 @@
                     <MudSelect T="int?" @bind-Value="@_filter.AccountId" Label="@L["Lbl_Account"]" Variant="Variant.Outlined" Clearable OnClearButtonClick="ApplyFilters">
                         @foreach (var account in _accounts)
                         {
-                            <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                            <MudSelectItem @key="account.Id" T="int?" Value="@account.Id">@account.Name</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -606,8 +609,8 @@
 
     private string FormatCurrency(decimal amount)
     {
-        var sign = amount >= 0 ? "+" : "";
-        return $"{sign}{amount:N2} {_currencyCode}";
+        var sign = amount >= 0 ? "+" : "-";
+        return $"{sign}{CurrencyFormattingService.FormatCurrency(Math.Abs(amount), _currencyCode)}";
     }
 
     private string GetAmountClass(decimal amount) => amount switch
@@ -686,7 +689,7 @@
         if (!transaction.TransferTransactionId.HasValue)
             return;
 
-        var transfer = await TransactionService.GetTransferAsync(_userId!, transaction.Id);
+        var transfer = await TransferService.GetTransferAsync(_userId!, transaction.Id);
         if (transfer == null)
         {
             SnackbarService.Add(L["Trans_TransferNotFound"], Severity.Error);
@@ -716,7 +719,7 @@
         if (!transaction.TransferTransactionId.HasValue)
             return;
 
-        var transfer = await TransactionService.GetTransferAsync(_userId!, transaction.Id);
+        var transfer = await TransferService.GetTransferAsync(_userId!, transaction.Id);
         if (transfer == null)
         {
             SnackbarService.Add(L["Trans_TransferNotFound"], Severity.Error);
@@ -733,7 +736,7 @@
         {
             try
             {
-                var deleted = await TransactionService.DeleteTransferAsync(_userId, transaction.Id);
+                var deleted = await TransferService.DeleteTransferAsync(_userId, transaction.Id);
                 if (deleted)
                 {
                     await LoadTransactions();

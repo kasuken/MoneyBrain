@@ -56,7 +56,7 @@
 
                     if (categories.Any())
                     {
-                        <MudSelectItem Value="0" Disabled="true">
+                        <MudSelectItem @key="group.Id" Value="0" Disabled="true">
                             <MudText Typo="Typo.caption" Style="font-weight: 600; color: var(--mb-text-muted);">
                                 @group.Name
                             </MudText>
@@ -64,7 +64,7 @@
                         
                         @foreach (var category in categories)
                         {
-                            <MudSelectItem Value="@category.Id">
+                            <MudSelectItem @key="category.Id" Value="@category.Id">
                                 <MudText Typo="Typo.body2" Class="ms-3">@category.Name</MudText>
                             </MudSelectItem>
                         }

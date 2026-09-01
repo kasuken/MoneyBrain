@@ -10,7 +10,9 @@
 
 @attribute [Authorize]
 
+@using MoneyBrain.Web.Application.Settings
 @inject IReconciliationService ReconciliationService
+@inject IUserSettingsService SettingsService
 @inject IStringLocalizer<SharedResource> L
 @inject IAccountService AccountService
 @inject IDialogService DialogService
@@ -229,6 +231,7 @@
             return;
         }
 
+        _userSettings = await SettingsService.GetSettingsAsync(_userId);
         await LoadData();
         _isLoading = false;
     }

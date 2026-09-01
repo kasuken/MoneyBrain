@@ -1,10 +1,12 @@
 @using MoneyBrain.Web.Application.Categories
+@using MoneyBrain.Web.Application.Settings
 @using MoneyBrain.Web.Domain.Entities
 @using MoneyBrain.Web.Resources
 @using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
 @inject IStringLocalizer<SharedResource> L
 @inject ICurrencyFormattingService CurrencyFormattingService
+@inject IUserSettingsService SettingsService
 
 <MudDialog>
     <DialogContent>
@@ -214,6 +216,11 @@
     {
         try
         {
+            if (!string.IsNullOrEmpty(UserId))
+            {
+                _userSettings = await SettingsService.GetSettingsAsync(UserId);
+            }
+
             // Load statistics
             _stats = await CategoryService.GetCategoryUsageStatsAsync(Category.Id, UserId);
 

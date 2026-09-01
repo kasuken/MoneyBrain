@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Transactions.Ledger;
@@ -36,8 +37,9 @@ public class AccountService : IAccountService
         bool includeInactive = false, 
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var query = _context.Accounts
-            .Where(a => a.UserId == userId);
+            .ForUser(userId);
 
         if (includeInactive)
         {
@@ -159,6 +161,7 @@ public class AccountService : IAccountService
         string userId, 
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var account = await _context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
@@ -189,6 +192,7 @@ public class AccountService : IAccountService
         string userId, 
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var account = await _context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
@@ -222,6 +226,7 @@ public class AccountService : IAccountService
         string userId, 
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var account = await _context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
@@ -296,15 +301,7 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        var accountExists = await _context.Accounts
-            .AnyAsync(
-                a => a.Id == accountId && a.UserId == userId, 
-                cancellationToken);
-
-        if (!accountExists)
-        {
-            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
-        }
+        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
 
         return await _context.OpeningBalanceAdjustments
             .Where(oba => oba.AccountId == accountId)
@@ -323,15 +320,7 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        var accountExists = await _context.Accounts
-            .AnyAsync(
-                a => a.Id == accountId && a.UserId == userId, 
-                cancellationToken);
-
-        if (!accountExists)
-        {
-            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
-        }
+        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
 
         var snapshot = new AccountBalanceSnapshot
         {
@@ -357,6 +346,21 @@ public class AccountService : IAccountService
         return snapshot;
     }
 
+    /// <summary>
+    /// Verifies that an account exists and belongs to the specified user.
+    /// Throws <see cref="InvalidOperationException"/> if the account is not found or not owned by the user.
+    /// </summary>
+    private async Task ThrowIfAccountNotOwnedAsync(int accountId, string userId, CancellationToken cancellationToken)
+    {
+        var accountExists = await _context.Accounts
+            .AnyAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);
+
+        if (!accountExists)
+        {
+            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
+        }
+    }
+
     public async Task<IReadOnlyList<AccountBalanceSnapshot>> GetBalanceHistoryAsync(
         int accountId, 
         string userId, 
@@ -365,15 +369,7 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        var accountExists = await _context.Accounts
-            .AnyAsync(
-                a => a.Id == accountId && a.UserId == userId, 
-                cancellationToken);
-
-        if (!accountExists)
-        {
-            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
-        }
+        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
 
         var query = _context.AccountBalanceSnapshots
             .Where(abs => abs.AccountId == accountId);
@@ -436,15 +432,7 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        var accountExists = await _context.Accounts
-            .AnyAsync(
-                a => a.Id == accountId && a.UserId == userId, 
-                cancellationToken);
-
-        if (!accountExists)
-        {
-            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
-        }
+        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(description))
         {
@@ -484,15 +472,7 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        var accountExists = await _context.Accounts
-            .AnyAsync(
-                a => a.Id == accountId && a.UserId == userId, 
-                cancellationToken);
-
-        if (!accountExists)
-        {
-            throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
-        }
+        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
 
         var query = _context.ManualBalanceAdjustments
             .Where(mba => mba.AccountId == accountId);

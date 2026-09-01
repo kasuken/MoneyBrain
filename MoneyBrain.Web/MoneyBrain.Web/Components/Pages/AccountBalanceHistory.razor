@@ -16,6 +16,8 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<SharedResource> L
 @inject ICurrencyFormattingService CurrencyFormattingService
+@inject IUserSettingsService SettingsService
+@using MoneyBrain.Web.Application.Settings
 
 <PageTitle>@L["BalHistory_PageTitle"]</PageTitle>
 
@@ -34,7 +36,7 @@
                     <MudSelectItem T="int?" Value="null">@L["BalHistory_AllAccounts"]</MudSelectItem>
                     @foreach (var account in _accounts)
                     {
-                        <MudSelectItem T="int?" Value="@account.Id">@account.Name (@account.SubType)</MudSelectItem>
+                        <MudSelectItem @key="account.Id" T="int?" Value="@account.Id">@account.Name (@account.SubType)</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
@@ -244,7 +246,7 @@
         <MudGrid Class="mb-4">
             @foreach (var account in _multiAccountHistory.Accounts)
             {
-                <MudItem xs="12" sm="6" md="4">
+                <MudItem @key="account.AccountId" xs="12" sm="6" md="4">
                     <MudCard Elevation="2">
                         <MudCardContent>
                             <MudText Typo="Typo.h6">@account.AccountName</MudText>
@@ -329,6 +331,7 @@
 
         if (!string.IsNullOrEmpty(userId))
         {
+            _userSettings = await SettingsService.GetSettingsAsync(userId);
             var accounts = await AccountService.GetUserAccountsAsync(userId, includeInactive: false);
             _accounts = accounts.ToList();
         }

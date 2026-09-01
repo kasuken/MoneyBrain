@@ -51,10 +51,10 @@ public class BehaviorInsightService : IBehaviorInsightService
         var insights = new List<BehaviorInsightDto>();
 
         // Analyze spending patterns
-        await AnalyzeSpendingPatterns(userId, startDate, endDate, insights, cancellationToken);
+        await AnalyzeSpendingPatternsAsync(userId, startDate, endDate, insights, cancellationToken);
 
         // Analyze transaction frequency
-        await AnalyzeTransactionFrequency(userId, startDate, endDate, insights, cancellationToken);
+        await AnalyzeTransactionFrequencyAsync(userId, startDate, endDate, insights, cancellationToken);
 
         // Sort by severity (highest first)
         insights = insights.OrderByDescending(i => i.Severity).ToList();
@@ -63,7 +63,7 @@ public class BehaviorInsightService : IBehaviorInsightService
         return insights;
     }
 
-    private async Task AnalyzeSpendingPatterns(
+    private async Task AnalyzeSpendingPatternsAsync(
         string userId,
         DateTime startDate,
         DateTime endDate,
@@ -147,7 +147,7 @@ public class BehaviorInsightService : IBehaviorInsightService
         }
     }
 
-    private async Task AnalyzeTransactionFrequency(
+    private async Task AnalyzeTransactionFrequencyAsync(
         string userId,
         DateTime startDate,
         DateTime endDate,

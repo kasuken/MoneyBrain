@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Domain.Entities;
@@ -7,7 +8,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// User-specific settings including currency preference and timezone.
 /// Every authenticated user must have settings configured before using the app.
 /// </summary>
-public class UserSettings
+public class UserSettings : IUserOwnedEntity
 {
     /// <summary>
     /// Unique identifier for the settings record.

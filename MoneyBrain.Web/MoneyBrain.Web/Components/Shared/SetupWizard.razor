@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> L
 @inject ICurrencyFormattingService CurrencyFormattingService
+@inject IUserSettingsService SettingsService
 
 <MudDialog Options="@(new DialogOptions { CloseButton = false, BackdropClick = false, MaxWidth = MaxWidth.Medium, FullWidth = true })">
     <DialogContent>
@@ -85,7 +86,7 @@
                                        AnchorOrigin="Origin.BottomCenter">
                                 @foreach (var currency in Currencies)
                                 {
-                                    <MudSelectItem T="string" Value="@currency.Code">
+                                    <MudSelectItem @key="currency.Code" T="string" Value="@currency.Code">
                                         @currency.Code - @currency.Name (@currency.Symbol)
                                     </MudSelectItem>
                                 }
@@ -100,7 +101,7 @@
                                        AnchorOrigin="Origin.BottomCenter">
                                 @foreach (var tz in TimeZones)
                                 {
-                                    <MudSelectItem T="string" Value="@tz.Id">
+                                    <MudSelectItem @key="tz.Id" T="string" Value="@tz.Id">
                                         @tz.DisplayName
                                     </MudSelectItem>
                                 }
@@ -187,7 +188,7 @@
                         <MudStack Spacing="2">
                             @foreach (var account in _createdAccounts)
                             {
-                                <MudPaper Class="pa-3 d-flex align-center justify-space-between" Elevation="0" Style="border: 1px solid var(--mb-border);">
+                                <MudPaper @key="account.Id" Class="pa-3 d-flex align-center justify-space-between" Elevation="0" Style="border: 1px solid var(--mb-border);">
                                     <div class="d-flex align-center gap-3">
                                         <MudIcon Icon="@GetAccountIcon(account.SubType)" Color="Color.Primary" />
                                         <div>
@@ -405,6 +406,14 @@
     private List<Account> _createdAccounts = new();
     private bool _categoriesSeeded = false;
     private UserSettings? _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(UserId))
+        {
+            _userSettings = await SettingsService.GetSettingsAsync(UserId);
+        }
+    }
 
     private string GetNextButtonText()
     {

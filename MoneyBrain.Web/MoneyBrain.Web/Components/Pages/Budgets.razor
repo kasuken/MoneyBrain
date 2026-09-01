@@ -9,7 +9,9 @@
 
 @attribute [Authorize]
 
+@using MoneyBrain.Web.Application.Settings
 @inject IBudgetService BudgetService
+@inject IUserSettingsService SettingsService
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
@@ -79,7 +81,7 @@
                 var categoryCount = budget.BudgetCategories.Count;
                 var periodName = budget.IsDefault ? L["Budget_DefaultAllMonths"].Value : new DateTime(budget.Year!.Value, budget.Month!.Value, 1).ToString("MMMM yyyy");
 
-                <MudPaper Class="pa-4">
+                <MudPaper @key="budget.Id" Class="pa-4">
                     <div class="d-flex justify-space-between align-center mb-3">
                         <div>
                             <div class="d-flex align-center gap-2 mb-1">
@@ -260,6 +262,7 @@
 
         if (!string.IsNullOrWhiteSpace(_userId))
         {
+            _userSettings = await SettingsService.GetSettingsAsync(_userId);
             await LoadBudgets();
         }
 

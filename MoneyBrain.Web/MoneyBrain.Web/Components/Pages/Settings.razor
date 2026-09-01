@@ -48,7 +48,7 @@
                                    HelperText="@L["Settings_CurrencyHelper"]">
                             @foreach (var currency in _currencies)
                             {
-                                <MudSelectItem T="string" Value="@currency.Code">
+                                <MudSelectItem @key="currency.Code" T="string" Value="@currency.Code">
                                     @currency.Code - @currency.Name (@currency.Symbol)
                                 </MudSelectItem>
                             }
@@ -64,7 +64,7 @@
                                    HelperText="@L["Settings_TimezoneHelper"]">
                             @foreach (var tz in _timeZones)
                             {
-                                <MudSelectItem T="string" Value="@tz.Id">
+                                <MudSelectItem @key="tz.Id" T="string" Value="@tz.Id">
                                     @tz.DisplayName
                                 </MudSelectItem>
                             }

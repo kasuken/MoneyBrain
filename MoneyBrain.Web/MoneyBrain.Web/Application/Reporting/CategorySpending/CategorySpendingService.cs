@@ -40,7 +40,7 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
             TotalTransactions = expenseEntries.Select(e => e.TransactionId).Distinct().Count()
         };
 
-        // Group by category
+        // Group by category — expenseEntries is already in-memory so this is a local GroupBy
         var categoryGroups = expenseEntries
             .GroupBy(e => new
             {
@@ -53,12 +53,12 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
 
         foreach (var group in categoryGroups)
         {
-            var categoryEntries = group.ToList();
-            var totalCategorySpending = categoryEntries.Sum(e => e.DebitAmount);
-            var categoryTransactionCount = categoryEntries.Select(e => e.TransactionId).Distinct().Count();
+            // Sum and count directly on the group to avoid a redundant ToList() materialisation
+            var totalCategorySpending = group.Sum(e => e.DebitAmount);
+            var categoryTransactionCount = group.Select(e => e.TransactionId).Distinct().Count();
 
             // Group by month for this category
-            var monthlyBreakdown = categoryEntries
+            var monthlyBreakdown = group
                 .GroupBy(e => new { e.EntryDate.Year, e.EntryDate.Month })
                 .Select(mg => new MonthlySpendingDto
                 {

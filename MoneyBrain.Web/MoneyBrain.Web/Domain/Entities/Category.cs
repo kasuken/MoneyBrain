@@ -1,9 +1,11 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
+
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
 /// Transaction category - must belong to exactly one group
 /// </summary>
-public class Category
+public class Category : IUserOwnedEntity
 {
     public int Id { get; set; }
     

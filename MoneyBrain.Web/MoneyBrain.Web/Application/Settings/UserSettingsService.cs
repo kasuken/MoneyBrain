@@ -57,8 +57,9 @@ public class UserSettingsService : IUserSettingsService
     }
 
     /// <inheritdoc />
-    public async Task<UserSettings?> GetSettingsAsync(string userId)
+    public async Task<UserSettings?> GetSettingsAsync(string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var cacheKey = CacheKeyHelper.ForUserSettings(userId);
         var cached = await _cacheService.GetAsync<UserSettings>(cacheKey);
         if (cached != null)
@@ -66,7 +67,7 @@ public class UserSettingsService : IUserSettingsService
 
         var result = await _context.UserSettings
             .AsNoTracking()
-            .FirstOrDefaultAsync(us => us.UserId == userId);
+            .FirstOrDefaultAsync(us => us.UserId == userId, cancellationToken);
 
         if (result != null)
         {
@@ -77,11 +78,12 @@ public class UserSettingsService : IUserSettingsService
     }
 
     /// <inheritdoc />
-    public async Task<bool> HasCompletedSetupAsync(string userId)
+    public async Task<bool> HasCompletedSetupAsync(string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         return await _context.UserSettings
             .AsNoTracking()
-            .AnyAsync(us => us.UserId == userId && us.SetupCompleted);
+            .AnyAsync(us => us.UserId == userId && us.SetupCompleted, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -89,10 +91,14 @@ public class UserSettingsService : IUserSettingsService
         string userId,
         string currencyCode,
         string timeZoneId,
-        string? dateFormat = null)
+        string? dateFormat = null,
+        CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(currencyCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(timeZoneId);
         var existing = await _context.UserSettings
-            .FirstOrDefaultAsync(us => us.UserId == userId);
+            .FirstOrDefaultAsync(us => us.UserId == userId, cancellationToken);
 
         if (existing != null)
         {
@@ -116,7 +122,7 @@ public class UserSettingsService : IUserSettingsService
             _context.UserSettings.Add(existing);
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserSettings(userId));
         return existing;
     }
@@ -127,10 +133,12 @@ public class UserSettingsService : IUserSettingsService
         bool showTipsAndInsights,
         bool showEducationalTips,
         bool showSpendingInsights,
-        bool showBehavioralInsights)
+        bool showBehavioralInsights,
+        CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         var existing = await _context.UserSettings
-            .FirstOrDefaultAsync(us => us.UserId == userId);
+            .FirstOrDefaultAsync(us => us.UserId == userId, cancellationToken);
 
         if (existing == null)
         {
@@ -143,7 +151,7 @@ public class UserSettingsService : IUserSettingsService
         existing.ShowBehavioralInsights = showBehavioralInsights;
         existing.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserSettings(userId));
     }
 
@@ -160,119 +168,120 @@ public class UserSettingsService : IUserSettingsService
     }
 
     /// <inheritdoc />
-    public async Task EraseAllUserDataAsync(string userId)
+    public async Task EraseAllUserDataAsync(string userId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         // Delete in order to respect foreign key constraints
         // Use ExecuteDeleteAsync for efficient bulk deletion
 
         // 1. Delete ledger entries (references transactions and accounts)
         await _context.LedgerEntries
             .Where(le => le.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 2. Delete transaction splits (references transactions)
         var transactionIds = await _context.Transactions
             .Where(t => t.UserId == userId)
             .Select(t => t.Id)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         if (transactionIds.Count > 0)
         {
             await _context.TransactionSplits
                 .Where(ts => transactionIds.Contains(ts.TransactionId))
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         // 3. Delete transactions
         await _context.Transactions
             .Where(t => t.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 4. Delete reconciliations (references accounts)
         await _context.Reconciliations
             .Where(r => r.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 5. Delete account-related data (snapshots, adjustments)
         var accountIds = await _context.Accounts
             .Where(a => a.UserId == userId)
             .Select(a => a.Id)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         if (accountIds.Count > 0)
         {
             await _context.AccountBalanceSnapshots
                 .Where(s => accountIds.Contains(s.AccountId))
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
 
             await _context.ManualBalanceAdjustments
                 .Where(a => accountIds.Contains(a.AccountId))
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
 
             await _context.OpeningBalanceAdjustments
                 .Where(a => accountIds.Contains(a.AccountId))
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         // 6. Delete accounts
         await _context.Accounts
             .Where(a => a.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 7. Delete budget categories (references budgets and categories)
         var budgetIds = await _context.Budgets
             .Where(b => b.UserId == userId)
             .Select(b => b.Id)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         if (budgetIds.Count > 0)
         {
             await _context.BudgetCategories
                 .Where(bc => budgetIds.Contains(bc.BudgetId))
-                .ExecuteDeleteAsync();
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         // 8. Delete budgets
         await _context.Budgets
             .Where(b => b.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 9. Delete monthly budgets
         await _context.MonthlyBudgets
             .Where(mb => mb.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 10. Delete categories
         await _context.Categories
             .Where(c => c.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 11. Delete category groups
         await _context.CategoryGroups
             .Where(cg => cg.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 12. Delete payees
         await _context.Payees
             .Where(p => p.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 13. Delete saved filters
         await _context.SavedTransactionFilters
             .Where(f => f.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // 14. Delete user settings
         await _context.UserSettings
             .Where(us => us.UserId == userId)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(cancellationToken);
 
         // Invalidate cache
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserSettings(userId));
     }
 
     /// <inheritdoc />
-    public async Task LoadDemoDataAsync(string userId)
+    public async Task LoadDemoDataAsync(string userId, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
 
@@ -315,7 +324,7 @@ public class UserSettingsService : IUserSettingsService
         };
 
         _context.CategoryGroups.AddRange(incomeGroup, essentialsGroup, lifestyleGroup, transportGroup);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         var salaryCategory = new Category { UserId = userId, CategoryGroupId = incomeGroup.Id, Name = "Salary", IsActive = true, CreatedAt = now };
         var freelanceCategory = new Category { UserId = userId, CategoryGroupId = incomeGroup.Id, Name = "Freelance", IsActive = true, CreatedAt = now };
@@ -331,7 +340,7 @@ public class UserSettingsService : IUserSettingsService
 
         _context.Categories.AddRange(salaryCategory, freelanceCategory, groceriesCategory, utilitiesCategory, rentCategory,
             diningCategory, entertainmentCategory, shoppingCategory, subscriptionsCategory, gasCategory, publicTransportCategory);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Create payees
         var employer = new Payee { UserId = userId, Name = "Acme Corp", DefaultCategoryId = salaryCategory.Id, IsActive = true, CreatedAt = now };
@@ -349,7 +358,7 @@ public class UserSettingsService : IUserSettingsService
 
         _context.Payees.AddRange(employer, supermarket, electricCompany, landlord, restaurant1, restaurant2,
             netflix, spotify, gasStation, amazon, cinema, transitAuthority);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Create accounts
         var checkingAccount = new Account
@@ -388,7 +397,7 @@ public class UserSettingsService : IUserSettingsService
         };
 
         _context.Accounts.AddRange(checkingAccount, savingsAccount, cashAccount);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Credit card needs to reference checking account for billing
         var creditCard = new Account
@@ -406,7 +415,7 @@ public class UserSettingsService : IUserSettingsService
             CreatedAt = now
         };
         _context.Accounts.Add(creditCard);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Create transactions for the last 3 months
         var transactions = new List<Transaction>();
@@ -613,7 +622,7 @@ public class UserSettingsService : IUserSettingsService
         }
 
         _context.Transactions.AddRange(transactions);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Create ledger entries for all transactions (required for dashboard/reporting)
         var ledgerEntries = new List<LedgerEntry>();
@@ -726,7 +735,7 @@ public class UserSettingsService : IUserSettingsService
         }
 
         _context.LedgerEntries.AddRange(ledgerEntries);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Create monthly budgets for current and past 2 months
         var currentMonth = now.Month;
@@ -755,7 +764,7 @@ public class UserSettingsService : IUserSettingsService
         }
 
         _context.MonthlyBudgets.AddRange(monthlyBudgets);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Create named budgets
         var monthlyBudget = new Budget
@@ -783,7 +792,7 @@ public class UserSettingsService : IUserSettingsService
         };
 
         _context.Budgets.AddRange(monthlyBudget, savingsBudget);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Add budget categories for the monthly expenses budget
         var monthlyBudgetCategories = new List<BudgetCategory>
@@ -815,6 +824,6 @@ public class UserSettingsService : IUserSettingsService
 
         _context.BudgetCategories.AddRange(monthlyBudgetCategories);
         _context.BudgetCategories.AddRange(savingsBudgetCategories);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

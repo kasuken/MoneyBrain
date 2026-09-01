@@ -101,7 +101,7 @@
                            HelperText="@L["AcctDlg_PaymentAccountHelper"]">
                     @foreach (var account in _assetAccounts)
                     {
-                        <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                        <MudSelectItem @key="account.Id" T="int?" Value="@account.Id">@account.Name</MudSelectItem>
                     }
                 </MudSelect>
             }

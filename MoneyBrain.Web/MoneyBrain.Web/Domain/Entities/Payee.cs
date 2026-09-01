@@ -1,9 +1,11 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
+
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
 /// Payee for transactions (vendor, person, etc.)
 /// </summary>
-public class Payee
+public class Payee : IUserOwnedEntity
 {
     public int Id { get; set; }
     

@@ -7,8 +7,10 @@
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
 @attribute [Authorize]
+@using MoneyBrain.Web.Application.Settings
 @inject IAccountService AccountService
 @inject IStringLocalizer<SharedResource> L
+@inject IUserSettingsService SettingsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ICurrencyFormattingService CurrencyFormattingService
@@ -41,7 +43,7 @@
                                        ToStringFunc="@(a => a?.Name ?? string.Empty)">
                                 @foreach (var account in _accounts)
                                 {
-                                    <MudSelectItem Value="@account">
+                                    <MudSelectItem @key="account.Id" Value="@account">
                                         @account.Name (@account.Type - @account.SubType)
                                     </MudSelectItem>
                                 }
@@ -202,6 +204,11 @@
 
         var authState = await AuthenticationState;
         _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _userSettings = await SettingsService.GetSettingsAsync(_userId);
+        }
 
         await LoadAccounts();
     }

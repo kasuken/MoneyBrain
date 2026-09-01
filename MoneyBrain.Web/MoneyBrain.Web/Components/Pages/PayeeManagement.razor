@@ -10,7 +10,7 @@
 @attribute [Authorize]
 
 @inject IStringLocalizer<SharedResource> L
-@inject ITransactionService TransactionService
+@inject IPayeeService PayeeService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -57,7 +57,7 @@
 
                 @foreach (var group in _duplicateGroups)
                 {
-                    <MudCard Class="mb-3">
+                    <MudCard @key="group.NormalizedKey" Class="mb-3">
                         <MudCardContent>
                             <MudText Typo="Typo.subtitle2" Class="mb-2">
                                 @string.Format(L["Payee_SuggestedMerge"].Value, group.SuggestedPrimary?.Payee.Name)
@@ -65,7 +65,7 @@
                             <MudList T="string" Dense>
                                 @foreach (var payeeUsage in group.Payees)
                                 {
-                                    <MudListItem T="string">
+                                    <MudListItem @key="payeeUsage.Payee.Id" T="string">
                                         <div class="d-flex align-center justify-space-between" style="width: 100%;">
                                             <div>
                                                 <MudText>
@@ -152,7 +152,7 @@
 
         if (!string.IsNullOrWhiteSpace(_userId))
         {
-            _payees = await TransactionService.GetPayeesWithUsageAsync(_userId);
+            _payees = await PayeeService.GetPayeesWithUsageAsync(_userId);
         }
 
         _isLoading = false;
@@ -164,7 +164,7 @@
 
         if (!string.IsNullOrWhiteSpace(_userId))
         {
-            _duplicateGroups = await TransactionService.FindDuplicatePayeesAsync(_userId);
+            _duplicateGroups = await PayeeService.FindDuplicatePayeesAsync(_userId);
             
             if (_duplicateGroups.Count == 0)
             {
@@ -201,7 +201,7 @@
                 .Select(p => p.Payee.Id)
                 .ToList();
 
-            var success = await TransactionService.MergePayeesAsync(_userId, group.SuggestedPrimary.Payee.Id, sourceIds);
+            var success = await PayeeService.MergePayeesAsync(_userId, group.SuggestedPrimary.Payee.Id, sourceIds);
 
             if (success)
             {
@@ -230,7 +230,7 @@
 
         if (result is { Canceled: false, Data: string newName })
         {
-            var success = await TransactionService.RenamePayeeAsync(payeeUsage.Payee.Id, _userId, newName);
+            var success = await PayeeService.RenamePayeeAsync(payeeUsage.Payee.Id, _userId, newName);
 
             if (success)
             {
@@ -253,7 +253,7 @@
 
         if (confirm == true)
         {
-            var count = await TransactionService.DeleteUnusedPayeesAsync(_userId);
+            var count = await PayeeService.DeleteUnusedPayeesAsync(_userId);
             SnackbarService.Add(string.Format(L["Payee_Msg_DeletedCount"].Value, count), Severity.Success);
             await LoadPayees();
         }

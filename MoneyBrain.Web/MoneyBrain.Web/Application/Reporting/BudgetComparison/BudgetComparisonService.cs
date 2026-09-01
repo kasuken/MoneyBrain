@@ -70,8 +70,8 @@ public class BudgetComparisonService : IBudgetComparisonService
             return cached;
 
         // Get all budgets for this month (period-specific or default)
-        var budgetsForPeriod = await _budgetService.GetBudgetsForPeriodAsync(userId, year, month);
-        var defaultBudgets = await _budgetService.GetDefaultBudgetsAsync(userId);
+        var budgetsForPeriod = await _budgetService.GetBudgetsForPeriodAsync(userId, year, month, cancellationToken);
+        var defaultBudgets = await _budgetService.GetDefaultBudgetsAsync(userId, cancellationToken);
         
         // Combine: period-specific budgets take precedence, fall back to defaults
         var allBudgets = budgetsForPeriod.Any() ? budgetsForPeriod : defaultBudgets;

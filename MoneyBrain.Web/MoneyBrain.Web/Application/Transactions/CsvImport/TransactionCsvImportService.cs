@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -13,13 +14,19 @@ public class TransactionCsvImportService : ITransactionCsvImportService
 {
     private readonly ApplicationDbContext _context;
     private readonly ITransactionService _transactionService;
+    private readonly IPayeeService _payeeService;
+    private readonly ILogger<TransactionCsvImportService> _logger;
 
     public TransactionCsvImportService(
         ApplicationDbContext context,
-        ITransactionService transactionService)
+        ITransactionService transactionService,
+        IPayeeService payeeService,
+        ILogger<TransactionCsvImportService> logger)
     {
         _context = context;
         _transactionService = transactionService;
+        _payeeService = payeeService;
+        _logger = logger;
     }
 
     public Task<List<List<string>>> ParseCsvAsync(string csvContent, CancellationToken cancellationToken = default)
@@ -69,7 +76,7 @@ public class TransactionCsvImportService : ITransactionCsvImportService
                 {
                     previewRow.Date = date;
                 }
-                else if (DateTime.TryParse(dateText, out date))
+                else if (DateTime.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
                 {
                     previewRow.Date = date;
                 }
@@ -87,7 +94,7 @@ public class TransactionCsvImportService : ITransactionCsvImportService
             if (mapping.AmountColumn.HasValue && mapping.AmountColumn.Value < csvRow.Count)
             {
                 var amountText = csvRow[mapping.AmountColumn.Value].Replace("$", "").Replace(",", "").Trim();
-                if (decimal.TryParse(amountText, out var amount))
+                if (decimal.TryParse(amountText, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount))
                 {
                     previewRow.Amount = mapping.InvertAmounts ? -amount : amount;
                 }
@@ -160,9 +167,12 @@ public class TransactionCsvImportService : ITransactionCsvImportService
         var previewRows = await PreviewImportAsync(userId, csvContent, mapping, cancellationToken);
         result.TotalRows = previewRows.Count;
         
-        // Build category lookup - handle duplicates by taking the first match
+        // Build category lookup - project only needed columns to avoid loading full entities.
+        // Client-side OrdinalIgnoreCase grouping is intentional: it handles categories that
+        // differ only in casing (SQL Server CI collation would surface both rows).
         var categoryLookup = (await _context.Categories
             .Where(c => c.UserId == userId && c.IsActive)
+            .Select(c => new { c.Id, c.Name })
             .ToListAsync(cancellationToken))
             .GroupBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First().Id, StringComparer.OrdinalIgnoreCase);
@@ -190,7 +200,7 @@ public class TransactionCsvImportService : ITransactionCsvImportService
                 int? payeeId = null;
                 if (!string.IsNullOrWhiteSpace(previewRow.Payee))
                 {
-                    var payee = await _transactionService.CreateOrGetPayeeAsync(userId, previewRow.Payee, null, cancellationToken);
+                    var payee = await _payeeService.CreateOrGetPayeeAsync(userId, previewRow.Payee, null, cancellationToken);
                     payeeId = payee.Id;
                 }
                 
@@ -222,6 +232,7 @@ public class TransactionCsvImportService : ITransactionCsvImportService
             }
             catch (Exception ex)
             {
+                _logger.LogWarning(ex, "CSV import failed for row {RowNumber}", previewRow.RowNumber);
                 result.SkippedCount++;
                 result.Errors.Add($"Row {previewRow.RowNumber}: {ex.Message}");
             }

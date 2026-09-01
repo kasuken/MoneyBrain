@@ -7,7 +7,9 @@
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
 @attribute [Authorize]
+@using MoneyBrain.Web.Application.Settings
 @inject IAccountService AccountService
+@inject IUserSettingsService SettingsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<SharedResource> L
@@ -45,7 +47,7 @@
                         <MudStack Spacing="3">
                             @foreach (var account in _assetAccounts)
                             {
-                                <MudCard Outlined="true">
+                                <MudCard @key="account.Id" Outlined="true">
                                     <MudCardContent>
                                         <div class="d-flex justify-space-between align-center mb-2">
                                             <MudText Typo="Typo.h6">@account.Name</MudText>
@@ -94,7 +96,7 @@
                         <MudStack Spacing="3">
                             @foreach (var account in _liabilityAccounts)
                             {
-                                <MudCard Outlined="true">
+                                <MudCard @key="account.Id" Outlined="true">
                                     <MudCardContent>
                                         <div class="d-flex justify-space-between align-center mb-2">
                                             <MudText Typo="Typo.h6">@account.Name</MudText>
@@ -145,6 +147,11 @@
 
         var authState = await AuthenticationState;
         _userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        if (!string.IsNullOrEmpty(_userId))
+        {
+            _userSettings = await SettingsService.GetSettingsAsync(_userId);
+        }
 
         await LoadAccounts();
     }

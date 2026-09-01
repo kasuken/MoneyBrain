@@ -1,9 +1,11 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
+
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
 /// A saved filter for quick access
 /// </summary>
-public class SavedTransactionFilter
+public class SavedTransactionFilter : IUserOwnedEntity
 {
     public int Id { get; set; }
     public string UserId { get; set; } = string.Empty;

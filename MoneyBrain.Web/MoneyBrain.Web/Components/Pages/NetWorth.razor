@@ -214,7 +214,7 @@
                                                         <tbody>
                                                             @foreach (var account in context.AccountBalances.Where(a => a.AccountType == "Asset"))
                                                             {
-                                                                <tr>
+                                                                <tr @key="account.AccountId">
                                                                     <td>
                                                                         @account.AccountName
                                                                         @if (!account.IsActive)
@@ -240,7 +240,7 @@
                                                         <tbody>
                                                             @foreach (var account in context.AccountBalances.Where(a => a.AccountType == "Liability"))
                                                             {
-                                                                <tr>
+                                                                <tr @key="account.AccountId">
                                                                     <td>
                                                                         @account.AccountName
                                                                         @if (!account.IsActive)

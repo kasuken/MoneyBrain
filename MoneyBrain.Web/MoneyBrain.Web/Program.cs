@@ -21,7 +21,9 @@ using MoneyBrain.Web.Application.Reporting.CsvExport;
 using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.CsvImport;
 using MoneyBrain.Web.Application.Transactions.Ledger;
+using MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 using MoneyBrain.Web.Application.Transactions.RecurringTransactions;
+using MoneyBrain.Web.Application.Transactions.Transfers;
 using MoneyBrain.Web.Application.InsightExplorer;
 using MoneyBrain.Web.Application.Tips;
 using MoneyBrain.Web.Components;
@@ -29,6 +31,7 @@ using MoneyBrain.Web.Components.Account;
 using MoneyBrain.Web.Data;
 using MudBlazor.Services;
 using StackExchange.Redis;
+using StripeException = Stripe.StripeException;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -134,7 +137,7 @@ else
 {
     // Memory cache (default)
     builder.Services.AddMemoryCache();
-    builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+    builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
 }
 
 // MoneyBrain application services
@@ -143,6 +146,8 @@ builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IPayeeService, PayeeService>();
+builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransactionCsvImportService, TransactionCsvImportService>();
 builder.Services.AddScoped<IRecurringTransactionService, RecurringTransactionService>();
 builder.Services.AddScoped<IReconciliationService, ReconciliationService>();
@@ -202,6 +207,19 @@ else
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
+// Security headers — applied early, before authentication middleware.
+// Content-Security-Policy is intentionally omitted: MudBlazor relies on inline
+// styles and scripts; a strict CSP would break the UI. Revisit when MudBlazor
+// ships nonce/hash support.
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    await next();
+});
+
 // Only use HTTPS redirection when not running behind a reverse proxy
 if (!string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_FORWARDEDHEADERS_ENABLED"]) ||
     app.Environment.IsDevelopment())
@@ -260,9 +278,9 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 // Stripe webhook endpoint for subscription lifecycle events
-app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService licenseService) =>
+app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService licenseService, ILogger<Program> logger) =>
 {
-    var json = await new StreamReader(context.Request.Body).ReadToEndAsync();
+    var json = await new StreamReader(context.Request.Body).ReadToEndAsync(context.RequestAborted);
     var signature = context.Request.Headers["Stripe-Signature"].FirstOrDefault();
     
     if (string.IsNullOrEmpty(signature))
@@ -272,12 +290,20 @@ app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService l
 
     try
     {
-        await licenseService.HandleWebhookAsync(json, signature);
+        await licenseService.HandleWebhookAsync(json, signature, context.RequestAborted);
         return Results.Ok();
+    }
+    catch (StripeException ex)
+    {
+        // Stripe signature/payload errors are client errors — don't retry.
+        logger.LogError(ex, "Stripe error processing webhook");
+        return Results.BadRequest("Webhook processing failed");
     }
     catch (Exception ex)
     {
-        return Results.BadRequest(ex.Message);
+        // Unexpected internal error — return 500 so Stripe retries the event.
+        logger.LogError(ex, "Unexpected error processing Stripe webhook");
+        return Results.Problem("Webhook processing failed");
     }
 }).AllowAnonymous();
 

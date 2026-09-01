@@ -9,8 +9,10 @@
 
 @attribute [Authorize]
 
+@using MoneyBrain.Web.Application.Settings
 @inject IStringLocalizer<SharedResource> L
 @inject ICategoryService CategoryService
+@inject IUserSettingsService SettingsService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -110,14 +112,14 @@
         else
         {
             <MudStack Spacing="4">
-                @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
+                @foreach (var group in OrderedGroups)
                 {
-                    <MudPaper Class="pa-4">
+                    <MudPaper @key="group.Id" Class="pa-4">
                         <MudText Typo="Typo.h6" Class="mb-3">@group.Name</MudText>
 
                         @if (group.Categories.Any(c => c.IsActive))
                         {
-                            <MudTable Items="@group.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name)" 
+                            <MudTable Items="@OrderedCategories(group)" 
                                       Dense="true" 
                                       Hover="true">
                                 <HeaderContent>
@@ -258,9 +260,9 @@
     else
     {
         <MudStack Spacing="4">
-            @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
+            @foreach (var group in OrderedGroups)
             {
-                <MudPaper Class="pa-4">
+                <MudPaper @key="group.Id" Class="pa-4">
                     <div class="d-flex justify-space-between align-center mb-3">
                         <div class="d-flex align-center gap-2">
                             <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Size="Size.Small" Color="Color.Default" />
@@ -301,9 +303,9 @@
                     @if (group.Categories.Any(c => c.IsActive))
                     {
                         <MudList T="string" Dense="true" disablePadding="true">
-                            @foreach (var category in group.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name))
+                            @foreach (var category in OrderedCategories(group))
                             {
-                                <MudListItem T="string" Class="px-0">
+                                <MudListItem @key="category.Id" T="string" Class="px-0">
                                     <div class="d-flex justify-space-between align-center w-100">
                                         <div class="d-flex align-center gap-2">
                                             <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Size="Size.Small" Color="Color.Surface" />
@@ -376,6 +378,14 @@
     private bool _isLoading = true;
     private string? _userId;
     private string _viewMode = "categories"; // "categories" or "budgets"
+
+    /// <summary>Groups sorted by display order for use in markup.</summary>
+    private IEnumerable<CategoryGroup> OrderedGroups =>
+        _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name);
+
+    /// <summary>Active categories within a group, sorted by display order.</summary>
+    private static IEnumerable<Category> OrderedCategories(CategoryGroup group) =>
+        group.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder).ThenBy(c => c.Name);
     private int _selectedYear = DateTime.UtcNow.Year;
     private int _selectedMonth = DateTime.UtcNow.Month;
     private string _selectedMonthName = string.Empty;
@@ -389,6 +399,7 @@
 
         if (!string.IsNullOrWhiteSpace(_userId))
         {
+            _userSettings = await SettingsService.GetSettingsAsync(_userId);
             await LoadCategories();
             await LoadBudgets();
         }

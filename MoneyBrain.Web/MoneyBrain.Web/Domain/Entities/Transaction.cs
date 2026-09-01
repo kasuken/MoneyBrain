@@ -1,3 +1,4 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Domain.Entities;
@@ -5,7 +6,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// <summary>
 /// Transaction - belongs to exactly one account
 /// </summary>
-public class Transaction
+public class Transaction : IUserOwnedEntity
 {
     public int Id { get; set; }
     

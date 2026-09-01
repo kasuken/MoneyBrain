@@ -6,7 +6,7 @@
 @using MoneyBrain.Web.Resources
 @using Microsoft.Extensions.Localization
 @using MudBlazor
-@inject ITransactionService TransactionService
+@inject ITransferService TransferService
 @inject IAccountService AccountService
 @inject IStringLocalizer<SharedResource> L
 
@@ -21,7 +21,7 @@
                        HelperText="@L["TransferDlg_FromAccountHelper"]">
                 @foreach (var account in _accounts)
                 {
-                    <MudSelectItem T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
+                    <MudSelectItem @key="account.Id" T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
                 }
             </MudSelect>
 
@@ -29,7 +29,7 @@
                        HelperText="@L["TransferDlg_ToAccountHelper"]">
                 @foreach (var account in _accounts)
                 {
-                    <MudSelectItem T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
+                    <MudSelectItem @key="account.Id" T="int" Value="@account.Id">@account.Name (@account.Type)</MudSelectItem>
                 }
             </MudSelect>
 
@@ -149,12 +149,12 @@
 
             if (IsNew)
             {
-                var result = await TransactionService.CreateTransferAsync(UserId!, transferDto);
+                var result = await TransferService.CreateTransferAsync(UserId!, transferDto);
                 MudDialog.Close(DialogResult.Ok(result));
             }
             else if (Transfer != null)
             {
-                var updated = await TransactionService.UpdateTransferAsync(
+                var updated = await TransferService.UpdateTransferAsync(
                     UserId!,
                     Transfer.FromTransaction.Id,
                     transferDto);

@@ -22,7 +22,7 @@
                        Required="true">
                 @foreach (var group in _categoryGroups.OrderBy(g => g.SortOrder).ThenBy(g => g.Name))
                 {
-                    <MudSelectItem T="int" Value="@group.Id">@group.Name</MudSelectItem>
+                    <MudSelectItem @key="group.Id" T="int" Value="@group.Id">@group.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudStack>

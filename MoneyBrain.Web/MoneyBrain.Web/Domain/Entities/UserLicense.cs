@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Enums;
 
@@ -7,7 +8,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// <summary>
 /// Tracks a user's license/subscription status with Stripe integration.
 /// </summary>
-public class UserLicense
+public class UserLicense : IUserOwnedEntity
 {
     /// <summary>
     /// Unique identifier for the license record.

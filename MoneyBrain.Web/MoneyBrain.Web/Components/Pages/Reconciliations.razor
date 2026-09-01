@@ -9,7 +9,9 @@
 
 @attribute [Authorize]
 
+@using MoneyBrain.Web.Application.Settings
 @inject IReconciliationService ReconciliationService
+@inject IUserSettingsService SettingsService
 @inject IStringLocalizer<SharedResource> L
 @inject IAccountService AccountService
 @inject IDialogService DialogService
@@ -81,7 +83,7 @@
                        Style="max-width: 300px;">
                 @foreach (var account in _accounts)
                 {
-                    <MudSelectItem T="int?" Value="@account.Id">@account.Name</MudSelectItem>
+                    <MudSelectItem @key="account.Id" T="int?" Value="@account.Id">@account.Name</MudSelectItem>
                 }
             </MudSelect>
         </div>
@@ -193,6 +195,7 @@
             return;
         }
 
+        _userSettings = await SettingsService.GetSettingsAsync(_userId);
         await LoadData();
         _isLoading = false;
     }

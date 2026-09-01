@@ -27,7 +27,9 @@ public class CashflowService : ICashflowService
         CancellationToken cancellationToken = default)
     {
         // Default to last 6 months if not specified
-        var end = endDate ?? DateTime.Today;
+        // DateTime.UtcNow.Date is used as the "today" reference date so the default
+        // range is stable regardless of server local timezone.
+        var end = endDate ?? DateTime.UtcNow.Date;
         var start = startDate ?? end.AddMonths(-5).Date;
 
         // Get all ledger entries with categories for the period

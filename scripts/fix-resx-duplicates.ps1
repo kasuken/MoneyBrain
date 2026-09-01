@@ -9,8 +9,10 @@ $resxFiles = @(
     "MoneyBrain.Web\MoneyBrain.Web\Resources\SharedResource.it.resx"
 )
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
+
 foreach ($file in $resxFiles) {
-    $fullPath = Join-Path $PSScriptRoot $file
+    $fullPath = Join-Path $repoRoot $file
     
     if (-not (Test-Path $fullPath)) {
         Write-Warning "File not found: $fullPath"

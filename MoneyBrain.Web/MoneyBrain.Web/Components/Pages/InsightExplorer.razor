@@ -68,7 +68,7 @@
         {
             var index = i;
             var filter = _query.Filters[i];
-            <MudPaper Class="pa-3 mb-2" Elevation="0" Style="background: var(--mud-palette-background-gray);">
+            <MudPaper @key="index" Class="pa-3 mb-2" Elevation="0" Style="background: var(--mud-palette-background-gray);">
                 <MudGrid>
                     <MudItem xs="12" md="3">
                         <MudSelect T="string" Value="filter.Property"
@@ -76,7 +76,7 @@
                                    ValueChanged="@(v => OnPropertyChanged(index, v))">
                             @foreach (var prop in _availableProperties.Where(p => p.IsFilterable))
                             {
-                                <MudSelectItem T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
+                                <MudSelectItem @key="prop.Name" T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -86,7 +86,7 @@
                                    ValueChanged="@(v => OnOperatorChanged(index, v))">
                             @foreach (var op in GetOperatorsForDataType(filter.DataType))
                             {
-                                <MudSelectItem T="InsightFilterOperator" Value="@op">@FormatOperator(op)</MudSelectItem>
+                                <MudSelectItem @key="op" T="InsightFilterOperator" Value="@op">@FormatOperator(op)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -112,7 +112,7 @@
                                     {
                                         @foreach (var enumVal in propMeta.EnumValues)
                                         {
-                                            <MudSelectItem T="string" Value="@enumVal">@enumVal</MudSelectItem>
+                                            <MudSelectItem @key="enumVal" T="string" Value="@enumVal">@enumVal</MudSelectItem>
                                         }
                                     }
                                 </MudSelect>
@@ -186,7 +186,7 @@
                                        ValueChanged="OnAggregationPropertyChanged">
                                 @foreach (var prop in _availableProperties.Where(p => p.IsAggregatable))
                                 {
-                                    <MudSelectItem T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
+                                    <MudSelectItem @key="prop.Name" T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
                                 }
                             </MudSelect>
                         </MudItem>
@@ -197,7 +197,7 @@
                                 <MudSelectItem T="string" Value="@string.Empty">@L["Common_None"]</MudSelectItem>
                                 @foreach (var prop in _availableProperties.Where(p => p.IsGroupable))
                                 {
-                                    <MudSelectItem T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
+                                    <MudSelectItem @key="prop.Name" T="string" Value="@prop.Name">@prop.DisplayName</MudSelectItem>
                                 }
                             </MudSelect>
                         </MudItem>
@@ -249,7 +249,7 @@
                         <Columns>
                             @foreach (var col in _result.Columns)
                             {
-                                <TemplateColumn T="AggregatedRow" Title="@col.DisplayName">
+                                <TemplateColumn @key="col.Name" T="AggregatedRow" Title="@col.DisplayName">
                                     <CellTemplate>
                                         @GetAggregatedValue(context.Item, col.Name)
                                     </CellTemplate>
@@ -266,7 +266,7 @@
                         <Columns>
                             @foreach (var col in _result.Columns)
                             {
-                                <TemplateColumn T="Dictionary<string, object?>" Title="@col.DisplayName">
+                                <TemplateColumn @key="col.Name" T="Dictionary<string, object?>" Title="@col.DisplayName">
                                     <CellTemplate>
                                         @FormatValue(context.Item.GetValueOrDefault(col.Name), col.DataType)
                                     </CellTemplate>
@@ -359,7 +359,7 @@
             <MudList T="SavedQuery" Dense="true">
                 @foreach (var sq in _savedQueries)
                 {
-                    <MudListItem>
+                    <MudListItem @key="sq.Id">
                         <div class="d-flex justify-space-between align-center" style="width: 100%;">
                             <div>
                                 <MudText Typo="Typo.body1">@sq.Name</MudText>

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Data;
 
@@ -37,49 +38,27 @@ public class AccountBalanceHistoryService : IAccountBalanceHistoryService
             throw new InvalidOperationException($"Account {accountId} not found for user {userId}.");
         }
 
-        // Generate snapshots at regular intervals
-        var snapshots = new List<BalanceSnapshotDto>();
-        var currentDate = startDate;
+        // Generate balance snapshots at regular intervals using shared helper
+        var snapshotDates = BalanceComputationHelper.BuildSnapshotDates(startDate, endDate, intervalDays);
 
-        async Task AddSnapshotAsync(DateTime snapshotDate)
+        var snapshots = new List<BalanceSnapshotDto>(snapshotDates.Count);
+        foreach (var date in snapshotDates)
         {
             var balance = await _ledgerService.GetAccountBalanceAsync(
-                accountId,
-                userId,
-                snapshotDate,
-                cancellationToken);
+                accountId, userId, date, cancellationToken);
 
-            snapshots.Add(new BalanceSnapshotDto
+            snapshots.Add(new BalanceSnapshotDto { Date = date, Balance = balance });
+        }
+
+        // Annotate each snapshot with change from previous
+        BalanceComputationHelper.AnnotateChanges(
+            snapshots,
+            s => s.Balance,
+            (s, change, pct) =>
             {
-                Date = snapshotDate,
-                Balance = balance
+                s.ChangeFromPrevious = change;
+                s.PercentageChangeFromPrevious = pct;
             });
-        }
-
-        while (currentDate <= endDate)
-        {
-            await AddSnapshotAsync(currentDate);
-
-            currentDate = currentDate.AddDays(intervalDays);
-        }
-
-        // Always include the end date if not already included
-        if (snapshots.Count == 0 || snapshots[^1].Date != endDate)
-        {
-            await AddSnapshotAsync(endDate);
-        }
-
-        // Calculate changes between snapshots
-        for (int i = 1; i < snapshots.Count; i++)
-        {
-            var current = snapshots[i];
-            var previous = snapshots[i - 1];
-
-            current.ChangeFromPrevious = current.Balance - previous.Balance;
-            current.PercentageChangeFromPrevious = previous.Balance != 0
-                ? (current.ChangeFromPrevious.Value / Math.Abs(previous.Balance) * 100)
-                : 0;
-        }
 
         // Build result
         var openingBalance = snapshots.First().Balance;
@@ -110,7 +89,7 @@ public class AccountBalanceHistoryService : IAccountBalanceHistoryService
         // Get accounts to track
         var query = _context.Accounts
             .AsNoTracking()
-            .Where(a => a.UserId == userId);
+            .ForUser(userId);
 
         if (accountIds != null && accountIds.Any())
         {
@@ -151,3 +130,4 @@ public class AccountBalanceHistoryService : IAccountBalanceHistoryService
         };
     }
 }
+

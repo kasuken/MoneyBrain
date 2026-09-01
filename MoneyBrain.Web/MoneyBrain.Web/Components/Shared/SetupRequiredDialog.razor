@@ -26,7 +26,7 @@
                            AnchorOrigin="Origin.BottomCenter">
                     @foreach (var currency in Currencies)
                     {
-                        <MudSelectItem T="string" Value="@currency.Code">
+                        <MudSelectItem @key="currency.Code" T="string" Value="@currency.Code">
                             @currency.Code - @currency.Name (@currency.Symbol)
                         </MudSelectItem>
                     }
@@ -41,7 +41,7 @@
                            AnchorOrigin="Origin.BottomCenter">
                     @foreach (var tz in TimeZones)
                     {
-                        <MudSelectItem T="string" Value="@tz.Id">
+                        <MudSelectItem @key="tz.Id" T="string" Value="@tz.Id">
                             @tz.DisplayName
                         </MudSelectItem>
                     }

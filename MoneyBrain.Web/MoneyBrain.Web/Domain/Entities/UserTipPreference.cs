@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Domain.Entities;
@@ -6,7 +7,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// <summary>
 /// Track individual tip dismissals and user preferences for educational tips.
 /// </summary>
-public class UserTipPreference
+public class UserTipPreference : IUserOwnedEntity
 {
     /// <summary>
     /// Unique identifier for the preference record.

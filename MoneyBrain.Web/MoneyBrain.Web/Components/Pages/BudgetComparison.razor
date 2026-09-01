@@ -7,7 +7,9 @@
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
 @attribute [Authorize]
+@using MoneyBrain.Web.Application.Settings
 @inject IBudgetComparisonService BudgetComparisonService
+@inject IUserSettingsService SettingsService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -272,6 +274,7 @@
             if (string.IsNullOrEmpty(userId))
                 return;
 
+            _userSettings = await SettingsService.GetSettingsAsync(userId);
             _summary = await BudgetComparisonService.GetBudgetComparisonSummaryAsync(
                 userId, 
                 _startDate.Value, 

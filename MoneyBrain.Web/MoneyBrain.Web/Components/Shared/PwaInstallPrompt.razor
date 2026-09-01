@@ -238,9 +238,13 @@
         {
             await JS.InvokeVoidAsync("window.moneybrainPwa.dispose");
         }
-        catch
+        catch (JSDisconnectedException)
         {
-            // Ignore errors during disposal
+            // Circuit already gone — safe to ignore
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PWA] Dispose error: {ex.Message}");
         }
         
         _dotNetRef?.Dispose();

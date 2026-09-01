@@ -6,7 +6,9 @@
 @using Microsoft.JSInterop
 @using Microsoft.Extensions.Localization
 @using MoneyBrain.Web.Resources
+@using MoneyBrain.Web.Application.Settings
 @inject ICashflowService CashflowService
+@inject IUserSettingsService SettingsService
 @inject ICsvExportService CsvExportService
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -165,7 +167,7 @@
                                                     <tbody>
                                                         @foreach (var cat in context.IncomeByCategory)
                                                         {
-                                                            <tr>
+                                                            <tr @key="cat">
                                                                 <td>
                                                                     @if (!string.IsNullOrEmpty(cat.CategoryGroupName))
                                                                     {
@@ -207,7 +209,7 @@
                                                     <tbody>
                                                         @foreach (var cat in context.ExpensesByCategory)
                                                         {
-                                                            <tr>
+                                                            <tr @key="cat">
                                                                 <td>
                                                                     @if (!string.IsNullOrEmpty(cat.CategoryGroupName))
                                                                     {
@@ -302,6 +304,10 @@
         if (user.Identity?.IsAuthenticated == true)
         {
             _userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            if (!string.IsNullOrEmpty(_userId))
+            {
+                _userSettings = await SettingsService.GetSettingsAsync(_userId);
+            }
             await LoadDataAsync();
         }
     }

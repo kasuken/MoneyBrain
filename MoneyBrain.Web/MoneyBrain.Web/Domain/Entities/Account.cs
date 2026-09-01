@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Enums;
 
@@ -8,7 +9,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// Represents a financial account (asset or liability) that tracks money inflows and outflows.
 /// Every transaction belongs to exactly one account.
 /// </summary>
-public class Account
+public class Account : IUserOwnedEntity
 {
     /// <summary>
     /// Unique identifier for the account.

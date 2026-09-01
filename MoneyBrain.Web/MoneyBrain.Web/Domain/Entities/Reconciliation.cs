@@ -1,9 +1,11 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
+
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
 /// Tracks account reconciliation against statements
 /// </summary>
-public class Reconciliation
+public class Reconciliation : IUserOwnedEntity
 {
     public int Id { get; set; }
     

@@ -65,7 +65,7 @@
             <MudGrid>
                 @foreach (var tip in _filteredTips)
                 {
-                    <MudItem xs="12" sm="6" md="4">
+                    <MudItem @key="tip.Id" xs="12" sm="6" md="4">
                         <TipCard TipId="@tip.Id.ToString()" 
                                  Title="@tip.Title" 
                                  Content="@tip.Description" 

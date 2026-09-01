@@ -29,23 +29,44 @@ public class CreditCardBillingService : ICreditCardBillingService
     public async Task<IReadOnlyList<Account>> GetAccountsDueForBillingAsync(
         CancellationToken cancellationToken = default)
     {
-        var today = DateTime.UtcNow.Date;
-        var dayOfMonth = today.Day;
-        var currentMonth = new DateTime(today.Year, today.Month, 1);
+        var utcNow = DateTime.UtcNow;
 
-        // Get credit cards where:
-        // 1. BillingCycleDay matches today's day
-        // 2. LinkedPaymentAccountId is set
-        // 3. LastBillingCycleDate is null or before current month
-        var accounts = await _context.Accounts
+        // Pull credit cards that potentially match today's billing day.
+        // We fetch all active credit cards with a LinkedPaymentAccountId and then
+        // resolve the per-user local date to handle billing-day comparisons correctly
+        // regardless of the user's timezone (stored in UserSettings.TimeZoneId).
+        var candidates = await _context.Accounts
             .Where(a => a.SubType == AccountSubType.CreditCard &&
-                        a.BillingCycleDay == dayOfMonth &&
+                        a.BillingCycleDay.HasValue &&
                         a.LinkedPaymentAccountId.HasValue &&
-                        a.IsActive &&
-                        (a.LastBillingCycleDate == null || a.LastBillingCycleDate < currentMonth))
+                        a.IsActive)
             .ToListAsync(cancellationToken);
 
-        return accounts;
+        if (candidates.Count == 0)
+            return [];
+
+        // Load timezone settings for the distinct users that own these accounts.
+        var userIds = candidates.Select(a => a.UserId).Distinct().ToList();
+        var settingsByUser = await _context.UserSettings
+            .Where(us => userIds.Contains(us.UserId))
+            .AsNoTracking()
+            .ToDictionaryAsync(us => us.UserId, cancellationToken);
+
+        var due = new List<Account>();
+
+        foreach (var account in candidates)
+        {
+            var localToday = ResolveLocalDate(utcNow, account.UserId, settingsByUser);
+            var currentMonth = new DateTime(localToday.Year, localToday.Month, 1);
+
+            if (account.BillingCycleDay == localToday.Day &&
+                (account.LastBillingCycleDate == null || account.LastBillingCycleDate < currentMonth))
+            {
+                due.Add(account);
+            }
+        }
+
+        return due;
     }
 
     public async Task<BillingCycleResult> ProcessBillingCycleAsync(
@@ -53,7 +74,16 @@ public class CreditCardBillingService : ICreditCardBillingService
         string userId,
         CancellationToken cancellationToken = default)
     {
-        var today = DateTime.UtcNow.Date;
+        // Resolve the user's local "today" for billing-day and billing-month labelling.
+        var userSettings = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(us => us.UserId == userId, cancellationToken);
+
+        var settingsMap = userSettings != null
+            ? new Dictionary<string, Domain.Entities.UserSettings> { [userId] = userSettings }
+            : new Dictionary<string, Domain.Entities.UserSettings>();
+
+        var today = ResolveLocalDate(DateTime.UtcNow, userId, settingsMap);
         var billingMonth = $"{today:yyyy-MM}";
 
         _logger.LogInformation(
@@ -291,5 +321,31 @@ public class CreditCardBillingService : ICreditCardBillingService
             CanProcess = canProcess,
             ValidationMessage = validationMessage
         };
+    }
+
+    /// <summary>
+    /// Returns the calendar date in the user's configured timezone.
+    /// Falls back to UTC if the timezone ID is unknown or unavailable on this platform.
+    /// </summary>
+    private static DateTime ResolveLocalDate(
+        DateTime utcNow,
+        string userId,
+        Dictionary<string, UserSettings> settingsByUser)
+    {
+        if (settingsByUser.TryGetValue(userId, out var settings) &&
+            !string.IsNullOrWhiteSpace(settings.TimeZoneId))
+        {
+            try
+            {
+                var tz = TimeZoneInfo.FindSystemTimeZoneById(settings.TimeZoneId);
+                return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz).Date;
+            }
+            catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+            {
+                // Unknown or corrupt timezone ID — fall through to UTC.
+            }
+        }
+
+        return utcNow.Date; // UTC fallback
     }
 }

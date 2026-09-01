@@ -1,9 +1,11 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
+
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
 /// Represents a named budget containing multiple category allocations for a specific period
 /// </summary>
-public class Budget
+public class Budget : IUserOwnedEntity
 {
     public int Id { get; set; }
     public required string UserId { get; set; }

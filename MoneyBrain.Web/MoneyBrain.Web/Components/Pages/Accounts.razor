@@ -18,6 +18,7 @@
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject ICurrencyFormattingService CurrencyFormattingService
 
 <PageTitle>@L["Nav_Accounts"] | @L["App_MoneyBrain"]</PageTitle>
 
@@ -143,7 +144,7 @@
             <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Asset))
                 {
-                    <MudPaper Elevation="2" Class="pa-4" Style="border-radius: 12px; cursor: pointer; transition: all 0.2s ease; border-left: 4px solid var(--mud-palette-success);" @onclick="() => ViewBalanceHistory(account)">
+                    <MudPaper @key="account.Id" Elevation="2" Class="pa-4" Style="border-radius: 12px; cursor: pointer; transition: all 0.2s ease; border-left: 4px solid var(--mud-palette-success);" @onclick="() => ViewBalanceHistory(account)">
                         <div class="d-flex gap-3">
                             <div class="mb-account-icon @GetAccountIconClass(account.SubType)" style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                 <MudIcon Icon="@GetAccountIcon(account.SubType)" Size="MudBlazor.Size.Medium" />
@@ -228,7 +229,7 @@
             <div class="mb-grid-accounts mb-4">
                 @foreach (var account in _accounts.Where(a => a.Type == AccountType.Liability))
                 {
-                    <MudPaper Elevation="2" Class="pa-4" Style="border-radius: 12px; cursor: pointer; transition: all 0.2s ease; border-left: 4px solid var(--mud-palette-warning);" @onclick="() => ViewBalanceHistory(account)">
+                    <MudPaper @key="account.Id" Elevation="2" Class="pa-4" Style="border-radius: 12px; cursor: pointer; transition: all 0.2s ease; border-left: 4px solid var(--mud-palette-warning);" @onclick="() => ViewBalanceHistory(account)">
                         <div class="d-flex gap-3">
                             <div class="mb-account-icon @GetAccountIconClass(account.SubType)" style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                 <MudIcon Icon="@GetAccountIcon(account.SubType)" Size="MudBlazor.Size.Medium" />
@@ -478,8 +479,8 @@
 
     private string FormatCurrency(decimal amount)
     {
-        var sign = amount >= 0 ? "+" : "";
-        return $"{sign}{amount:N2} {_currencyCode}";
+        var sign = amount >= 0 ? "+" : "-";
+        return $"{sign}{CurrencyFormattingService.FormatCurrency(Math.Abs(amount), _currencyCode)}";
     }
 
     private string GetBalanceClass(decimal amount) => amount switch
@@ -509,7 +510,7 @@
         _ => Icons.Material.Filled.Wallet
     };
 
-    private string FormatAmount(decimal amount) => $"{amount:N2} {_currencyCode}";
+    private string FormatAmount(decimal amount) => CurrencyFormattingService.FormatCurrency(amount, _currencyCode);
 
     private double GetSpendingProgress(MonthlySpendingSummary summary)
     {

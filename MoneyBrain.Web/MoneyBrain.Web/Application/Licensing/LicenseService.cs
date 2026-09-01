@@ -36,7 +36,7 @@ public class LicenseService : ILicenseService
         }
     }
 
-    public async Task<LicenseInfo?> GetLicenseAsync(string userId)
+    public async Task<LicenseInfo?> GetLicenseAsync(string userId, CancellationToken cancellationToken = default)
     {
         // If licensing is disabled, return an active license        
         if (!_licensingSettings.Enabled)
@@ -51,7 +51,7 @@ public class LicenseService : ILicenseService
 
         var license = await _context.UserLicenses
             .AsNoTracking()
-            .FirstOrDefaultAsync(l => l.UserId == userId);
+            .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
         if (license == null)
         {
@@ -61,7 +61,7 @@ public class LicenseService : ILicenseService
         return MapToLicenseInfo(license);
     }
 
-    public async Task<bool> HasValidLicenseAsync(string userId)
+    public async Task<bool> HasValidLicenseAsync(string userId, CancellationToken cancellationToken = default)
     {
         // If licensing is disabled, everyone has access
         if (!_licensingSettings.Enabled)
@@ -71,7 +71,7 @@ public class LicenseService : ILicenseService
 
         var license = await _context.UserLicenses
             .AsNoTracking()
-            .FirstOrDefaultAsync(l => l.UserId == userId);
+            .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
         // If we have a valid license in the database, return true
         if (license != null && IsLicenseValid(license))
@@ -80,10 +80,10 @@ public class LicenseService : ILicenseService
         }
 
         // License is invalid or doesn't exist - check with Stripe directly
-        return await ValidateLicenseAsync(userId);
+        return await ValidateLicenseAsync(userId, cancellationToken);
     }
 
-    public async Task<bool> ValidateLicenseAsync(string userId)
+    public async Task<bool> ValidateLicenseAsync(string userId, CancellationToken cancellationToken = default)
     {
         if (!_licensingSettings.Enabled)
         {
@@ -98,7 +98,7 @@ public class LicenseService : ILicenseService
         }
 
         var license = await _context.UserLicenses
-            .FirstOrDefaultAsync(l => l.UserId == userId);
+            .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
         // If we have an existing subscription ID, validate it directly
         if (!string.IsNullOrEmpty(license?.StripeSubscriptionId))
@@ -106,13 +106,13 @@ public class LicenseService : ILicenseService
             try
             {
                 var subscriptionService = new SubscriptionService();
-                var subscription = await subscriptionService.GetAsync(license.StripeSubscriptionId);
+                var subscription = await subscriptionService.GetAsync(license.StripeSubscriptionId, cancellationToken: cancellationToken);
 
                 UpdateLicenseFromSubscription(license, subscription);
                 license.LastValidatedAt = DateTime.UtcNow;
                 license.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
                 return IsLicenseValid(license);
             }
             catch (StripeException ex)
@@ -123,16 +123,16 @@ public class LicenseService : ILicenseService
         }
 
         // Try to find the customer by email in Stripe
-        return await ValidateLicenseByEmailAsync(userId, license);
+        return await ValidateLicenseByEmailAsync(userId, license, cancellationToken);
     }
 
     /// <summary>
     /// Validates license by looking up the user's email in Stripe and checking for active subscriptions.
     /// </summary>
-    private async Task<bool> ValidateLicenseByEmailAsync(string userId, UserLicense? existingLicense)
+    private async Task<bool> ValidateLicenseByEmailAsync(string userId, UserLicense? existingLicense, CancellationToken cancellationToken)
     {
         // Get the user's email from Identity
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users.FindAsync(new object?[] { userId }, cancellationToken);
         if (string.IsNullOrEmpty(user?.Email))
         {
             _logger.LogWarning("Cannot validate license for user {UserId}: no email found", userId);
@@ -151,7 +151,7 @@ public class LicenseService : ILicenseService
                 {
                     Email = user.Email,
                     Limit = 1
-                });
+                }, cancellationToken: cancellationToken);
                 customerId = customers.Data.FirstOrDefault()?.Id;
             }
 
@@ -171,7 +171,7 @@ public class LicenseService : ILicenseService
                 Customer = customerId,
                 Status = "active",
                 Limit = 1
-            });
+            }, cancellationToken: cancellationToken);
             activeSubscription = activeSubscriptions.Data.FirstOrDefault();
 
             // If no active, check for trialing
@@ -182,7 +182,7 @@ public class LicenseService : ILicenseService
                     Customer = customerId,
                     Status = "trialing",
                     Limit = 1
-                });
+                }, cancellationToken: cancellationToken);
                 activeSubscription = trialingSubscriptions.Data.FirstOrDefault();
             }
 
@@ -194,7 +194,7 @@ public class LicenseService : ILicenseService
                     Customer = customerId,
                     Status = "past_due",
                     Limit = 1
-                });
+                }, cancellationToken: cancellationToken);
                 activeSubscription = pastDueSubscriptions.Data.FirstOrDefault();
             }
 
@@ -207,7 +207,7 @@ public class LicenseService : ILicenseService
                     existingLicense.StripeCustomerId = customerId;
                     existingLicense.LastValidatedAt = DateTime.UtcNow;
                     existingLicense.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellationToken);
                 }
                 _logger.LogDebug("No active subscription found for customer {CustomerId}", customerId);
                 return false;
@@ -231,7 +231,7 @@ public class LicenseService : ILicenseService
             license.LastValidatedAt = DateTime.UtcNow;
             license.UpdatedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Validated license from Stripe for user {UserId}, subscription {SubscriptionId}", 
                 userId, activeSubscription.Id);
 
@@ -245,7 +245,7 @@ public class LicenseService : ILicenseService
         }
     }
 
-    public async Task<string> CreateCheckoutSessionAsync(string userId, string userEmail, string priceId, string successUrl, string cancelUrl)
+    public async Task<string> CreateCheckoutSessionAsync(string userId, string userEmail, string priceId, string successUrl, string cancelUrl, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(_stripeSettings.SecretKey))
         {
@@ -253,7 +253,7 @@ public class LicenseService : ILicenseService
         }
 
         var license = await _context.UserLicenses
-            .FirstOrDefaultAsync(l => l.UserId == userId);
+            .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
         var options = new SessionCreateOptions
         {
@@ -282,12 +282,12 @@ public class LicenseService : ILicenseService
         };
 
         var sessionService = new SessionService();
-        var session = await sessionService.CreateAsync(options);
+        var session = await sessionService.CreateAsync(options, cancellationToken: cancellationToken);
 
         return session.Url;
     }
 
-    public async Task<string?> CreateCustomerPortalSessionAsync(string userId, string returnUrl)
+    public async Task<string?> CreateCustomerPortalSessionAsync(string userId, string returnUrl, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(_stripeSettings.SecretKey))
         {
@@ -296,7 +296,7 @@ public class LicenseService : ILicenseService
 
         var license = await _context.UserLicenses
             .AsNoTracking()
-            .FirstOrDefaultAsync(l => l.UserId == userId);
+            .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
         if (string.IsNullOrEmpty(license?.StripeCustomerId))
         {
@@ -310,17 +310,16 @@ public class LicenseService : ILicenseService
         };
 
         var portalService = new Stripe.BillingPortal.SessionService();
-        var session = await portalService.CreateAsync(options);
+        var session = await portalService.CreateAsync(options, cancellationToken: cancellationToken);
 
         return session.Url;
     }
 
-    public async Task HandleWebhookAsync(string payload, string signature)
+    public async Task HandleWebhookAsync(string payload, string signature, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(_stripeSettings.WebhookSecret))
         {
-            _logger.LogWarning("Webhook secret not configured, skipping webhook processing");
-            return;
+            throw new InvalidOperationException("Stripe webhook secret is not configured");
         }
 
         Event stripeEvent;
@@ -339,25 +338,25 @@ public class LicenseService : ILicenseService
         switch (stripeEvent.Type)
         {
             case "checkout.session.completed":
-                await HandleCheckoutSessionCompleted(stripeEvent);
+                await HandleCheckoutSessionCompletedAsync(stripeEvent, cancellationToken);
                 break;
 
             case "customer.subscription.updated":
             case "customer.subscription.deleted":
-                await HandleSubscriptionUpdated(stripeEvent);
+                await HandleSubscriptionUpdatedAsync(stripeEvent, cancellationToken);
                 break;
 
             case "invoice.paid":
-                await HandleInvoicePaid(stripeEvent);
+                await HandleInvoicePaidAsync(stripeEvent, cancellationToken);
                 break;
 
             case "invoice.payment_failed":
-                await HandlePaymentFailed(stripeEvent);
+                await HandlePaymentFailedAsync(stripeEvent, cancellationToken);
                 break;
         }
     }
 
-    private async Task HandleCheckoutSessionCompleted(Event stripeEvent)
+    private async Task HandleCheckoutSessionCompletedAsync(Event stripeEvent, CancellationToken cancellationToken)
     {
         var session = stripeEvent.Data.Object as Session;
         if (session == null) return;
@@ -366,7 +365,7 @@ public class LicenseService : ILicenseService
         if (string.IsNullOrEmpty(userId)) return;
 
         var license = await _context.UserLicenses
-            .FirstOrDefaultAsync(l => l.UserId == userId);
+            .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
         if (license == null)
         {
@@ -388,15 +387,15 @@ public class LicenseService : ILicenseService
         if (!string.IsNullOrEmpty(session.SubscriptionId))
         {
             var subscriptionService = new SubscriptionService();
-            var subscription = await subscriptionService.GetAsync(session.SubscriptionId);
+            var subscription = await subscriptionService.GetAsync(session.SubscriptionId, cancellationToken: cancellationToken);
             UpdateLicenseFromSubscription(license, subscription);
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Activated license for user {UserId}", userId);
     }
 
-    private async Task HandleSubscriptionUpdated(Event stripeEvent)
+    private async Task HandleSubscriptionUpdatedAsync(Event stripeEvent, CancellationToken cancellationToken)
     {
         var subscription = stripeEvent.Data.Object as Subscription;
         if (subscription == null) return;
@@ -406,54 +405,67 @@ public class LicenseService : ILicenseService
         {
             // Try to find by customer ID
             var license = await _context.UserLicenses
-                .FirstOrDefaultAsync(l => l.StripeSubscriptionId == subscription.Id);
+                .FirstOrDefaultAsync(l => l.StripeSubscriptionId == subscription.Id, cancellationToken);
                 
             if (license != null)
             {
                 UpdateLicenseFromSubscription(license, subscription);
                 license.UpdatedAt = DateTime.UtcNow;
                 license.LastValidatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
             }
             return;
         }
 
         var userLicense = await _context.UserLicenses
-            .FirstOrDefaultAsync(l => l.UserId == userId);
+            .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
         if (userLicense != null)
         {
             UpdateLicenseFromSubscription(userLicense, subscription);
             userLicense.UpdatedAt = DateTime.UtcNow;
             userLicense.LastValidatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 
-    private async Task HandleInvoicePaid(Event stripeEvent)
+    /// <summary>
+    /// Extracts the invoice and its linked <see cref="UserLicense"/> from a Stripe event.
+    /// Returns <c>null</c> if the event payload is not an invoice or has no subscription ID.
+    /// </summary>
+    private async Task<(Invoice invoice, UserLicense? license)?> TryGetInvoiceLicenseAsync(Event stripeEvent, CancellationToken cancellationToken)
     {
-        var invoice = stripeEvent.Data.Object as Invoice;
-        if (invoice == null || string.IsNullOrEmpty(invoice.SubscriptionId)) return;
+        if (stripeEvent.Data.Object is not Invoice invoice || string.IsNullOrEmpty(invoice.SubscriptionId))
+            return null;
 
         var license = await _context.UserLicenses
-            .FirstOrDefaultAsync(l => l.StripeSubscriptionId == invoice.SubscriptionId);
+            .FirstOrDefaultAsync(l => l.StripeSubscriptionId == invoice.SubscriptionId, cancellationToken);
+
+        return (invoice, license);
+    }
+
+    private async Task HandleInvoicePaidAsync(Event stripeEvent, CancellationToken cancellationToken)
+    {
+        var result = await TryGetInvoiceLicenseAsync(stripeEvent, cancellationToken);
+        if (result == null) return;
+
+        var (invoice, license) = result.Value;
 
         if (license != null && license.Status != LicenseStatus.Active)
         {
             license.Status = LicenseStatus.Active;
             license.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Reactivated license for subscription {SubscriptionId}", invoice.SubscriptionId);
         }
     }
 
-    private async Task HandlePaymentFailed(Event stripeEvent)
+    private async Task HandlePaymentFailedAsync(Event stripeEvent, CancellationToken cancellationToken)
     {
-        var invoice = stripeEvent.Data.Object as Invoice;
-        if (invoice == null || string.IsNullOrEmpty(invoice.SubscriptionId)) return;
+        var result = await TryGetInvoiceLicenseAsync(stripeEvent, cancellationToken);
+        if (result == null) return;
 
-        var license = await _context.UserLicenses
-            .FirstOrDefaultAsync(l => l.StripeSubscriptionId == invoice.SubscriptionId);
+        var (invoice, license) = result.Value;
 
         if (license != null)
         {

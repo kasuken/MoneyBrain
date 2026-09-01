@@ -1,3 +1,4 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Domain.Entities;
@@ -5,7 +6,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// <summary>
 /// Category group for organizing categories
 /// </summary>
-public class CategoryGroup
+public class CategoryGroup : IUserOwnedEntity
 {
     public int Id { get; set; }
     

@@ -21,18 +21,18 @@
 
         @foreach (var split in Splits)
         {
-            <MudPaper Class="pa-3" Elevation="1">
+            <MudPaper @key="split" Class="pa-3" Elevation="1">
                 <MudGrid>
                     <MudItem xs="12" sm="5">
                         <MudSelect T="int?" @bind-Value="split.CategoryId" Label="@L["Lbl_Category"]" Variant="Variant.Outlined" Required>
                             @foreach (var group in _categoryGroups.OrderBy(g => g.Name))
                             {
-                                <MudSelectItem T="int?" Value="null" Disabled="true">
+                                <MudSelectItem @key="group.Id" T="int?" Value="null" Disabled="true">
                                     <strong>@group.Name</strong>
                                 </MudSelectItem>
                                 @foreach (var category in group.Categories.Where(c => c.IsActive).OrderBy(c => c.Name))
                                 {
-                                    <MudSelectItem T="int?" Value="category.Id">&nbsp;&nbsp;&nbsp;@category.Name</MudSelectItem>
+                                    <MudSelectItem @key="category.Id" T="int?" Value="category.Id">&nbsp;&nbsp;&nbsp;@category.Name</MudSelectItem>
                                 }
                             }
                         </MudSelect>

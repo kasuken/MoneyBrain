@@ -62,7 +62,8 @@ public class RecurringTransactionBackgroundService : BackgroundService
         }
 
         var totalGenerated = 0;
-        var upToDate = DateTime.Today.AddDays(30); // Generate up to 30 days in advance
+        // DateTime.UtcNow.Date used as "today" reference date for the look-ahead window.
+        var upToDate = DateTime.UtcNow.Date.AddDays(30); // Generate up to 30 days in advance
 
         foreach (var userId in usersWithRecurringTransactions)
         {

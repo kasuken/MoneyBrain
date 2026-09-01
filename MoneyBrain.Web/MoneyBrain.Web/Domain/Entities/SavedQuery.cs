@@ -1,3 +1,4 @@
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Data;
 
 namespace MoneyBrain.Web.Domain.Entities;
@@ -5,7 +6,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// <summary>
 /// A saved query for the Insight Explorer feature
 /// </summary>
-public class SavedQuery
+public class SavedQuery : IUserOwnedEntity
 {
     public int Id { get; set; }
 
