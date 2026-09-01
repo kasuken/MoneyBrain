@@ -102,13 +102,10 @@
     <value>Installa MoneyBrain</value>
   </data>
   <data name="InstallApp_Subtitle" xml:space="preserve">
-    <value>Ottieni l'app per accesso rapido e utilizzo offline</value>
+    <value>Ottieni l'app per accedere rapidamente dal tuo dispositivo</value>
   </data>
   <data name="InstallApp_Benefits" xml:space="preserve">
     <value>Vantaggi</value>
-  </data>
-  <data name="InstallApp_OfflineAccess" xml:space="preserve">
-    <value>Accedi ai tuoi dati offline</value>
   </data>
   <data name="InstallApp_QuickLaunch" xml:space="preserve">
     <value>Avvia dalla schermata iniziale</value>

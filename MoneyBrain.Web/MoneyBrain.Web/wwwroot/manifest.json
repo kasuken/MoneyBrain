@@ -3,43 +3,11 @@
   "short_name": "MoneyBrain",
   "description": "Your personal finance system, under your control. Track accounts, budgets, and transactions with complete data ownership.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#6366f1",
-  "orientation": "portrait-primary",
-  "scope": "/",
-  "categories": ["finance", "productivity", "lifestyle"],
   "icons": [
-    {
-      "src": "/icons/72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
     {
       "src": "/icons/192.png",
       "sizes": "192x192",
@@ -53,24 +21,6 @@
       "purpose": "any maskable"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "View your financial dashboard",
-      "url": "/dashboard",
-      "icons": [{ "src": "/icons/192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Add Transaction",
-      "short_name": "Add",
-      "description": "Quickly add a transaction",
-      "url": "/transactions",
-      "icons": [{ "src": "/icons/192.png", "sizes": "192x192" }]
-    }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false,
   "lang": "en-US",
   "dir": "ltr"
 }
