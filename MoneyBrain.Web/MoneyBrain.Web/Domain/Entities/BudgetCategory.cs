@@ -5,7 +5,7 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// </summary>
 public class BudgetCategory
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
     public int BudgetId { get; set; }
     public int CategoryId { get; set; }
     public decimal PlannedAmount { get; set; }

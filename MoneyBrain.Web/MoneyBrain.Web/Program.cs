@@ -80,6 +80,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
+
+// AddDbContextFactory with explicit ServiceLifetime.Scoped prevents the factory from
+// capturing the scoped options into a singleton lifetime, which would cause issues with
+// per-request services. Blazor Server components and application services use this factory
+// to create short-lived, per-operation contexts that avoid the "second operation started"
+// concurrency error common with long-lived Blazor Server circuits.
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString), ServiceLifetime.Scoped);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -143,8 +151,10 @@ else
 // MoneyBrain application services
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
+builder.Services.AddScoped<IUserDataService, UserDataService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IMonthlyBudgetService, MonthlyBudgetService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IPayeeService, PayeeService>();
 builder.Services.AddScoped<ITransferService, TransferService>();

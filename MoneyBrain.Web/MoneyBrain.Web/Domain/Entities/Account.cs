@@ -14,13 +14,13 @@ public class Account : IUserOwnedEntity
     /// <summary>
     /// Unique identifier for the account.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The user who owns this account.
     /// </summary>
     [Required]
-    public required string UserId { get; set; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// Navigation property to the owning user.

@@ -10,7 +10,7 @@ public class FeatureDisclaimer
     /// <summary>
     /// Unique identifier for the disclaimer.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// Feature name (e.g., "TipsInsights", "SpendingAnalysis").

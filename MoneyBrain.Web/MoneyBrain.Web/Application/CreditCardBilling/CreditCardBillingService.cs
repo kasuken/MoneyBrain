@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MoneyBrain.Web.Application.Common.Interfaces;
+using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
@@ -12,30 +14,34 @@ namespace MoneyBrain.Web.Application.CreditCardBilling;
 /// </summary>
 public class CreditCardBillingService : ICreditCardBillingService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILedgerService _ledgerService;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<CreditCardBillingService> _logger;
 
     public CreditCardBillingService(
-        ApplicationDbContext context,
+        IDbContextFactory<ApplicationDbContext> contextFactory,
         ILedgerService ledgerService,
+        ICacheService cacheService,
         ILogger<CreditCardBillingService> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _ledgerService = ledgerService;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
     public async Task<IReadOnlyList<Account>> GetAccountsDueForBillingAsync(
         CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var utcNow = DateTime.UtcNow;
 
         // Pull credit cards that potentially match today's billing day.
         // We fetch all active credit cards with a LinkedPaymentAccountId and then
         // resolve the per-user local date to handle billing-day comparisons correctly
         // regardless of the user's timezone (stored in UserSettings.TimeZoneId).
-        var candidates = await _context.Accounts
+        var candidates = await context.Accounts
             .Where(a => a.SubType == AccountSubType.CreditCard &&
                         a.BillingCycleDay.HasValue &&
                         a.LinkedPaymentAccountId.HasValue &&
@@ -47,7 +53,7 @@ public class CreditCardBillingService : ICreditCardBillingService
 
         // Load timezone settings for the distinct users that own these accounts.
         var userIds = candidates.Select(a => a.UserId).Distinct().ToList();
-        var settingsByUser = await _context.UserSettings
+        var settingsByUser = await context.UserSettings
             .Where(us => userIds.Contains(us.UserId))
             .AsNoTracking()
             .ToDictionaryAsync(us => us.UserId, cancellationToken);
@@ -74,8 +80,10 @@ public class CreditCardBillingService : ICreditCardBillingService
         string userId,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Resolve the user's local "today" for billing-day and billing-month labelling.
-        var userSettings = await _context.UserSettings
+        var userSettings = await context.UserSettings
             .AsNoTracking()
             .FirstOrDefaultAsync(us => us.UserId == userId, cancellationToken);
 
@@ -91,7 +99,7 @@ public class CreditCardBillingService : ICreditCardBillingService
             creditCardAccountId, billingMonth);
 
         // Get the credit card account with all necessary data
-        var creditCard = await _context.Accounts
+        var creditCard = await context.Accounts
             .Include(a => a.LinkedPaymentAccount)
             .FirstOrDefaultAsync(a => a.Id == creditCardAccountId && a.UserId == userId, cancellationToken);
 
@@ -132,12 +140,12 @@ public class CreditCardBillingService : ICreditCardBillingService
         }
 
         // Use a transaction to ensure atomicity
-        await using var dbTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
             // 1. Get all pending transactions for this credit card
-            var pendingTransactions = await _context.Transactions
+            var pendingTransactions = await context.Transactions
                 .Where(t => t.AccountId == creditCardAccountId &&
                             t.UserId == userId &&
                             t.Status == TransactionStatus.Pending &&
@@ -152,7 +160,7 @@ public class CreditCardBillingService : ICreditCardBillingService
 
                 // Still update LastBillingCycleDate to prevent reprocessing
                 creditCard.LastBillingCycleDate = today;
-                await _context.SaveChangesAsync(cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
                 await dbTransaction.CommitAsync(cancellationToken);
 
                 return new BillingCycleResult
@@ -194,23 +202,26 @@ public class CreditCardBillingService : ICreditCardBillingService
                 UpdatedAt = DateTime.UtcNow
             };
 
-            _context.Transactions.Add(billingTransaction);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.Transactions.Add(billingTransaction);
+            await context.SaveChangesAsync(cancellationToken);
 
             // Load the account for ledger entry generation
-            await _context.Entry(billingTransaction)
+            await context.Entry(billingTransaction)
                 .Reference(t => t.Account)
                 .LoadAsync(cancellationToken);
 
             // Generate ledger entries for the billing transaction
-            await _ledgerService.GenerateLedgerEntriesAsync(billingTransaction, cancellationToken);
+            await _ledgerService.GenerateLedgerEntriesAsync(context, billingTransaction, cancellationToken);
 
             // 4. Update LastBillingCycleDate on the credit card
             creditCard.LastBillingCycleDate = today;
             creditCard.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
             await dbTransaction.CommitAsync(cancellationToken);
+
+            // Invalidate month-level caches affected by the posted transactions and new bill.
+            await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, today);
 
             _logger.LogInformation(
                 "Successfully processed billing cycle for credit card {AccountId}: {Count} transactions posted, total amount {Amount}",
@@ -266,7 +277,9 @@ public class CreditCardBillingService : ICreditCardBillingService
         string userId,
         CancellationToken cancellationToken = default)
     {
-        var creditCard = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var creditCard = await context.Accounts
             .Include(a => a.LinkedPaymentAccount)
             .FirstOrDefaultAsync(a => a.Id == creditCardAccountId && a.UserId == userId, cancellationToken);
 
@@ -292,7 +305,7 @@ public class CreditCardBillingService : ICreditCardBillingService
             };
         }
 
-        var pendingTransactions = await _context.Transactions
+        var pendingTransactions = await context.Transactions
             .Include(t => t.Payee)
             .Include(t => t.Category)
             .Where(t => t.AccountId == creditCardAccountId &&

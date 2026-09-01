@@ -6,6 +6,7 @@
 
 @inject IServiceScopeFactory ScopeFactory
 @inject IUserSettingsService SettingsService
+@inject IUserDataService UserDataService
 @inject IAccountService AccountService
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
@@ -110,6 +111,6 @@ else
 
     private async Task LoadDemoDataAsync(string userId)
     {
-        await SettingsService.LoadDemoDataAsync(userId);
+        await UserDataService.LoadDemoDataAsync(userId);
     }
 }

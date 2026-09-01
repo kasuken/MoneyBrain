@@ -13,13 +13,13 @@ namespace MoneyBrain.Web.Application.Reporting.NetWorth;
 /// </summary>
 public class NetWorthService : INetWorthService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILedgerService _ledgerService;
     private readonly ICacheService _cacheService;
 
-    public NetWorthService(ApplicationDbContext context, ILedgerService ledgerService, ICacheService cacheService)
+    public NetWorthService(IDbContextFactory<ApplicationDbContext> contextFactory, ILedgerService ledgerService, ICacheService cacheService)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _ledgerService = ledgerService;
         _cacheService = cacheService;
     }
@@ -79,7 +79,8 @@ public class NetWorthService : INetWorthService
             return cached;
 
         // Get all user accounts
-        var accounts = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var accounts = await context.Accounts
             .AsNoTracking()
             .ForUser(userId)
             .OrderBy(a => a.Type)

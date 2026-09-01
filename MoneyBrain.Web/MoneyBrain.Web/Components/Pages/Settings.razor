@@ -6,6 +6,7 @@
 
 @attribute [Authorize]
 @inject IUserSettingsService SettingsService
+@inject IUserDataService UserDataService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -324,7 +325,7 @@
                 return;
             }
 
-            await SettingsService.EraseAllUserDataAsync(userId);
+            await UserDataService.EraseAllUserDataAsync(userId);
             Snackbar.Add(L["Settings_DataErasedSuccess"], Severity.Success);
 
             // Reset local state
@@ -369,7 +370,7 @@
                 return;
             }
 
-            await SettingsService.LoadDemoDataAsync(userId);
+            await UserDataService.LoadDemoDataAsync(userId);
             Snackbar.Add(L["Settings_DemoDataLoaded"], Severity.Success);
         }
         catch (Exception ex)

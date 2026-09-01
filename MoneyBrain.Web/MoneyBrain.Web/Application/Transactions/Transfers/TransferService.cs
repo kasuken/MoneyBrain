@@ -14,16 +14,16 @@ namespace MoneyBrain.Web.Application.Transactions.Transfers;
 /// </summary>
 public class TransferService : ITransferService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILedgerService _ledgerService;
     private readonly ICacheService _cacheService;
 
     public TransferService(
-        ApplicationDbContext context,
+        IDbContextFactory<ApplicationDbContext> contextFactory,
         ILedgerService ledgerService,
         ICacheService cacheService)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _ledgerService = ledgerService;
         _cacheService = cacheService;
     }
@@ -37,10 +37,12 @@ public class TransferService : ITransferService
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentNullException.ThrowIfNull(transfer);
 
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Validate accounts exist and belong to user
-        var fromAccount = await _context.Accounts
+        var fromAccount = await context.Accounts
             .FirstOrDefaultAsync(a => a.Id == transfer.FromAccountId && a.UserId == userId, cancellationToken);
-        var toAccount = await _context.Accounts
+        var toAccount = await context.Accounts
             .FirstOrDefaultAsync(a => a.Id == transfer.ToAccountId && a.UserId == userId, cancellationToken);
 
         if (fromAccount == null || toAccount == null)
@@ -54,7 +56,7 @@ public class TransferService : ITransferService
 
         // Wrap all inserts, linking, and ledger generation in a single DB transaction so that
         // a failure at any point never leaves orphaned or half-linked transfer transactions.
-        await using var dbTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         // Create FROM transaction (negative amount - money leaving account)
         var fromTransaction = new Transaction
@@ -74,8 +76,8 @@ public class TransferService : ITransferService
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.Transactions.Add(fromTransaction);
-        await _context.SaveChangesAsync(cancellationToken); // needed to obtain fromTransaction.Id for the FK
+        context.Transactions.Add(fromTransaction);
+        await context.SaveChangesAsync(cancellationToken); // needed to obtain fromTransaction.Id for the FK
 
         // Create TO transaction (positive amount - money entering account)
         var toTransaction = new Transaction
@@ -96,25 +98,25 @@ public class TransferService : ITransferService
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.Transactions.Add(toTransaction);
-        await _context.SaveChangesAsync(cancellationToken); // gives toTransaction its database ID
+        context.Transactions.Add(toTransaction);
+        await context.SaveChangesAsync(cancellationToken); // gives toTransaction its database ID
 
         // Now both IDs are known — set the back-link on FROM and persist it.
         fromTransaction.TransferTransactionId = toTransaction.Id;
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         // Reload with navigation properties
-        fromTransaction = await _context.Transactions
+        fromTransaction = await context.Transactions
             .Include(t => t.Account)
             .FirstAsync(t => t.Id == fromTransaction.Id, cancellationToken);
 
-        toTransaction = await _context.Transactions
+        toTransaction = await context.Transactions
             .Include(t => t.Account)
             .FirstAsync(t => t.Id == toTransaction.Id, cancellationToken);
 
         // Generate ledger entries for both sides of the transfer
-        await _ledgerService.GenerateLedgerEntriesAsync(fromTransaction, cancellationToken);
-        await _ledgerService.GenerateLedgerEntriesAsync(toTransaction, cancellationToken);
+        await _ledgerService.GenerateLedgerEntriesAsync(context, fromTransaction, cancellationToken);
+        await _ledgerService.GenerateLedgerEntriesAsync(context, toTransaction, cancellationToken);
 
         await dbTransaction.CommitAsync(cancellationToken);
 
@@ -138,8 +140,10 @@ public class TransferService : ITransferService
         TransferDto transfer,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Get both transactions
-        var fromTransaction = await _context.Transactions
+        var fromTransaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == fromTransactionId && t.UserId == userId, cancellationToken);
 
         if (fromTransaction == null)
@@ -148,7 +152,7 @@ public class TransferService : ITransferService
         if (!fromTransaction.TransferTransactionId.HasValue)
             throw new InvalidOperationException("Transaction is not a transfer");
 
-        var toTransaction = await _context.Transactions
+        var toTransaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == fromTransaction.TransferTransactionId.Value && t.UserId == userId, cancellationToken);
 
         if (toTransaction == null)
@@ -182,7 +186,7 @@ public class TransferService : ITransferService
         toTransaction.ReferenceNumber = transfer.ReferenceNumber;
         toTransaction.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         // Always invalidate the new date's month; also invalidate the old month when the
         // transfer crossed a month boundary (otherwise stale balances/cashflow remain visible).
@@ -199,7 +203,8 @@ public class TransferService : ITransferService
         int transactionId,
         CancellationToken cancellationToken = default)
     {
-        var transaction = await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var transaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
         if (transaction == null)
@@ -208,7 +213,7 @@ public class TransferService : ITransferService
         if (!transaction.TransferTransactionId.HasValue)
             throw new InvalidOperationException("Transaction is not a transfer");
 
-        var linkedTransaction = await _context.Transactions
+        var linkedTransaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transaction.TransferTransactionId.Value && t.UserId == userId, cancellationToken);
 
         // Cannot delete reconciled transfers
@@ -218,13 +223,13 @@ public class TransferService : ITransferService
         var transactionDate = transaction.Date;
 
         // Delete both transactions
-        _context.Transactions.Remove(transaction);
+        context.Transactions.Remove(transaction);
         if (linkedTransaction != null)
         {
-            _context.Transactions.Remove(linkedTransaction);
+            context.Transactions.Remove(linkedTransaction);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, transactionDate);
 
@@ -237,7 +242,8 @@ public class TransferService : ITransferService
         int transactionId,
         CancellationToken cancellationToken = default)
     {
-        var transaction = await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var transaction = await context.Transactions
             .Include(t => t.Account)
             .Include(t => t.TransferTransaction)
                 .ThenInclude(tt => tt!.Account)

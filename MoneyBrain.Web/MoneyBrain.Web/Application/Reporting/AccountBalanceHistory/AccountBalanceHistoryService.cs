@@ -10,12 +10,12 @@ namespace MoneyBrain.Web.Application.Reporting.AccountBalanceHistory;
 /// </summary>
 public class AccountBalanceHistoryService : IAccountBalanceHistoryService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILedgerService _ledgerService;
 
-    public AccountBalanceHistoryService(ApplicationDbContext context, ILedgerService ledgerService)
+    public AccountBalanceHistoryService(IDbContextFactory<ApplicationDbContext> contextFactory, ILedgerService ledgerService)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _ledgerService = ledgerService;
     }
 
@@ -28,8 +28,9 @@ public class AccountBalanceHistoryService : IAccountBalanceHistoryService
         int intervalDays = 30,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         // Get account details
-        var account = await _context.Accounts
+        var account = await context.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);
 
@@ -86,8 +87,9 @@ public class AccountBalanceHistoryService : IAccountBalanceHistoryService
         bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         // Get accounts to track
-        var query = _context.Accounts
+        var query = context.Accounts
             .AsNoTracking()
             .ForUser(userId);
 

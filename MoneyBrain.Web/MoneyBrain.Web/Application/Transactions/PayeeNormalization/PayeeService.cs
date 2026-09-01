@@ -9,18 +9,19 @@ namespace MoneyBrain.Web.Application.Transactions.PayeeNormalization;
 /// </summary>
 public class PayeeService : IPayeeService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-    public PayeeService(ApplicationDbContext context)
+    public PayeeService(IDbContextFactory<ApplicationDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     /// <inheritdoc />
     public async Task<List<Payee>> GetPayeesAsync(string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        return await _context.Payees
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.Payees
             .Where(p => p.UserId == userId && p.IsActive)
             .OrderBy(p => p.Name)
             .ToListAsync(cancellationToken);
@@ -32,13 +33,15 @@ public class PayeeService : IPayeeService
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Normalize the payee name
         var normalizedName = PayeeNormalizer.Normalize(name);
         var normalizedKey = PayeeNormalizer.GetNormalizedKey(normalizedName);
 
         // Load only the columns needed for normalized-key matching; the full entity
         // is not required because PayeeNormalizer only inspects the Name.
-        var existingPayees = await _context.Payees
+        var existingPayees = await context.Payees
             .Where(p => p.UserId == userId && p.IsActive)
             .Select(p => new { p.Id, p.Name })
             .ToListAsync(cancellationToken);
@@ -52,7 +55,7 @@ public class PayeeService : IPayeeService
             // FindAsync uses the PK so it is effectively an identity lookup; null would
             // only happen in an extremely rare concurrent-delete race, which we treat as
             // "not found" and fall through to create a new payee.
-            var existing = await _context.Payees.FindAsync([matchingPayeeId.Value], cancellationToken);
+            var existing = await context.Payees.FindAsync([matchingPayeeId.Value], cancellationToken);
             if (existing != null)
                 return existing;
         }
@@ -65,8 +68,8 @@ public class PayeeService : IPayeeService
             DefaultCategoryId = defaultCategoryId
         };
 
-        _context.Payees.Add(payee);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Payees.Add(payee);
+        await context.SaveChangesAsync(cancellationToken);
 
         return payee;
     }
@@ -75,7 +78,8 @@ public class PayeeService : IPayeeService
     public async Task<List<PayeeWithUsage>> GetPayeesWithUsageAsync(string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var payees = await _context.Payees
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var payees = await context.Payees
             .Where(p => p.UserId == userId && p.IsActive)
             .OrderBy(p => p.Name)
             .ToListAsync(cancellationToken);
@@ -85,7 +89,7 @@ public class PayeeService : IPayeeService
 
         var payeeIds = payees.Select(p => p.Id).ToList();
 
-        var usageByPayeeId = await _context.Transactions
+        var usageByPayeeId = await context.Transactions
             .Where(t => t.PayeeId.HasValue && payeeIds.Contains(t.PayeeId.Value))
             .GroupBy(t => t.PayeeId!.Value)
             .Select(g => new
@@ -149,14 +153,15 @@ public class PayeeService : IPayeeService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentNullException.ThrowIfNull(sourcePayeeIds);
-        var targetPayee = await _context.Payees
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var targetPayee = await context.Payees
             .FirstOrDefaultAsync(p => p.Id == targetPayeeId && p.UserId == userId, cancellationToken);
 
         if (targetPayee == null)
             return false;
 
         // Validate source payees
-        var sourcePayees = await _context.Payees
+        var sourcePayees = await context.Payees
             .Where(p => sourcePayeeIds.Contains(p.Id) && p.UserId == userId)
             .ToListAsync(cancellationToken);
 
@@ -164,7 +169,7 @@ public class PayeeService : IPayeeService
             return false;
 
         // Update all transactions from source payees to target payee
-        var transactionsToUpdate = await _context.Transactions
+        var transactionsToUpdate = await context.Transactions
             .Where(t => t.PayeeId.HasValue && sourcePayeeIds.Contains(t.PayeeId.Value) && t.UserId == userId)
             .ToListAsync(cancellationToken);
 
@@ -185,7 +190,7 @@ public class PayeeService : IPayeeService
             sourcePayee.UpdatedAt = DateTime.UtcNow;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
@@ -194,7 +199,8 @@ public class PayeeService : IPayeeService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentException.ThrowIfNullOrWhiteSpace(newName);
-        var payee = await _context.Payees
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var payee = await context.Payees
             .FirstOrDefaultAsync(p => p.Id == payeeId && p.UserId == userId, cancellationToken);
 
         if (payee == null)
@@ -204,7 +210,7 @@ public class PayeeService : IPayeeService
         payee.Name = PayeeNormalizer.Normalize(newName);
         payee.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
@@ -212,10 +218,11 @@ public class PayeeService : IPayeeService
     public async Task<int> DeleteUnusedPayeesAsync(string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var unusedPayees = await _context.Payees
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var unusedPayees = await context.Payees
             .Where(p => p.UserId == userId
                         && p.IsActive
-                        && !_context.Transactions.Any(t => t.PayeeId == p.Id))
+                        && !context.Transactions.Any(t => t.PayeeId == p.Id))
             .ToListAsync(cancellationToken);
 
         // Soft delete unused payees
@@ -225,7 +232,7 @@ public class PayeeService : IPayeeService
             payee.UpdatedAt = DateTime.UtcNow;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return unusedPayees.Count;
     }
 }

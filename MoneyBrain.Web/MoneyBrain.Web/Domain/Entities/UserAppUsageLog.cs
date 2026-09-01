@@ -12,14 +12,14 @@ public class UserAppUsageLog : IUserOwnedEntity
     /// <summary>
     /// Unique identifier for the usage log entry.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The user this activity belongs to.
     /// </summary>
     [Required]
     [MaxLength(450)]
-    public required string UserId { get; set; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// Navigation property to the user.

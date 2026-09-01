@@ -5,9 +5,9 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// </summary>
 public class TransactionSplit
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
     
-    public int TransactionId { get; set; }
+    public int TransactionId { get; init; }
     
     public int? CategoryId { get; set; }
     

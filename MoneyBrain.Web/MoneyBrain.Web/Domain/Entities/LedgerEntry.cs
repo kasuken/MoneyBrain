@@ -11,12 +11,12 @@ public class LedgerEntry : IUserOwnedEntity
     /// <summary>
     /// Unique identifier for the ledger entry.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The user who owns this ledger entry.
     /// </summary>
-    public required string UserId { get; set; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// The transaction that generated this ledger entry.

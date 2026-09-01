@@ -12,14 +12,14 @@ public class UserTipPreference : IUserOwnedEntity
     /// <summary>
     /// Unique identifier for the preference record.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The user this preference belongs to.
     /// </summary>
     [Required]
     [MaxLength(450)]
-    public required string UserId { get; set; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// Navigation property to the user.

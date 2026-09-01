@@ -12,18 +12,18 @@ namespace MoneyBrain.Web.Application.Transactions.CsvImport;
 /// </summary>
 public class TransactionCsvImportService : ITransactionCsvImportService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ITransactionService _transactionService;
     private readonly IPayeeService _payeeService;
     private readonly ILogger<TransactionCsvImportService> _logger;
 
     public TransactionCsvImportService(
-        ApplicationDbContext context,
+        IDbContextFactory<ApplicationDbContext> contextFactory,
         ITransactionService transactionService,
         IPayeeService payeeService,
         ILogger<TransactionCsvImportService> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _transactionService = transactionService;
         _payeeService = payeeService;
         _logger = logger;
@@ -152,9 +152,11 @@ public class TransactionCsvImportService : ITransactionCsvImportService
         CancellationToken cancellationToken = default)
     {
         var result = new TransactionCsvImportResult();
+
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         
         // Validate account
-        var account = await _context.Accounts
+        var account = await context.Accounts
             .FirstOrDefaultAsync(a => a.Id == mapping.AccountId && a.UserId == userId, cancellationToken);
             
         if (account == null)
@@ -170,7 +172,7 @@ public class TransactionCsvImportService : ITransactionCsvImportService
         // Build category lookup - project only needed columns to avoid loading full entities.
         // Client-side OrdinalIgnoreCase grouping is intentional: it handles categories that
         // differ only in casing (SQL Server CI collation would surface both rows).
-        var categoryLookup = (await _context.Categories
+        var categoryLookup = (await context.Categories
             .Where(c => c.UserId == userId && c.IsActive)
             .Select(c => new { c.Id, c.Name })
             .ToListAsync(cancellationToken))

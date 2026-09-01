@@ -8,7 +8,7 @@ namespace MoneyBrain.Web.Application.Reporting.CategorySpending;
 /// Service for analyzing category spending using double-entry ledger data.
 /// Focuses on expense transactions (debits to category accounts).
 /// </summary>
-public class CategorySpendingService(ApplicationDbContext context) : ICategorySpendingService
+public class CategorySpendingService(IDbContextFactory<ApplicationDbContext> contextFactory) : ICategorySpendingService
 {
     public async Task<CategorySpendingSummaryDto> GetCategorySpendingSummaryAsync(
         string userId,
@@ -17,6 +17,7 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
         int topCount = 10,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         // Get all expense ledger entries (debits to categories) for the period
         // Expenses are represented as debits in the ledger
         var expenseEntries = await context.LedgerEntries
@@ -104,6 +105,7 @@ public class CategorySpendingService(ApplicationDbContext context) : ICategorySp
         DateTime endDate,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         // Get expense entries for this specific category
         var entries = await context.LedgerEntries
             .Include(le => le.Category)

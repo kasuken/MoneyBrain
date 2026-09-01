@@ -12,16 +12,16 @@ namespace MoneyBrain.Web.Application.Transactions.RecurringTransactions;
 /// </summary>
 public class RecurringTransactionService : IRecurringTransactionService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILedgerService _ledgerService;
     private readonly ILogger<RecurringTransactionService> _logger;
 
     public RecurringTransactionService(
-        ApplicationDbContext context,
+        IDbContextFactory<ApplicationDbContext> contextFactory,
         ILedgerService ledgerService,
         ILogger<RecurringTransactionService> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _ledgerService = ledgerService;
         _logger = logger;
     }
@@ -46,11 +46,13 @@ public class RecurringTransactionService : IRecurringTransactionService
         DateTime upToDate,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Find all recurring transaction templates where:
         // 1. IsRecurring = true
         // 2. NextRecurrenceDate <= upToDate (or is null and needs initialization)
         // 3. User matches
-        var recurringTemplates = await _context.Transactions
+        var recurringTemplates = await context.Transactions
             .Include(t => t.Account)
             .Include(t => t.Splits)
             .Where(t =>
@@ -95,11 +97,11 @@ public class RecurringTransactionService : IRecurringTransactionService
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                _context.Transactions.Add(newTransaction);
-                await _context.SaveChangesAsync(cancellationToken);
+                context.Transactions.Add(newTransaction);
+                await context.SaveChangesAsync(cancellationToken);
 
                 // Load Account navigation for ledger generation
-                await _context.Entry(newTransaction)
+                await context.Entry(newTransaction)
                     .Reference(t => t.Account)
                     .LoadAsync(cancellationToken);
 
@@ -115,18 +117,18 @@ public class RecurringTransactionService : IRecurringTransactionService
                             CategoryId = split.CategoryId,
                             Memo = split.Memo
                         };
-                        _context.TransactionSplits.Add(newSplit);
+                        context.TransactionSplits.Add(newSplit);
                     }
-                    await _context.SaveChangesAsync(cancellationToken);
+                    await context.SaveChangesAsync(cancellationToken);
 
                     // Reload splits for ledger generation
-                    await _context.Entry(newTransaction)
+                    await context.Entry(newTransaction)
                         .Collection(t => t.Splits)
                         .LoadAsync(cancellationToken);
                 }
 
                 // Generate ledger entries
-                await _ledgerService.GenerateLedgerEntriesAsync(newTransaction, cancellationToken);
+                await _ledgerService.GenerateLedgerEntriesAsync(context, newTransaction, cancellationToken);
 
                 _logger.LogInformation(
                     "Generated recurring transaction {TransactionId} from template {TemplateId} for date {Date}",
@@ -147,7 +149,7 @@ public class RecurringTransactionService : IRecurringTransactionService
 
         if (generatedCount > 0)
         {
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         return generatedCount;
@@ -158,7 +160,8 @@ public class RecurringTransactionService : IRecurringTransactionService
         string userId,
         CancellationToken cancellationToken = default)
     {
-        return await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.Transactions
             .Include(t => t.Account)
             .Include(t => t.Payee)
             .Include(t => t.Category)

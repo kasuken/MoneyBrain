@@ -13,6 +13,7 @@
 @inject IBudgetService BudgetService
 @inject IUserSettingsService SettingsService
 @inject ICategoryService CategoryService
+@inject IMonthlyBudgetService MonthlyBudgetService
 @inject IDialogService DialogService
 @inject ISnackbar SnackbarService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -283,7 +284,7 @@
             if (!budget.Year.HasValue || !budget.Month.HasValue) continue;
             
             var key = $"{budget.Id}";
-            var spending = await CategoryService.GetAllCategoriesActualSpendingAsync(_userId, budget.Year.Value, budget.Month.Value);
+            var spending = await MonthlyBudgetService.GetAllCategoriesActualSpendingAsync(_userId, budget.Year.Value, budget.Month.Value);
             _actualSpendingByBudget[key] = spending;
         }
         
@@ -291,7 +292,7 @@
         if (_allBudgets.Any(b => b.IsDefault))
         {
             var now = DateTime.UtcNow;
-            var currentMonthSpending = await CategoryService.GetAllCategoriesActualSpendingAsync(_userId, now.Year, now.Month);
+            var currentMonthSpending = await MonthlyBudgetService.GetAllCategoriesActualSpendingAsync(_userId, now.Year, now.Month);
             _actualSpendingByBudget["default"] = currentMonthSpending;
         }
         

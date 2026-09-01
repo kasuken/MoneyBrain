@@ -11,13 +11,13 @@ namespace MoneyBrain.Web.Application.Reporting.BudgetComparison;
 /// </summary>
 public class BudgetComparisonService : IBudgetComparisonService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly IBudgetService _budgetService;
     private readonly ICacheService _cacheService;
 
-    public BudgetComparisonService(ApplicationDbContext context, IBudgetService budgetService, ICacheService cacheService)
+    public BudgetComparisonService(IDbContextFactory<ApplicationDbContext> contextFactory, IBudgetService budgetService, ICacheService cacheService)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _budgetService = budgetService;
         _cacheService = cacheService;
     }
@@ -92,7 +92,8 @@ public class BudgetComparisonService : IBudgetComparisonService
         var firstDayOfMonth = new DateTime(year, month, 1);
         var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
 
-        var actualSpending = await _context.LedgerEntries
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var actualSpending = await context.LedgerEntries
             .AsNoTracking()
             .Where(le => le.UserId == userId 
                          && le.CategoryId != null 

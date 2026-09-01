@@ -12,13 +12,13 @@ public class AccountBalanceSnapshot
     /// <summary>
     /// Unique identifier for the snapshot.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The account this snapshot belongs to.
     /// </summary>
     [Required]
-    public required int AccountId { get; set; }
+    public required int AccountId { get; init; }
 
     /// <summary>
     /// Navigation property to the account.

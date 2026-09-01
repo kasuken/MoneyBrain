@@ -15,18 +15,18 @@ namespace MoneyBrain.Web.Application.Accounts;
 /// </summary>
 public class AccountService : IAccountService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILogger<AccountService> _logger;
     private readonly ILedgerService _ledgerService;
     private readonly ICacheService _cacheService;
 
     public AccountService(
-        ApplicationDbContext context, 
+        IDbContextFactory<ApplicationDbContext> contextFactory, 
         ILogger<AccountService> logger,
         ILedgerService ledgerService,
         ICacheService cacheService)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
         _ledgerService = ledgerService;
         _cacheService = cacheService;
@@ -38,7 +38,8 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var query = _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var query = context.Accounts
             .ForUser(userId);
 
         if (includeInactive)
@@ -70,7 +71,8 @@ public class AccountService : IAccountService
         string userId, 
         CancellationToken cancellationToken = default)
     {
-        return await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
@@ -91,8 +93,9 @@ public class AccountService : IAccountService
         account.CreatedAt = DateTime.UtcNow;
         account.UpdatedAt = null;
 
-        _context.Accounts.Add(account);
-        await _context.SaveChangesAsync(cancellationToken);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        context.Accounts.Add(account);
+        await context.SaveChangesAsync(cancellationToken);
 
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(account.UserId));
 
@@ -111,7 +114,8 @@ public class AccountService : IAccountService
     {
         ArgumentNullException.ThrowIfNull(account);
 
-        var existing = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var existing = await context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == account.Id && a.UserId == account.UserId, 
                 cancellationToken);
@@ -144,7 +148,7 @@ public class AccountService : IAccountService
             throw new InvalidOperationException("Opening balance cannot be changed directly. Use AdjustOpeningBalanceAsync to maintain audit trail.");
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(account.UserId));
 
@@ -162,7 +166,8 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var account = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var account = await context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
                 cancellationToken);
@@ -175,7 +180,7 @@ public class AccountService : IAccountService
         account.IsActive = false;
         account.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
@@ -193,7 +198,8 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var account = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var account = await context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
                 cancellationToken);
@@ -206,8 +212,8 @@ public class AccountService : IAccountService
         // TODO: Check if account has transactions before allowing deletion
         // For v1, allow deletion; add transaction check in future iteration
 
-        _context.Accounts.Remove(account);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Accounts.Remove(account);
+        await context.SaveChangesAsync(cancellationToken);
 
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
@@ -227,7 +233,8 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var account = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var account = await context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
                 cancellationToken);
@@ -257,7 +264,7 @@ public class AccountService : IAccountService
             account.OpeningBalance = newBalance;
             account.UpdatedAt = DateTime.UtcNow;
 
-            _context.OpeningBalanceAdjustments.Add(adjustment);
+            context.OpeningBalanceAdjustments.Add(adjustment);
             
             // Automatically create a balance snapshot after opening balance adjustment
             var snapshot = new AccountBalanceSnapshot
@@ -270,9 +277,9 @@ public class AccountService : IAccountService
                 CreatedByUserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
-            _context.AccountBalanceSnapshots.Add(snapshot);
+            context.AccountBalanceSnapshots.Add(snapshot);
             
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
             await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
@@ -301,9 +308,10 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await ThrowIfAccountNotOwnedAsync(context, accountId, userId, cancellationToken);
 
-        return await _context.OpeningBalanceAdjustments
+        return await context.OpeningBalanceAdjustments
             .Where(oba => oba.AccountId == accountId)
             .OrderByDescending(oba => oba.AdjustedAt)
             .AsNoTracking()
@@ -320,7 +328,8 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await ThrowIfAccountNotOwnedAsync(context, accountId, userId, cancellationToken);
 
         var snapshot = new AccountBalanceSnapshot
         {
@@ -333,8 +342,8 @@ public class AccountService : IAccountService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.AccountBalanceSnapshots.Add(snapshot);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.AccountBalanceSnapshots.Add(snapshot);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Balance snapshot created for account {AccountId}: {Balance} at {SnapshotDate} (Type: {Type})",
@@ -350,9 +359,9 @@ public class AccountService : IAccountService
     /// Verifies that an account exists and belongs to the specified user.
     /// Throws <see cref="InvalidOperationException"/> if the account is not found or not owned by the user.
     /// </summary>
-    private async Task ThrowIfAccountNotOwnedAsync(int accountId, string userId, CancellationToken cancellationToken)
+    private async Task ThrowIfAccountNotOwnedAsync(ApplicationDbContext context, int accountId, string userId, CancellationToken cancellationToken)
     {
-        var accountExists = await _context.Accounts
+        var accountExists = await context.Accounts
             .AnyAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);
 
         if (!accountExists)
@@ -369,9 +378,10 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await ThrowIfAccountNotOwnedAsync(context, accountId, userId, cancellationToken);
 
-        var query = _context.AccountBalanceSnapshots
+        var query = context.AccountBalanceSnapshots
             .Where(abs => abs.AccountId == accountId);
 
         if (startDate.HasValue)
@@ -395,7 +405,8 @@ public class AccountService : IAccountService
         string userId, 
         CancellationToken cancellationToken = default)
     {
-        var account = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var account = await context.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
@@ -432,7 +443,8 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await ThrowIfAccountNotOwnedAsync(context, accountId, userId, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(description))
         {
@@ -451,8 +463,8 @@ public class AccountService : IAccountService
             IsReconciled = false
         };
 
-        _context.ManualBalanceAdjustments.Add(adjustment);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.ManualBalanceAdjustments.Add(adjustment);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Manual adjustment created for account {AccountId}: {Amount} on {Date}. Description: {Description}",
@@ -472,9 +484,10 @@ public class AccountService : IAccountService
         CancellationToken cancellationToken = default)
     {
         // Verify the user owns the account
-        await ThrowIfAccountNotOwnedAsync(accountId, userId, cancellationToken);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await ThrowIfAccountNotOwnedAsync(context, accountId, userId, cancellationToken);
 
-        var query = _context.ManualBalanceAdjustments
+        var query = context.ManualBalanceAdjustments
             .Where(mba => mba.AccountId == accountId);
 
         if (startDate.HasValue)
@@ -499,7 +512,8 @@ public class AccountService : IAccountService
         string userId, 
         CancellationToken cancellationToken = default)
     {
-        var adjustment = await _context.ManualBalanceAdjustments
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var adjustment = await context.ManualBalanceAdjustments
             .Include(mba => mba.Account)
             .FirstOrDefaultAsync(
                 mba => mba.Id == adjustmentId, 
@@ -522,8 +536,8 @@ public class AccountService : IAccountService
             throw new InvalidOperationException("Cannot delete a reconciled adjustment. Reconciled data is immutable.");
         }
 
-        _context.ManualBalanceAdjustments.Remove(adjustment);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.ManualBalanceAdjustments.Remove(adjustment);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Manual adjustment deleted: {AdjustmentId} for account {AccountId}",
@@ -540,7 +554,8 @@ public class AccountService : IAccountService
         int month,
         CancellationToken cancellationToken = default)
     {
-        var account = await _context.Accounts
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var account = await context.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId,
@@ -558,7 +573,7 @@ public class AccountService : IAccountService
         // Query transactions based on account type:
         // - Credit cards: Only PENDING (unbilled charges), exclude Posted (already billed)
         // - Other accounts: Both Posted AND Pending (real-time spending tracking)
-        var transactionQuery = _context.Transactions
+        var transactionQuery = context.Transactions
             .Where(t => t.AccountId == accountId
                         && t.UserId == userId
                         && t.TransferTransactionId == null

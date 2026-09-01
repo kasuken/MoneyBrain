@@ -12,7 +12,7 @@ namespace MoneyBrain.Web.Application.Tips;
 /// </summary>
 public class TipPreferenceService(
     ICacheService cacheService,
-    ApplicationDbContext dbContext,
+    IDbContextFactory<ApplicationDbContext> dbContextFactory,
     ILogger<TipPreferenceService> logger) : ITipPreferenceService
 {
     /// <inheritdoc />
@@ -82,8 +82,9 @@ public class TipPreferenceService(
     {
         try
         {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             // Check if preference already exists
-            var existing = await dbContext.UserTipPreferences
+            var existing = await context.UserTipPreferences
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.EducationalTipId == tipId, cancellationToken);
 
             if (existing != null)
@@ -102,10 +103,10 @@ public class TipPreferenceService(
                     IsDismissed = true,
                     DismissedAt = DateTime.UtcNow
                 };
-                dbContext.UserTipPreferences.Add(preference);
+                context.UserTipPreferences.Add(preference);
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
             // Invalidate cache to reflect the change
             var cacheKey = CacheKeyHelper.ForTipPreferences(userId);
@@ -125,7 +126,8 @@ public class TipPreferenceService(
         string userId,
         CancellationToken cancellationToken = default)
     {
-        return await dbContext.UserTipPreferences
+        await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.UserTipPreferences
             .Where(p => p.UserId == userId && p.IsDismissed)
             .Select(p => p.EducationalTipId)
             .ToListAsync(cancellationToken);

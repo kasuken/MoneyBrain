@@ -118,20 +118,13 @@
             </MudStack>
         </MudStack>
 
-        @if (!string.IsNullOrWhiteSpace(_errorMessage))
-        {
-            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
-        }
+        <DialogErrorAlert Message="@_errorMessage" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
-        <MudButton Color="MudBlazor.Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="_isSubmitting">
-            @if (_isSubmitting)
-            {
-                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
-            }
-            @string.Format(L["BulkEditDlg_UpdateButton"], SelectedTransactionIds.Count)
-        </MudButton>
+        <DialogActionButtons OnCancel="Cancel"
+                             OnSubmit="Submit"
+                             IsSubmitting="_isSubmitting"
+                             SubmitText="@string.Format(L["BulkEditDlg_UpdateButton"], SelectedTransactionIds.Count)" />
     </DialogActions>
 </MudDialog>
 

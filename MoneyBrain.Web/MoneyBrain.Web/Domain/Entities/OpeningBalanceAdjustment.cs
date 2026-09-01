@@ -11,13 +11,13 @@ public class OpeningBalanceAdjustment
     /// <summary>
     /// Unique identifier for the adjustment record.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The account whose opening balance was adjusted.
     /// </summary>
     [Required]
-    public required int AccountId { get; set; }
+    public required int AccountId { get; init; }
 
     /// <summary>
     /// Navigation property to the account.

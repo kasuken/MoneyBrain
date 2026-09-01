@@ -7,8 +7,8 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// </summary>
 public class SavedTransactionFilter : IUserOwnedEntity
 {
-    public int Id { get; set; }
-    public string UserId { get; set; } = string.Empty;
+    public int Id { get; init; }
+    public string UserId { get; init; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string FilterJson { get; set; } = string.Empty;
     public bool IsDefault { get; set; }

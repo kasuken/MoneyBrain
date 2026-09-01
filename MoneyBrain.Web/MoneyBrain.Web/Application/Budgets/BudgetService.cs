@@ -10,13 +10,13 @@ namespace MoneyBrain.Web.Application.Budgets;
 
 public class BudgetService : IBudgetService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ICacheService _cacheService;
     private readonly ILogger<BudgetService> _logger;
 
-    public BudgetService(ApplicationDbContext context, ICacheService cacheService, ILogger<BudgetService> logger)
+    public BudgetService(IDbContextFactory<ApplicationDbContext> contextFactory, ICacheService cacheService, ILogger<BudgetService> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _cacheService = cacheService;
         _logger = logger;
     }
@@ -33,8 +33,9 @@ public class BudgetService : IBudgetService
     public async Task<List<Budget>> GetBudgetsAsync(string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         return await IncludeBudgetCategoryDetails(
-            _context.Budgets.ForUser(userId))
+            context.Budgets.ForUser(userId))
             .OrderByDescending(b => b.IsDefault)
             .ThenByDescending(b => b.Year)
             .ThenByDescending(b => b.Month)
@@ -45,32 +46,36 @@ public class BudgetService : IBudgetService
     public async Task<List<Budget>> GetDefaultBudgetsAsync(string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         return await IncludeBudgetCategoryDetails(
-            _context.Budgets.ForUser(userId).Where(b => b.IsDefault))
+            context.Budgets.ForUser(userId).Where(b => b.IsDefault))
             .OrderBy(b => b.Name)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<Budget?> GetBudgetByIdAsync(int budgetId, string userId, CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         return await IncludeBudgetCategoryDetails(
-            _context.Budgets.ForUser(userId).Where(b => b.Id == budgetId))
+            context.Budgets.ForUser(userId).Where(b => b.Id == budgetId))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<List<Budget>> GetBudgetsForPeriodAsync(string userId, int year, int month, CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         return await IncludeBudgetCategoryDetails(
-            _context.Budgets.ForUser(userId).Where(b => !b.IsDefault && b.Year == year && b.Month == month))
+            context.Budgets.ForUser(userId).Where(b => !b.IsDefault && b.Year == year && b.Month == month))
             .OrderBy(b => b.Name)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<Budget?> GetEffectiveBudgetAsync(string userId, string budgetName, int year, int month, CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         // First check for period-specific budget
         var periodSpecific = await IncludeBudgetCategoryDetails(
-            _context.Budgets.ForUser(userId).Where(b => b.Name == budgetName && !b.IsDefault && b.Year == year && b.Month == month))
+            context.Budgets.ForUser(userId).Where(b => b.Name == budgetName && !b.IsDefault && b.Year == year && b.Month == month))
             .FirstOrDefaultAsync(cancellationToken);
 
         if (periodSpecific != null)
@@ -78,7 +83,7 @@ public class BudgetService : IBudgetService
 
         // Fall back to default budget
         return await IncludeBudgetCategoryDetails(
-            _context.Budgets.ForUser(userId).Where(b => b.Name == budgetName && b.IsDefault))
+            context.Budgets.ForUser(userId).Where(b => b.Name == budgetName && b.IsDefault))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -102,8 +107,9 @@ public class BudgetService : IBudgetService
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.Budgets.Add(budget);
-        await _context.SaveChangesAsync(cancellationToken);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        context.Budgets.Add(budget);
+        await context.SaveChangesAsync(cancellationToken);
 
         await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
@@ -114,7 +120,8 @@ public class BudgetService : IBudgetService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        var budget = await _context.Budgets
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var budget = await context.Budgets
             .FirstOrDefaultAsync(b => b.Id == budgetId && b.UserId == userId, cancellationToken);
 
         if (budget == null)
@@ -131,7 +138,7 @@ public class BudgetService : IBudgetService
         budget.Month = month;
         budget.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
@@ -141,14 +148,15 @@ public class BudgetService : IBudgetService
     public async Task<bool> DeleteBudgetAsync(int budgetId, string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var budget = await _context.Budgets
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var budget = await context.Budgets
             .FirstOrDefaultAsync(b => b.Id == budgetId && b.UserId == userId, cancellationToken);
 
         if (budget == null)
             return false;
 
-        _context.Budgets.Remove(budget);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Budgets.Remove(budget);
+        await context.SaveChangesAsync(cancellationToken);
 
         await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
@@ -157,15 +165,16 @@ public class BudgetService : IBudgetService
 
     public async Task<BudgetCategory> AddCategoryToBudgetAsync(int budgetId, string userId, int categoryId, decimal plannedAmount, bool allowRollover, string? notes = null, CancellationToken cancellationToken = default)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         // Verify budget belongs to user
-        var budget = await _context.Budgets
+        var budget = await context.Budgets
             .FirstOrDefaultAsync(b => b.Id == budgetId && b.UserId == userId, cancellationToken);
 
         if (budget == null)
             throw new InvalidOperationException("Budget not found");
 
         // Check if category already exists in budget
-        var existing = await _context.BudgetCategories
+        var existing = await context.BudgetCategories
             .FirstOrDefaultAsync(bc => bc.BudgetId == budgetId && bc.CategoryId == categoryId, cancellationToken);
 
         if (existing != null)
@@ -182,16 +191,16 @@ public class BudgetService : IBudgetService
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.BudgetCategories.Add(budgetCategory);
+        context.BudgetCategories.Add(budgetCategory);
         
         budget.UpdatedAt = DateTime.UtcNow;
         
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         await InvalidateBudgetComparisonCacheAsync(userId, budget);
 
         // Load the category for return
-        await _context.Entry(budgetCategory)
+        await context.Entry(budgetCategory)
             .Reference(bc => bc.Category)
             .LoadAsync(cancellationToken);
 
@@ -200,7 +209,8 @@ public class BudgetService : IBudgetService
 
     public async Task<BudgetCategory> UpdateBudgetCategoryAsync(int budgetCategoryId, string userId, decimal plannedAmount, bool allowRollover, string? notes = null, CancellationToken cancellationToken = default)
     {
-        var budgetCategory = await _context.BudgetCategories
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var budgetCategory = await context.BudgetCategories
             .Include(bc => bc.Budget)
             .FirstOrDefaultAsync(bc => bc.Id == budgetCategoryId && bc.Budget.UserId == userId, cancellationToken);
 
@@ -214,7 +224,7 @@ public class BudgetService : IBudgetService
         
         budgetCategory.Budget.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         await InvalidateBudgetComparisonCacheAsync(userId, budgetCategory.Budget);
 
@@ -223,18 +233,19 @@ public class BudgetService : IBudgetService
 
     public async Task<bool> RemoveCategoryFromBudgetAsync(int budgetCategoryId, string userId, CancellationToken cancellationToken = default)
     {
-        var budgetCategory = await _context.BudgetCategories
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var budgetCategory = await context.BudgetCategories
             .Include(bc => bc.Budget)
             .FirstOrDefaultAsync(bc => bc.Id == budgetCategoryId && bc.Budget.UserId == userId, cancellationToken);
 
         if (budgetCategory == null)
             return false;
 
-        _context.BudgetCategories.Remove(budgetCategory);
+        context.BudgetCategories.Remove(budgetCategory);
         
         budgetCategory.Budget.UpdatedAt = DateTime.UtcNow;
         
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         await InvalidateBudgetComparisonCacheAsync(userId, budgetCategory.Budget);
 
@@ -243,7 +254,8 @@ public class BudgetService : IBudgetService
 
     public async Task<decimal> GetTotalBudgetedAsync(int budgetId, string userId, CancellationToken cancellationToken = default)
     {
-        return await _context.BudgetCategories
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.BudgetCategories
             .Where(bc => bc.BudgetId == budgetId && bc.Budget.UserId == userId)
             .SumAsync(bc => bc.PlannedAmount, cancellationToken);
     }
@@ -259,7 +271,8 @@ public class BudgetService : IBudgetService
         var budget = await CreateBudgetAsync(userId, templateName, $"Budget created from {templateName} template", false, year, month, cancellationToken);
 
         // Get user's categories to match template allocations
-        var userCategories = await _context.Categories
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var userCategories = await context.Categories
             .Where(c => c.UserId == userId && c.IsActive)
             .ToListAsync(cancellationToken);
 

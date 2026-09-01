@@ -1,3 +1,4 @@
+using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 
 namespace MoneyBrain.Web.Application.Transactions.Ledger;
@@ -9,27 +10,30 @@ namespace MoneyBrain.Web.Application.Transactions.Ledger;
 public interface ILedgerService
 {
     /// <summary>
-    /// Generate ledger entries for a new transaction.
-    /// Creates balanced debit/credit entries following double-entry bookkeeping rules.
+    /// Generate ledger entries for a new transaction using the provided ambient context.
+    /// The caller is responsible for the context lifetime and any enclosing DB transaction.
     /// </summary>
+    /// <param name="context">The ambient DbContext to write into (caller-owned).</param>
     /// <param name="transaction">The transaction to generate entries for</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task GenerateLedgerEntriesAsync(Transaction transaction, CancellationToken cancellationToken = default);
+    Task GenerateLedgerEntriesAsync(ApplicationDbContext context, Transaction transaction, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Delete all ledger entries for a transaction (when transaction is deleted).
     /// </summary>
+    /// <param name="context">The ambient DbContext to write into (caller-owned).</param>
     /// <param name="transactionId">The transaction ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task DeleteLedgerEntriesAsync(int transactionId, CancellationToken cancellationToken = default);
+    Task DeleteLedgerEntriesAsync(ApplicationDbContext context, int transactionId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Regenerate ledger entries for a transaction (when transaction is updated).
     /// Deletes existing entries and creates new ones.
     /// </summary>
+    /// <param name="context">The ambient DbContext to write into (caller-owned).</param>
     /// <param name="transaction">The updated transaction</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task RegenerateLedgerEntriesAsync(Transaction transaction, CancellationToken cancellationToken = default);
+    Task RegenerateLedgerEntriesAsync(ApplicationDbContext context, Transaction transaction, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get the account balance based on ledger entries (double-entry calculation).

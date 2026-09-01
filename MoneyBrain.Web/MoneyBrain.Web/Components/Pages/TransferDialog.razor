@@ -50,17 +50,14 @@
                 @L["TransferDlg_MarkCleared"]
             </MudSwitch>
 
-            @if (!string.IsNullOrWhiteSpace(_errorMessage))
-            {
-                <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
-            }
+            <DialogErrorAlert Message="@_errorMessage" />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
-        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="Submit" Disabled="@(!_isValid)">
-            @(IsNew ? L["TransferDlg_CreateButton"] : L["TransferDlg_UpdateButton"])
-        </MudButton>
+        <DialogActionButtons OnCancel="Cancel"
+                             OnSubmit="Submit"
+                             SubmitDisabled="@(!_isValid)"
+                             SubmitText="@(IsNew ? L["TransferDlg_CreateButton"] : L["TransferDlg_UpdateButton"])" />
     </DialogActions>
 </MudDialog>
 

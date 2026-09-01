@@ -12,13 +12,13 @@ public class ManualBalanceAdjustment
     /// <summary>
     /// Unique identifier for the adjustment.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The account this adjustment applies to.
     /// </summary>
     [Required]
-    public required int AccountId { get; set; }
+    public required int AccountId { get; init; }
 
     /// <summary>
     /// Navigation property to the account.

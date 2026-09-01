@@ -13,13 +13,13 @@ public class UserLicense : IUserOwnedEntity
     /// <summary>
     /// Unique identifier for the license record.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The user this license belongs to.
     /// </summary>
     [Required]
-    public required string UserId { get; set; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// Navigation property to the user.

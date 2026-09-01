@@ -4,6 +4,7 @@
 @using MoneyBrain.Web.Resources
 @using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
+@inject IMonthlyBudgetService MonthlyBudgetService
 @inject ISnackbar SnackbarService
 @inject IStringLocalizer<SharedResource> L
 @inject ICurrencyFormattingService CurrencyFormattingService
@@ -132,7 +133,7 @@
             if (IsDefaultMode)
             {
                 // Load default budget
-                _existingBudget = await CategoryService.GetDefaultBudgetAsync(Category.Id, UserId);
+                _existingBudget = await MonthlyBudgetService.GetDefaultBudgetAsync(Category.Id, UserId);
                 
                 // Check if there are any month overrides (just check if any non-default budgets exist)
                 // This is a simple check - in a real scenario you might want to be more specific
@@ -140,10 +141,10 @@
             else
             {
                 // Load month-specific override
-                _existingBudget = await CategoryService.GetMonthOverrideAsync(Category.Id, UserId, Year, Month);
+                _existingBudget = await MonthlyBudgetService.GetMonthOverrideAsync(Category.Id, UserId, Year, Month);
                 
                 // Load default budget to show in info message
-                _defaultBudget = await CategoryService.GetDefaultBudgetAsync(Category.Id, UserId);
+                _defaultBudget = await MonthlyBudgetService.GetDefaultBudgetAsync(Category.Id, UserId);
             }
             
             if (_existingBudget != null)
@@ -189,7 +190,7 @@
             
             if (IsDefaultMode)
             {
-                budget = await CategoryService.SetDefaultBudgetAsync(
+                budget = await MonthlyBudgetService.SetDefaultBudgetAsync(
                     Category.Id, 
                     UserId, 
                     _plannedAmount, 
@@ -197,7 +198,7 @@
             }
             else
             {
-                budget = await CategoryService.SetMonthOverrideAsync(
+                budget = await MonthlyBudgetService.SetMonthOverrideAsync(
                     Category.Id, 
                     UserId, 
                     Year, 
@@ -231,11 +232,11 @@
             
             if (IsDefaultMode)
             {
-                success = await CategoryService.DeleteDefaultBudgetAsync(Category.Id, UserId);
+                success = await MonthlyBudgetService.DeleteDefaultBudgetAsync(Category.Id, UserId);
             }
             else
             {
-                success = await CategoryService.DeleteMonthOverrideAsync(Category.Id, UserId, Year, Month);
+                success = await MonthlyBudgetService.DeleteMonthOverrideAsync(Category.Id, UserId, Year, Month);
             }
             
             if (success)

@@ -23,13 +23,13 @@ public class TransactionService : ITransactionService
     /// </summary>
     private const decimal SplitAmountTolerance = 0.01m;
 
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILedgerService _ledgerService;
     private readonly ICacheService _cacheService;
 
-    public TransactionService(ApplicationDbContext context, ILedgerService ledgerService, ICacheService cacheService)
+    public TransactionService(IDbContextFactory<ApplicationDbContext> contextFactory, ILedgerService ledgerService, ICacheService cacheService)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _ledgerService = ledgerService;
         _cacheService = cacheService;
     }
@@ -38,14 +38,14 @@ public class TransactionService : ITransactionService
     /// Normalizes the transaction amount based on the category's type (Income/Expense).
     /// Income categories enforce positive amounts, Expense categories enforce negative amounts.
     /// </summary>
-    private async Task<decimal> NormalizeAmountByCategoryTypeAsync(decimal amount, int? categoryId, CancellationToken cancellationToken = default)
+    private async Task<decimal> NormalizeAmountByCategoryTypeAsync(ApplicationDbContext context, decimal amount, int? categoryId, CancellationToken cancellationToken = default)
     {
         // If no category, return amount as-is
         if (!categoryId.HasValue)
             return amount;
 
         // Look up category and its group type
-        var category = await _context.Categories
+        var category = await context.Categories
             .Include(c => c.CategoryGroup)
             .FirstOrDefaultAsync(c => c.Id == categoryId.Value, cancellationToken);
 
@@ -76,8 +76,9 @@ public class TransactionService : ITransactionService
     public async Task<List<Transaction>> GetAccountTransactionsAsync(int accountId, string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var query = ApplyDateRange(
-            _context.Transactions
+            context.Transactions
             .IncludeTransactionDetails()
             .Where(t => t.AccountId == accountId && t.UserId == userId),
             startDate,
@@ -92,8 +93,9 @@ public class TransactionService : ITransactionService
     public async Task<List<Transaction>> GetUserTransactionsAsync(string userId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var query = ApplyDateRange(
-            _context.Transactions
+            context.Transactions
             .IncludeTransactionDetails()
             .Where(t => t.UserId == userId),
             startDate,
@@ -108,7 +110,8 @@ public class TransactionService : ITransactionService
     public async Task<Transaction?> GetTransactionByIdAsync(int transactionId, string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        return await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.Transactions
             .IncludeTransactionDetails()
             .Include(t => t.Splits)
                 .ThenInclude(s => s.Category)
@@ -133,15 +136,17 @@ public class TransactionService : ITransactionService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Verify account belongs to user
-        var accountExists = await _context.Accounts
+        var accountExists = await context.Accounts
             .AnyAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);
 
         if (!accountExists)
             throw new InvalidOperationException("Account not found or does not belong to user");
 
         // Normalize amount based on category type (Income = positive, Expense = negative)
-        var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(amount, categoryId, cancellationToken);
+        var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(context, amount, categoryId, cancellationToken);
 
         var transaction = new Transaction
         {
@@ -162,16 +167,16 @@ public class TransactionService : ITransactionService
             NextRecurrenceDate = isRecurring ? recurrenceStartDate : null
         };
 
-        _context.Transactions.Add(transaction);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Transactions.Add(transaction);
+        await context.SaveChangesAsync(cancellationToken);
 
         // Load the Account navigation property for ledger entry generation
-        await _context.Entry(transaction)
+        await context.Entry(transaction)
             .Reference(t => t.Account)
             .LoadAsync(cancellationToken);
 
         // Generate ledger entries for double-entry bookkeeping
-        await _ledgerService.GenerateLedgerEntriesAsync(transaction, cancellationToken);
+        await _ledgerService.GenerateLedgerEntriesAsync(context, transaction, cancellationToken);
 
         await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
 
@@ -196,7 +201,8 @@ public class TransactionService : ITransactionService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var transaction = await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var transaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
         if (transaction == null)
@@ -207,7 +213,7 @@ public class TransactionService : ITransactionService
             throw new InvalidOperationException("Cannot modify reconciled transaction");
 
         // Normalize amount based on category type (Income = positive, Expense = negative)
-        var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(amount, categoryId, cancellationToken);
+        var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(context, amount, categoryId, cancellationToken);
 
         transaction.Date = date;
         transaction.Amount = normalizedAmount;
@@ -234,15 +240,15 @@ public class TransactionService : ITransactionService
         
         transaction.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         // Load the Account navigation property for ledger entry regeneration
-        await _context.Entry(transaction)
+        await context.Entry(transaction)
             .Reference(t => t.Account)
             .LoadAsync(cancellationToken);
 
         // Regenerate ledger entries to reflect the updated transaction
-        await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
+        await _ledgerService.RegenerateLedgerEntriesAsync(context, transaction, cancellationToken);
 
         await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
 
@@ -252,7 +258,8 @@ public class TransactionService : ITransactionService
     public async Task<bool> DeleteTransactionAsync(int transactionId, string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        var transaction = await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var transaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
         if (transaction == null)
@@ -265,10 +272,10 @@ public class TransactionService : ITransactionService
         var transactionDate = transaction.Date;
 
         // Delete ledger entries first (cascade delete would handle this, but explicit is clearer)
-        await _ledgerService.DeleteLedgerEntriesAsync(transactionId, cancellationToken);
+        await _ledgerService.DeleteLedgerEntriesAsync(context, transactionId, cancellationToken);
 
-        _context.Transactions.Remove(transaction);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Transactions.Remove(transaction);
+        await context.SaveChangesAsync(cancellationToken);
 
         await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, transactionDate);
 
@@ -279,7 +286,8 @@ public class TransactionService : ITransactionService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentNullException.ThrowIfNull(filter);
-        var query = _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var query = context.Transactions
             .IncludeTransactionDetails()
             .Include(t => t.Splits)
                 .ThenInclude(s => s.Category)
@@ -405,8 +413,10 @@ public class TransactionService : ITransactionService
             return result;
         }
 
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Get all transactions to update
-        var transactions = await _context.Transactions
+        var transactions = await context.Transactions
             .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
             .ToListAsync(cancellationToken);
 
@@ -494,7 +504,7 @@ public class TransactionService : ITransactionService
 
         if (result.UpdatedCount > 0)
         {
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
             // Invalidate caches for all affected transaction dates
             var affectedDates = transactionsToUpdate.Select(t => t.Date).Distinct();
@@ -512,13 +522,14 @@ public class TransactionService : ITransactionService
     /// Callers must call <see cref="Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(CancellationToken)"/>
     /// after this method returns.
     /// </summary>
+    /// <param name="context">The ambient DbContext (caller-owned).</param>
     /// <param name="transactionId">The owning transaction's database ID.</param>
     /// <param name="splits">Pairs of (split DTO, already-normalized amount).</param>
-    private void AddTransactionSplits(int transactionId, IEnumerable<(TransactionSplitDto Dto, decimal NormalizedAmount)> splits)
+    private void AddTransactionSplits(ApplicationDbContext context, int transactionId, IEnumerable<(TransactionSplitDto Dto, decimal NormalizedAmount)> splits)
     {
         foreach (var (splitDto, normalizedSplitAmount) in splits)
         {
-            _context.TransactionSplits.Add(new TransactionSplit
+            context.TransactionSplits.Add(new TransactionSplit
             {
                 TransactionId = transactionId,
                 CategoryId = splitDto.CategoryId,
@@ -604,28 +615,30 @@ public class TransactionService : ITransactionService
             UpdatedAt = DateTime.UtcNow
         };
 
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Normalize split amounts before opening the DB transaction to keep I/O outside the transaction scope.
         var normalizedSplits = new List<(TransactionSplitDto Dto, decimal NormalizedAmount)>(splits.Count);
         foreach (var splitDto in splits)
         {
-            var normalizedSplitAmount = await NormalizeAmountByCategoryTypeAsync(splitDto.Amount, splitDto.CategoryId, cancellationToken);
+            var normalizedSplitAmount = await NormalizeAmountByCategoryTypeAsync(context, splitDto.Amount, splitDto.CategoryId, cancellationToken);
             normalizedSplits.Add((splitDto, normalizedSplitAmount));
         }
 
         // Wrap both inserts and ledger generation in a single DB transaction so a
         // partial failure never leaves an orphaned transaction or missing splits.
-        await using var dbTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        _context.Transactions.Add(transaction);
-        await _context.SaveChangesAsync(cancellationToken); // needed to obtain transaction.Id for the FK
+        context.Transactions.Add(transaction);
+        await context.SaveChangesAsync(cancellationToken); // needed to obtain transaction.Id for the FK
 
         // Create splits with normalized amounts based on category type
-        AddTransactionSplits(transaction.Id, normalizedSplits);
+        AddTransactionSplits(context, transaction.Id, normalizedSplits);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         // Reload with navigation properties
-        var createdTransaction = await _context.Transactions
+        var createdTransaction = await context.Transactions
             .Include(t => t.Account)
             .Include(t => t.Payee)
             .Include(t => t.Splits)
@@ -633,7 +646,7 @@ public class TransactionService : ITransactionService
             .FirstAsync(t => t.Id == transaction.Id, cancellationToken);
 
         // Generate ledger entries for double-entry bookkeeping
-        await _ledgerService.GenerateLedgerEntriesAsync(createdTransaction, cancellationToken);
+        await _ledgerService.GenerateLedgerEntriesAsync(context, createdTransaction, cancellationToken);
 
         await dbTransaction.CommitAsync(cancellationToken);
 
@@ -666,7 +679,8 @@ public class TransactionService : ITransactionService
             throw new InvalidOperationException($"Invalid splits: {string.Join(", ", validation.Errors)}");
         }
 
-        var transaction = await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var transaction = await context.Transactions
             .Include(t => t.Splits)
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
@@ -690,32 +704,32 @@ public class TransactionService : ITransactionService
         transaction.UpdatedAt = DateTime.UtcNow;
 
         // Remove existing splits
-        _context.TransactionSplits.RemoveRange(transaction.Splits);
+        context.TransactionSplits.RemoveRange(transaction.Splits);
 
         // Normalize new split amounts then add them via shared helper
         var normalizedSplits = new List<(TransactionSplitDto Dto, decimal NormalizedAmount)>(splits.Count);
         foreach (var splitDto in splits)
         {
-            var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(splitDto.Amount, splitDto.CategoryId, cancellationToken);
+            var normalizedAmount = await NormalizeAmountByCategoryTypeAsync(context, splitDto.Amount, splitDto.CategoryId, cancellationToken);
             normalizedSplits.Add((splitDto, normalizedAmount));
         }
 
-        AddTransactionSplits(transaction.Id, normalizedSplits);
+        AddTransactionSplits(context, transaction.Id, normalizedSplits);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         // Load the Account navigation property for ledger entry regeneration
-        await _context.Entry(transaction)
+        await context.Entry(transaction)
             .Reference(t => t.Account)
             .LoadAsync(cancellationToken);
 
         // Reload splits for ledger entry generation
-        await _context.Entry(transaction)
+        await context.Entry(transaction)
             .Collection(t => t.Splits)
             .LoadAsync(cancellationToken);
 
         // Regenerate ledger entries to reflect the updated transaction with splits
-        await _ledgerService.RegenerateLedgerEntriesAsync(transaction, cancellationToken);
+        await _ledgerService.RegenerateLedgerEntriesAsync(context, transaction, cancellationToken);
 
         await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, date);
 
@@ -732,8 +746,10 @@ public class TransactionService : ITransactionService
         if (request.TransactionIds.Count == 0)
             return result;
 
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Load transactions
-        var transactions = await _context.Transactions
+        var transactions = await context.Transactions
             .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
             .ToListAsync(cancellationToken);
 
@@ -770,7 +786,7 @@ public class TransactionService : ITransactionService
             result.SkipReason = string.Join(" or ", reasons);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return result;
     }
 
@@ -778,7 +794,8 @@ public class TransactionService : ITransactionService
         string userId,
         CancellationToken cancellationToken = default)
     {
-        return await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.Transactions
             .CountAsync(t => t.UserId == userId && t.Status == TransactionStatus.Pending, cancellationToken);
     }
 
@@ -790,7 +807,9 @@ public class TransactionService : ITransactionService
     {
         var result = new StatusUpdateResult();
 
-        var query = _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var query = context.Transactions
             .Where(t => t.UserId == userId && t.Status == TransactionStatus.Pending);
 
         // Filter by date if specified (post pending transactions up to a certain date)
@@ -822,7 +841,7 @@ public class TransactionService : ITransactionService
             result.SkipReason = "reconciled";
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return result;
     }
 
@@ -836,8 +855,10 @@ public class TransactionService : ITransactionService
         if (request.TransactionIds.Count == 0)
             return result;
 
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
         // Load transactions
-        var transactions = await _context.Transactions
+        var transactions = await context.Transactions
             .Where(t => request.TransactionIds.Contains(t.Id) && t.UserId == userId)
             .ToListAsync(cancellationToken);
 
@@ -861,7 +882,7 @@ public class TransactionService : ITransactionService
             result.SkipReason = "reconciled";
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return result;
     }
 
@@ -870,7 +891,8 @@ public class TransactionService : ITransactionService
         int transactionId,
         CancellationToken cancellationToken = default)
     {
-        var transaction = await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var transaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
         if (transaction == null)
@@ -883,8 +905,7 @@ public class TransactionService : ITransactionService
         transaction.IsCleared = !transaction.IsCleared;
         transaction.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return true;
     }
 }
-

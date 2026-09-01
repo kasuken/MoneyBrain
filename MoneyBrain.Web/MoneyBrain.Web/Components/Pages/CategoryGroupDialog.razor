@@ -45,23 +45,14 @@
             </MudSelectItem>
         </MudSelect>
 
-        @if (!string.IsNullOrWhiteSpace(_errorMessage))
-        {
-            <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
-        }
+        <DialogErrorAlert Message="@_errorMessage" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">@L["Btn_Cancel"]</MudButton>
-        <MudButton Color="MudBlazor.Color.Primary" 
-                   Variant="Variant.Filled" 
-                   OnClick="Submit" 
-                   Disabled="_isSubmitting || string.IsNullOrWhiteSpace(_name)">
-            @if (_isSubmitting)
-            {
-                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
-            }
-            @(IsNew ? L["Btn_Create"] : L["Btn_Update"])
-        </MudButton>
+        <DialogActionButtons OnCancel="Cancel"
+                             OnSubmit="Submit"
+                             IsSubmitting="_isSubmitting"
+                             SubmitDisabled="@(string.IsNullOrWhiteSpace(_name))"
+                             SubmitText="@(IsNew ? L["Btn_Create"] : L["Btn_Update"])" />
     </DialogActions>
 </MudDialog>
 

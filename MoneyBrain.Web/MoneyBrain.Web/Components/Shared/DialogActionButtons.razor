@@ -1,0 +1,55 @@
+@* Renders the standard Cancel + Submit button row used inside &lt;DialogActions&gt;.
+   Handles the loading spinner and disabled state of the submit button. *@
+
+@inject IStringLocalizer<SharedResource> L
+
+<MudButton OnClick="OnCancel" Disabled="@(IsSubmitting && DisableCancelWhenSubmitting)">@(CancelText ?? L["Btn_Cancel"])</MudButton>
+<MudButton Color="@SubmitColor"
+           Variant="Variant.Filled"
+           OnClick="OnSubmit"
+           Disabled="@(IsSubmitting || SubmitDisabled)">
+    @if (IsSubmitting)
+    {
+        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
+    }
+    @(SubmitText ?? L["Btn_Save"])
+</MudButton>
+
+@code {
+    /// <summary>Callback invoked when the Cancel button is clicked.</summary>
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    /// <summary>Callback invoked when the Submit button is clicked.</summary>
+    [Parameter] public EventCallback OnSubmit { get; set; }
+
+    /// <summary>
+    /// When <c>true</c> the submit button is disabled and the cancel button is also disabled (when <see cref="DisableCancelWhenSubmitting"/> is set),
+    /// and a <see cref="MudProgressCircular"/> spinner is shown inside the submit button.
+    /// </summary>
+    [Parameter] public bool IsSubmitting { get; set; }
+
+    /// <summary>
+    /// When <c>true</c>, the cancel button is also disabled while <see cref="IsSubmitting"/> is <c>true</c>.
+    /// Defaults to <c>false</c> so users can still dismiss the dialog during a slow submit.
+    /// </summary>
+    [Parameter] public bool DisableCancelWhenSubmitting { get; set; } = false;
+
+    /// <summary>
+    /// Additional disabled condition for the submit button (e.g. form is invalid).
+    /// The submit button is disabled when either <see cref="IsSubmitting"/> or <see cref="SubmitDisabled"/> is <c>true</c>.
+    /// </summary>
+    [Parameter] public bool SubmitDisabled { get; set; }
+
+    /// <summary>
+    /// Override the cancel button label. Defaults to the <c>Btn_Cancel</c> localized string.
+    /// </summary>
+    [Parameter] public string? CancelText { get; set; }
+
+    /// <summary>
+    /// The submit button label. Defaults to the <c>Btn_Save</c> localized string.
+    /// </summary>
+    [Parameter] public string? SubmitText { get; set; }
+
+    /// <summary>The MudBlazor <see cref="Color"/> applied to the submit button. Defaults to <see cref="Color.Primary"/>.</summary>
+    [Parameter] public Color SubmitColor { get; set; } = Color.Primary;
+}

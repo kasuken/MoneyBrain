@@ -10,7 +10,7 @@ public class EducationalTip
     /// <summary>
     /// Unique identifier for the educational tip.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// Title of the educational tip.

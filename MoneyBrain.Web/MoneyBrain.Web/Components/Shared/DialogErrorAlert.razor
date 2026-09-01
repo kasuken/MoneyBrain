@@ -1,0 +1,14 @@
+@* Renders a MudAlert (Severity.Error) only when Message is non-empty.
+   Drop this component at the end of DialogContent to show inline validation/error messages. *@
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <MudAlert Severity="Severity.Error" Class="mt-4">@Message</MudAlert>
+}
+
+@code {
+    /// <summary>
+    /// The error message to display. When <c>null</c> or whitespace the alert is not rendered.
+    /// </summary>
+    [Parameter] public string? Message { get; set; }
+}

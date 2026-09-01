@@ -12,7 +12,7 @@ namespace MoneyBrain.Web.Application.InsightExplorer;
 /// <summary>
 /// Implementation of Insight Explorer service for dynamic queries
 /// </summary>
-public class InsightExplorerService(ApplicationDbContext context) : IInsightExplorerService
+public class InsightExplorerService(IDbContextFactory<ApplicationDbContext> contextFactory) : IInsightExplorerService
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -45,6 +45,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         int pageSize,
         CancellationToken cancellationToken)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var baseQuery = context.Transactions
             .Include(t => t.Account)
             .Include(t => t.Category)
@@ -233,6 +234,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         int pageSize,
         CancellationToken cancellationToken)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var baseQuery = context.Accounts
             .Where(a => a.UserId == userId)
             .AsNoTracking();
@@ -279,6 +281,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         int pageSize,
         CancellationToken cancellationToken)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var baseQuery = context.Categories
             .Include(c => c.CategoryGroup)
             .Where(c => c.UserId == userId)
@@ -324,6 +327,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         int pageSize,
         CancellationToken cancellationToken)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var baseQuery = context.Payees
             .Include(p => p.DefaultCategory)
             .Where(p => p.UserId == userId)
@@ -366,6 +370,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         int pageSize,
         CancellationToken cancellationToken)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var baseQuery = context.Budgets
             .Where(b => b.UserId == userId)
             .AsNoTracking();
@@ -649,6 +654,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         QueryDefinition query,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var savedQuery = new SavedQuery
         {
             UserId = userId,
@@ -673,6 +679,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         QueryDefinition query,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var existing = await context.SavedQueries
             .FirstOrDefaultAsync(q => q.Id == queryId && q.UserId == userId, cancellationToken);
 
@@ -691,6 +698,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         string userId,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.SavedQueries
             .Where(q => q.UserId == userId)
             .OrderByDescending(q => q.UpdatedAt)
@@ -703,6 +711,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         string userId,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.SavedQueries
             .FirstOrDefaultAsync(q => q.Id == queryId && q.UserId == userId, cancellationToken);
     }
@@ -712,6 +721,7 @@ public class InsightExplorerService(ApplicationDbContext context) : IInsightExpl
         string userId,
         CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var query = await context.SavedQueries
             .FirstOrDefaultAsync(q => q.Id == queryId && q.UserId == userId, cancellationToken);
 

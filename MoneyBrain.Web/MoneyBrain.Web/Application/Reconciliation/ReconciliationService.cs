@@ -5,10 +5,11 @@ using MoneyBrain.Web.Domain.Enums;
 
 namespace MoneyBrain.Web.Application.Reconciliation;
 
-public class ReconciliationService(ApplicationDbContext context) : IReconciliationService
+public class ReconciliationService(IDbContextFactory<ApplicationDbContext> contextFactory) : IReconciliationService
 {
     public async Task<List<Domain.Entities.Reconciliation>> GetReconciliationsAsync(string userId, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.Reconciliations
             .Include(r => r.Account)
             .Where(r => r.UserId == userId)
@@ -18,6 +19,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<List<Domain.Entities.Reconciliation>> GetReconciliationsForAccountAsync(int accountId, string userId, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.Reconciliations
             .Include(r => r.Account)
             .Where(r => r.AccountId == accountId && r.UserId == userId)
@@ -27,6 +29,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<Domain.Entities.Reconciliation?> GetReconciliationByIdAsync(int reconciliationId, string userId, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.Reconciliations
             .Include(r => r.Account)
             .Include(r => r.Transactions)
@@ -38,6 +41,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<Domain.Entities.Reconciliation> StartReconciliationAsync(int accountId, string userId, DateTime statementDate, decimal statementBalance, string? notes = null, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         // Verify account belongs to user
         var account = await context.Accounts
             .FirstOrDefaultAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);
@@ -74,6 +78,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<List<Transaction>> GetUnreconciledTransactionsAsync(int accountId, string userId, DateTime upToDate, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.Transactions
             .Include(t => t.Payee)
             .Include(t => t.Category)
@@ -89,6 +94,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<bool> ReconcileTransactionsAsync(int reconciliationId, string userId, List<int> transactionIds, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var reconciliation = await context.Reconciliations
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
@@ -109,7 +115,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
             transaction.UpdatedAt = DateTime.UtcNow;
         }
 
-        await UpdateReconciliationTotalsAsync(reconciliation, userId, cancellationToken);
+        await UpdateReconciliationTotalsAsync(context, reconciliation, userId, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
         return true;
@@ -117,6 +123,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<bool> UnreconcileTransactionsAsync(int reconciliationId, string userId, List<int> transactionIds, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var reconciliation = await context.Reconciliations
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
@@ -136,7 +143,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
             transaction.UpdatedAt = DateTime.UtcNow;
         }
 
-        await UpdateReconciliationTotalsAsync(reconciliation, userId, cancellationToken);
+        await UpdateReconciliationTotalsAsync(context, reconciliation, userId, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
         return true;
@@ -144,6 +151,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<Domain.Entities.Reconciliation> CompleteReconciliationAsync(int reconciliationId, string userId, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var reconciliation = await context.Reconciliations
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
@@ -163,6 +171,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<bool> DeleteReconciliationAsync(int reconciliationId, string userId, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var reconciliation = await context.Reconciliations
             .Include(r => r.Transactions)
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
@@ -188,6 +197,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
 
     public async Task<decimal> CalculateReconciledBalanceAsync(int reconciliationId, string userId, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var reconciliation = await context.Reconciliations
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
@@ -202,7 +212,7 @@ public class ReconciliationService(ApplicationDbContext context) : IReconciliati
         return reconciliation.OpeningBalance + reconciledTransactions;
     }
 
-    private async Task UpdateReconciliationTotalsAsync(Domain.Entities.Reconciliation reconciliation, string userId, CancellationToken cancellationToken)
+    private async Task UpdateReconciliationTotalsAsync(ApplicationDbContext context, Domain.Entities.Reconciliation reconciliation, string userId, CancellationToken cancellationToken)
     {
         var reconciledTransactions = await context.Transactions
             .Where(t => t.ReconciliationId == reconciliation.Id && t.UserId == userId)

@@ -8,9 +8,9 @@ namespace MoneyBrain.Web.Domain.Entities;
 /// </summary>
 public class Transaction : IUserOwnedEntity
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
     
-    public required string UserId { get; set; }
+    public required string UserId { get; init; }
     
     public int AccountId { get; set; }
     

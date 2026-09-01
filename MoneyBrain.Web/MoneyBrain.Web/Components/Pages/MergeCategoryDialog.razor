@@ -87,17 +87,13 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel" Disabled="_isSubmitting">@L["Btn_Cancel"]</MudButton>
-        <MudButton Color="Color.Error" 
-                   Variant="Variant.Filled" 
-                   OnClick="Submit" 
-                   Disabled="@(_isSubmitting || _selectedTargetCategoryId == 0)">
-            @if (_isSubmitting)
-            {
-                <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="me-2" />
-            }
-            @L["MergeCatDlg_MergeButton"]
-        </MudButton>
+        <DialogActionButtons OnCancel="Cancel"
+                             OnSubmit="Submit"
+                             IsSubmitting="_isSubmitting"
+                             DisableCancelWhenSubmitting="true"
+                             SubmitDisabled="@(_selectedTargetCategoryId == 0)"
+                             SubmitText="@L["MergeCatDlg_MergeButton"]"
+                             SubmitColor="Color.Error" />
     </DialogActions>
 </MudDialog>
 

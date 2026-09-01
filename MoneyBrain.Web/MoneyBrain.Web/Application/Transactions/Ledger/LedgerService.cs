@@ -16,12 +16,12 @@ namespace MoneyBrain.Web.Application.Transactions.Ledger;
 /// - Expenses: Debit increases (expense incurred)
 /// - Every transaction must have balanced debits and credits (sum of debits = sum of credits)
 /// </summary>
-public class LedgerService(ApplicationDbContext context) : ILedgerService
+public class LedgerService(IDbContextFactory<ApplicationDbContext> contextFactory) : ILedgerService
 {
     /// <summary>
-    /// Generate ledger entries for a new transaction.
+    /// Generate ledger entries for a new transaction using the provided ambient context.
     /// </summary>
-    public async Task GenerateLedgerEntriesAsync(Transaction transaction, CancellationToken cancellationToken = default)
+    public async Task GenerateLedgerEntriesAsync(ApplicationDbContext context, Transaction transaction, CancellationToken cancellationToken = default)
     {
         var entries = CreateLedgerEntries(transaction);
         
@@ -42,7 +42,7 @@ public class LedgerService(ApplicationDbContext context) : ILedgerService
     /// <summary>
     /// Delete all ledger entries for a transaction.
     /// </summary>
-    public async Task DeleteLedgerEntriesAsync(int transactionId, CancellationToken cancellationToken = default)
+    public async Task DeleteLedgerEntriesAsync(ApplicationDbContext context, int transactionId, CancellationToken cancellationToken = default)
     {
         var entries = await context.LedgerEntries
             .Where(le => le.TransactionId == transactionId)
@@ -55,17 +55,19 @@ public class LedgerService(ApplicationDbContext context) : ILedgerService
     /// <summary>
     /// Regenerate ledger entries for a transaction.
     /// </summary>
-    public async Task RegenerateLedgerEntriesAsync(Transaction transaction, CancellationToken cancellationToken = default)
+    public async Task RegenerateLedgerEntriesAsync(ApplicationDbContext context, Transaction transaction, CancellationToken cancellationToken = default)
     {
-        await DeleteLedgerEntriesAsync(transaction.Id, cancellationToken);
-        await GenerateLedgerEntriesAsync(transaction, cancellationToken);
+        await DeleteLedgerEntriesAsync(context, transaction.Id, cancellationToken);
+        await GenerateLedgerEntriesAsync(context, transaction, cancellationToken);
     }
 
     /// <summary>
-    /// Get account balance based on ledger entries.
+    /// Get account balance based on ledger entries. Uses its own short-lived context.
     /// </summary>
     public async Task<decimal> GetAccountBalanceAsync(int accountId, string userId, DateTime? asOfDate = null, CancellationToken cancellationToken = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
         var account = await context.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == accountId && a.UserId == userId, cancellationToken);

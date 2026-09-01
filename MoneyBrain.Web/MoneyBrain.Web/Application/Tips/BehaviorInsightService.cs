@@ -12,16 +12,16 @@ namespace MoneyBrain.Web.Application.Tips;
 /// </summary>
 public class BehaviorInsightService : IBehaviorInsightService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ICacheService _cacheService;
     private readonly ICategorySpendingService _categorySpendingService;
 
     public BehaviorInsightService(
-        ApplicationDbContext context,
+        IDbContextFactory<ApplicationDbContext> contextFactory,
         ICacheService cacheService,
         ICategorySpendingService categorySpendingService)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _cacheService = cacheService;
         _categorySpendingService = categorySpendingService;
     }
@@ -154,7 +154,8 @@ public class BehaviorInsightService : IBehaviorInsightService
         List<BehaviorInsightDto> insights,
         CancellationToken cancellationToken)
     {
-        var transactionCount = await _context.LedgerEntries
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var transactionCount = await context.LedgerEntries
             .Where(le => le.UserId == userId &&
                          le.EntryDate >= startDate &&
                          le.EntryDate <= endDate &&

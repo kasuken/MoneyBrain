@@ -13,13 +13,13 @@ public class UserSettings : IUserOwnedEntity
     /// <summary>
     /// Unique identifier for the settings record.
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     /// <summary>
     /// The user these settings belong to. One user = one settings record.
     /// </summary>
     [Required]
-    public required string UserId { get; set; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// Navigation property to the user.
