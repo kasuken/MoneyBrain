@@ -19,7 +19,7 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 - **Reports**: cashflow, category spending, budget vs actual, net worth, and account balance history.
 - **CSV import & export**: import transactions with column mapping + preview, export reports to CSV.
 - **Recurring transactions**: generate upcoming transactions automatically.
-- **Progressive Web App (PWA)**: install on any device, works offline, app-like experience.
+- **Progressive Web App (PWA)**: install on any device for an app-like experience.
 
 ## 🛠️ Tech Stack
 
@@ -28,7 +28,7 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 - **Database**: PostgreSQL 17 (Docker), SQL Server (optional), SQLite (development)
 - **ORM**: Entity Framework Core
 - **Caching**: In-memory (default), Redis (optional for distributed scenarios)
-- **PWA**: Service Workers, manifest.json, offline-first architecture
+- **PWA**: Web app manifest with mobile and desktop installation support
 - **Containerization**: Docker + Docker Compose
 
 **Why this stack:**
@@ -42,13 +42,13 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 
 ## 📱 Progressive Web App
 
-MoneyBrain is a full-featured PWA with:
+MoneyBrain provides a minimal, installation-only PWA:
 
 - **🚀 Installable** - Add to home screen on mobile, tablet, or desktop
-- **📴 Offline support** - Works without internet connection
-- **⚡ Fast & cached** - Smart caching for instant loading
-- **🔄 Auto-updates** - Seamless version updates
 - **🎨 Native feel** - Runs like a native app in standalone mode
+
+The PWA does not register a service worker, cache application resources, or
+provide offline behavior. An internet connection is required.
 
 ### Installing MoneyBrain
 
@@ -63,31 +63,6 @@ MoneyBrain is a full-featured PWA with:
 - Tap menu (⋮) → "Add to Home screen"
 - Or use the in-app install prompt
 
-See [PWA_IMPLEMENTATION.md](docs/archive/PWA_IMPLEMENTATION.md) for complete setup guide.
-
-### Advanced PWA Features
-
-MoneyBrain's PWA implementation includes advanced capabilities:
-
-- **Smart caching strategies** - Different cache policies for static assets, API calls, and dynamic content
-- **Background sync** - Queue transactions offline, sync when connection returns
-- **Update notifications** - Get notified when new versions are available
-- **Cache management** - Automatic cleanup and version control
-- **Performance optimization** - Precaching critical resources for instant load times
-
-**Caching behavior:**
-- Static assets (CSS, JS, icons): cached indefinitely, updated on version change
-- API responses: network-first with cache fallback
-- Offline fallback: custom offline page when network unavailable
-
-**Managing updates:**
-1. Updates download automatically in the background
-2. You'll see a notification when a new version is ready
-3. Refresh the app to activate the update
-4. Old cache is cleared automatically
-
-For technical details and troubleshooting, see [PWA_IMPLEMENTATION.md](docs/archive/PWA_IMPLEMENTATION.md).
-
 ### Mobile & Responsive Design
 
 MoneyBrain is fully responsive and optimized for mobile devices:
@@ -96,7 +71,6 @@ MoneyBrain is fully responsive and optimized for mobile devices:
 - **Touch-optimized UI** - Large tap targets, swipe gestures for common actions
 - **Responsive layouts** - Adapts to phone, tablet, and desktop screen sizes
 - **Fast load times** - Optimized bundle sizes and lazy loading
-- **Offline-first** - Core features work without internet connection
 - **Install on any device** - Add to home screen on iOS, Android, desktop
 
 **Device-specific optimizations:**
