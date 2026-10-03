@@ -9,7 +9,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=moneybrain;User Id=sa;Password=${MSSQL_SA_PASSWORD:?MSSQL_SA_PASSWORD must be set in .env};TrustServerCertificate=True
-      - DatabaseProvider=SqlServer
+      # Self-hosted defaults: in-memory cache and no subscription licensing (appsettings.Production.json enables both for the hosted service).
+      - CacheSettings__Provider=Memory
+      - Licensing__Enabled=false
     depends_on:
       sqlserver:
         condition: service_healthy

@@ -1,5 +1,7 @@
 # MoneyBrain
 
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](LICENSE)
+
 *Your personal finance system, under your control.*
 
 > [!NOTE]
@@ -268,11 +270,11 @@ services:
 
 ## Import sample data
 
-There’s a small sample file at `sample-transactions.csv`.
+There’s a small sample file at `samples/sample-transactions.csv`.
 
 1. Run the app.
 2. Go to **Transactions** → **Import CSV**.
-3. Upload `sample-transactions.csv`, map columns if needed, preview, then import.
+3. Upload `samples/sample-transactions.csv`, map columns if needed, preview, then import.
 
 > [!TIP]
 > If categories in the CSV don’t exist yet, create them first (Categories) to get cleaner matches.
@@ -345,3 +347,23 @@ MoneyBrain's search and filter capabilities enable powerful transaction analysis
 ## What’s next
 
 MoneyBrain is evolving toward the PRD in `.github/prd.instructions.md`. Some areas are planned but may not be fully implemented yet (for example: a full rules engine with preview).
+
+## Hosted or self-hosted
+
+MoneyBrain is open source and built to be self-hosted: the Docker Compose setup in this repository runs the app with SQL Server, an in-memory cache and no subscription checks. The code also contains the subscription licensing used by the hosted service (Stripe billing, Redis cache). It is controlled by the `Licensing:Enabled` setting, which is `false` by default and only turned on in `appsettings.Production.json` for the hosted deployment. A self-hosted instance never needs Stripe keys.
+
+## Contributing
+
+Contributions are welcome! Please read the [contributing guidelines](https://github.com/kasuken/.github/blob/main/CONTRIBUTING.md) and the [Code of Conduct](https://github.com/kasuken/.github/blob/main/CODE_OF_CONDUCT.md) before opening a pull request. All contributors must sign the [Contributor License Agreement](https://github.com/kasuken/.github/blob/main/CLA.md); a bot will ask you to on your first pull request.
+
+## Security
+
+Please **do not** report security vulnerabilities in public issues. Use [private vulnerability reporting](https://github.com/kasuken/MoneyBrain/security/advisories/new) instead. See the [Security Policy](https://github.com/kasuken/.github/blob/main/SECURITY.md) for details.
+
+## License
+
+MoneyBrain is licensed under the [GNU Affero General Public License v3.0 only](LICENSE) (`AGPL-3.0-only`). If you run a modified version of MoneyBrain as a network service, the AGPL requires you to make your modified source code available to its users. Set `SourceCodeUrl` in configuration to point the in-app "Source code" link at your repository.
+
+Third-party components and their licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+"MoneyBrain" and the MoneyBrain logo are trademarks of Emanuele Bartolesi and are not licensed under the AGPL. If you publish a modified public instance, please use a different name and logo.
