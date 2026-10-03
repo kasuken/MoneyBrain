@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Sample import file moved to `samples/sample-transactions.csv`.
 
 ### Fixed
+- The Docker image health check called `curl`, which the .NET runtime image does not include, so self-hosted containers always reported unhealthy. It now checks `/health/live` without extra packages and allows 60 seconds for startup migrations.
 
 - README now documents the actual SQL Server setup (Docker, configuration, backups) instead of PostgreSQL/SQLite, the correct clone URL, and the real `CacheSettings` keys.
 
