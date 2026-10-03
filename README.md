@@ -324,7 +324,18 @@ MoneyBrain is evolving toward the PRD in `.github/prd.instructions.md`. Some are
 
 ## Hosted or self-hosted
 
-MoneyBrain is open source and built to be self-hosted: the Docker Compose setup in this repository runs the app with SQL Server, an in-memory cache and no subscription checks. The code also contains the subscription licensing used by the hosted service (Stripe billing, Redis cache). It is controlled by the `Licensing:Enabled` setting, which is `false` by default and only turned on in `appsettings.Production.json` for the hosted deployment. A self-hosted instance never needs Stripe keys.
+MoneyBrain is open source and built to be self-hosted: the Docker Compose setup in this repository runs the app with SQL Server, an in-memory cache and no subscription checks. The code also contains the subscription licensing used by the hosted service (Stripe billing, Redis cache). It is controlled by the `Licensing:Enabled` setting, which is `false` by default and only turned on through App Service application settings for the hosted deployment, so nothing in the repository enables it. A self-hosted instance never needs Stripe keys.
+
+## Releasing
+
+Merging to `main` only runs CI. The hosted service is released with the [Release workflow](.github/workflows/release.yml), which waits for CI, builds once, deploys to Azure App Service with OIDC, smoke tests `/health/ready`, and then tags the GitHub release:
+
+```bash
+gh workflow run release.yml -R kasuken/MoneyBrain -f bump=minor      # patch | minor | major
+gh workflow run release.yml -R kasuken/MoneyBrain -f redeploy=v1.0.0 # roll back
+```
+
+The steps are shared with the other kasuken SaaS apps; see [RELEASING.md](https://github.com/kasuken/.github/blob/main/RELEASING.md).
 
 ## Contributing
 
