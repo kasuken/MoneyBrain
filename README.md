@@ -27,14 +27,14 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 
 - **Frontend**: Blazor Server (.NET 10) with MudBlazor UI components
 - **Backend**: ASP.NET Core (.NET 10)
-- **Database**: PostgreSQL 17 (Docker), SQL Server (optional), SQLite (development)
+- **Database**: SQL Server (SQL Server 2022 in Docker, LocalDB for local development on Windows)
 - **ORM**: Entity Framework Core
 - **Caching**: In-memory (default), Redis (optional for distributed scenarios)
 - **PWA**: Web app manifest with mobile and desktop installation support
 - **Containerization**: Docker + Docker Compose
 
 **Why this stack:**
-- **Self-hosted**: No external dependencies, full data ownership
+- **Self-hosted**: Runs on your own infrastructure with full data ownership
 - **Deterministic**: Server-side rendering ensures consistent behavior
 - **Performance**: Blazor Server with SignalR for real-time updates
 - **Reliability**: Mature, well-supported technologies with long-term viability
@@ -88,23 +88,26 @@ MoneyBrain is fully responsive and optimized for mobile devices:
 
 ## Quickstart (local)
 
-**Prerequisite:** .NET 10 SDK.
+**Prerequisites:** .NET 10 SDK and SQL Server. The default connection string in `appsettings.json` uses SQL Server LocalDB (Windows). On macOS or Linux, start a SQL Server container (see below) and point `ConnectionStrings:DefaultConnection` at it with user secrets:
+
+```bash
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=moneybrain;User Id=sa;Password=<your-password>;TrustServerCertificate=True" --project MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj
+```
+
+Then run:
 
 ```bash
 dotnet restore MoneyBrain.Web/MoneyBrain.Web.sln
 dotnet run --project MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj
 ```
 
-Then open:
-
-- https://localhost:7123
-- http://localhost:5103
+Open https://localhost:7123 or http://localhost:5103. Database migrations are applied automatically at startup.
 
 On first run, register the initial user, then start by creating an account and adding/importing transactions.
 
-## 🐳 Docker (with PostgreSQL)
+## 🐳 Docker (with SQL Server)
 
-Run MoneyBrain with PostgreSQL using Docker Compose.
+Run MoneyBrain and SQL Server 2022 with Docker Compose.
 
 ### Prerequisites
 
@@ -115,8 +118,11 @@ Run MoneyBrain with PostgreSQL using Docker Compose.
 
 ```bash
 # Clone the repository
-git clone https://github.com/MoneyBrain-App/MoneyBrain.git
+git clone https://github.com/kasuken/MoneyBrain.git
 cd MoneyBrain
+
+# Create your .env file and set a strong SQL Server password
+cp .env.example .env
 
 # Build and start the containers
 docker compose up -d
@@ -125,43 +131,41 @@ docker compose up -d
 docker compose logs -f moneybrain
 ```
 
-The application will be available at **http://localhost:8080**
+The application will be available at **http://localhost:8080**.
 
 ### Docker Compose services
 
 | Service | Description | Port |
 |---------|-------------|------|
 | `moneybrain` | The MoneyBrain web application | 8080 |
-| `postgres` | PostgreSQL 17 database | 5432 |
+| `sqlserver` | SQL Server 2022 (`mcr.microsoft.com/mssql/server:2022-latest`) | 1433 |
+
+> [!NOTE]
+> The SQL Server image is distributed by Microsoft under its own license terms. `ACCEPT_EULA=Y` in `docker-compose.yml` accepts them. The Developer edition is used by default; check Microsoft's licensing for production use.
 
 ### Configuration
 
-Default environment variables in `docker-compose.yml`:
+Settings come from `.env` and the `environment` section of `docker-compose.yml`:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DatabaseProvider` | Database type (`PostgreSQL` or `SQLite`) | `PostgreSQL` |
-| `ConnectionStrings__DefaultConnection` | Database connection string | PostgreSQL connection |
-| `POSTGRES_DB` | PostgreSQL database name | `moneybrain` |
-| `POSTGRES_USER` | PostgreSQL username | `moneybrain` |
-| `POSTGRES_PASSWORD` | PostgreSQL password | `moneybrain_secret` |
+| `MSSQL_SA_PASSWORD` (`.env`) | SQL Server `sa` password, also used in the app's connection string. Must meet SQL Server complexity rules. | none, required |
+| `ConnectionStrings__DefaultConnection` | Database connection string | `Server=sqlserver;Database=moneybrain;User Id=sa;...` |
+| `CacheSettings__Provider` | `Memory` or `Redis` | `Memory` |
+| `Licensing__Enabled` | Subscription licensing used by the hosted service | `false` |
 
 > [!WARNING]
-> For production, change the default database password in `docker-compose.yml`.
+> Never commit your `.env` file. For production, use a dedicated SQL login instead of `sa`.
 
 ### Production configuration
 
-For production deployments, create a `docker-compose.override.yml`:
+For production deployments, create a `docker-compose.override.yml`, for example to use a dedicated SQL login or an external SQL Server:
 
 ```yaml
 services:
   moneybrain:
     environment:
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=moneybrain;Username=moneybrain;Password=YOUR_SECURE_PASSWORD
-  
-  postgres:
-    environment:
-      - POSTGRES_PASSWORD=YOUR_SECURE_PASSWORD
+      - ConnectionStrings__DefaultConnection=Server=<host>;Database=moneybrain;User Id=<user>;Password=<password>;TrustServerCertificate=True
 ```
 
 ### Managing the containers
@@ -183,44 +187,46 @@ docker compose up -d
 # View application logs
 docker compose logs -f moneybrain
 
-# Access PostgreSQL directly
-docker compose exec postgres psql -U moneybrain -d moneybrain
+# Open a SQL shell
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d moneybrain
 ```
 
 ### Data persistence
 
-PostgreSQL data is persisted in a Docker volume named `postgres-data`. Your data survives container restarts and updates.
+SQL Server data is persisted in the Docker volume `sqlserver-data`, so it survives container restarts and updates.
 
-To backup your data:
+To back up your data:
 
 ```bash
-# Create a database dump
-docker compose exec postgres pg_dump -U moneybrain moneybrain > backup.sql
+# Create a backup inside the container and copy it out
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C \
+  -Q "BACKUP DATABASE [moneybrain] TO DISK = N'/var/opt/mssql/data/moneybrain.bak' WITH INIT"
+docker compose cp sqlserver:/var/opt/mssql/data/moneybrain.bak ./moneybrain.bak
 
-# Restore from backup
-cat backup.sql | docker compose exec -T postgres psql -U moneybrain -d moneybrain
+# Restore from a backup
+docker compose cp ./moneybrain.bak sqlserver:/var/opt/mssql/data/moneybrain.bak
+docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C \
+  -Q "RESTORE DATABASE [moneybrain] FROM DISK = N'/var/opt/mssql/data/moneybrain.bak' WITH REPLACE"
 ```
 
 ### Advanced configuration
 
 #### Redis caching (optional)
 
-Enable Redis for distributed caching in multi-instance deployments:
+Use Redis for distributed caching in multi-instance deployments:
 
 ```yaml
 services:
   moneybrain:
     environment:
-      - Redis__Enabled=true
-      - Redis__ConnectionString=redis:6379
+      - CacheSettings__Provider=Redis
+      - CacheSettings__Redis__ConnectionString=redis:6379
     depends_on:
       - redis
-  
+
   redis:
     image: redis:7-alpine
     container_name: moneybrain-redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped
@@ -231,42 +237,11 @@ volumes:
   redis-data:
 ```
 
-**What gets cached:**
-- Reference data (categories, accounts, payees)
-- Budget summaries and calculations
-- Net worth snapshots
-- Report aggregations
+Other Redis options (`Database`, `InstanceName`, `SslEnabled`, `ConnectTimeout`, `SyncTimeout`) are under `CacheSettings:Redis` in `appsettings.json`.
 
-**Cache invalidation:**
-- Automatic on data mutations (category edits, transaction posts)
-- Manual flush via admin endpoint (if enabled)
+#### Currencies
 
-#### Currency configuration
-
-MoneyBrain supports multiple currencies with configurable defaults:
-
-```yaml
-services:
-  moneybrain:
-    environment:
-      - Currency__Default=USD
-      - Currency__Format=en-US
-      - Currency__SupportedCurrencies=USD,EUR,GBP,CAD,AUD
-```
-
-**Currency options:**
-- `Currency__Default`: Default currency code (ISO 4217)
-- `Currency__Format`: Locale for formatting (e.g., `en-US`, `de-DE`, `fr-FR`)
-- `Currency__SupportedCurrencies`: Comma-separated list of enabled currencies
-
-**Formatting examples:**
-- `en-US`: $1,234.56
-- `de-DE`: 1.234,56 €
-- `fr-FR`: 1 234,56 €
-- `en-GB`: £1,234.56
-
-> [!NOTE]
-> Multi-currency accounts with exchange rates are planned for future versions.
+Each account has its own currency, set when you create the account. Multi-currency accounts with exchange rates are planned for future versions.
 
 ## Import sample data
 
@@ -334,10 +309,9 @@ MoneyBrain's search and filter capabilities enable powerful transaction analysis
 ## Data ownership & backups
 
 > [!NOTE]
-> MoneyBrain is intended to be self-hosted. Your data stays in your database.
+> MoneyBrain is intended to be self-hosted. Your data stays in your own SQL Server database.
 
-- Default database is SQLite and (by default) uses `MoneyBrain.Web/MoneyBrain.Web/Data/app.db`.
-- Back up the database file regularly (especially before bulk imports).
+- Back up the database regularly, especially before bulk imports. See [Data persistence](#data-persistence) for a Docker backup and restore example.
 
 ## Project scope (v1)
 

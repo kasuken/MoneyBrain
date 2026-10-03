@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `agents.md` renamed to `AGENTS.md`; Copilot instructions moved to `.github/copilot-instructions.md`.
 - Sample import file moved to `samples/sample-transactions.csv`.
 
+### Fixed
+
+- README now documents the actual SQL Server setup (Docker, configuration, backups) instead of PostgreSQL/SQLite, the correct clone URL, and the real `CacheSettings` keys.
+
 ### Removed
 - `docs/archive/` (outdated implementation status reports).
 
