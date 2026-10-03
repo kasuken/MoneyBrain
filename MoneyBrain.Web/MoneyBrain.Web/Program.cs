@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -194,6 +195,9 @@ builder.Services.AddScoped<ILicenseService, LicenseService>();
 builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.RecurringTransactionBackgroundService>();
 builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.CreditCardBillingBackgroundService>();
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>("database", tags: ["ready"]);
+
 var app = builder.Build();
 
 // Apply database migrations automatically (for Docker / production)
@@ -216,6 +220,14 @@ else
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+
+// /health/live tells App Service the process is up; /health/ready also checks the database
+// and gates every release (see .github/workflows/release.yml).
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 // Security headers — applied early, before authentication middleware.
 // Content-Security-Policy is intentionally omitted: MudBlazor relies on inline
