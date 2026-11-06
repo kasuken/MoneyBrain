@@ -27,12 +27,13 @@ jobs:
           global-json-file: global.json
 
       - name: Restore dependencies
-        run: dotnet restore MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj
+        run: dotnet restore MoneyBrain.Web/MoneyBrain.Web.sln
 
       - name: Create bin/Debug directory (workaround for .NET 10.0 SDK MSB3552)
         run: mkdir -p MoneyBrain.Web/MoneyBrain.Web/bin/Debug
 
       - name: Build
-        run: dotnet build MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj --configuration Release --no-restore
+        run: dotnet build MoneyBrain.Web/MoneyBrain.Web.sln --configuration Release --no-restore
 
-      # Add a `dotnet test` step here once the repository has a test project.
+      - name: Test
+        run: dotnet test MoneyBrain.Web/MoneyBrain.Web.sln --configuration Release --no-build --no-restore --logger "trx;LogFileName=tests.trx" --results-directory TestResults

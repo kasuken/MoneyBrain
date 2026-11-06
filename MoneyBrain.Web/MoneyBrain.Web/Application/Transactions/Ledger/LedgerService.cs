@@ -25,6 +25,20 @@ public class LedgerService(IDbContextFactory<ApplicationDbContext> contextFactor
     {
         var entries = CreateLedgerEntries(transaction);
         
+        // A transfer is balanced across its two linked transactions, not within either leg.
+        if (transaction.TransferTransactionId is { } linkedId)
+        {
+            var linked = await context.Transactions.AsNoTracking().SingleOrDefaultAsync(
+                t => t.Id == linkedId && t.UserId == transaction.UserId, cancellationToken);
+            if (linked is null || linked.TransferTransactionId != transaction.Id ||
+                linked.AccountId == transaction.AccountId || linked.Amount != -transaction.Amount ||
+                transaction.Amount == 0 || transaction.CategoryId is not null || linked.CategoryId is not null)
+                throw new InvalidOperationException("The transfer must contain two opposite, mutually linked account entries.");
+            context.LedgerEntries.AddRange(entries);
+            await context.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
         // Validate that debits equal credits
         var totalDebits = entries.Sum(e => e.DebitAmount);
         var totalCredits = entries.Sum(e => e.CreditAmount);
@@ -86,20 +100,9 @@ public class LedgerService(IDbContextFactory<ApplicationDbContext> contextFactor
             query = query.Where(le => le.EntryDate <= asOfDate.Value);
         }
 
-        var entries = await query.ToListAsync(cancellationToken);
-
-        // Calculate balance based on account type
-        decimal ledgerBalance;
-        if (account.Type == AccountType.Asset)
-        {
-            // For assets: Balance increases with debits, decreases with credits
-            ledgerBalance = entries.Sum(e => e.DebitAmount - e.CreditAmount);
-        }
-        else // Liability
-        {
-            // For liabilities: Balance increases with credits, decreases with debits
-            ledgerBalance = entries.Sum(e => e.CreditAmount - e.DebitAmount);
-        }
+        var ledgerBalance = account.Type == AccountType.Asset
+            ? await query.SumAsync(e => e.DebitAmount - e.CreditAmount, cancellationToken)
+            : await query.SumAsync(e => e.CreditAmount - e.DebitAmount, cancellationToken);
 
         // Get manual adjustments
         var adjustmentsQuery = context.ManualBalanceAdjustments

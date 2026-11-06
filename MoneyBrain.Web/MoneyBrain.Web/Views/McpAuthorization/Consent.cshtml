@@ -1,0 +1,31 @@
+@model MoneyBrain.Web.Application.Mcp.McpConsentViewModel
+@using MoneyBrain.Web.Application.Mcp
+@inject Microsoft.Extensions.Localization.IStringLocalizer<McpResource> L
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>@L["ConsentTitle"] — MoneyBrain</title><link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" /><link rel="stylesheet" href="/app.css" /></head>
+<body>
+<main class="container">
+    <h1>@L["ConsentTitle"]</h1>
+    <p>@L["ClientRequest", Model.ClientName]</p>
+    <ul>
+        @foreach (var scope in Model.Scopes)
+        {
+            <li><strong>@scope</strong>: @L[scope == McpAccess.WriteScope ? "WriteDescription" : "ReadDescription"]</li>
+        }
+    </ul>
+    <p>@L["ConsentWarning"]</p>
+    <form method="post" action="/connect/authorize">
+        @Html.AntiForgeryToken()
+        @foreach (var parameter in Model.Parameters.Where(p => p.Key != "__RequestVerificationToken" && p.Key != "decision"))
+        {
+            <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
+        }
+        <button class="btn btn-primary" type="submit" name="decision" value="accept">@L["Allow"]</button>
+        <button class="btn btn-secondary" type="submit" name="decision" value="deny">@L["Deny"]</button>
+    </form>
+    <p><a href="/Account/Manage/ConnectedClients">@L["ConnectedClients"]</a></p>
+</main>
+</body>
+</html>

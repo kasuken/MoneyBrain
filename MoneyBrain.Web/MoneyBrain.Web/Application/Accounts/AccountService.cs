@@ -100,9 +100,8 @@ public class AccountService : IAccountService
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(account.UserId));
 
         _logger.LogInformation(
-            "Account created: {AccountId} - {AccountName} for user {UserId}", 
+            "Account created: {AccountId} for user {UserId}",
             account.Id, 
-            account.Name, 
             account.UserId);
 
         return account;
@@ -153,9 +152,8 @@ public class AccountService : IAccountService
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(account.UserId));
 
         _logger.LogInformation(
-            "Account updated: {AccountId} - {AccountName}", 
-            account.Id, 
-            account.Name);
+            "Account updated: {AccountId}",
+            account.Id);
 
         return existing;
     }
@@ -185,9 +183,8 @@ public class AccountService : IAccountService
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
         _logger.LogInformation(
-            "Account deactivated: {AccountId} - {AccountName}", 
-            accountId, 
-            account.Name);
+            "Account deactivated: {AccountId}",
+            accountId);
 
         return true;
     }
@@ -199,6 +196,8 @@ public class AccountService : IAccountService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var operation = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
         var account = await context.Accounts
             .FirstOrDefaultAsync(
                 a => a.Id == accountId && a.UserId == userId, 
@@ -209,18 +208,24 @@ public class AccountService : IAccountService
             return false;
         }
 
-        // TODO: Check if account has transactions before allowing deletion
-        // For v1, allow deletion; add transaction check in future iteration
+        if (await context.Transactions.AnyAsync(t => t.AccountId == accountId || t.CreditCardBillingSourceAccountId == accountId, cancellationToken) ||
+            await context.LedgerEntries.AnyAsync(e => e.AccountId == accountId, cancellationToken) ||
+            await context.Reconciliations.AnyAsync(r => r.AccountId == accountId, cancellationToken) ||
+            await context.ManualBalanceAdjustments.AnyAsync(a => a.AccountId == accountId, cancellationToken) ||
+            await context.OpeningBalanceAdjustments.AnyAsync(a => a.AccountId == accountId, cancellationToken) ||
+            await context.AccountBalanceSnapshots.AnyAsync(s => s.AccountId == accountId, cancellationToken) ||
+            await context.Accounts.AnyAsync(a => a.LinkedPaymentAccountId == accountId, cancellationToken))
+            throw new InvalidOperationException("An account with financial history or references must be deactivated instead of deleted.");
 
         context.Accounts.Remove(account);
         await context.SaveChangesAsync(cancellationToken);
+        await operation.CommitAsync(cancellationToken);
 
         await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
         _logger.LogInformation(
-            "Account deleted: {AccountId} - {AccountName}", 
-            accountId, 
-            account.Name);
+            "Account deleted: {AccountId}",
+            accountId);
 
         return true;
     }
@@ -284,19 +289,14 @@ public class AccountService : IAccountService
             await _cacheService.RemoveAsync(CacheKeyHelper.ForUserAccounts(userId));
 
             _logger.LogInformation(
-                "Opening balance adjusted for account {AccountId} from {PreviousBalance} to {NewBalance} (Δ {Adjustment}). Reason: {Reason}",
-                accountId,
-                previousBalance,
-                newBalance,
-                adjustmentAmount,
-                reason ?? "(none provided)");
+                "Opening balance adjusted for account {AccountId}",
+                accountId);
         }
         else
         {
             _logger.LogDebug(
-                "Opening balance adjustment requested for account {AccountId} but new balance equals current balance ({Balance}).",
-                accountId,
-                newBalance);
+                "Opening balance adjustment requested for account {AccountId} without a balance change.",
+                accountId);
         }
 
         return account;
@@ -346,10 +346,8 @@ public class AccountService : IAccountService
         await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
-            "Balance snapshot created for account {AccountId}: {Balance} at {SnapshotDate} (Type: {Type})",
+            "Balance snapshot created for account {AccountId} (Type: {Type})",
             accountId,
-            balance,
-            snapshotDate,
             type);
 
         return snapshot;
@@ -426,9 +424,8 @@ public class AccountService : IAccountService
             cancellationToken);
 
         _logger.LogDebug(
-            "Calculated current balance for account {AccountId} using double-entry bookkeeping: {Balance}",
-            accountId,
-            currentBalance);
+            "Calculated current balance for account {AccountId} using double-entry bookkeeping",
+            accountId);
 
         return currentBalance;
     }
@@ -467,11 +464,9 @@ public class AccountService : IAccountService
         await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
-            "Manual adjustment created for account {AccountId}: {Amount} on {Date}. Description: {Description}",
-            accountId,
-            amount,
-            adjustmentDate,
-            description);
+            "Manual adjustment {AdjustmentId} created for account {AccountId}",
+            adjustment.Id,
+            accountId);
 
         return adjustment;
     }
@@ -640,12 +635,10 @@ public class AccountService : IAccountService
         }
 
         _logger.LogDebug(
-            "Monthly spending for account {AccountId} ({Year}/{Month}): {Spent} / {Limit}",
+            "Calculated monthly spending for account {AccountId} ({Year}/{Month})",
             accountId,
             year,
-            month,
-            spentAmount,
-            account.MonthlySpendingLimit);
+            month);
 
         return new MonthlySpendingSummary(
             spentAmount,

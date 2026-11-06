@@ -3495,6 +3495,9 @@
   <data name="Payee_Msg_DeletedCount" xml:space="preserve">
     <value>Deleted {0} unused payees</value>
   </data>
+  <data name="Payee_Msg_CleanupChanged" xml:space="preserve">
+    <value>Unused payees could not be archived. Review the refreshed list and try again.</value>
+  </data>
   <!-- Reconciliation Dialog -->
   <data name="ReconcileDlg_Account" xml:space="preserve">
     <value>Account</value>

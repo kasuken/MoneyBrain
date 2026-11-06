@@ -21,6 +21,7 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 - **Reports**: cashflow, category spending, budget vs actual, net worth, and account balance history.
 - **CSV import & export**: import transactions with column mapping + preview, export reports to CSV.
 - **Recurring transactions**: generate upcoming transactions automatically.
+- **External AI clients (MCP)**: opt-in, OAuth-authorized access to finance tools, with separately enabled writes. See [MCP setup and security](docs/MCP.md).
 - **Progressive Web App (PWA)**: install on any device for an app-like experience.
 
 ## 🛠️ Tech Stack

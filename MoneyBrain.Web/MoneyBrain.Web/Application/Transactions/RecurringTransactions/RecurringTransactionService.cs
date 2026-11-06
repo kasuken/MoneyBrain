@@ -1,4 +1,6 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
+using MoneyBrain.Web.Application.Common.Interfaces;
 using MoneyBrain.Web.Application.Transactions.Ledger;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
@@ -14,20 +16,26 @@ public class RecurringTransactionService : IRecurringTransactionService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILedgerService _ledgerService;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<RecurringTransactionService> _logger;
 
     public RecurringTransactionService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
         ILedgerService ledgerService,
+        ICacheService cacheService,
         ILogger<RecurringTransactionService> logger)
     {
         _contextFactory = contextFactory;
         _ledgerService = ledgerService;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
     /// <inheritdoc />
-    public DateTime CalculateNextRecurrenceDate(DateTime currentDate, RecurrenceFrequency frequency)
+    public DateTime CalculateNextRecurrenceDate(DateTime currentDate, RecurrenceFrequency frequency) =>
+        AdvanceDate(currentDate, frequency);
+
+    private static DateTime AdvanceDate(DateTime currentDate, RecurrenceFrequency frequency)
     {
         return frequency switch
         {
@@ -40,48 +48,104 @@ public class RecurringTransactionService : IRecurringTransactionService
         };
     }
 
+    /// <summary>
+    /// Returns the next occurrence date for a template. Generation resumes after the latest
+    /// occurrence already generated, so a retry, an edit that resets the stored next date, or a
+    /// reconciled template whose stored date cannot advance never produces duplicate occurrences.
+    /// </summary>
+    /// <param name="template">A recurring template with a frequency and start date.</param>
+    /// <param name="lastGeneratedDate">Date of the latest occurrence generated from it, if any.</param>
+    public static DateTime GetNextDueDate(Transaction template, DateTime? lastGeneratedDate)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        if (template.RecurrenceFrequency is not { } frequency || template.RecurrenceStartDate is not { } startDate)
+            throw new InvalidOperationException("Recurring template requires a frequency and start date");
+
+        var storedNext = template.NextRecurrenceDate ?? startDate;
+        if (lastGeneratedDate is not { } lastDate)
+            return storedNext;
+
+        var afterLastGenerated = AdvanceDate(lastDate, frequency);
+        return afterLastGenerated > storedNext ? afterLastGenerated : storedNext;
+    }
+
+    /// <summary>
+    /// Latest generated occurrence date per template, computed in SQL without loading history.
+    /// </summary>
+    public static async Task<Dictionary<int, DateTime>> GetLastGeneratedDatesAsync(
+        ApplicationDbContext context,
+        string userId,
+        IReadOnlyCollection<int> templateIds,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(templateIds);
+
+        return await context.Transactions
+            .Where(t => t.UserId == userId &&
+                        t.RecurringTemplateId.HasValue &&
+                        templateIds.Contains(t.RecurringTemplateId.Value))
+            .GroupBy(t => t.RecurringTemplateId!.Value)
+            .Select(g => new { TemplateId = g.Key, LastDate = g.Max(t => t.Date) })
+            .ToDictionaryAsync(x => x.TemplateId, x => x.LastDate, cancellationToken);
+    }
+
     /// <inheritdoc />
     public async Task<int> GenerateDueRecurringTransactionsAsync(
         string userId,
         DateTime upToDate,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
-        // Find all recurring transaction templates where:
-        // 1. IsRecurring = true
-        // 2. NextRecurrenceDate <= upToDate (or is null and needs initialization)
-        // 3. User matches
+        // One serializable transaction covers the due-date reads, every occurrence, its ledger
+        // entries and the template advancement: a failure rolls everything back, and a concurrent
+        // or retried run cannot read the same due dates and generate them twice.
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable, cancellationToken);
+
+        // Due templates for this user. Transfer legs are excluded because an occurrence could
+        // not reproduce the linked transfer pair.
         var recurringTemplates = await context.Transactions
             .Include(t => t.Account)
             .Include(t => t.Splits)
             .Where(t =>
                 t.UserId == userId &&
                 t.IsRecurring &&
+                t.TransferTransactionId == null &&
                 t.RecurrenceFrequency.HasValue &&
                 t.RecurrenceStartDate.HasValue &&
                 (t.NextRecurrenceDate == null || t.NextRecurrenceDate.Value <= upToDate))
+            .OrderBy(t => t.Id)
             .ToListAsync(cancellationToken);
 
+        if (recurringTemplates.Count == 0)
+            return 0;
+
+        var lastGeneratedDates = await GetLastGeneratedDatesAsync(
+            context, userId, recurringTemplates.Select(t => t.Id).ToList(), cancellationToken);
+
         var generatedCount = 0;
+        var generatedMonths = new HashSet<DateTime>();
 
         foreach (var template in recurringTemplates)
         {
-            // Initialize NextRecurrenceDate if null
-            if (template.NextRecurrenceDate == null)
-            {
-                template.NextRecurrenceDate = template.RecurrenceStartDate!.Value;
-            }
+            var nextDate = GetNextDueDate(
+                template,
+                lastGeneratedDates.TryGetValue(template.Id, out var lastGenerated) ? lastGenerated : null);
 
             // Generate all occurrences up to upToDate
-            while (template.NextRecurrenceDate!.Value <= upToDate)
+            while (nextDate <= upToDate)
             {
                 // Create new transaction instance from template
                 var newTransaction = new Transaction
                 {
                     UserId = template.UserId,
                     AccountId = template.AccountId,
-                    Date = template.NextRecurrenceDate.Value,
+                    Account = template.Account,
+                    Date = nextDate,
                     Amount = template.Amount,
                     PayeeId = template.PayeeId,
                     CategoryId = template.CategoryId,
@@ -97,59 +161,53 @@ public class RecurringTransactionService : IRecurringTransactionService
                     UpdatedAt = DateTime.UtcNow
                 };
 
+                // Copy template splits so the ledger is generated from the same category lines
+                foreach (var split in template.Splits)
+                {
+                    newTransaction.Splits.Add(new TransactionSplit
+                    {
+                        Amount = split.Amount,
+                        CategoryId = split.CategoryId,
+                        Memo = split.Memo
+                    });
+                }
+
                 context.Transactions.Add(newTransaction);
                 await context.SaveChangesAsync(cancellationToken);
-
-                // Load Account navigation for ledger generation
-                await context.Entry(newTransaction)
-                    .Reference(t => t.Account)
-                    .LoadAsync(cancellationToken);
-
-                // Handle splits if template has them
-                if (template.Splits.Any())
-                {
-                    foreach (var split in template.Splits)
-                    {
-                        var newSplit = new TransactionSplit
-                        {
-                            TransactionId = newTransaction.Id,
-                            Amount = split.Amount,
-                            CategoryId = split.CategoryId,
-                            Memo = split.Memo
-                        };
-                        context.TransactionSplits.Add(newSplit);
-                    }
-                    await context.SaveChangesAsync(cancellationToken);
-
-                    // Reload splits for ledger generation
-                    await context.Entry(newTransaction)
-                        .Collection(t => t.Splits)
-                        .LoadAsync(cancellationToken);
-                }
 
                 // Generate ledger entries
                 await _ledgerService.GenerateLedgerEntriesAsync(context, newTransaction, cancellationToken);
 
-                _logger.LogInformation(
-                    "Generated recurring transaction {TransactionId} from template {TemplateId} for date {Date}",
-                    newTransaction.Id,
-                    template.Id,
-                    newTransaction.Date);
-
                 generatedCount++;
+                generatedMonths.Add(new DateTime(nextDate.Year, nextDate.Month, 1));
 
                 // Move to next recurrence date
-                template.NextRecurrenceDate = CalculateNextRecurrenceDate(
-                    template.NextRecurrenceDate.Value,
-                    template.RecurrenceFrequency!.Value);
+                nextDate = AdvanceDate(nextDate, template.RecurrenceFrequency!.Value);
             }
 
-            template.UpdatedAt = DateTime.UtcNow;
+            // Reconciled templates are immutable: their schedule position is derived from the
+            // generated occurrences instead of being written back to the locked row.
+            if (!template.IsReconciled && template.NextRecurrenceDate != nextDate)
+            {
+                template.NextRecurrenceDate = nextDate;
+                template.UpdatedAt = DateTime.UtcNow;
+            }
         }
+
+        await context.SaveChangesAsync(cancellationToken);
+        await dbTransaction.CommitAsync(cancellationToken);
+
+        // After commit only, so a rolled-back run never evicts caches for data that did not change.
+        foreach (var month in generatedMonths)
+            await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, month);
 
         if (generatedCount > 0)
         {
-            await context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation(
+                "Generated {GeneratedCount} recurring transactions from {TemplateCount} templates through {UpToDate}",
+                generatedCount,
+                recurringTemplates.Count,
+                upToDate);
         }
 
         return generatedCount;

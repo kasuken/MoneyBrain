@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ConsentTitle" xml:space="preserve"><value>Authorize MCP access</value></data>
+  <data name="ClientRequest" xml:space="preserve"><value>{0} is requesting access to your MoneyBrain data.</value></data>
+  <data name="ReadDescription" xml:space="preserve"><value>Read your financial accounts, transactions, budgets and reports.</value></data>
+  <data name="WriteDescription" xml:space="preserve"><value>Create and change your financial data. Each mutation additionally requires explicit confirmation.</value></data>
+  <data name="ConsentWarning" xml:space="preserve"><value>Only approve applications you trust. Your data is shared with the client you approve; MoneyBrain does not send data to an AI provider. Revoke access at any time from Connected clients.</value></data>
+  <data name="Allow" xml:space="preserve"><value>Allow these permissions</value></data>
+  <data name="Deny" xml:space="preserve"><value>Deny</value></data>
+  <data name="ConnectedClients" xml:space="preserve"><value>Connected clients</value></data>
+  <data name="RevokeDescription" xml:space="preserve"><value>Revoking a grant immediately rejects its outstanding access tokens and authorization codes on subsequent requests. Previously exported data cannot be recalled.</value></data>
+  <data name="NoClients" xml:space="preserve"><value>No connected clients.</value></data>
+  <data name="GrantList" xml:space="preserve"><value>Your active client authorizations (up to 100)</value></data>
+  <data name="Client" xml:space="preserve"><value>Client</value></data>
+  <data name="Scopes" xml:space="preserve"><value>Permissions</value></data>
+  <data name="Created" xml:space="preserve"><value>Authorized</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Revoke" xml:space="preserve"><value>Revoke access</value></data>
+  <data name="RevokeAll" xml:space="preserve"><value>Revoke all my MCP authorizations, including those not shown</value></data>
+  <data name="RevokeClient" xml:space="preserve"><value>Revoke access for {0}</value></data>
+  <data name="MoreGrants" xml:space="preserve"><value>Showing the first 100 authorizations. Revoke unwanted grants and reload to see more.</value></data>
+  <data name="BackToAccount" xml:space="preserve"><value>Back to account settings</value></data>
+</root>

@@ -246,6 +246,7 @@
 
     private async Task DeleteUnusedPayees()
     {
+        var expectedPayeeIds = _payees.Where(p => p.TransactionCount == 0).Select(p => p.Payee.Id).ToArray();
         bool? confirm = await DialogService.ShowMessageBox(
             L["Payee_Dlg_DeleteUnused"].Value,
             L["Payee_Dlg_DeleteUnusedConfirm"].Value,
@@ -253,8 +254,15 @@
 
         if (confirm == true)
         {
-            var count = await PayeeService.DeleteUnusedPayeesAsync(_userId);
-            SnackbarService.Add(string.Format(L["Payee_Msg_DeletedCount"].Value, count), Severity.Success);
+            try
+            {
+                var count = await PayeeService.DeleteUnusedPayeesAsync(_userId, expectedPayeeIds);
+                SnackbarService.Add(string.Format(L["Payee_Msg_DeletedCount"].Value, count), Severity.Success);
+            }
+            catch (InvalidOperationException)
+            {
+                SnackbarService.Add(L["Payee_Msg_CleanupChanged"].Value, Severity.Error);
+            }
             await LoadPayees();
         }
     }

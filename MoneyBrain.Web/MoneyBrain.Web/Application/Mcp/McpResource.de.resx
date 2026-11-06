@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ConsentTitle" xml:space="preserve"><value>MCP-Zugriff autorisieren</value></data>
+  <data name="ClientRequest" xml:space="preserve"><value>{0} fordert Zugriff auf deine MoneyBrain-Daten an.</value></data>
+  <data name="ReadDescription" xml:space="preserve"><value>Finanzkonten, Transaktionen, Budgets und Berichte lesen.</value></data>
+  <data name="WriteDescription" xml:space="preserve"><value>Finanzdaten erstellen und ändern. Jede Änderung erfordert zusätzlich eine ausdrückliche Bestätigung.</value></data>
+  <data name="ConsentWarning" xml:space="preserve"><value>Autorisiere nur vertrauenswürdige Anwendungen. Daten werden mit dem genehmigten Client geteilt; MoneyBrain sendet keine Daten an KI-Anbieter. Du kannst den Zugriff jederzeit unter Verbundene Clients widerrufen.</value></data>
+  <data name="Allow" xml:space="preserve"><value>Diese Berechtigungen erlauben</value></data>
+  <data name="Deny" xml:space="preserve"><value>Ablehnen</value></data>
+  <data name="ConnectedClients" xml:space="preserve"><value>Verbundene Clients</value></data>
+  <data name="RevokeDescription" xml:space="preserve"><value>Ein Widerruf sperrt ausstehende Zugriffstoken und Autorisierungscodes sofort für nachfolgende Anfragen. Bereits exportierte Daten können nicht zurückgerufen werden.</value></data>
+  <data name="NoClients" xml:space="preserve"><value>Keine verbundenen Clients.</value></data>
+  <data name="GrantList" xml:space="preserve"><value>Deine aktiven Autorisierungen (bis zu 100)</value></data>
+  <data name="Client" xml:space="preserve"><value>Client</value></data>
+  <data name="Scopes" xml:space="preserve"><value>Berechtigungen</value></data>
+  <data name="Created" xml:space="preserve"><value>Autorisiert am</value></data>
+  <data name="Actions" xml:space="preserve"><value>Aktionen</value></data>
+  <data name="Revoke" xml:space="preserve"><value>Zugriff widerrufen</value></data>
+  <data name="RevokeAll" xml:space="preserve"><value>Alle meine MCP-Autorisierungen widerrufen, auch nicht angezeigte</value></data>
+  <data name="RevokeClient" xml:space="preserve"><value>Zugriff für {0} widerrufen</value></data>
+  <data name="MoreGrants" xml:space="preserve"><value>Die ersten 100 Autorisierungen werden angezeigt. Widerrufe unerwünschte Einträge und lade die Seite erneut, um weitere zu sehen.</value></data>
+  <data name="BackToAccount" xml:space="preserve"><value>Zurück zu den Kontoeinstellungen</value></data>
+</root>

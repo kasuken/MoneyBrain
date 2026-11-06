@@ -56,7 +56,8 @@ public class TransferService : ITransferService
 
         // Wrap all inserts, linking, and ledger generation in a single DB transaction so that
         // a failure at any point never leaves orphaned or half-linked transfer transactions.
-        await using var dbTransaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
 
         // Create FROM transaction (negative amount - money leaving account)
         var fromTransaction = new Transaction
@@ -117,6 +118,7 @@ public class TransferService : ITransferService
         // Generate ledger entries for both sides of the transfer
         await _ledgerService.GenerateLedgerEntriesAsync(context, fromTransaction, cancellationToken);
         await _ledgerService.GenerateLedgerEntriesAsync(context, toTransaction, cancellationToken);
+        await ValidateLedgerAsync(context, fromTransaction.Id, toTransaction.Id, cancellationToken);
 
         await dbTransaction.CommitAsync(cancellationToken);
 
@@ -140,7 +142,11 @@ public class TransferService : ITransferService
         TransferDto transfer,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(transfer);
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
 
         // Get both transactions
         var fromTransaction = await context.Transactions
@@ -157,6 +163,10 @@ public class TransferService : ITransferService
 
         if (toTransaction == null)
             throw new InvalidOperationException("Linked transfer transaction not found");
+        if (fromTransaction.Amount >= 0 || toTransaction.Amount != -fromTransaction.Amount ||
+            toTransaction.TransferTransactionId != fromTransaction.Id ||
+            transfer.FromAccountId != fromTransaction.AccountId || transfer.ToAccountId != toTransaction.AccountId)
+            throw new InvalidOperationException("Supply the original source transaction and both original accounts.");
 
         // Cannot modify reconciled transfers
         if (fromTransaction.IsReconciled || toTransaction.IsReconciled)
@@ -187,6 +197,10 @@ public class TransferService : ITransferService
         toTransaction.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync(cancellationToken);
+        await _ledgerService.RegenerateLedgerEntriesAsync(context, fromTransaction, cancellationToken);
+        await _ledgerService.RegenerateLedgerEntriesAsync(context, toTransaction, cancellationToken);
+        await ValidateLedgerAsync(context, fromTransaction.Id, toTransaction.Id, cancellationToken);
+        await dbTransaction.CommitAsync(cancellationToken);
 
         // Always invalidate the new date's month; also invalidate the old month when the
         // transfer crossed a month boundary (otherwise stale balances/cashflow remain visible).
@@ -203,7 +217,10 @@ public class TransferService : ITransferService
         int transactionId,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var dbTransaction = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
         var transaction = await context.Transactions
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.UserId == userId, cancellationToken);
 
@@ -219,8 +236,17 @@ public class TransferService : ITransferService
         // Cannot delete reconciled transfers
         if (transaction.IsReconciled || (linkedTransaction?.IsReconciled == true))
             throw new InvalidOperationException("Cannot delete reconciled transfer");
+        if (linkedTransaction is null || linkedTransaction.TransferTransactionId != transaction.Id)
+            throw new InvalidOperationException("Linked transfer transaction not found");
 
         var transactionDate = transaction.Date;
+
+        await _ledgerService.DeleteLedgerEntriesAsync(context, transaction.Id, cancellationToken);
+        await _ledgerService.DeleteLedgerEntriesAsync(context, linkedTransaction.Id, cancellationToken);
+        // Break the reciprocal restrict-delete foreign keys before deleting either side.
+        transaction.TransferTransactionId = null;
+        linkedTransaction.TransferTransactionId = null;
+        await context.SaveChangesAsync(cancellationToken);
 
         // Delete both transactions
         context.Transactions.Remove(transaction);
@@ -230,10 +256,22 @@ public class TransferService : ITransferService
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        await dbTransaction.CommitAsync(cancellationToken);
 
         await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, transactionDate);
 
         return true;
+    }
+
+    private static async Task ValidateLedgerAsync(
+        ApplicationDbContext context, int fromId, int toId, CancellationToken cancellationToken)
+    {
+        var entries = await context.LedgerEntries
+            .Where(e => e.TransactionId == fromId || e.TransactionId == toId)
+            .ToListAsync(cancellationToken);
+        if (entries.Count != 2 || entries.Any(e => e.CategoryId is not null) ||
+            entries.Sum(e => e.DebitAmount) != entries.Sum(e => e.CreditAmount))
+            throw new InvalidOperationException("The linked transfer ledger is not balanced.");
     }
 
     /// <inheritdoc />

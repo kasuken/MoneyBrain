@@ -94,7 +94,14 @@ public class ReconciliationService(IDbContextFactory<ApplicationDbContext> conte
 
     public async Task<bool> ReconcileTransactionsAsync(int reconciliationId, string userId, List<int> transactionIds, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(transactionIds);
+        if (transactionIds.Count == 0 || transactionIds.Any(id => id <= 0) ||
+            transactionIds.Distinct().Count() != transactionIds.Count)
+            throw new ArgumentException("Select distinct, positive transaction identifiers.", nameof(transactionIds));
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var operation = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
         var reconciliation = await context.Reconciliations
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
@@ -105,25 +112,39 @@ public class ReconciliationService(IDbContextFactory<ApplicationDbContext> conte
             .Where(t => transactionIds.Contains(t.Id) && 
                        t.UserId == userId && 
                        t.AccountId == reconciliation.AccountId &&
-                       !t.IsReconciled)
+                       !t.IsReconciled &&
+                       t.Status == TransactionStatus.Posted &&
+                       t.Date <= reconciliation.StatementDate)
             .ToListAsync(cancellationToken);
+        if (transactions.Count != transactionIds.Count)
+            throw new InvalidOperationException("The selection contains a missing, pending, future, or already reconciled transaction.");
 
         foreach (var transaction in transactions)
         {
             transaction.IsReconciled = true;
+            transaction.IsCleared = true;
             transaction.ReconciliationId = reconciliationId;
             transaction.UpdatedAt = DateTime.UtcNow;
         }
 
-        await UpdateReconciliationTotalsAsync(context, reconciliation, userId, cancellationToken);
-
+        // Totals query persisted rows, so save the selection inside the same atomic operation first.
         await context.SaveChangesAsync(cancellationToken);
+        await UpdateReconciliationTotalsAsync(context, reconciliation, userId, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await operation.CommitAsync(cancellationToken);
         return true;
     }
 
     public async Task<bool> UnreconcileTransactionsAsync(int reconciliationId, string userId, List<int> transactionIds, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(transactionIds);
+        if (transactionIds.Count == 0 || transactionIds.Any(id => id <= 0) ||
+            transactionIds.Distinct().Count() != transactionIds.Count)
+            throw new ArgumentException("Select distinct, positive transaction identifiers.", nameof(transactionIds));
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var operation = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
         var reconciliation = await context.Reconciliations
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
@@ -135,6 +156,8 @@ public class ReconciliationService(IDbContextFactory<ApplicationDbContext> conte
                        t.UserId == userId && 
                        t.ReconciliationId == reconciliationId)
             .ToListAsync(cancellationToken);
+        if (transactions.Count != transactionIds.Count)
+            throw new InvalidOperationException("The selection contains a missing transaction or one outside this reconciliation.");
 
         foreach (var transaction in transactions)
         {
@@ -143,15 +166,18 @@ public class ReconciliationService(IDbContextFactory<ApplicationDbContext> conte
             transaction.UpdatedAt = DateTime.UtcNow;
         }
 
-        await UpdateReconciliationTotalsAsync(context, reconciliation, userId, cancellationToken);
-
         await context.SaveChangesAsync(cancellationToken);
+        await UpdateReconciliationTotalsAsync(context, reconciliation, userId, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await operation.CommitAsync(cancellationToken);
         return true;
     }
 
     public async Task<Domain.Entities.Reconciliation> CompleteReconciliationAsync(int reconciliationId, string userId, CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var operation = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
         var reconciliation = await context.Reconciliations
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
@@ -161,11 +187,20 @@ public class ReconciliationService(IDbContextFactory<ApplicationDbContext> conte
         if (reconciliation.IsCompleted)
             throw new InvalidOperationException("Reconciliation is already completed");
 
+        if (await context.Transactions.AnyAsync(t => t.ReconciliationId == reconciliationId &&
+            (t.UserId != userId || t.AccountId != reconciliation.AccountId || !t.IsReconciled ||
+             t.Status != TransactionStatus.Posted || t.Date > reconciliation.StatementDate), cancellationToken))
+            throw new InvalidOperationException("The reconciliation contains ineligible transactions.");
+        await UpdateReconciliationTotalsAsync(context, reconciliation, userId, cancellationToken);
+        if (reconciliation.Difference != 0)
+            throw new InvalidOperationException("Reconciliation difference must be zero before completion.");
+
         reconciliation.IsCompleted = true;
         reconciliation.CompletedAt = DateTime.UtcNow;
         reconciliation.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync(cancellationToken);
+        await operation.CommitAsync(cancellationToken);
         return reconciliation;
     }
 
@@ -202,7 +237,7 @@ public class ReconciliationService(IDbContextFactory<ApplicationDbContext> conte
             .FirstOrDefaultAsync(r => r.Id == reconciliationId && r.UserId == userId, cancellationToken);
 
         if (reconciliation == null)
-            return 0m;
+            throw new InvalidOperationException("Reconciliation not found");
 
         // Get all reconciled transactions for this reconciliation
         var reconciledTransactions = await context.Transactions

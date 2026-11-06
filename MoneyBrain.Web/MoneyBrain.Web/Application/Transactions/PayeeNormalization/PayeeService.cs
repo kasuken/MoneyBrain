@@ -153,7 +153,12 @@ public class PayeeService : IPayeeService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentNullException.ThrowIfNull(sourcePayeeIds);
+        if (sourcePayeeIds.Count == 0 || sourcePayeeIds.Contains(targetPayeeId) ||
+            sourcePayeeIds.Any(id => id <= 0) || sourcePayeeIds.Distinct().Count() != sourcePayeeIds.Count)
+            throw new ArgumentException("Source payees must be distinct and exclude the target.", nameof(sourcePayeeIds));
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var operation = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
         var targetPayee = await context.Payees
             .FirstOrDefaultAsync(p => p.Id == targetPayeeId && p.UserId == userId, cancellationToken);
 
@@ -191,6 +196,7 @@ public class PayeeService : IPayeeService
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        await operation.CommitAsync(cancellationToken);
         return true;
     }
 
@@ -215,15 +221,25 @@ public class PayeeService : IPayeeService
     }
 
     /// <inheritdoc />
-    public async Task<int> DeleteUnusedPayeesAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteUnusedPayeesAsync(string userId, IReadOnlyCollection<int> expectedPayeeIds, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(expectedPayeeIds);
+        if (expectedPayeeIds.Any(id => id <= 0) ||
+            expectedPayeeIds.Distinct().Count() != expectedPayeeIds.Count)
+            throw new ArgumentException("Select distinct, positive payee identifiers.", nameof(expectedPayeeIds));
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var operation = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
         var unusedPayees = await context.Payees
             .Where(p => p.UserId == userId
                         && p.IsActive
                         && !context.Transactions.Any(t => t.PayeeId == p.Id))
+            .OrderBy(p => p.Id)
+            .Take(expectedPayeeIds.Count + 1)
             .ToListAsync(cancellationToken);
+        if (!expectedPayeeIds.Order().SequenceEqual(unusedPayees.Select(p => p.Id)))
+            throw new InvalidOperationException("Unused payee set changed. Refresh the preview before archiving.");
 
         // Soft delete unused payees
         foreach (var payee in unusedPayees)
@@ -233,6 +249,7 @@ public class PayeeService : IPayeeService
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        await operation.CommitAsync(cancellationToken);
         return unusedPayees.Count;
     }
 }

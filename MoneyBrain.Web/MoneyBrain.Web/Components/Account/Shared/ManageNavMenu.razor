@@ -2,6 +2,8 @@
 @using MoneyBrain.Web.Data
 
 @inject SignInManager<ApplicationUser> SignInManager
+@inject Microsoft.Extensions.Options.IOptions<MoneyBrain.Web.Application.Mcp.McpSettings> McpOptions
+@inject Microsoft.Extensions.Localization.IStringLocalizer<MoneyBrain.Web.Application.Mcp.McpResource> McpL
 
 <ul class="nav nav-pills flex-column">
     <li class="nav-item">
@@ -28,6 +30,12 @@
     <li class="nav-item">
         <NavLink class="nav-link" href="Account/Manage/PersonalData">Personal data</NavLink>
     </li>
+    @if (McpOptions.Value.Enabled)
+    {
+        <li class="nav-item">
+            <a class="nav-link" href="/Account/Manage/ConnectedClients" data-enhance-nav="false">@McpL["ConnectedClients"]</a>
+        </li>
+    }
 </ul>
 
 @code {

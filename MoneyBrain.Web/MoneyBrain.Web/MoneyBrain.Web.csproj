@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <Version>1.0.0</Version>
+        <Version>1.1.0</Version>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-MoneyBrain_Web-951b1580-555b-4fb6-94b9-6b49e59323d5</UserSecretsId>
@@ -25,6 +25,10 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2" />
         <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.2" />
         <PackageReference Include="MudBlazor" Version="8.15.0" />
+        <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.3.1" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="7.8.0" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.8.0" />
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
         <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
         <PackageReference Include="Stripe.net" Version="47.*" />
     </ItemGroup>

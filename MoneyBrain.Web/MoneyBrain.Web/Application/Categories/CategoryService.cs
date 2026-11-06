@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Common;
 using MoneyBrain.Web.Application.Common.Helpers;
 using MoneyBrain.Web.Application.Common.Interfaces;
+using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Data;
 using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Domain.Enums;
@@ -320,7 +321,7 @@ public class CategoryService : ICategoryService
 
         // Check if new name already exists in the same group
         var nameExists = await context.Categories
-            .AnyAsync(c => c.UserId == userId && c.CategoryGroupId == category.CategoryGroupId && 
+            .AnyAsync(c => c.UserId == userId && c.CategoryGroupId == category.CategoryGroupId &&
                           c.Name == newName && c.Id != categoryId && c.IsActive, cancellationToken);
 
         if (nameExists)
@@ -339,118 +340,143 @@ public class CategoryService : ICategoryService
             throw new InvalidOperationException("Cannot merge a category into itself");
 
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+        // Serializable: the ownership and reconciled-history checks below stay valid until commit,
+        // so reconciliation cannot lock a source-category row while it is being moved.
+        await using var transaction = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
+
         // Verify both categories exist and belong to user
         var sourceCategory = await context.Categories
+            .Include(c => c.CategoryGroup)
             .FirstOrDefaultAsync(c => c.Id == sourceCategoryId && c.UserId == userId, cancellationToken);
 
         var targetCategory = await context.Categories
+            .Include(c => c.CategoryGroup)
             .FirstOrDefaultAsync(c => c.Id == targetCategoryId && c.UserId == userId, cancellationToken);
 
         if (sourceCategory == null || targetCategory == null)
             throw new InvalidOperationException("Source or target category not found");
 
-        using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        // Ledger signs follow the category type, so moving history between income and expense
+        // categories would silently reinterpret it; only same-type merges are allowed.
+        if (sourceCategory.CategoryGroup.Type != targetCategory.CategoryGroup.Type)
+            throw new InvalidOperationException("Cannot merge categories of different types");
 
-        try
+        // Reconciled transactions, their split lines and ledger entries are immutable, so a merge
+        // that would re-categorize locked history is rejected rather than partially applied.
+        var touchesReconciledHistory =
+            await context.Transactions.AnyAsync(
+                t => t.UserId == userId && t.CategoryId == sourceCategoryId && t.IsReconciled, cancellationToken) ||
+            await context.TransactionSplits.AnyAsync(
+                s => s.CategoryId == sourceCategoryId && s.Transaction.UserId == userId && s.Transaction.IsReconciled, cancellationToken) ||
+            await context.LedgerEntries.AnyAsync(
+                le => le.UserId == userId && le.CategoryId == sourceCategoryId && le.Transaction.IsReconciled, cancellationToken);
+
+        if (touchesReconciledHistory)
+            throw new InvalidOperationException("Cannot merge a category used by reconciled transactions");
+
+        // Update all transactions from source to target
+        var transactions = await context.Transactions
+            .Where(t => t.CategoryId == sourceCategoryId && t.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var txn in transactions)
         {
-            // Update all transactions from source to target
-            var transactions = await context.Transactions
-                .Where(t => t.CategoryId == sourceCategoryId && t.UserId == userId)
-                .ToListAsync(cancellationToken);
-
-            foreach (var txn in transactions)
-            {
-                txn.CategoryId = targetCategoryId;
-                txn.UpdatedAt = DateTime.UtcNow;
-            }
-
-            // Update all transaction splits from source to target
-            var splits = await context.TransactionSplits
-                .Include(ts => ts.Transaction)
-                .Where(ts => ts.CategoryId == sourceCategoryId && ts.Transaction.UserId == userId)
-                .ToListAsync(cancellationToken);
-
-            foreach (var split in splits)
-            {
-                split.CategoryId = targetCategoryId;
-            }
-
-            // Re-point ledger entries so category-based reports (e.g. budget comparison)
-            // reflect the merge for historical data as well.
-            await context.LedgerEntries
-                .Where(le => le.CategoryId == sourceCategoryId && le.UserId == userId)
-                .ExecuteUpdateAsync(s => s.SetProperty(le => le.CategoryId, targetCategoryId), cancellationToken);
-
-            // Handle monthly budgets - merge or delete
-            var sourceBudgets = await context.MonthlyBudgets
-                .Where(mb => mb.CategoryId == sourceCategoryId && mb.UserId == userId)
-                .ToListAsync(cancellationToken);
-
-            foreach (var sourceBudget in sourceBudgets)
-            {
-                // Check if target already has a budget for the same period
-                var targetBudget = await context.MonthlyBudgets
-                    .FirstOrDefaultAsync(mb => mb.CategoryId == targetCategoryId && mb.UserId == userId &&
-                                              mb.IsDefault == sourceBudget.IsDefault &&
-                                              mb.Year == sourceBudget.Year && mb.Month == sourceBudget.Month, 
-                                        cancellationToken);
-
-                if (targetBudget == null)
-                {
-                    // Move the source budget to target
-                    sourceBudget.CategoryId = targetCategoryId;
-                    sourceBudget.UpdatedAt = DateTime.UtcNow;
-                }
-                else
-                {
-                    // Target already has a budget, just delete source
-                    context.MonthlyBudgets.Remove(sourceBudget);
-                }
-            }
-
-            // Handle named budget categories
-            var sourceBudgetCategories = await context.BudgetCategories
-                .Where(bc => bc.CategoryId == sourceCategoryId)
-                .Include(bc => bc.Budget)
-                .Where(bc => bc.Budget.UserId == userId)
-                .ToListAsync(cancellationToken);
-
-            foreach (var sourceBudgetCategory in sourceBudgetCategories)
-            {
-                // Check if target already has this budget assignment
-                var targetBudgetCategory = await context.BudgetCategories
-                    .FirstOrDefaultAsync(bc => bc.BudgetId == sourceBudgetCategory.BudgetId && 
-                                              bc.CategoryId == targetCategoryId, cancellationToken);
-
-                if (targetBudgetCategory == null)
-                {
-                    // Move the source budget category to target
-                    sourceBudgetCategory.CategoryId = targetCategoryId;
-                }
-                else
-                {
-                    // Target already has this budget, just delete source
-                    context.BudgetCategories.Remove(sourceBudgetCategory);
-                }
-            }
-
-            // Soft-delete the source category
-            sourceCategory.IsActive = false;
-            sourceCategory.UpdatedAt = DateTime.UtcNow;
-
-            await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            // Invalidate cached category data so post-merge reads are fresh.
-            await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
-
-            return true;
+            txn.CategoryId = targetCategoryId;
+            txn.UpdatedAt = DateTime.UtcNow;
         }
-        catch
+
+        // Update all transaction splits from source to target
+        var splits = await context.TransactionSplits
+            .Include(ts => ts.Transaction)
+            .Where(ts => ts.CategoryId == sourceCategoryId && ts.Transaction.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var split in splits)
         {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
+            split.CategoryId = targetCategoryId;
         }
+
+        var affectedMonths = transactions.Select(t => t.Date)
+            .Concat(splits.Select(s => s.Transaction.Date))
+            .Select(d => new DateTime(d.Year, d.Month, 1))
+            .ToHashSet();
+
+        // Re-point ledger entries so category-based reports (e.g. budget comparison)
+        // reflect the merge for historical data as well.
+        await context.LedgerEntries
+            .Where(le => le.CategoryId == sourceCategoryId && le.UserId == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(le => le.CategoryId, targetCategoryId), cancellationToken);
+
+        // Handle monthly budgets - merge or delete
+        var sourceBudgets = await context.MonthlyBudgets
+            .Where(mb => mb.CategoryId == sourceCategoryId && mb.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var sourceBudget in sourceBudgets)
+        {
+            // Check if target already has a budget for the same period
+            var targetBudget = await context.MonthlyBudgets
+                .FirstOrDefaultAsync(mb => mb.CategoryId == targetCategoryId && mb.UserId == userId &&
+                                          mb.IsDefault == sourceBudget.IsDefault &&
+                                          mb.Year == sourceBudget.Year && mb.Month == sourceBudget.Month,
+                                    cancellationToken);
+
+            if (targetBudget == null)
+            {
+                // Move the source budget to target
+                sourceBudget.CategoryId = targetCategoryId;
+                sourceBudget.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // Target already has a budget, just delete source
+                context.MonthlyBudgets.Remove(sourceBudget);
+            }
+        }
+
+        // Handle named budget categories
+        var sourceBudgetCategories = await context.BudgetCategories
+            .Where(bc => bc.CategoryId == sourceCategoryId)
+            .Include(bc => bc.Budget)
+            .Where(bc => bc.Budget.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var sourceBudgetCategory in sourceBudgetCategories)
+        {
+            // Check if target already has this budget assignment
+            var targetBudgetCategory = await context.BudgetCategories
+                .FirstOrDefaultAsync(bc => bc.BudgetId == sourceBudgetCategory.BudgetId &&
+                                          bc.CategoryId == targetCategoryId, cancellationToken);
+
+            if (targetBudgetCategory == null)
+            {
+                // Move the source budget category to target
+                sourceBudgetCategory.CategoryId = targetCategoryId;
+            }
+            else
+            {
+                // Target already has this budget, just delete source
+                context.BudgetCategories.Remove(sourceBudgetCategory);
+            }
+        }
+
+        // Soft-delete the source category
+        sourceCategory.IsActive = false;
+        sourceCategory.UpdatedAt = DateTime.UtcNow;
+
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        // Invalidate cached category data so post-merge reads are fresh.
+        await _cacheService.RemoveAsync(CacheKeyHelper.ForUserCategories(userId));
+        // Default budgets can affect periods without any source transactions.
+        await _cacheService.RemoveByPatternAsync($"user:{userId}:budgetcomparison:*");
+        foreach (var month in affectedMonths)
+            await TransactionCacheHelper.InvalidateRelatedCachesAsync(_cacheService, userId, month);
+
+        return true;
     }
 
     public async Task<CategoryUsageStats> GetCategoryUsageStatsAsync(int categoryId, string userId, CancellationToken cancellationToken = default)
@@ -480,7 +506,7 @@ public class CategoryService : ICategoryService
             SplitCount = splits.Count,
             TotalIncome = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount) + splits.Where(s => s.Amount > 0).Sum(s => s.Amount),
             TotalExpense = Math.Abs(transactions.Where(t => t.Amount < 0).Sum(t => t.Amount)) + Math.Abs(splits.Where(s => s.Amount < 0).Sum(s => s.Amount)),
-            FirstUsed = transactions.Any() || splits.Any() 
+            FirstUsed = transactions.Any() || splits.Any()
                 ? new[] { transactions.Any() ? transactions.Min(t => t.Date) : DateTime.MaxValue, splits.Any() ? splits.Min(s => s.Transaction.Date) : DateTime.MaxValue }.Min()
                 : null,
             LastUsed = transactions.Any() || splits.Any()
@@ -536,7 +562,7 @@ public class CategoryService : ICategoryService
 
         // Get transactions
         var transactions = await context.Transactions
-            .Where(t => t.CategoryId == categoryId && t.UserId == userId && 
+            .Where(t => t.CategoryId == categoryId && t.UserId == userId &&
                        t.Status == TransactionStatus.Posted &&
                        t.Date >= startDate)
             .ToListAsync(cancellationToken);
@@ -544,7 +570,7 @@ public class CategoryService : ICategoryService
         // Get splits
         var splits = await context.TransactionSplits
             .Include(ts => ts.Transaction)
-            .Where(ts => ts.CategoryId == categoryId && 
+            .Where(ts => ts.CategoryId == categoryId &&
                         ts.Transaction.UserId == userId &&
                         ts.Transaction.Status == TransactionStatus.Posted &&
                         ts.Transaction.Date >= startDate)

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using MoneyBrain.Web.Application.Accounts;
+using MoneyBrain.Web.Application.Mcp;
 using MoneyBrain.Web.Application.Budgets;
 using MoneyBrain.Web.Application.Categories;
 using MoneyBrain.Web.Application.Common.Configuration;
@@ -198,13 +199,22 @@ builder.Services.AddHostedService<MoneyBrain.Web.Application.BackgroundServices.
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("database", tags: ["ready"]);
 
+builder.AddMoneyBrainMcp();
+
 var app = builder.Build();
 
 // Apply database migrations automatically (for Docker / production)
-using (var scope = app.Services.CreateScope())
+if (builder.Configuration.GetValue("Database:ApplyMigrations", true))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+}
+// OAuth client reconciliation is independent of who owns schema deployment.
+if (builder.Configuration.GetValue<bool>("Mcp:Enabled"))
+{
+    using var scope = app.Services.CreateScope();
+    await scope.ServiceProvider.GetRequiredService<McpClientProvisioner>().ProvisionAsync();
 }
 
 // Configure the HTTP request pipeline.
@@ -249,6 +259,7 @@ if (!string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_FORWARDEDHEADERS_ENA
     app.UseHttpsRedirection();
 }
 
+app.UseMoneyBrainMcp();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -330,3 +341,6 @@ app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService l
 }).AllowAnonymous();
 
 app.Run();
+
+/// <summary>Application entry point exposed for integration hosting.</summary>
+public partial class Program;

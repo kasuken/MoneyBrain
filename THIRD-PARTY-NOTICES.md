@@ -12,6 +12,10 @@ MoneyBrain is licensed under the [AGPL-3.0-only](LICENSE). It uses the third-par
 | Microsoft.EntityFrameworkCore.SqlServer | 10.0.2 | MIT | https://github.com/dotnet/efcore |
 | Microsoft.EntityFrameworkCore.Tools | 10.0.2 | MIT | https://github.com/dotnet/efcore |
 | MudBlazor | 8.15.0 | MIT | https://github.com/MudBlazor/MudBlazor |
+| ModelContextProtocol.AspNetCore | 2.3.1 | Apache-2.0 | https://github.com/modelcontextprotocol/csharp-sdk |
+| OpenIddict.AspNetCore | 7.8.0 | Apache-2.0 | https://github.com/openiddict/openiddict-core |
+| OpenIddict.EntityFrameworkCore | 7.8.0 | Apache-2.0 | https://github.com/openiddict/openiddict-core |
+| System.Security.Cryptography.Pkcs | 10.0.14 | MIT | https://github.com/dotnet/runtime |
 | StackExchange.Redis | 2.8.16 | MIT | https://github.com/StackExchange/StackExchange.Redis |
 | Stripe.net | 47.x | Apache-2.0 | https://github.com/stripe/stripe-dotnet |
 

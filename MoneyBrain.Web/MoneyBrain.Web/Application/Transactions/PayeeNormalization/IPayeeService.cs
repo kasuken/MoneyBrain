@@ -42,8 +42,8 @@ public interface IPayeeService
     Task<bool> RenamePayeeAsync(int payeeId, string userId, string newName, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Soft-delete all active payees that have no associated transactions.
-    /// Returns the number of payees deleted.
+    /// Atomically verifies the previewed identifiers match all active unused payees, then archives them.
+    /// Returns the number of payees archived; rejects changed selections without modifying data.
     /// </summary>
-    Task<int> DeleteUnusedPayeesAsync(string userId, CancellationToken cancellationToken = default);
+    Task<int> DeleteUnusedPayeesAsync(string userId, IReadOnlyCollection<int> expectedPayeeIds, CancellationToken cancellationToken = default);
 }

@@ -438,10 +438,9 @@ public class InsightExplorerService(IDbContextFactory<ApplicationDbContext> cont
             var lambda = Expression.Lambda<Func<T, bool>>(comparison, parameter);
             return query.Where(lambda);
         }
-        catch
+        catch (ArgumentException ex)
         {
-            // If filter application fails, skip it
-            return query;
+            throw new ArgumentException("The query filter is not valid for this property.", nameof(filter), ex);
         }
     }
 
@@ -478,7 +477,9 @@ public class InsightExplorerService(IDbContextFactory<ApplicationDbContext> cont
         {
             PropertyDataType.Integer => int.TryParse(value, out var i) ? i : null,
             PropertyDataType.Decimal => decimal.TryParse(value, out var d) ? d : null,
-            PropertyDataType.DateTime => DateTimeOffset.TryParse(value, out var dt) ? dt : null,
+            PropertyDataType.DateTime when underlyingType == typeof(DateTimeOffset) =>
+                DateTimeOffset.TryParse(value, out var offset) ? offset : null,
+            PropertyDataType.DateTime => DateTime.TryParse(value, out var date) ? date : null,
             PropertyDataType.Boolean => bool.TryParse(value, out var b) ? b : null,
             PropertyDataType.Enum => underlyingType.IsEnum ? Enum.Parse(underlyingType, value, true) : value,
             _ => value
@@ -498,7 +499,9 @@ public class InsightExplorerService(IDbContextFactory<ApplicationDbContext> cont
         if (value == null)
             return null;
 
-        var constant = Expression.Constant(value, property.Type);
+        Expression constant = Expression.Constant(value);
+        if (constant.Type != property.Type)
+            constant = Expression.Convert(constant, property.Type);
 
         return filter.Operator switch
         {
@@ -543,8 +546,12 @@ public class InsightExplorerService(IDbContextFactory<ApplicationDbContext> cont
         if (value2 == null)
             return null;
 
-        var const1 = Expression.Constant(value1, property.Type);
-        var const2 = Expression.Constant(value2, property.Type);
+        Expression const1 = Expression.Constant(value1);
+        Expression const2 = Expression.Constant(value2);
+        if (const1.Type != property.Type)
+            const1 = Expression.Convert(const1, property.Type);
+        if (const2.Type != property.Type)
+            const2 = Expression.Convert(const2, property.Type);
 
         var gte = Expression.GreaterThanOrEqual(property, const1);
         var lte = Expression.LessThanOrEqual(property, const2);

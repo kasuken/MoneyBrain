@@ -1,0 +1,47 @@
+@model IReadOnlyList<MoneyBrain.Web.Application.Mcp.McpGrantViewModel>
+@using MoneyBrain.Web.Application.Mcp
+@inject Microsoft.Extensions.Localization.IStringLocalizer<McpResource> L
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>@L["ConnectedClients"] — MoneyBrain</title><link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" /><link rel="stylesheet" href="/app.css" /></head>
+<body>
+<main class="container">
+    <h1>@L["ConnectedClients"]</h1>
+    <p>@L["RevokeDescription"]</p>
+    @if (Model.Count == 0)
+    {
+        <p>@L["NoClients"]</p>
+    }
+    else
+    {
+        <form method="post" action="/Account/Manage/ConnectedClients/RevokeAll">
+            @Html.AntiForgeryToken()
+            <button class="btn btn-danger" type="submit">@L["RevokeAll"]</button>
+        </form>
+        <table class="table">
+            <caption>@L["GrantList"]</caption>
+            <thead><tr><th scope="col">@L["Client"]</th><th scope="col">@L["Scopes"]</th><th scope="col">@L["Created"]</th><th scope="col">@L["Actions"]</th></tr></thead>
+            <tbody>
+            @foreach (var grant in Model)
+            {
+                <tr>
+                    <td>@grant.ClientName</td><td>@string.Join(", ", grant.Scopes)</td><td>@grant.CreatedAt?.ToString("g")</td>
+                    <td><form method="post" action="/Account/Manage/ConnectedClients/Revoke">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="grantId" value="@grant.Id" />
+                        <button class="btn btn-danger" type="submit" aria-label="@L["RevokeClient", grant.ClientName]">@L["Revoke"]</button>
+                    </form></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        @if (Model.Count == 100)
+        {
+            <p>@L["MoreGrants"]</p>
+        }
+    }
+    <p><a href="/Account/Manage">@L["BackToAccount"]</a></p>
+</main>
+</body>
+</html>
