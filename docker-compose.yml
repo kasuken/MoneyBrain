@@ -24,6 +24,7 @@ services:
     container_name: moneybrain-sqlserver
     environment:
       - ACCEPT_EULA=Y
+      - MSSQL_PID=Express
       - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:?MSSQL_SA_PASSWORD must be set in .env}
     volumes:
       - sqlserver-data:/var/opt/mssql

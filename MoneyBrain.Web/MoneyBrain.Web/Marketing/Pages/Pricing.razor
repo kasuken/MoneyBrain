@@ -73,15 +73,18 @@
             <MudExpansionPanels Elevation="0" Style="border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg);">
                 <MudExpansionPanel Text="Is MoneyBrain really free?">
                     <p style="color: var(--mb-text-secondary); line-height: 1.6;">
-                        Yes! MoneyBrain is 100% free and open source. You can self-host it on your own server, 
-                        a Raspberry Pi, or any cloud provider. There are no premium tiers, subscriptions, or hidden costs.
+                        Yes! MoneyBrain is 100% free and open source. You can self-host it on your own compatible server
+                        or cloud infrastructure. There are no premium tiers, subscriptions, or hidden costs.
                     </p>
                 </MudExpansionPanel>
                 
                 <MudExpansionPanel Text="What do I need to run MoneyBrain?">
                     <p style="color: var(--mb-text-secondary); line-height: 1.6;">
-                        MoneyBrain runs on .NET 10 and uses SQLite by default. You can run it on Windows, macOS, 
-                        or Linux. A basic server with 1GB RAM is enough for personal use.
+                        MoneyBrain runs on .NET 10 and uses SQL Server, not SQLite or PostgreSQL. The Docker Compose
+                        setup uses SQL Server 2022 Express, which is free for production use within its edition limits.
+                        It requires an x86-64 (amd64) host with Docker and Docker Compose. SQL Server needs at least
+                        2 GB of RAM, plus additional memory for MoneyBrain and the operating system.
+                        ARM devices such as Raspberry Pi and Apple Silicon Macs are not supported by this database container.
                     </p>
                 </MudExpansionPanel>
                 
@@ -95,7 +98,8 @@
                 <MudExpansionPanel Text="Is my data secure?">
                     <p style="color: var(--mb-text-secondary); line-height: 1.6;">
                         Your data never leaves your server. There's no cloud sync, no analytics, and no third-party 
-                        access. You can optionally enable database encryption for additional security.
+                        access. MoneyBrain does not provide a built-in database encryption option.
+                        Secure your host and backups, and configure HTTPS for remote access.
                     </p>
                 </MudExpansionPanel>
                 

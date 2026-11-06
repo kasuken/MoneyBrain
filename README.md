@@ -28,7 +28,7 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 
 - **Frontend**: Blazor Server (.NET 10) with MudBlazor UI components
 - **Backend**: ASP.NET Core (.NET 10)
-- **Database**: SQL Server (SQL Server 2022 in Docker, LocalDB for local development on Windows)
+- **Database**: SQL Server (SQL Server 2022 Express in Docker, LocalDB for local development on Windows); SQLite and PostgreSQL are not supported application databases
 - **ORM**: Entity Framework Core
 - **Caching**: In-memory (default), Redis (optional for distributed scenarios)
 - **PWA**: Web app manifest with mobile and desktop installation support
@@ -89,7 +89,7 @@ MoneyBrain is fully responsive and optimized for mobile devices:
 
 ## Quickstart (local)
 
-**Prerequisites:** .NET 10 SDK and SQL Server. The default connection string in `appsettings.json` uses SQL Server LocalDB (Windows). On macOS or Linux, start a SQL Server container (see below) and point `ConnectionStrings:DefaultConnection` at it with user secrets:
+**Prerequisites:** .NET 10 SDK and SQL Server. The default connection string in `appsettings.json` uses SQL Server LocalDB (Windows). On macOS or Linux, connect to a SQL Server instance or, on an x86-64 (amd64) host, start a SQL Server container (see requirements below). Point `ConnectionStrings:DefaultConnection` at it with user secrets:
 
 ```bash
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=moneybrain;User Id=sa;Password=<your-password>;TrustServerCertificate=True" --project MoneyBrain.Web/MoneyBrain.Web/MoneyBrain.Web.csproj
@@ -108,12 +108,14 @@ On first run, register the initial user, then start by creating an account and a
 
 ## 🐳 Docker (with SQL Server)
 
-Run MoneyBrain and SQL Server 2022 with Docker Compose.
+Run MoneyBrain and SQL Server 2022 Express with Docker Compose.
 
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/) (included with Docker Desktop)
+- An x86-64 (amd64) host capable of running Linux containers. The SQL Server image does not support ARM devices such as Raspberry Pi or Apple Silicon Macs.
+- At least 2 GB of RAM for SQL Server alone, plus additional memory for MoneyBrain and the operating system.
 
 ### Quick start
 
@@ -139,10 +141,10 @@ The application will be available at **http://localhost:8080**.
 | Service | Description | Port |
 |---------|-------------|------|
 | `moneybrain` | The MoneyBrain web application | 8080 |
-| `sqlserver` | SQL Server 2022 (`mcr.microsoft.com/mssql/server:2022-latest`) | 1433 |
+| `sqlserver` | SQL Server 2022 Express (`mcr.microsoft.com/mssql/server:2022-latest`) | 1433 |
 
 > [!NOTE]
-> The SQL Server image is distributed by Microsoft under its own license terms. `ACCEPT_EULA=Y` in `docker-compose.yml` accepts them. The Developer edition is used by default; check Microsoft's licensing for production use.
+> The SQL Server image is distributed by Microsoft under its own license terms. `ACCEPT_EULA=Y` in `docker-compose.yml` accepts them. Compose sets `MSSQL_PID=Express`, which is free for production use within Express edition limits (including a 10 GB maximum database size). Developer edition is not licensed for production use.
 
 ### Configuration
 
@@ -313,6 +315,7 @@ MoneyBrain's search and filter capabilities enable powerful transaction analysis
 > MoneyBrain is intended to be self-hosted. Your data stays in your own SQL Server database.
 
 - Back up the database regularly, especially before bulk imports. See [Data persistence](#data-persistence) for a Docker backup and restore example.
+- MoneyBrain does not provide a built-in database encryption option. Secure the host and backups, and configure HTTPS for remote access.
 
 ## Project scope (v1)
 
