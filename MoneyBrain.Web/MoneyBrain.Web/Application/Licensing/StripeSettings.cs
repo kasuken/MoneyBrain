@@ -21,7 +21,12 @@ public class StripeSettings
     public string WebhookSecret { get; set; } = string.Empty;
 
     /// <summary>
-    /// Valid Stripe product IDs for this application.
+    /// Stripe Price ID for the MoneyBrain Cloud monthly subscription.
     /// </summary>
-    public List<string> ProductIds { get; set; } = [];
+    public string CloudMonthlyPriceId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Stripe Price ID for the MoneyBrain Cloud annual subscription.
+    /// </summary>
+    public string CloudAnnualPriceId { get; set; } = string.Empty;
 }

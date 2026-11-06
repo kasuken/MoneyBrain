@@ -325,7 +325,11 @@ MoneyBrain is evolving toward the PRD in `.github/prd.instructions.md`. Some are
 
 ## Hosted or self-hosted
 
-MoneyBrain is open source and built to be self-hosted: the Docker Compose setup in this repository runs the app with SQL Server, an in-memory cache and no subscription checks. The code also contains the subscription licensing used by the hosted service (Stripe billing, Redis cache). It is controlled by the `Licensing:Enabled` setting, which is `false` by default and only turned on through App Service application settings for the hosted deployment, so nothing in the repository enables it. A self-hosted instance never needs Stripe keys.
+MoneyBrain is available as free, open-source self-hosted software and as a paid hosted service. With MoneyBrain Cloud, data stays on the hosted server; with self-hosting, data stays on the user's own server. The deployments do not sync data between servers. Both editions include the core finance features.
+
+The Docker Compose setup in this repository runs the self-hosted app with SQL Server, an in-memory cache and no subscription checks. `Licensing:Enabled` is `false` by default, so self-hosted users do not need Stripe keys. The hosted deployment enables licensing and uses Stripe recurring subscriptions. Configure the Stripe credentials and recurring Price IDs through deployment settings (for example `Stripe__SecretKey`, `Stripe__WebhookSecret`, `Stripe__CloudMonthlyPriceId`, and `Stripe__CloudAnnualPriceId`); do not put credentials in checked-in configuration. Set the Stripe Customer Portal to allow customers to cancel their subscriptions.
+
+MoneyBrain Cloud is $3.99 per month or $39.99 per year. The future MoneyBrain Family plan is planned at $6.99 per month or $69.99 per year and is not part of the initial launch.
 
 ## Releasing
 

@@ -255,10 +255,17 @@ public class LicenseService : ILicenseService
             throw new InvalidOperationException("Stripe is not configured.");
         }
 
+        if (string.IsNullOrWhiteSpace(priceId) ||
+            (priceId != _stripeSettings.CloudMonthlyPriceId && priceId != _stripeSettings.CloudAnnualPriceId))
+        {
+            throw new ArgumentException("The selected Stripe price is not configured for MoneyBrain Cloud.", nameof(priceId));
+        }
+
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var license = await context.UserLicenses
             .FirstOrDefaultAsync(l => l.UserId == userId, cancellationToken);
 
+        var billingInterval = priceId == _stripeSettings.CloudMonthlyPriceId ? "Monthly" : "Annual";
         var options = new SessionCreateOptions
         {
             PaymentMethodTypes = ["card"],
@@ -278,9 +285,11 @@ public class LicenseService : ILicenseService
             ],
             SubscriptionData = new SessionSubscriptionDataOptions
             {
+                TrialPeriodDays = _licensingSettings.TrialDays > 0 ? _licensingSettings.TrialDays : null,
                 Metadata = new Dictionary<string, string>
                 {
-                    { "userId", userId }
+                    { "userId", userId },
+                    { "planName", $"MoneyBrain Cloud - {billingInterval}" }
                 }
             }
         };
@@ -506,7 +515,14 @@ public class LicenseService : ILicenseService
             license.TrialEndsAt = subscription.TrialEnd.Value;
         }
 
-        // Get plan name from the first item
+        if (subscription.Metadata.TryGetValue("planName", out var planName) &&
+            !string.IsNullOrWhiteSpace(planName))
+        {
+            license.PlanName = planName;
+            return;
+        }
+
+        // Fall back to the Stripe price label for subscriptions created before plan metadata was added.
         var firstItem = subscription.Items?.Data?.FirstOrDefault();
         if (firstItem?.Price?.Nickname != null)
         {

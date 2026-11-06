@@ -1,0 +1,143 @@
+@page "/checkout/{BillingInterval}"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Options
+@using MoneyBrain.Web.Application.Licensing
+
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILicenseService LicenseService
+@inject IOptions<StripeSettings> StripeSettings
+@inject IOptions<LicensingSettings> LicensingSettings
+@inject NavigationManager NavigationManager
+@inject ILogger<Checkout> Logger
+
+<PageTitle>Subscribe | MoneyBrain</PageTitle>
+
+<div class="mb-page mb-animate-in">
+    <div style="max-width: 560px; margin: 3rem auto;">
+        <div class="mb-card">
+            <h1 class="mb-title">MoneyBrain Cloud</h1>
+            @if (_priceId == null)
+            {
+                <MudAlert Severity="Severity.Error" Class="my-4">
+                    @(_errorMessage ?? "This billing option is not available.")
+                </MudAlert>
+            }
+            else
+            {
+                <p class="mb-subtitle">@_priceDescription</p>
+                <MudAlert Severity="Severity.Info" Class="my-4">
+                    Your data will be stored on the MoneyBrain Cloud server. Your subscription renews automatically and you can cancel anytime.
+                </MudAlert>
+
+                @if (!CheckoutConfigured)
+                {
+                    <MudAlert Severity="Severity.Warning" Class="my-4">
+                        Cloud checkout is not configured yet. Please try again later.
+                    </MudAlert>
+                }
+                else if (!string.IsNullOrWhiteSpace(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="my-4">@_errorMessage</MudAlert>
+                }
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth
+                           OnClick="StartCheckoutAsync" Disabled="@(!CheckoutConfigured || _checkoutInProgress)">
+                    @if (_checkoutInProgress)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                        <span>Connecting to Stripe...</span>
+                    }
+                    else
+                    {
+                        <span>Continue to secure checkout</span>
+                    }
+                </MudButton>
+            }
+
+            <MudButton Variant="Variant.Text" Color="Color.Default" FullWidth Class="mt-2" Href="/pricing">
+                Back to pricing
+            </MudButton>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string BillingInterval { get; set; } = string.Empty;
+
+    private string? _priceId;
+    private string? _errorMessage;
+    private string _priceDescription = string.Empty;
+    private bool _checkoutInProgress;
+
+    private bool CheckoutConfigured =>
+        LicensingSettings.Value.Enabled &&
+        !string.IsNullOrWhiteSpace(StripeSettings.Value.SecretKey) &&
+        !string.IsNullOrWhiteSpace(_priceId);
+
+    protected override void OnParametersSet()
+    {
+        (_priceId, _priceDescription) = BillingInterval.ToLowerInvariant() switch
+        {
+            "monthly" => (
+                StripeSettings.Value.CloudMonthlyPriceId,
+                "$3.99 per month, billed monthly."),
+            "annual" => (
+                StripeSettings.Value.CloudAnnualPriceId,
+                "$39.99 per year, billed annually."),
+            _ => (null, string.Empty)
+        };
+
+        if (string.IsNullOrWhiteSpace(_priceId))
+        {
+            _priceId = null;
+            _errorMessage = "This billing option is not configured.";
+        }
+    }
+
+    private async Task StartCheckoutAsync()
+    {
+        var priceId = _priceId;
+        if (!CheckoutConfigured || string.IsNullOrWhiteSpace(priceId) || _checkoutInProgress)
+        {
+            return;
+        }
+
+        _checkoutInProgress = true;
+        _errorMessage = null;
+
+        try
+        {
+            var user = (await AuthStateProvider.GetAuthenticationStateAsync()).User;
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _errorMessage = "Your account could not be identified. Please sign in again.";
+                return;
+            }
+
+            var userEmail = user.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+            var successUrl = NavigationManager.ToAbsoluteUri("/license?checkout=success").AbsoluteUri;
+            var cancelUrl = NavigationManager.ToAbsoluteUri("/pricing").AbsoluteUri;
+            var checkoutUrl = await LicenseService.CreateCheckoutSessionAsync(
+                userId,
+                userEmail,
+                priceId,
+                successUrl,
+                cancelUrl);
+
+            NavigationManager.NavigateTo(checkoutUrl, forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unable to start MoneyBrain Cloud checkout");
+            _errorMessage = "We couldn't start checkout. Please try again later.";
+        }
+        finally
+        {
+            _checkoutInProgress = false;
+        }
+    }
+}

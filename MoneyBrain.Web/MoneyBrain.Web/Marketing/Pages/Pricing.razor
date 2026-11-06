@@ -1,13 +1,17 @@
 @page "/pricing"
 @layout MarketingLayout
+@using Microsoft.Extensions.Options
+@using MoneyBrain.Web.Application.Licensing
+@inject IOptions<StripeSettings> StripeSettings
+@inject IOptions<LicensingSettings> LicensingSettings
 
 <PageTitle>Pricing | MoneyBrain</PageTitle>
 
 <!-- Hero -->
 <section class="marketing-hero">
     <div class="marketing-hero-content">
-        <h1>Simple pricing, <span class="highlight">complete freedom</span></h1>
-        <p>MoneyBrain is free and open source. Self-host it on your own infrastructure and own your financial data forever.</p>
+        <h1>Choose where your money lives</h1>
+        <p>Keep MoneyBrain on your own server, or let us host it for you. Every plan includes the complete finance toolkit.</p>
     </div>
 </section>
 
@@ -15,49 +19,91 @@
 <section class="marketing-pricing">
     <div class="marketing-container">
         <div class="marketing-pricing-cards">
-            <div class="marketing-pricing-card featured">
+            <div class="marketing-pricing-card">
                 <h3>Self-Hosted</h3>
                 <div class="price">Free<span> / forever</span></div>
-                <p class="pricing-description">Deploy on your own server with complete control</p>
+                <p class="pricing-description">Run MoneyBrain on your own server and keep your data there.</p>
                 <ul>
                     <li>
                         <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
-                        <span>Unlimited accounts & transactions</span>
+                        <span>All core finance features</span>
                     </li>
                     <li>
                         <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
-                        <span>All features included</span>
+                        <span>Your data stays only on your server</span>
                     </li>
                     <li>
                         <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
-                        <span>Complete data ownership</span>
+                        <span>Open source under AGPL-3.0</span>
                     </li>
                     <li>
                         <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
-                        <span>No telemetry or tracking</span>
-                    </li>
-                    <li>
-                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
-                        <span>Community support</span>
-                    </li>
-                    <li>
-                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
-                        <span>Open source code</span>
-                    </li>
-                    <li>
-                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
-                        <span>Free forever</span>
+                        <span>No subscription or Stripe account required</span>
                     </li>
                 </ul>
-                <MudButton Variant="Variant.Filled" Class="mb-btn-primary" FullWidth="true" Href="/Account/Register" Size="MudBlazor.Size.Large">
-                    Get Started
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Href="https://github.com/kasuken/MoneyBrain#quickstart-local" Size="MudBlazor.Size.Large">
+                    Self-host MoneyBrain
                 </MudButton>
             </div>
+
+            <div class="marketing-pricing-card featured">
+                <h3>MoneyBrain Cloud</h3>
+                <div class="price">$3.99<span> / month</span></div>
+                <p class="pricing-description">The complete MoneyBrain experience, hosted and maintained for you.</p>
+                <ul>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        <span>All core finance features</span>
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        <span>Your data stays only on MoneyBrain's hosted server</span>
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        <span>Managed hosting and backups</span>
+                    </li>
+                    <li>
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
+                        <span>Cancel anytime</span>
+                    </li>
+                </ul>
+                <div class="marketing-pricing-actions">
+                    @if (IsCheckoutAvailable(StripeSettings.Value.CloudMonthlyPriceId))
+                    {
+                        <MudButton Variant="Variant.Filled" Class="mb-btn-primary" FullWidth="true" Href="/checkout/monthly" Size="MudBlazor.Size.Large">
+                            Choose monthly · $3.99
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Class="mb-btn-primary" FullWidth="true" Disabled="true" Size="MudBlazor.Size.Large">
+                            Monthly checkout coming soon
+                        </MudButton>
+                    }
+                    @if (IsCheckoutAvailable(StripeSettings.Value.CloudAnnualPriceId))
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Href="/checkout/annual">
+                            Choose annual · $39.99
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Disabled="true">
+                            Annual checkout coming soon
+                        </MudButton>
+                    }
+                </div>
+            </div>
         </div>
-        
+
+        <p class="pricing-future-note">
+            A MoneyBrain Family plan is planned for later at $6.99 monthly or $69.99 annually. It is not available at launch.
+        </p>
+
         <div class="pricing-info-note">
             <MudIcon Icon="@Icons.Material.Filled.Info" Size="MudBlazor.Size.Small" />
-            <span>No credit card required. No hidden costs. Just download, deploy, and use.</span>
+            <span>Monthly and annual subscriptions renew automatically. Manage or cancel anytime.</span>
         </div>
     </div>
 </section>
@@ -71,38 +117,33 @@
         
         <div class="marketing-about-content" style="max-width: 800px; margin: 0 auto;">
             <MudExpansionPanels Elevation="0" Style="border: 1px solid var(--mb-border); border-radius: var(--mb-radius-lg);">
-                <MudExpansionPanel Text="Is MoneyBrain really free?">
+                <MudExpansionPanel Text="Can I use MoneyBrain for free?">
                     <p style="color: var(--mb-text-secondary); line-height: 1.6;">
-                        Yes! MoneyBrain is 100% free and open source. You can self-host it on your own server, 
-                        a Raspberry Pi, or any cloud provider. There are no premium tiers, subscriptions, or hidden costs.
+                        Yes. The self-hosted edition is free and open source under AGPL-3.0. MoneyBrain Cloud is a paid subscription that includes managed hosting and backups.
+                    </p>
+                </MudExpansionPanel>
+
+                <MudExpansionPanel Text="Where is my financial data stored?">
+                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
+                        MoneyBrain Cloud stores your data only on the hosted server. With self-hosting, your data stays only on your own server. The two editions do not sync data between servers.
+                    </p>
+                </MudExpansionPanel>
+
+                <MudExpansionPanel Text="Can I cancel MoneyBrain Cloud anytime?">
+                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
+                        Yes. Cloud subscriptions are recurring, and you can manage or cancel them anytime from your account.
                     </p>
                 </MudExpansionPanel>
                 
                 <MudExpansionPanel Text="What do I need to run MoneyBrain?">
                     <p style="color: var(--mb-text-secondary); line-height: 1.6;">
-                        MoneyBrain runs on .NET 10 and uses SQLite by default. You can run it on Windows, macOS, 
-                        or Linux. A basic server with 1GB RAM is enough for personal use.
+                        MoneyBrain runs on .NET 10 and uses SQL Server. The Docker Compose setup provides a convenient way to run it on your own infrastructure.
                     </p>
                 </MudExpansionPanel>
                 
                 <MudExpansionPanel Text="Does MoneyBrain sync with my bank?">
                     <p style="color: var(--mb-text-secondary); line-height: 1.6;">
-                        Not automatically. This is by design—we don't connect to external services to maintain 
-                        your privacy. You can import transactions via CSV from your bank's export feature.
-                    </p>
-                </MudExpansionPanel>
-                
-                <MudExpansionPanel Text="Is my data secure?">
-                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
-                        Your data never leaves your server. There's no cloud sync, no analytics, and no third-party 
-                        access. You can optionally enable database encryption for additional security.
-                    </p>
-                </MudExpansionPanel>
-                
-                <MudExpansionPanel Text="Can multiple people use it?">
-                    <p style="color: var(--mb-text-secondary); line-height: 1.6;">
-                        MoneyBrain is designed for single-user or small household use. Each user has their own 
-                        account with separate data. Multi-entity accounting is not currently supported.
+                        No. MoneyBrain does not connect to banks. You can import transactions from a bank's CSV export.
                     </p>
                 </MudExpansionPanel>
             </MudExpansionPanels>
@@ -114,9 +155,16 @@
 <section class="marketing-cta">
     <div class="marketing-container">
         <h2>Start your journey to financial clarity</h2>
-        <p>No credit card required. No strings attached. Just you and your finances.</p>
+        <p>Choose free self-hosting or let MoneyBrain Cloud take care of the hosting.</p>
         <MudButton Variant="Variant.Filled" Class="mb-btn-primary" Size="MudBlazor.Size.Large" Href="/Account/Register">
-            Create Your Account
+            Get started
         </MudButton>
     </div>
 </section>
+
+@code {
+    private bool IsCheckoutAvailable(string priceId) =>
+        LicensingSettings.Value.Enabled &&
+        !string.IsNullOrWhiteSpace(StripeSettings.Value.SecretKey) &&
+        !string.IsNullOrWhiteSpace(priceId);
+}

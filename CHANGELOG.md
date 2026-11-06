@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-07
+
+### Added
+- MoneyBrain Cloud monthly and annual Stripe checkout, with self-hosted use remaining free and independent of Stripe.
+- Pricing and product guidance for MoneyBrain Cloud, Self-Hosted, and the planned Family tier.
+
+### Changed
+- Documented that hosted and self-hosted data stays on its respective server, with no cross-deployment sync.
+- Configure hosted Stripe monthly and annual Price IDs through deployment settings; checkout accepts only those configured plans.
+
 ## [1.1.0] - 2026-11-06
 
 ### Added

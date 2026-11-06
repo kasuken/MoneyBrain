@@ -338,6 +338,19 @@ h1:focus {
     flex-shrink: 0;
 }
 
+.marketing-pricing-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pricing-future-note {
+    margin: 2rem auto 0;
+    max-width: 700px;
+    color: var(--mb-text-secondary);
+    text-align: center;
+}
+
 /* Pricing Info Note */
 .pricing-info-note {
     text-align: center;
