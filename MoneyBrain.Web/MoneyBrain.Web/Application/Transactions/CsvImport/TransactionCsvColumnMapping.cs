@@ -48,9 +48,24 @@ public class TransactionCsvColumnMapping
     public bool HasHeaderRow { get; set; } = true;
     
     /// <summary>
-    /// Date format for parsing (e.g., "MM/dd/yyyy", "yyyy-MM-dd")
+    /// Date format for parsing (e.g., "MM/dd/yyyy", "dd/MM/yyyy", "yyyy-MM-dd"). Parsed strictly; "yyyy-MM-dd" is always accepted too.
     /// </summary>
     public string DateFormat { get; set; } = "MM/dd/yyyy";
+    
+    /// <summary>
+    /// Field delimiter. <c>null</c> detects it from the file (comma, semicolon, tab or pipe).
+    /// </summary>
+    public char? Delimiter { get; set; }
+    
+    /// <summary>
+    /// How amounts are written: decimal point (1,234.56) or decimal comma (1.234,56).
+    /// </summary>
+    public CsvAmountFormat AmountFormat { get; set; } = CsvAmountFormat.Standard;
+    
+    /// <summary>
+    /// Skip rows that match an existing transaction in the target account (same date, amount and payee).
+    /// </summary>
+    public bool SkipDuplicates { get; set; } = true;
     
     /// <summary>
     /// Whether amounts are negative for expenses (vs positive)

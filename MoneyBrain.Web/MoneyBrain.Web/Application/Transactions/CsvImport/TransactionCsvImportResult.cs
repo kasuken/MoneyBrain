@@ -21,6 +21,11 @@ public class TransactionCsvImportResult
     public int TotalRows { get; set; }
     
     /// <summary>
+    /// Number of rows skipped because they match an existing transaction (included in <see cref="SkippedCount"/>)
+    /// </summary>
+    public int DuplicateCount { get; set; }
+    
+    /// <summary>
     /// List of errors encountered during import
     /// </summary>
     public List<string> Errors { get; set; } = new();

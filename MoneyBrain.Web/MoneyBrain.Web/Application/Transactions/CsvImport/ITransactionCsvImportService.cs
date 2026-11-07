@@ -9,6 +9,11 @@ public interface ITransactionCsvImportService
     /// Parse CSV content and detect columns
     /// </summary>
     Task<List<List<string>>> ParseCsvAsync(string csvContent, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Parse CSV content with an explicit delimiter (null detects comma, semicolon, tab or pipe)
+    /// </summary>
+    Task<List<List<string>>> ParseCsvAsync(string csvContent, char? delimiter, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Preview CSV import with current column mapping
