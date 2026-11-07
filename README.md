@@ -265,10 +265,12 @@ docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -
   -Q "BACKUP DATABASE [moneybrain] TO DISK = N'/var/opt/mssql/data/moneybrain.bak' WITH INIT"
 docker compose cp sqlserver:/var/opt/mssql/data/moneybrain.bak ./moneybrain.bak
 
-# Restore from a backup
+# Restore from a backup. Stop the app first so nothing is connected to the database
+docker compose stop moneybrain
 docker compose cp ./moneybrain.bak sqlserver:/var/opt/mssql/data/moneybrain.bak
 docker compose exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C \
   -Q "RESTORE DATABASE [moneybrain] FROM DISK = N'/var/opt/mssql/data/moneybrain.bak' WITH REPLACE"
+docker compose start moneybrain
 ```
 
 ### Advanced configuration
@@ -389,6 +391,15 @@ MoneyBrain's search and filter capabilities enable powerful transaction analysis
 > MoneyBrain is intended to be self-hosted. Your data stays in your own SQL Server database.
 
 - Back up the database regularly, especially before bulk imports. See [Data persistence](#data-persistence) for a Docker backup and restore example.
+
+## Privacy
+
+**MoneyBrain collects nothing.** A self-hosted instance has no telemetry, analytics, tracking, advertising or crash reporting, and the server sends your data nowhere. Everything you enter stays in your own SQL Server database.
+
+- The only network connections the server makes on its own are the ones you configure: the SQL Server and, optionally, Redis.
+- Connecting an AI client through the optional [MCP server](docs/MCP.md) is off by default and gives that client the access you approve.
+- The browser currently loads the Roboto and Inter web fonts from Google Fonts, so Google can see that a visitor opened the page. Until the fonts are bundled with the app, block `fonts.googleapis.com` and `fonts.gstatic.com` if that matters to you (the interface falls back to system fonts).
+- The hosted MoneyBrain Cloud service is a separate deployment with its own data and billing (Stripe); none of that applies to your self-hosted instance.
 
 ## Project scope (v1)
 
