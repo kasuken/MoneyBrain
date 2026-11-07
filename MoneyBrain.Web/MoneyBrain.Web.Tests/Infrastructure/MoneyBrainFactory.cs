@@ -15,7 +15,8 @@ using OpenIddict.Validation;
 namespace MoneyBrain.Web.Tests.Infrastructure;
 
 internal sealed class MoneyBrainFactory(bool enabled = true, bool enableWrites = false, bool shortLivedTokens = false,
-    bool configureClient = false)
+    bool configureClient = false,
+    IReadOnlyDictionary<string, string?>? extraSettings = null)
     : WebApplicationFactory<Program>
 {
     private readonly SqliteConnection connection = new("Data Source=:memory:");
@@ -33,6 +34,9 @@ internal sealed class MoneyBrainFactory(bool enabled = true, bool enableWrites =
         builder.UseSetting("Mcp:Enabled", enabled.ToString());
         builder.UseSetting("Mcp:EnableWrites", enableWrites.ToString());
         builder.UseSetting("Mcp:PublicUrl", "https://localhost");
+        // Program reads some switches while building services, before ConfigureAppConfiguration is applied.
+        foreach (var pair in extraSettings ?? new Dictionary<string, string?>())
+            builder.UseSetting(pair.Key, pair.Value);
         builder.ConfigureAppConfiguration((_, configuration) =>
         {
             var settings = new Dictionary<string, string?>
@@ -51,6 +55,9 @@ internal sealed class MoneyBrainFactory(bool enabled = true, bool enableWrites =
                 settings["Mcp:Clients:0:RedirectUris:0"] = OAuthFlow.RedirectUri;
                 settings["Mcp:Clients:0:AllowWrites"] = enableWrites.ToString();
             }
+            if (extraSettings is not null)
+                foreach (var pair in extraSettings)
+                    settings[pair.Key] = pair.Value;
             configuration.AddInMemoryCollection(settings);
         });
         builder.ConfigureServices(services =>

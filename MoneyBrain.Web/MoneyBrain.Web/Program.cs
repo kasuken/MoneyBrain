@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -201,7 +202,30 @@ builder.Services.AddHealthChecks()
 
 builder.AddMoneyBrainMcp();
 
+var forwardedHeadersEnabled = DeploymentSettings.ForwardedHeadersEnabled(builder.Configuration);
+var marketingEnabled = DeploymentSettings.MarketingEnabled(builder.Configuration);
+var licensingEnabled = builder.Configuration.GetValue<bool>("Licensing:Enabled");
+
+// Behind a reverse proxy (Caddy, Traefik, nginx, App Service) the app only sees plain HTTP from the proxy.
+// X-Forwarded-For/-Proto are applied explicitly so request scheme, client IP and HTTPS redirects are correct.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    DeploymentSettings.ConfigureForwardedHeaders(options, builder.Configuration));
+
+if (forwardedHeadersEnabled && string.IsNullOrEmpty(builder.Configuration["HTTPS_PORT"]) &&
+    string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_HTTPS_PORT"]))
+{
+    // The proxy terminates TLS on the public port, which this process cannot discover on its own.
+    builder.Services.AddHttpsRedirection(options =>
+        options.HttpsPort = builder.Configuration.GetValue("HttpsRedirection:Port", 443));
+}
+
 var app = builder.Build();
+
+// Must run before anything that reads the request scheme, client IP or redirects.
+if (forwardedHeadersEnabled)
+{
+    app.UseForwardedHeaders();
+}
 
 // Apply database migrations automatically (for Docker / production)
 if (builder.Configuration.GetValue("Database:ApplyMigrations", true))
@@ -252,22 +276,35 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Only use HTTPS redirection when not running behind a reverse proxy
-if (!string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_FORWARDEDHEADERS_ENABLED"]) ||
-    app.Environment.IsDevelopment())
+// Redirect plain HTTP to HTTPS when behind a TLS-terminating proxy (the scheme then comes from X-Forwarded-Proto)
+// or when explicitly enabled. A bare container serves HTTP only, so it does not redirect by default.
+// Health probes always speak plain HTTP to the container and are never redirected.
+if (DeploymentSettings.HttpsRedirectionEnabled(builder.Configuration, app.Environment.IsDevelopment()))
 {
-    app.UseHttpsRedirection();
+    app.UseWhen(
+        context => !context.Request.Path.StartsWithSegments("/health"),
+        branch => branch.UseHttpsRedirection());
 }
 
 app.UseMoneyBrainMcp();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Self-hosted instances do not serve the public marketing/sign-up site (see Marketing:Enabled):
+// "/" goes to the dashboard when signed in, otherwise to the login page.
 // If the user is already logged in, send them straight to the app dashboard.
 // This avoids rendering the (static) marketing home page for authenticated sessions.
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path == "/" && context.User.Identity?.IsAuthenticated == true)
+    var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
+
+    if (DeploymentSettings.IsBlockedMarketingPath(context.Request.Path.Value, marketingEnabled, licensingEnabled))
+    {
+        context.Response.Redirect(isAuthenticated ? "/dashboard" : "/Account/Login");
+        return;
+    }
+
+    if (context.Request.Path == "/" && isAuthenticated)
     {
         context.Response.Redirect("dashboard");
         return;
@@ -310,7 +347,10 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-// Stripe webhook endpoint for subscription lifecycle events
+// Stripe webhook endpoint for subscription lifecycle events. Only mapped when licensing is on:
+// self-hosted instances have no Stripe configuration and must not expose the endpoint.
+if (licensingEnabled)
+{
 app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService licenseService, ILogger<Program> logger) =>
 {
     var json = await new StreamReader(context.Request.Body).ReadToEndAsync(context.RequestAborted);
@@ -339,6 +379,7 @@ app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService l
         return Results.Problem("Webhook processing failed");
     }
 }).AllowAnonymous();
+}
 
 app.Run();
 

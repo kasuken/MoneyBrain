@@ -169,6 +169,67 @@ services:
       - ConnectionStrings__DefaultConnection=Server=<host>;Database=moneybrain;User Id=<user>;Password=<password>;TrustServerCertificate=True
 ```
 
+### HTTPS and reverse proxy
+
+The container serves **plain HTTP on port 8080** and has no TLS of its own. Do not expose it to the internet directly: put a reverse proxy in front that terminates HTTPS, keep port 8080 reachable only by the proxy, and tell MoneyBrain it is behind one.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ForwardedHeaders__Enabled` | Trust `X-Forwarded-For` / `X-Forwarded-Proto` from the proxy, so the app sees the real client IP and the `https` scheme (needed for secure cookies and correct redirects). | `false` (`true` automatically when `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, as on Azure App Service) |
+| `ForwardedHeaders__KnownProxies__0`, `ForwardedHeaders__KnownNetworks__0` | Restrict trust to the proxy's IP address or CIDR network (for example `172.18.0.0/16`). When neither is set, any sender on the network the app listens on is trusted, so only publish the proxy's ports. | unset |
+| `HttpsRedirection__Enabled` | Redirect plain-HTTP requests to HTTPS. Defaults to on when `ForwardedHeaders__Enabled` is on (the scheme then comes from the proxy), otherwise off because a bare container cannot serve HTTPS. | derived |
+| `HttpsRedirection__Port` | Public HTTPS port used in redirects when behind a proxy. | `443` |
+
+`/health/live` and `/health/ready` are never redirected, so container health checks keep working.
+
+**Caddy** (automatic Let's Encrypt certificates). Add a `docker-compose.override.yml`, replace `moneybrain.example.com` with your domain and make sure its DNS points at the server:
+
+```yaml
+services:
+  moneybrain:
+    ports: !reset []        # reachable only through Caddy
+    environment:
+      - ForwardedHeaders__Enabled=true
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    networks:
+      - moneybrain-network
+volumes:
+  caddy-data:
+```
+
+```caddyfile
+moneybrain.example.com {
+    reverse_proxy moneybrain:8080
+}
+```
+
+Caddy sends the `X-Forwarded-*` headers automatically.
+
+**Traefik** works the same way: attach the `moneybrain` service to Traefik's network, set `ForwardedHeaders__Enabled=true`, and add labels such as:
+
+```yaml
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.moneybrain.rule=Host(`moneybrain.example.com`)
+      - traefik.http.routers.moneybrain.entrypoints=websecure
+      - traefik.http.routers.moneybrain.tls.certresolver=letsencrypt
+      - traefik.http.services.moneybrain.loadbalancer.server.port=8080
+```
+
+If your proxy runs outside Docker and reaches the app on `localhost:8080`, publish the port on loopback only (`"127.0.0.1:8080:8080"`).
+
+### Public website
+
+A self-hosted instance does not serve the public marketing pages (`/`, `/features`, `/pricing`, `/about`): `/` opens the sign-in page, or the dashboard when you are signed in. The hosted service keeps them because `Marketing__Enabled` defaults to the value of `Licensing__Enabled`. Set `Marketing__Enabled=true` to serve them anyway.
+
 ### Managing the containers
 
 ```bash
