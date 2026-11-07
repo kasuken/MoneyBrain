@@ -105,6 +105,33 @@
                     </MudItem>
                     
                     <MudItem xs="12" sm="6">
+                        <MudSelect T="int?" @bind-Value="_mapping.ClearedColumn" Label="@L["Import_ClearedColumn"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="int?" Value="null">@L["Import_None"]</MudSelectItem>
+                            @for (int i = 0; i < _csvRows[0].Count; i++)
+                            {
+                                <MudSelectItem T="int?" Value="@i">@L["Import_Column"] @(i + 1): @GetSampleValue(i)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="char?" Value="_mapping.Delimiter" ValueChanged="OnDelimiterChanged" Label="@L["Import_Delimiter"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="char?" Value="null">@L["Import_DelimiterAuto"]</MudSelectItem>
+                            <MudSelectItem T="char?" Value="@((char?)',')">@L["Import_DelimiterComma"]</MudSelectItem>
+                            <MudSelectItem T="char?" Value="@((char?)';')">@L["Import_DelimiterSemicolon"]</MudSelectItem>
+                            <MudSelectItem T="char?" Value="@((char?)'\t')">@L["Import_DelimiterTab"]</MudSelectItem>
+                            <MudSelectItem T="char?" Value="@((char?)'|')">@L["Import_DelimiterPipe"]</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="CsvAmountFormat" @bind-Value="_mapping.AmountFormat" Label="@L["Import_AmountFormat"]" Variant="Variant.Outlined">
+                            <MudSelectItem T="CsvAmountFormat" Value="CsvAmountFormat.Standard">@L["Import_AmountFormatStandard"]</MudSelectItem>
+                            <MudSelectItem T="CsvAmountFormat" Value="CsvAmountFormat.European">@L["Import_AmountFormatEuropean"]</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
                         <MudSelect T="int" @bind-Value="_mapping.AccountId" Label="@(L["Import_TargetAccount"] + " *")" Variant="Variant.Outlined" Required>
                             @foreach (var account in _accounts)
                             {
@@ -127,6 +154,10 @@
                             <MudSelectItem T="TransactionStatus" Value="TransactionStatus.Pending">@L["Status_Pending"]</MudSelectItem>
                             <MudSelectItem T="TransactionStatus" Value="TransactionStatus.Posted">@L["Status_Posted"]</MudSelectItem>
                         </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudCheckBox @bind-Value="_mapping.SkipDuplicates" Label="@L["Import_SkipDuplicates"]" Color="Color.Primary" />
                     </MudItem>
                 </MudGrid>
             }
@@ -152,7 +183,7 @@
                     <RowTemplate>
                         <MudTd DataLabel="@L["Import_Row"]">@context.RowNumber</MudTd>
                         <MudTd DataLabel="@L["Col_Date"]" Style="@(context.HasErrors && !context.Date.HasValue ? "color: red;" : "")">
-                            @(context.Date?.ToString("MM/dd/yyyy") ?? L["Import_ParseError"])
+                            @(context.Date?.ToString("yyyy-MM-dd") ?? L["Import_ParseError"])
                         </MudTd>
                         <MudTd DataLabel="@L["Col_Amount"]" Style="@(context.HasErrors && !context.Amount.HasValue ? "color: red;" : "")">
                             @(context.Amount.HasValue ? CurrencyFormattingService.FormatCurrency(context.Amount.Value, _userSettings?.CurrencyCode ?? "USD") : L["Import_ParseError"])
@@ -164,6 +195,10 @@
                             @if (context.HasErrors)
                             {
                                 <MudChip T="string" Color="Color.Error" Size="Size.Small">@L["Msg_Error"]</MudChip>
+                            }
+                            else if (context.IsDuplicate && _mapping.SkipDuplicates)
+                            {
+                                <MudChip T="string" Color="Color.Warning" Size="Size.Small">@L["Import_StatusDuplicate"]</MudChip>
                             }
                             else
                             {
@@ -187,7 +222,7 @@
                 }
                 
                 <MudText Class="mt-4">
-                    @L["Import_TotalRows"] @_previewRows.Count | @L["Import_Valid"] @_previewRows.Count(r => !r.HasErrors) | @L["Import_ErrorsSummary"] @_previewRows.Count(r => r.HasErrors)
+                    @L["Import_TotalRows"] @_previewRows.Count | @L["Import_Valid"] @_previewRows.Count(r => !r.HasErrors) | @L["Import_ErrorsSummary"] @_previewRows.Count(r => r.HasErrors) | @L["Import_DuplicateRows"] @_previewRows.Count(r => r.IsDuplicate)
                 </MudText>
             }
         }
@@ -200,6 +235,10 @@
                 <MudAlert Severity="@(_importResult.Success ? Severity.Success : Severity.Warning)">
                     <MudText><strong>@L["Import_ImportedLabel"]</strong> @_importResult.ImportedCount @L["Import_TransactionsUnit"]</MudText>
                     <MudText><strong>@L["Import_SkippedLabel"]</strong> @_importResult.SkippedCount @L["Import_RowsUnit"]</MudText>
+                    @if (_importResult.DuplicateCount > 0)
+                    {
+                        <MudText><strong>@L["Import_DuplicatesSkippedLabel"]</strong> @_importResult.DuplicateCount @L["Import_RowsUnit"]</MudText>
+                    }
                     <MudText><strong>@L["Import_TotalLabel"]</strong> @_importResult.TotalRows @L["Import_RowsProcessed"]</MudText>
                 </MudAlert>
                 
@@ -240,7 +279,7 @@
                 }
                 else
                 {
-                    <span>@string.Format(L["Import_ImportNTransactions"], _previewRows.Count(r => !r.HasErrors))</span>
+                    <span>@string.Format(L["Import_ImportNTransactions"], _previewRows.Count(r => !r.HasErrors && !(_mapping.SkipDuplicates && r.IsDuplicate)))</span>
                 }
             </MudButton>
         }
@@ -316,6 +355,12 @@
         }
     }
 
+    private async Task OnDelimiterChanged(char? delimiter)
+    {
+        _mapping.Delimiter = delimiter;
+        _csvRows = await CsvImportService.ParseCsvAsync(_csvContent, delimiter);
+    }
+
     private void NextToMapping()
     {
         if (_selectedFile == null || _csvRows.Count == 0)
@@ -340,6 +385,17 @@
                     _mapping.MemoColumn = i;
                 else if ((header.Contains("reference") || header.Contains("check")) && !_mapping.ReferenceNumberColumn.HasValue)
                     _mapping.ReferenceNumberColumn = i;
+                else if (header.Contains("cleared") && !_mapping.ClearedColumn.HasValue)
+                    _mapping.ClearedColumn = i;
+            }
+
+            // A file exported by MoneyBrain uses ISO dates and decimal points, so no format guessing is needed.
+            if (headers.Count >= 3 && headers[0].Equals("Date", StringComparison.OrdinalIgnoreCase) &&
+                headers.Any(h => h.Equals("ReferenceNumber", StringComparison.OrdinalIgnoreCase)) &&
+                headers.Any(h => h.Equals("Status", StringComparison.OrdinalIgnoreCase)))
+            {
+                _mapping.DateFormat = "yyyy-MM-dd";
+                _mapping.AmountFormat = CsvAmountFormat.Standard;
             }
         }
         

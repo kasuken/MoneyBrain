@@ -30,23 +30,10 @@ public class TransactionCsvImportService : ITransactionCsvImportService
     }
 
     public Task<List<List<string>>> ParseCsvAsync(string csvContent, CancellationToken cancellationToken = default)
-    {
-        var rows = new List<List<string>>();
-        
-        using var reader = new StringReader(csvContent);
-        string? line;
-        
-        while ((line = reader.ReadLine()) != null)
-        {
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-                
-            var columns = ParseCsvLine(line);
-            rows.Add(columns);
-        }
-        
-        return Task.FromResult(rows);
-    }
+        => ParseCsvAsync(csvContent, null, cancellationToken);
+
+    public Task<List<List<string>>> ParseCsvAsync(string csvContent, char? delimiter, CancellationToken cancellationToken = default)
+        => Task.FromResult(CsvFormat.Parse(csvContent, delimiter));
 
     public async Task<List<TransactionCsvPreviewRow>> PreviewImportAsync(
         string userId,
@@ -54,7 +41,7 @@ public class TransactionCsvImportService : ITransactionCsvImportService
         TransactionCsvColumnMapping mapping,
         CancellationToken cancellationToken = default)
     {
-        var rows = await ParseCsvAsync(csvContent, cancellationToken);
+        var rows = await ParseCsvAsync(csvContent, mapping.Delimiter, cancellationToken);
         var previewRows = new List<TransactionCsvPreviewRow>();
         
         var startRow = mapping.HasHeaderRow ? 1 : 0;
@@ -72,17 +59,13 @@ public class TransactionCsvImportService : ITransactionCsvImportService
             if (mapping.DateColumn.HasValue && mapping.DateColumn.Value < csvRow.Count)
             {
                 var dateText = csvRow[mapping.DateColumn.Value];
-                if (DateTime.TryParseExact(dateText, mapping.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
-                {
-                    previewRow.Date = date;
-                }
-                else if (DateTime.TryParse(dateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+                if (CsvFormat.TryParseDate(dateText, mapping.DateFormat, out var date))
                 {
                     previewRow.Date = date;
                 }
                 else
                 {
-                    previewRow.Errors.Add($"Invalid date format: {dateText}");
+                    previewRow.Errors.Add($"Invalid date (expected {mapping.DateFormat}): {dateText}");
                 }
             }
             else
@@ -93,14 +76,14 @@ public class TransactionCsvImportService : ITransactionCsvImportService
             // Parse amount
             if (mapping.AmountColumn.HasValue && mapping.AmountColumn.Value < csvRow.Count)
             {
-                var amountText = csvRow[mapping.AmountColumn.Value].Replace("$", "").Replace(",", "").Trim();
-                if (decimal.TryParse(amountText, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount))
+                var amountText = csvRow[mapping.AmountColumn.Value].Trim();
+                if (CsvFormat.TryParseAmount(amountText, mapping.AmountFormat, out var amount))
                 {
                     previewRow.Amount = mapping.InvertAmounts ? -amount : amount;
                 }
                 else
                 {
-                    previewRow.Errors.Add($"Invalid amount format: {amountText}");
+                    previewRow.Errors.Add($"Invalid amount (expected {(mapping.AmountFormat == CsvAmountFormat.European ? "1.234,56" : "1,234.56")}): {amountText}");
                 }
             }
             else
@@ -111,37 +94,39 @@ public class TransactionCsvImportService : ITransactionCsvImportService
             // Parse payee
             if (mapping.PayeeColumn.HasValue && mapping.PayeeColumn.Value < csvRow.Count)
             {
-                previewRow.Payee = csvRow[mapping.PayeeColumn.Value];
+                previewRow.Payee = CsvFormat.UnescapeText(csvRow[mapping.PayeeColumn.Value]);
             }
             
             // Parse category
             if (mapping.CategoryColumn.HasValue && mapping.CategoryColumn.Value < csvRow.Count)
             {
-                previewRow.Category = csvRow[mapping.CategoryColumn.Value];
+                previewRow.Category = CsvFormat.UnescapeText(csvRow[mapping.CategoryColumn.Value]);
             }
             
             // Parse memo
             if (mapping.MemoColumn.HasValue && mapping.MemoColumn.Value < csvRow.Count)
             {
-                previewRow.Memo = csvRow[mapping.MemoColumn.Value];
+                previewRow.Memo = CsvFormat.UnescapeText(csvRow[mapping.MemoColumn.Value]);
             }
             
             // Parse reference number
             if (mapping.ReferenceNumberColumn.HasValue && mapping.ReferenceNumberColumn.Value < csvRow.Count)
             {
-                previewRow.ReferenceNumber = csvRow[mapping.ReferenceNumberColumn.Value];
+                previewRow.ReferenceNumber = CsvFormat.UnescapeText(csvRow[mapping.ReferenceNumberColumn.Value]);
             }
             
             // Parse cleared
             if (mapping.ClearedColumn.HasValue && mapping.ClearedColumn.Value < csvRow.Count)
             {
-                var clearedText = csvRow[mapping.ClearedColumn.Value].ToLower();
+                var clearedText = csvRow[mapping.ClearedColumn.Value].Trim().ToLowerInvariant();
                 previewRow.IsCleared = clearedText == "true" || clearedText == "yes" || clearedText == "x" || clearedText == "1";
             }
             
             previewRows.Add(previewRow);
         }
         
+        await MarkDuplicatesAsync(userId, mapping, previewRows, cancellationToken);
+
         return previewRows;
     }
 
@@ -189,6 +174,13 @@ public class TransactionCsvImportService : ITransactionCsvImportService
                 continue;
             }
             
+            if (mapping.SkipDuplicates && previewRow.IsDuplicate)
+            {
+                result.SkippedCount++;
+                result.DuplicateCount++;
+                continue;
+            }
+
             if (!previewRow.Date.HasValue || !previewRow.Amount.HasValue)
             {
                 result.SkippedCount++;
@@ -243,41 +235,48 @@ public class TransactionCsvImportService : ITransactionCsvImportService
         return result;
     }
 
-    private List<string> ParseCsvLine(string line)
+    /// <summary>
+    /// Flags rows that match an existing transaction in the target account (same date, amount and payee).
+    /// Matching consumes existing transactions one for one, so a file containing two identical purchases is only
+    /// a duplicate of two existing ones, and re-importing a file flags every row.
+    /// </summary>
+    private async Task MarkDuplicatesAsync(
+        string userId,
+        TransactionCsvColumnMapping mapping,
+        List<TransactionCsvPreviewRow> rows,
+        CancellationToken cancellationToken)
     {
-        var columns = new List<string>();
-        var currentColumn = new System.Text.StringBuilder();
-        bool inQuotes = false;
-        
-        for (int i = 0; i < line.Length; i++)
+        var candidates = rows.Where(r => !r.HasErrors && r.Date.HasValue && r.Amount.HasValue).ToList();
+        if (candidates.Count == 0)
+            return;
+
+        var from = candidates.Min(r => r.Date!.Value.Date);
+        var to = candidates.Max(r => r.Date!.Value.Date).AddDays(1);
+
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var existing = await context.Transactions
+            .AsNoTracking()
+            .Where(t => t.UserId == userId && t.AccountId == mapping.AccountId && t.Date >= from && t.Date < to)
+            .Select(t => new { t.Date, t.Amount, Payee = t.Payee != null ? t.Payee.Name : null })
+            .ToListAsync(cancellationToken);
+
+        var remaining = new Dictionary<(DateTime, decimal, string), int>();
+        foreach (var t in existing)
         {
-            char c = line[i];
-            
-            if (c == '"')
+            var key = (t.Date.Date, Math.Abs(t.Amount), NormalizePayee(t.Payee));
+            remaining[key] = remaining.GetValueOrDefault(key) + 1;
+        }
+
+        foreach (var row in candidates)
+        {
+            var key = (row.Date!.Value.Date, Math.Abs(row.Amount!.Value), NormalizePayee(row.Payee));
+            if (remaining.TryGetValue(key, out var count) && count > 0)
             {
-                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
-                {
-                    // Escaped quote
-                    currentColumn.Append('"');
-                    i++;
-                }
-                else
-                {
-                    inQuotes = !inQuotes;
-                }
-            }
-            else if (c == ',' && !inQuotes)
-            {
-                columns.Add(currentColumn.ToString().Trim());
-                currentColumn.Clear();
-            }
-            else
-            {
-                currentColumn.Append(c);
+                remaining[key] = count - 1;
+                row.IsDuplicate = true;
             }
         }
-        
-        columns.Add(currentColumn.ToString().Trim());
-        return columns;
     }
+
+    private static string NormalizePayee(string? payee) => PayeeNormalizer.GetNormalizedKey(payee ?? string.Empty);
 }

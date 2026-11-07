@@ -51,6 +51,12 @@ public class TransactionCsvPreviewRow
     public bool? IsCleared { get; set; }
     
     /// <summary>
+    /// Whether an existing transaction in the target account already has the same date, amount and payee.
+    /// Not an error: the row is skipped on import only when <see cref="TransactionCsvColumnMapping.SkipDuplicates"/> is set.
+    /// </summary>
+    public bool IsDuplicate { get; set; }
+    
+    /// <summary>
     /// List of parsing errors for this row
     /// </summary>
     public List<string> Errors { get; set; } = new();
