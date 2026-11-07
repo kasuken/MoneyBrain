@@ -228,7 +228,7 @@ Rules automate transaction cleanup and categorization.
 
 #### Description
 
-MoneyBrain supports **monthly envelope-style budgeting**.
+MoneyBrain supports **monthly plan-vs-actual budgeting** (not envelope budgeting: unspent amounts are not rolled over).
 
 #### Features
 

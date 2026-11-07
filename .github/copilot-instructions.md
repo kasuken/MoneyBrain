@@ -47,7 +47,7 @@ Model features around these concepts:
 - **Split transaction**: a transaction can have multiple split lines; sum(splits) == transaction amount.
 - **CategoryGroup / Category**: category belongs to exactly one group; support rename/merge and preserve history.
 - **Rule**: deterministic matching and actions; ordered priority; preview capability; never mutate reconciled transactions.
-- **Budget (monthly envelope)**: planned amounts per category per month; remaining = planned − activity; rollover optional.
+- **Budget (monthly plan vs actual)**: planned amounts per category per month; remaining = planned − activity. Not envelope budgeting: there is no rollover or "available to assign" math.
 - **Reconciliation**: statement-based per account; reconciliation periods; lock reconciled transactions.
 - **Reporting**: cashflow, category spending, budget vs actual, net worth; export to CSV.
 

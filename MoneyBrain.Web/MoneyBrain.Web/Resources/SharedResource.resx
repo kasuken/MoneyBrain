@@ -1586,7 +1586,7 @@
     <value>Budgets Help</value>
   </data>
   <data name="Budget_HelpDescription" xml:space="preserve">
-    <value>Create and manage monthly budgets using the envelope method. Assign planned amounts to categories and track your spending against those goals.</value>
+    <value>Create and manage monthly budgets. Assign planned amounts to categories and compare your actual spending with the plan.</value>
   </data>
   <data name="Budget_HelpFeature1" xml:space="preserve">
     <value>Create budgets for specific months or use default templates</value>
@@ -1725,7 +1725,7 @@
     <value>Date Format</value>
   </data>
   <data name="Import_DateFormatHelper" xml:space="preserve">
-    <value>e.g., MM/dd/yyyy or yyyy-MM-dd</value>
+    <value>Must match the file, e.g. dd/MM/yyyy, MM/dd/yyyy or yyyy-MM-dd</value>
   </data>
   <data name="Import_InvertAmounts" xml:space="preserve">
     <value>Invert amounts (expenses as positive)</value>
@@ -4888,5 +4888,53 @@
   </data>
   <data name="Nav_MainNavigation" xml:space="preserve">
     <value>Main navigation</value>
+  </data>
+  <data name="Import_AmountFormat" xml:space="preserve">
+    <value>Amount Format</value>
+  </data>
+  <data name="Import_AmountFormatEuropean" xml:space="preserve">
+    <value>1.234,56 (decimal comma)</value>
+  </data>
+  <data name="Import_AmountFormatStandard" xml:space="preserve">
+    <value>1,234.56 (decimal point)</value>
+  </data>
+  <data name="Import_ClearedColumn" xml:space="preserve">
+    <value>Cleared Column</value>
+  </data>
+  <data name="Import_Delimiter" xml:space="preserve">
+    <value>Delimiter</value>
+  </data>
+  <data name="Import_DelimiterAuto" xml:space="preserve">
+    <value>Auto-detect</value>
+  </data>
+  <data name="Import_DelimiterComma" xml:space="preserve">
+    <value>Comma (,)</value>
+  </data>
+  <data name="Import_DelimiterPipe" xml:space="preserve">
+    <value>Pipe (|)</value>
+  </data>
+  <data name="Import_DelimiterSemicolon" xml:space="preserve">
+    <value>Semicolon (;)</value>
+  </data>
+  <data name="Import_DelimiterTab" xml:space="preserve">
+    <value>Tab</value>
+  </data>
+  <data name="Import_DuplicateRows" xml:space="preserve">
+    <value>Duplicates:</value>
+  </data>
+  <data name="Import_DuplicatesSkippedLabel" xml:space="preserve">
+    <value>Duplicates skipped:</value>
+  </data>
+  <data name="Import_SkipDuplicates" xml:space="preserve">
+    <value>Skip rows that match an existing transaction (same date, amount and payee)</value>
+  </data>
+  <data name="Import_StatusDuplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Trans_ExportCSV" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+  <data name="Trans_ExportEmpty" xml:space="preserve">
+    <value>There are no transactions to export.</value>
   </data>
 </root>
