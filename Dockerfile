@@ -28,8 +28,8 @@ RUN useradd -m -s /bin/bash appuser
 # Copy published app
 COPY --from=build /app/publish .
 
-# Create data directory for SQLite fallback (if needed)
-RUN mkdir -p /app/Data && chown -R appuser:appuser /app
+# The app writes nothing under /app: data lives in SQL Server
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser

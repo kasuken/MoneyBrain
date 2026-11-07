@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-07
+
+### Added
+- **Reverse proxy and HTTPS**: `ForwardedHeaders__Enabled` (with optional `KnownProxies` / `KnownNetworks`) and `HttpsRedirection__Enabled` / `HttpsRedirection__Port`, plus a README section with Caddy and Traefik examples. Health probes are never redirected.
+- **Transaction CSV export** (Transactions > Export CSV) with all fields: date, account, amount, payee, category, memo, reference, cleared, status, reconciled, tags, transfer account and splits. The file re-imports with the matching date and amount format selected automatically.
+- **CSV import options**: delimiter (auto-detected comma, semicolon, tab or pipe), amount format (`1,234.56` or `1.234,56`), cleared column, and skipping of rows that already exist in the target account.
+- `Marketing__Enabled` setting for the public landing, features, pricing and about pages.
+- Tests for the CSV import and export, the reverse-proxy rules and the marketing switch.
+
+### Changed
+- Self-hosted instances no longer serve the public marketing pages: `/` opens the sign-in page or the dashboard. The hosted service is unchanged because `Marketing__Enabled` defaults to `Licensing__Enabled`.
+- HTTPS redirection is documented and tested: it applies behind a proxy (scheme from `X-Forwarded-Proto`) or when enabled explicitly, and never to `/health`.
+- CSV import parses amounts and dates strictly with the chosen formats (ISO `yyyy-MM-dd` is always accepted) and reports rows that do not fit instead of guessing.
+- Budgets are described as monthly plan vs actual, not envelope budgeting (README, website, help text, MCP tool descriptions).
+- The Stripe webhook endpoint is only mapped when licensing is enabled. `Stripe.net` is pinned to 47.4.0.
+- README: privacy statement, restore steps now stop the app first.
+
+### Fixed
+- CSV import no longer reads `12,50` as 1250 or `1.234,56` as 1.23456, no longer swaps day and month through a culture fallback, and handles quoted line breaks (RFC 4180).
+- Forwarded headers were only honoured through an undocumented environment variable and the HTTPS redirect comment contradicted the code.
+
+### Removed
+- Stale SQLite fallback references (`Data\app.db` item, `/app/Data` directory) from the project file and Dockerfile.
+
 ## [1.2.0] - 2026-11-07
 
 ### Added

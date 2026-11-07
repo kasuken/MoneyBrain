@@ -351,34 +351,34 @@ app.MapAdditionalIdentityEndpoints();
 // self-hosted instances have no Stripe configuration and must not expose the endpoint.
 if (licensingEnabled)
 {
-app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService licenseService, ILogger<Program> logger) =>
-{
-    var json = await new StreamReader(context.Request.Body).ReadToEndAsync(context.RequestAborted);
-    var signature = context.Request.Headers["Stripe-Signature"].FirstOrDefault();
+    app.MapPost("/api/stripe/webhook", async (HttpContext context, ILicenseService licenseService, ILogger<Program> logger) =>
+    {
+        var json = await new StreamReader(context.Request.Body).ReadToEndAsync(context.RequestAborted);
+        var signature = context.Request.Headers["Stripe-Signature"].FirstOrDefault();
     
-    if (string.IsNullOrEmpty(signature))
-    {
-        return Results.BadRequest("Missing Stripe-Signature header");
-    }
+        if (string.IsNullOrEmpty(signature))
+        {
+            return Results.BadRequest("Missing Stripe-Signature header");
+        }
 
-    try
-    {
-        await licenseService.HandleWebhookAsync(json, signature, context.RequestAborted);
-        return Results.Ok();
-    }
-    catch (StripeException ex)
-    {
-        // Stripe signature/payload errors are client errors — don't retry.
-        logger.LogError(ex, "Stripe error processing webhook");
-        return Results.BadRequest("Webhook processing failed");
-    }
-    catch (Exception ex)
-    {
-        // Unexpected internal error — return 500 so Stripe retries the event.
-        logger.LogError(ex, "Unexpected error processing Stripe webhook");
-        return Results.Problem("Webhook processing failed");
-    }
-}).AllowAnonymous();
+        try
+        {
+            await licenseService.HandleWebhookAsync(json, signature, context.RequestAborted);
+            return Results.Ok();
+        }
+        catch (StripeException ex)
+        {
+            // Stripe signature/payload errors are client errors — don't retry.
+            logger.LogError(ex, "Stripe error processing webhook");
+            return Results.BadRequest("Webhook processing failed");
+        }
+        catch (Exception ex)
+        {
+            // Unexpected internal error — return 500 so Stripe retries the event.
+            logger.LogError(ex, "Unexpected error processing Stripe webhook");
+            return Results.Problem("Webhook processing failed");
+        }
+    }).AllowAnonymous();
 }
 
 app.Run();
