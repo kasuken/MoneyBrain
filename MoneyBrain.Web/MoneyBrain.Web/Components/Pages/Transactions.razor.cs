@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using Microsoft.Extensions.Localization;
 using MoneyBrain.Web.Application.Accounts;
 using MoneyBrain.Web.Application.Categories;
+using MoneyBrain.Web.Application.Reporting.CsvExport;
 using MoneyBrain.Web.Application.Settings;
 using MoneyBrain.Web.Application.Transactions;
 using MoneyBrain.Web.Application.Transactions.BulkEdit;
@@ -30,6 +32,8 @@ public partial class Transactions
     [Inject] private ISnackbar SnackbarService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
     [Inject] private ICurrencyFormattingService CurrencyFormattingService { get; set; } = default!;
+    [Inject] private ICsvExportService CsvExportService { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private List<Transaction> _transactions = [];
     private List<MoneyBrain.Web.Domain.Entities.Account> _accounts = [];
@@ -239,6 +243,20 @@ public partial class Transactions
                 SnackbarService.Add(string.Format(L["Trans_ImportedCount"], importedCount), Severity.Success);
             }
         }
+    }
+
+    private async Task ExportToCsv()
+    {
+        if (_transactions.Count == 0)
+        {
+            SnackbarService.Add(L["Trans_ExportEmpty"], Severity.Info);
+            return;
+        }
+
+        // Exports the transactions currently shown, so active filters narrow the export.
+        var csvBytes = CsvExportService.ExportTransactionsToCsv(_transactions);
+        var fileName = $"transactions_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, Convert.ToBase64String(csvBytes));
     }
 
     private async Task OpenEditTransactionDialog(Transaction transaction)

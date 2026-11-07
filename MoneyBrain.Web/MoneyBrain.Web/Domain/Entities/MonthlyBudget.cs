@@ -3,7 +3,7 @@ using MoneyBrain.Web.Application.Common.Interfaces;
 namespace MoneyBrain.Web.Domain.Entities;
 
 /// <summary>
-/// Monthly budget (envelope) for a category
+/// Monthly budget (planned amount) for a category
 /// Can be either a default budget (applies to all months) or a month-specific override
 /// </summary>
 public class MonthlyBudget : IUserOwnedEntity

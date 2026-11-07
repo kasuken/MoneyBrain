@@ -1,4 +1,7 @@
+using System.Globalization;
 using System.Text;
+using MoneyBrain.Web.Application.Transactions.CsvImport;
+using MoneyBrain.Web.Domain.Entities;
 using MoneyBrain.Web.Application.Reporting.Cashflow;
 using MoneyBrain.Web.Application.Reporting.CategorySpending;
 using MoneyBrain.Web.Application.Reporting.BudgetComparison;
@@ -41,6 +44,14 @@ public interface ICsvExportService
     /// Export multi-account balance history to CSV format.
     /// </summary>
     byte[] ExportMultiAccountBalanceHistoryToCsv(MultiAccountBalanceHistoryDto history);
+
+    /// <summary>
+    /// Export transactions with all fields to CSV. The Date, Amount, Payee, Category, Memo, ReferenceNumber,
+    /// Cleared and Status columns can be re-imported (ISO dates, decimal point amounts); Account, Reconciled,
+    /// Tags, TransferAccount and Splits are informational. Transactions must be loaded with Account, Payee,
+    /// Category, Splits (with Category) and TransferTransaction (with Account).
+    /// </summary>
+    byte[] ExportTransactionsToCsv(IEnumerable<Transaction> transactions);
 }
 
 /// <summary>
@@ -279,5 +290,36 @@ public class CsvExportService : ICsvExportService
         }
 
         return Encoding.UTF8.GetBytes(csv.ToString());
+    }
+    public byte[] ExportTransactionsToCsv(IEnumerable<Transaction> transactions)
+    {
+        var csv = new StringBuilder();
+        csv.Append("Date,Account,Amount,Payee,Category,Memo,ReferenceNumber,Cleared,Status,Reconciled,Tags,TransferAccount,Splits\r\n");
+
+        foreach (var t in transactions.OrderBy(t => t.Date).ThenBy(t => t.Id))
+        {
+            var splits = string.Join("; ", t.Splits.OrderBy(s => s.Id).Select(s =>
+                $"{s.Category?.Name ?? ""}: {s.Amount.ToString(CultureInfo.InvariantCulture)}"));
+
+            csv.Append(string.Join(',',
+                t.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                CsvFormat.EscapeText(t.Account?.Name),
+                t.Amount.ToString(CultureInfo.InvariantCulture),
+                CsvFormat.EscapeText(t.Payee?.Name),
+                CsvFormat.EscapeText(t.Category?.Name),
+                CsvFormat.EscapeText(t.Memo),
+                CsvFormat.EscapeText(t.ReferenceNumber),
+                t.IsCleared ? "true" : "false",
+                t.Status.ToString(),
+                t.IsReconciled ? "true" : "false",
+                CsvFormat.EscapeText(t.Tags),
+                CsvFormat.EscapeText(t.TransferTransaction?.Account?.Name),
+                CsvFormat.EscapeText(splits)));
+            csv.Append("\r\n");
+        }
+
+        // The byte order mark lets Excel detect UTF-8; the importer ignores it.
+        return new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
     }
 }

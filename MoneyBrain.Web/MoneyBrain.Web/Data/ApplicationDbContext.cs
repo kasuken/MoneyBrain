@@ -63,7 +63,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<SavedTransactionFilter> SavedTransactionFilters => Set<SavedTransactionFilter>();
 
     /// <summary>
-    /// Monthly budgets (envelopes) for categories - planned amounts per category per month
+    /// Monthly budgets for categories - planned amounts per category per month
     /// </summary>
     public DbSet<MonthlyBudget> MonthlyBudgets => Set<MonthlyBudget>();
 

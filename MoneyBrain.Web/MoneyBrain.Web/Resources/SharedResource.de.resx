@@ -4096,4 +4096,52 @@
   <data name="Nav_MainNavigation" xml:space="preserve">
     <value>Hauptnavigation</value>
   </data>
+  <data name="Import_AmountFormat" xml:space="preserve">
+    <value>Betragsformat</value>
+  </data>
+  <data name="Import_AmountFormatEuropean" xml:space="preserve">
+    <value>1.234,56 (Dezimalkomma)</value>
+  </data>
+  <data name="Import_AmountFormatStandard" xml:space="preserve">
+    <value>1,234.56 (Dezimalpunkt)</value>
+  </data>
+  <data name="Import_ClearedColumn" xml:space="preserve">
+    <value>Spalte Verrechnet (Cleared)</value>
+  </data>
+  <data name="Import_Delimiter" xml:space="preserve">
+    <value>Trennzeichen</value>
+  </data>
+  <data name="Import_DelimiterAuto" xml:space="preserve">
+    <value>Automatisch erkennen</value>
+  </data>
+  <data name="Import_DelimiterComma" xml:space="preserve">
+    <value>Komma (,)</value>
+  </data>
+  <data name="Import_DelimiterPipe" xml:space="preserve">
+    <value>Senkrechter Strich (|)</value>
+  </data>
+  <data name="Import_DelimiterSemicolon" xml:space="preserve">
+    <value>Semikolon (;)</value>
+  </data>
+  <data name="Import_DelimiterTab" xml:space="preserve">
+    <value>Tabulator</value>
+  </data>
+  <data name="Import_DuplicateRows" xml:space="preserve">
+    <value>Duplikate:</value>
+  </data>
+  <data name="Import_DuplicatesSkippedLabel" xml:space="preserve">
+    <value>Übersprungene Duplikate:</value>
+  </data>
+  <data name="Import_StatusDuplicate" xml:space="preserve">
+    <value>Duplikat</value>
+  </data>
+  <data name="Trans_ExportCSV" xml:space="preserve">
+    <value>CSV exportieren</value>
+  </data>
+  <data name="Trans_ExportEmpty" xml:space="preserve">
+    <value>Es gibt keine Transaktionen zum Exportieren.</value>
+  </data>
+  <data name="Import_DateFormatHelper" xml:space="preserve">
+    <value>Muss zur Datei passen, z. B. dd/MM/yyyy, MM/dd/yyyy oder yyyy-MM-dd</value>
+  </data>
 </root>

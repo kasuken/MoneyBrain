@@ -7,7 +7,7 @@
 > [!NOTE]
 > MoneyBrain is under active development. The focus is on correctness, predictable behavior, and data ownership.
 
-MoneyBrain is a lightweight, self-hosted personal finance app for tracking accounts and transactions, running a monthly envelope budget, reconciling against statements, and generating practical reports — without bank sync, telemetry, or “financial advice”.
+MoneyBrain is a lightweight, self-hosted personal finance app for tracking accounts and transactions, planning monthly budgets (plan vs actual), reconciling against statements, and generating practical reports — without bank sync, telemetry, or “financial advice”.
 
 ## What you can do
 
@@ -16,7 +16,7 @@ MoneyBrain is a lightweight, self-hosted personal finance app for tracking accou
 - **Transfers (between accounts)**: move money without counting it as income/expense.
 - **Split transactions**: allocate a single transaction across multiple categories.
 - **Categories & groups**: organize spending, rename/merge categories, and keep history intact.
-- **Envelope-style budgeting**: plan monthly amounts per category and compare plan vs activity.
+- **Monthly budgets**: plan amounts per category and compare plan vs actual spending. This is plan-vs-actual budgeting, not envelope budgeting: unspent amounts are not carried forward automatically.
 - **Reconciliation**: reconcile an account against a statement and lock reconciled transactions.
 - **Reports**: cashflow, category spending, budget vs actual, net worth, and account balance history.
 - **CSV import & export**: import transactions with column mapping + preview, export reports to CSV.
@@ -316,6 +316,21 @@ There’s a small sample file at `samples/sample-transactions.csv`.
 > [!TIP]
 > If categories in the CSV don’t exist yet, create them first (Categories) to get cleaner matches.
 
+### Importing your own CSV files
+
+**Transactions** → **Import CSV** accepts bank exports in common regional formats. In the mapping step you choose:
+
+- the **delimiter** (auto-detected: comma, semicolon, tab or pipe; quoted fields may contain line breaks),
+- the **amount format**: `1,234.56` (decimal point) or `1.234,56` (decimal comma, typical for EU banks),
+- the **date format**, for example `dd/MM/yyyy`, `MM/dd/yyyy`, `dd.MM.yyyy` or `yyyy-MM-dd`. Dates are parsed strictly with the format you choose, so `03/04/2026` is never silently read as the wrong day and month. A row that does not fit is reported as an error in the preview instead of being guessed. `yyyy-MM-dd` is always accepted too.
+
+Rows that match an existing transaction in the target account (same date, amount and payee) are skipped by default, so importing the same file twice does not create duplicates; untick the option to import them anyway.
+
+### Exporting transactions
+
+**Transactions** → **Export CSV** downloads the transactions currently shown (active filters apply) with all fields: `Date, Account, Amount, Payee, Category, Memo, ReferenceNumber, Cleared, Status, Reconciled, Tags, TransferAccount, Splits`. Dates are ISO (`yyyy-MM-dd`) and amounts use a decimal point, so the file imports again with the date format `yyyy-MM-dd` and the amount format `1,234.56` (these are selected automatically for MoneyBrain exports). `Account`, `Reconciled`, `Tags`, `TransferAccount` and `Splits` are informational and ignored on import; transfers appear as one row per account, so re-import only the rows you need.
+
+
 
 ## 💡 Tips & Insights
 
@@ -365,7 +380,7 @@ MoneyBrain's search and filter capabilities enable powerful transaction analysis
 
 **Export & analysis:**
 - All reports exportable to CSV for further analysis
-- Transaction exports include all fields (date, payee, category, amount, tags, notes)
+- Transaction export includes all fields (date, account, amount, payee, category, memo, reference, cleared, status, reconciled, tags, transfer, splits)
 - Import column mapping for flexible CSV formats
 
 ## Data ownership & backups

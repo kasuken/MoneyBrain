@@ -9,7 +9,7 @@ using MoneyBrain.Web.Domain.Entities;
 
 namespace MoneyBrain.Web.Application.Mcp.Tools;
 
-/// <summary>Named budgets, allocations, and monthly/default envelope assignments.</summary>
+/// <summary>Named budgets, allocations, and monthly/default budget amount assignments.</summary>
 [McpServerToolType]
 public sealed class BudgetsTools(McpAccess access, IBudgetService budgets, IMonthlyBudgetService monthly, IDbContextFactory<ApplicationDbContext> factory)
 {
@@ -130,7 +130,7 @@ public sealed class BudgetsTools(McpAccess access, IBudgetService budgets, IMont
 
     /// <summary>Lists monthly/default assignments, optionally resolving defaults against overrides.</summary>
     [McpServerTool(Name = "monthly_budgets_list", ReadOnly = true, OpenWorld = false)]
-    [Description("List default or month-specific envelope assignments. For a period, effective=true resolves category overrides over defaults. Maximum 100 per page.")]
+    [Description("List default or month-specific budget amount assignments. For a period, effective=true resolves category overrides over defaults. Maximum 100 per page.")]
     public async Task<FinancePage<MonthlyBudgetToolDto>> Monthly(int? year = null, int? month = null, bool effective = true, int offset = 0, int limit = 100, CancellationToken cancellationToken = default)
     {
         var user = access.RequireRead();
@@ -149,7 +149,7 @@ public sealed class BudgetsTools(McpAccess access, IBudgetService budgets, IMont
 
     /// <summary>Upserts a default monthly assignment.</summary>
     [McpServerTool(Name = "monthly_budgets_set_default", Destructive = true, Idempotent = true, OpenWorld = false)]
-    [Description("Set a category's default envelope amount. Month overrides remain unchanged. Preview monthly_budgets_list first.")]
+    [Description("Set a category's default budget amount. Month overrides remain unchanged. Preview monthly_budgets_list first.")]
     public async Task<MonthlyBudgetToolDto> SetDefault(int categoryId, decimal plannedAmount, bool allowRollover = false, string? notes = null, bool confirmed = false, CancellationToken cancellationToken = default)
     {
         var user = access.RequireWrite(confirmed);
@@ -161,7 +161,7 @@ public sealed class BudgetsTools(McpAccess access, IBudgetService budgets, IMont
 
     /// <summary>Upserts a month-specific assignment.</summary>
     [McpServerTool(Name = "monthly_budgets_set_override", Destructive = true, Idempotent = true, OpenWorld = false)]
-    [Description("Set one month/category envelope override. Preview monthly_budgets_list first.")]
+    [Description("Set one month/category budget amount override. Preview monthly_budgets_list first.")]
     public async Task<MonthlyBudgetToolDto> SetOverride(int categoryId, int year, int month, decimal plannedAmount, bool allowRollover = false, string? notes = null, bool confirmed = false, CancellationToken cancellationToken = default)
     {
         var user = access.RequireWrite(confirmed);
@@ -213,5 +213,5 @@ public sealed record BudgetWriteInput([property: Required, StringLength(100)] st
 public sealed record BudgetToolDto(int Id, string Name, string? Description, bool IsDefault, int? Year, int? Month);
 /// <summary>Category allocation output.</summary>
 public sealed record BudgetAllocationToolDto(int Id, int BudgetId, int CategoryId, decimal PlannedAmount, bool AllowRollover, string? Notes);
-/// <summary>Default or month-specific envelope assignment output.</summary>
+/// <summary>Default or month-specific budget amount assignment output.</summary>
 public sealed record MonthlyBudgetToolDto(int Id, int CategoryId, bool IsDefault, int? Year, int? Month, decimal PlannedAmount, bool AllowRollover, string? Notes);

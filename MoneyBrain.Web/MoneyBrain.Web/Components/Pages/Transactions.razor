@@ -80,6 +80,12 @@
                     @L["Trans_ImportCSV"]
                 </MudButton>
                 <MudButton Variant="Variant.Outlined" 
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="@ExportToCsv">
+                    @L["Trans_ExportCSV"]
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" 
                            Color="Color.Secondary"
                            StartIcon="@Icons.Material.Filled.SwapHoriz"
                            OnClick="@OpenCreateTransferDialog">
